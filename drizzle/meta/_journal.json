@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1773958432502,
+      "tag": "0000_big_eddie_brock",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1773958498269,
+      "tag": "0001_sloppy_wallflower",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1773958567082,
+      "tag": "0002_amusing_harry_osborn",
+      "breakpoints": true
+    }
+  ]
+}

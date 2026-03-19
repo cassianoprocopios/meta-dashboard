@@ -1,0 +1,1 @@
+ALTER TABLE `faturamentos` MODIFY COLUMN `data` varchar(10) NOT NULL;
