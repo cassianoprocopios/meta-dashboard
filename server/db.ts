@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { faturamentos, InsertFaturamento, InsertMeta, InsertUser, metas, users } from "../drizzle/schema";
+import { empresas, faturamentos, InsertEmpresa, InsertFaturamento, InsertMeta, InsertUser, metas, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -80,41 +80,65 @@ export async function getAllUsers() {
 export async function updateUserPerfil(
   userId: number,
   perfil: "gerente" | "operador",
-  empresaVinculada: "MORUMBI" | "MASCOTE" | "SERAPHINE" | null
+  empresaVinculada: string | null
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(users).set({ perfil, empresaVinculada: empresaVinculada ?? undefined }).where(eq(users.id, userId));
 }
 
+// ─── EMPRESAS ─────────────────────────────────────────────────────────────────
+
+export async function getAllEmpresas() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(empresas).where(eq(empresas.ativo, 1)).orderBy(asc(empresas.nome));
+}
+
+export async function getEmpresaBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(empresas).where(eq(empresas.slug, slug)).limit(1);
+  return result[0];
+}
+
+export async function createEmpresa(input: InsertEmpresa) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(empresas).values(input);
+  return { ...input, id: (result as any).insertId };
+}
+
+export async function deactivateEmpresa(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(empresas).set({ ativo: 0 }).where(eq(empresas.id, id));
+}
+
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 
-export async function getFaturamentoByDataEmpresa(
-  data: string,
-  empresa: "MORUMBI" | "MASCOTE" | "SERAPHINE"
-) {
+export async function getFaturamentoByDataEmpresa(data: string, empresaSlug: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db
     .select()
     .from(faturamentos)
-    .where(and(eq(faturamentos.data, data), eq(faturamentos.empresa, empresa)))
+    .where(and(eq(faturamentos.data, data), eq(faturamentos.empresaSlug, empresaSlug)))
     .limit(1);
   return result[0];
 }
 
-export async function getAllFaturamentos(mes: number, ano: number, empresa?: "MORUMBI" | "MASCOTE" | "SERAPHINE") {
+export async function getAllFaturamentos(mes: number, ano: number, empresaSlug?: string) {
   const db = await getDb();
   if (!db) return [];
   const allRows = await db
     .select()
     .from(faturamentos)
-    .orderBy(asc(faturamentos.data), asc(faturamentos.empresa));
+    .orderBy(asc(faturamentos.data), asc(faturamentos.empresaSlug));
   return allRows.filter((row) => {
-    const dataStr = row.data as unknown as string;
-    const [rowAno, rowMes] = dataStr.split("-").map(Number);
+    const [rowAno, rowMes] = row.data.split("-").map(Number);
     const matchesMes = rowMes === mes && rowAno === ano;
-    const matchesEmpresa = empresa ? row.empresa === empresa : true;
+    const matchesEmpresa = empresaSlug ? row.empresaSlug === empresaSlug : true;
     return matchesMes && matchesEmpresa;
   });
 }
@@ -123,18 +147,18 @@ export async function upsertFaturamento(input: InsertFaturamento) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const existing = await getFaturamentoByDataEmpresa(
-    input.data as unknown as string,
-    input.empresa as "MORUMBI" | "MASCOTE" | "SERAPHINE"
+    input.data as string,
+    input.empresaSlug as string
   );
   if (existing) {
     await db
       .update(faturamentos)
       .set({
-        avulso: input.avulso,
-        produtos: input.produtos,
-        servExtra: input.servExtra,
-        lavatorio: input.lavatorio,
-        recorrencia: input.recorrencia,
+        cat1: input.cat1,
+        cat2: input.cat2,
+        cat3: input.cat3,
+        cat4: input.cat4,
+        cat5: input.cat5,
         observacao: input.observacao,
         lancadoPor: input.lancadoPor,
       })
@@ -160,17 +184,13 @@ export async function getMetasByMes(mes: number, ano: number) {
   return db.select().from(metas).where(and(eq(metas.mes, mes), eq(metas.ano, ano)));
 }
 
-export async function getMetaByEmpresaMes(
-  empresa: "MORUMBI" | "MASCOTE" | "SERAPHINE",
-  mes: number,
-  ano: number
-) {
+export async function getMetaByEmpresaMes(empresaSlug: string, mes: number, ano: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db
     .select()
     .from(metas)
-    .where(and(eq(metas.empresa, empresa), eq(metas.mes, mes), eq(metas.ano, ano)))
+    .where(and(eq(metas.empresaSlug, empresaSlug), eq(metas.mes, mes), eq(metas.ano, ano)))
     .limit(1);
   return result[0];
 }
@@ -179,7 +199,7 @@ export async function upsertMeta(input: InsertMeta) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const existing = await getMetaByEmpresaMes(
-    input.empresa as "MORUMBI" | "MASCOTE" | "SERAPHINE",
+    input.empresaSlug as string,
     input.mes as number,
     input.ano as number
   );
@@ -187,6 +207,8 @@ export async function upsertMeta(input: InsertMeta) {
     await db.update(metas).set({
       metaMensal: input.metaMensal,
       metaQuinzenal: input.metaQuinzenal,
+      diasUteis: input.diasUteis,
+      diasUteisQuinzenal: input.diasUteisQuinzenal,
     }).where(eq(metas.id, existing.id));
     return { ...existing, ...input, id: existing.id };
   } else {

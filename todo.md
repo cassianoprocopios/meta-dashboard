@@ -39,3 +39,18 @@
 - [x] Cálculo de dias úteis restantes (até dia 15 e até fim do mês)
 - [x] Alertas atualizados com base em dias úteis restantes
 - [x] Testes das novas procedures
+
+## Evolução v3 - Empresas Dinâmicas, Dias Úteis Manuais e Dashboard Melhorado
+- [x] Criar tabela `empresas` no banco (nome, cor, categorias) gerenciada pelo admin
+- [x] Adicionar campo `diasUteis` e `diasUteisQuinzenal` na tabela `metas` (manual por empresa)
+- [x] Migrar banco de dados
+- [x] Router tRPC: listar, criar e remover empresas (apenas admin)
+- [x] Aba "Empresas" na navegação (apenas admin vê)
+- [x] Formulário de adicionar empresa (nome, cor, tipo de categorias)
+- [x] Botão de remover empresa com confirmação
+- [x] Dias úteis editáveis no formulário de Metas (campo por empresa)
+- [x] Remover card "Dias úteis passados" do dashboard
+- [x] Card de média diária real por empresa no dashboard
+- [x] Cards individuais de meta mensal e quinzenal por empresa
+- [x] Cálculo de meta/dia baseado nos dias úteis manuais da empresa
+- [x] Testes das novas procedures de empresas

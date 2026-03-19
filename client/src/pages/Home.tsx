@@ -3,750 +3,669 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
-  Target,
-  AlertCircle,
-  CheckCircle2,
-  Plus,
-  BarChart3,
-  PieChart,
-  Calendar,
-  Building2,
-  Shield,
-  Lock,
-  CalendarDays,
-} from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
 } from "recharts";
+import {
+  TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
+  CheckCircle2, Clock, Building2, Users, Loader2, LogIn,
+} from "lucide-react";
+import { toast } from "sonner";
+import { getLoginUrl } from "@/const";
 import FaturamentoForm from "@/components/FaturamentoForm";
 import MetaConfig from "@/components/MetaConfig";
-import { Link } from "wouter";
+import AdminUsers from "@/pages/AdminUsers";
+import Empresas from "@/pages/Empresas";
 
 const MESES = [
-  { label: "Janeiro", value: 1 },
-  { label: "Fevereiro", value: 2 },
-  { label: "Março", value: 3 },
-  { label: "Abril", value: 4 },
-  { label: "Maio", value: 5 },
-  { label: "Junho", value: 6 },
-  { label: "Julho", value: 7 },
-  { label: "Agosto", value: 8 },
-  { label: "Setembro", value: 9 },
-  { label: "Outubro", value: 10 },
-  { label: "Novembro", value: 11 },
-  { label: "Dezembro", value: 12 },
+  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const EMPRESA_COLORS: Record<string, string> = {
-  MORUMBI: "#3b82f6",
-  MASCOTE: "#a855f7",
-  SERAPHINE: "#10b981",
-};
-
-const CATEGORIA_COLORS = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
-
-// Rótulos de categorias por empresa
-const LABELS_MORUMBI_MASCOTE: Record<string, string> = {
-  avulso: "Avulso",
-  produtos: "Produtos",
-  servExtra: "Serv. Extra",
-  lavatorio: "Lavatório",
-  recorrencia: "Recorrência",
-};
-
-const LABELS_SERAPHINE: Record<string, string> = {
-  avulso: "Cabelo",
-  servExtra: "Unha",
-  lavatorio: "Outros",
-  produtos: "Produtos",
-  recorrencia: "Recorrência",
-};
-
-function getLabels(empresa: string) {
-  return empresa === "SERAPHINE" ? LABELS_SERAPHINE : LABELS_MORUMBI_MASCOTE;
+function fmt(v: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v);
+}
+function fmtFull(v: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+}
+function pct(v: number, total: number) {
+  if (total === 0) return 0;
+  return Math.round((v / total) * 100);
 }
 
-function fmt(value: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }).format(value);
-}
-
-function fmtK(value: number) {
-  if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}k`;
-  return fmt(value);
-}
-
-// Calcula dias úteis (seg-sáb) num intervalo
-function diasUteis(inicio: Date, fim: Date): number {
-  let count = 0;
-  const cur = new Date(inicio);
-  cur.setHours(0, 0, 0, 0);
-  const end = new Date(fim);
-  end.setHours(0, 0, 0, 0);
-  while (cur <= end) {
-    const dow = cur.getDay();
-    if (dow !== 0) count++; // exclui apenas domingo
-    cur.setDate(cur.getDate() + 1);
-  }
-  return count;
-}
+type Tab = "dashboard" | "lancamentos" | "metas" | "usuarios" | "empresas";
 
 export default function Home() {
   const { user } = useAuth();
-  const isGerente = user?.perfil === "gerente" || user?.role === "admin";
+  const hoje = new Date();
+  const [mes, setMes] = useState(hoje.getMonth() + 1);
+  const [ano] = useState(hoje.getFullYear());
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [showFaturamentoForm, setShowFaturamentoForm] = useState(false);
+  const [editingFaturamento, setEditingFaturamento] = useState<any>(null);
+
   const isAdmin = user?.role === "admin";
-  const empresaVinculada = user?.empresaVinculada as string | undefined;
+  const isGerente = user?.perfil === "gerente" || isAdmin;
+  const empresaVinculada = user?.empresaVinculada ?? null;
 
-  const now = new Date();
-  const [mes, setMes] = useState(now.getMonth() + 1);
-  const [ano] = useState(now.getFullYear());
-  const [showForm, setShowForm] = useState(false);
-  const [editingData, setEditingData] = useState<{ empresa: "MORUMBI" | "MASCOTE" | "SERAPHINE"; data: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "lancamentos" | "metas">("dashboard");
+  // Queries
+  const { data: empresasData = [], isLoading: loadingEmpresas } = trpc.empresa.listar.useQuery();
+  const { data: faturamentosData = [], isLoading: loadingFat, refetch: refetchFat } =
+    trpc.faturamento.listar.useQuery({ mes, ano });
+  const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
+    trpc.meta.listar.useQuery({ mes, ano });
 
-  const { data: faturamentos = [], refetch: refetchFat } = trpc.faturamento.listar.useQuery(
-    { mes, ano },
-    { staleTime: 30_000 }
-  );
+  const deletarFat = trpc.faturamento.deletar.useMutation();
 
-  const { data: metasData = [], refetch: refetchMetas } = trpc.meta.listar.useQuery(
-    { mes, ano },
-    { staleTime: 30_000 }
-  );
+  // Empresas visíveis para este usuário
+  const empresasVisiveis = useMemo(() => {
+    if (!empresaVinculada) return empresasData;
+    return empresasData.filter((e) => e.slug === empresaVinculada);
+  }, [empresasData, empresaVinculada]);
 
-  // ─── Cálculos derivados ──────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    const empresas = ["MORUMBI", "MASCOTE", "SERAPHINE"] as const;
-    const result: Record<string, {
-      total: number; avulso: number; produtos: number; servExtra: number;
-      lavatorio: number; recorrencia: number; dias: number;
-    }> = {};
+  // Calcular totais por empresa
+  const statsPorEmpresa = useMemo(() => {
+    return empresasVisiveis.map((emp) => {
+      const rows = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
+      const total = rows.reduce((s: number, r: any) => {
+        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+          .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
+      }, 0);
+      const diasLancados = rows.length;
+      const mediaDiaria = diasLancados > 0 ? total / diasLancados : 0;
 
-    for (const emp of empresas) {
-      const rows = faturamentos.filter((f) => f.empresa === emp);
-      const totals = rows.reduce(
-        (acc, f) => ({
-          avulso: acc.avulso + parseFloat(String(f.avulso || 0)),
-          produtos: acc.produtos + parseFloat(String(f.produtos || 0)),
-          servExtra: acc.servExtra + parseFloat(String(f.servExtra || 0)),
-          lavatorio: acc.lavatorio + parseFloat(String(f.lavatorio || 0)),
-          recorrencia: acc.recorrencia + parseFloat(String(f.recorrencia || 0)),
-        }),
-        { avulso: 0, produtos: 0, servExtra: 0, lavatorio: 0, recorrencia: 0 }
-      );
-      const total = totals.avulso + totals.produtos + totals.servExtra + totals.lavatorio + totals.recorrencia;
-      result[emp] = { ...totals, total, dias: rows.length };
-    }
-    return result;
-  }, [faturamentos]);
+      const meta = metasData.find((m: any) => m.empresaSlug === emp.slug);
+      const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
+      const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
+      const diasUteis = meta?.diasUteis ?? 26;
+      const diasUteisQuinzenal = meta?.diasUteisQuinzenal ?? 13;
+      const metaDiariaMensal = diasUteis > 0 ? metaMensal / diasUteis : 0;
+      const metaDiariaQuinzenal = diasUteisQuinzenal > 0 ? metaQuinzenal / diasUteisQuinzenal : 0;
 
-  const grandTotal = Object.values(stats).reduce((s, e) => s + e.total, 0);
+      // Dias úteis restantes no mês
+      const diaAtual = hoje.getDate();
+      const diasUteisRestantes = Math.max(0, diasUteis - diasLancados);
+      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - rows.filter((r: any) => {
+        const d = parseInt(r.data.split("-")[2]);
+        return d <= 15;
+      }).length);
 
-  const metas = useMemo(() => {
-    const map: Record<string, { mensal: number; quinzenal: number }> = {
-      MORUMBI: { mensal: 0, quinzenal: 0 },
-      MASCOTE: { mensal: 0, quinzenal: 0 },
-      SERAPHINE: { mensal: 0, quinzenal: 0 },
-    };
-    for (const m of metasData) {
-      map[m.empresa] = {
-        mensal: parseFloat(String(m.metaMensal || 0)),
-        quinzenal: parseFloat(String(m.metaQuinzenal || 0)),
+      // Projeção
+      const projecaoFinal = diasLancados > 0 && diasUteis > 0
+        ? (total / diasLancados) * diasUteis
+        : 0;
+
+      // Totais por categoria
+      const catTotals = [0, 0, 0, 0, 0];
+      rows.forEach((r: any) => {
+        catTotals[0] += parseFloat(r.cat1 || "0");
+        catTotals[1] += parseFloat(r.cat2 || "0");
+        catTotals[2] += parseFloat(r.cat3 || "0");
+        catTotals[3] += parseFloat(r.cat4 || "0");
+        catTotals[4] += parseFloat(r.cat5 || "0");
+      });
+
+      return {
+        emp,
+        total,
+        diasLancados,
+        mediaDiaria,
+        metaMensal,
+        metaQuinzenal,
+        metaDiariaMensal,
+        metaDiariaQuinzenal,
+        diasUteis,
+        diasUteisQuinzenal,
+        diasUteisRestantes,
+        diasUteisRestantesQuinzenal,
+        projecaoFinal,
+        progressoMensal: metaMensal > 0 ? Math.min((total / metaMensal) * 100, 100) : 0,
+        catTotals,
+        rows,
       };
-    }
-    return map;
-  }, [metasData]);
+    });
+  }, [empresasVisiveis, faturamentosData, metasData]);
 
-  const metaTotal = Object.values(metas).reduce((s, v) => s + v.mensal, 0);
-  const metaQuinzenalTotal = Object.values(metas).reduce((s, v) => s + v.quinzenal, 0);
+  const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
+  const metaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.metaMensal, 0);
+  const metaQuinzenalTotal = statsPorEmpresa.reduce((s, e) => s + e.metaQuinzenal, 0);
 
-  // Dias no mês e dia atual
-  const diasNoMes = new Date(ano, mes, 0).getDate();
-  const diaAtual = mes === now.getMonth() + 1 && ano === now.getFullYear() ? now.getDate() : diasNoMes;
+  // Dados para gráfico de barras
+  const barData = useMemo(() => {
+    return empresasVisiveis.map((emp) => {
+      const stats = statsPorEmpresa.find((s) => s.emp.slug === emp.slug)!;
+      if (!stats) return null;
+      const labels = emp.tipoCategorias === "seraphine"
+        ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+        : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+      return {
+        empresa: emp.nome,
+        cor: emp.cor,
+        total: stats.total,
+        meta: stats.metaMensal,
+        mediaDiaria: stats.mediaDiaria,
+        cat: labels.map((l, i) => ({ label: l, valor: stats.catTotals[i] })),
+      };
+    }).filter(Boolean);
+  }, [empresasVisiveis, statsPorEmpresa]);
 
-  // Dias úteis
-  const inicioMes = new Date(ano, mes - 1, 1);
-  const fimMes = new Date(ano, mes - 1, diasNoMes);
-  const dia15 = new Date(ano, mes - 1, 15);
-  const hoje = mes === now.getMonth() + 1 && ano === now.getFullYear() ? now : fimMes;
+  // Dados para gráfico de pizza (por empresa)
+  const pieDataEmpresas = useMemo(() => {
+    return statsPorEmpresa
+      .filter((s) => s.total > 0)
+      .map((s) => ({ name: s.emp.nome, value: s.total, color: s.emp.cor }));
+  }, [statsPorEmpresa]);
 
-  const diasUteisTotal = diasUteis(inicioMes, fimMes);
-  const diasUteisAte15 = diasUteis(inicioMes, dia15);
-  const diasUteisRestantesMes = diasUteis(hoje, fimMes);
-  const diasUteisRestantesQuinzena = hoje <= dia15 ? diasUteis(hoje, dia15) : 0;
-  const diasUteisPassados = diasUteis(inicioMes, hoje);
-
-  // Médias e projeções
-  const metaDiaria = diasUteisTotal > 0 ? metaTotal / diasUteisTotal : 0;
-  const metaDiariaQuinzenal = diasUteisAte15 > 0 ? metaQuinzenalTotal / diasUteisAte15 : 0;
-  const mediaRealizada = diasUteisPassados > 0 ? grandTotal / diasUteisPassados : 0;
-  const projecao = mediaRealizada * diasUteisTotal;
-  const progressoPercent = metaTotal > 0 ? Math.min((grandTotal / metaTotal) * 100, 100) : 0;
-
-  // Faturamento quinzenal (dias 1-15)
-  const totalQuinzenal = faturamentos
-    .filter((f) => {
-      const dia = parseInt((f.data as unknown as string).split("-")[2]);
-      return dia <= 15;
-    })
-    .reduce((s, f) => s + parseFloat(String(f.avulso || 0)) + parseFloat(String(f.produtos || 0)) + parseFloat(String(f.servExtra || 0)) + parseFloat(String(f.lavatorio || 0)) + parseFloat(String(f.recorrencia || 0)), 0);
-
-  const progressoQuinzenal = metaQuinzenalTotal > 0 ? Math.min((totalQuinzenal / metaQuinzenalTotal) * 100, 100) : 0;
-
-  // ─── Dados para gráficos ─────────────────────────────────────────────────
-  const empresasVisiveis = empresaVinculada
-    ? [empresaVinculada]
-    : ["MORUMBI", "MASCOTE", "SERAPHINE"];
-
-  const barDataEmpresas = empresasVisiveis.map((emp) => {
-    const labels = getLabels(emp);
-    return {
-      empresa: emp.charAt(0) + emp.slice(1).toLowerCase(),
-      [labels.avulso]: stats[emp]?.avulso || 0,
-      [labels.produtos]: stats[emp]?.produtos || 0,
-      [labels.servExtra]: stats[emp]?.servExtra || 0,
-      [labels.lavatorio]: stats[emp]?.lavatorio || 0,
-      [labels.recorrencia]: stats[emp]?.recorrencia || 0,
-    };
-  });
-
-  const pieDataEmpresas = empresasVisiveis
-    .filter((emp) => (stats[emp]?.total || 0) > 0)
-    .map((emp) => ({
-      name: emp.charAt(0) + emp.slice(1).toLowerCase(),
-      value: stats[emp]?.total || 0,
-      color: EMPRESA_COLORS[emp],
-    }));
-
-  // Categorias agregadas (usando labels da primeira empresa visível ou genérico)
-  const catKeys = ["avulso", "produtos", "servExtra", "lavatorio", "recorrencia"] as const;
-  const pieDataCategorias = catKeys.map((key) => ({
-    name: key,
-    value: empresasVisiveis.reduce((s, emp) => s + (stats[emp]?.[key] || 0), 0),
-  })).filter((d) => d.value > 0);
-
-  // ─── Alertas ─────────────────────────────────────────────────────────────
+  // Alertas
   const alertas = useMemo(() => {
-    const list: Array<{ type: "success" | "warning" | "info"; title: string; msg: string }> = [];
-
-    if (metaTotal === 0) {
-      list.push({ type: "info", title: "Configure suas metas", msg: "Acesse a aba Metas para definir os valores mensais e quinzenais por empresa." });
-      return list;
-    }
-
-    // Progresso diário
-    if (mediaRealizada >= metaDiaria) {
-      list.push({ type: "success", title: "No caminho certo!", msg: `Média de ${fmt(mediaRealizada)}/dia útil está acima da meta de ${fmt(metaDiaria)}/dia.` });
-    } else {
-      const deficit = metaDiaria - mediaRealizada;
-      const necessario = diasUteisRestantesMes > 0 ? (metaTotal - grandTotal) / diasUteisRestantesMes : 0;
-      list.push({ type: "warning", title: "Abaixo da média diária", msg: `Precisa de ${fmt(necessario)}/dia nos ${diasUteisRestantesMes} dias úteis restantes para atingir a meta.` });
-    }
-
-    // Projeção mensal
-    if (projecao >= metaTotal) {
-      list.push({ type: "success", title: "Projeção mensal positiva", msg: `Projeção de ${fmt(projecao)} supera a meta de ${fmt(metaTotal)}.` });
-    } else {
-      list.push({ type: "warning", title: "Projeção abaixo da meta", msg: `Projeção de ${fmt(projecao)} está ${fmt(metaTotal - projecao)} abaixo da meta mensal.` });
-    }
-
-    // Quinzenal
-    if (metaQuinzenalTotal > 0 && hoje <= dia15) {
-      if (totalQuinzenal >= metaQuinzenalTotal) {
-        list.push({ type: "success", title: "Meta quinzenal atingida!", msg: `${fmt(totalQuinzenal)} superou a meta de ${fmt(metaQuinzenalTotal)}.` });
-      } else {
-        const necQ = diasUteisRestantesQuinzena > 0 ? (metaQuinzenalTotal - totalQuinzenal) / diasUteisRestantesQuinzena : 0;
-        list.push({ type: "warning", title: "Meta quinzenal em risco", msg: `Precisa de ${fmt(necQ)}/dia nos ${diasUteisRestantesQuinzena} dias úteis restantes até o dia 15.` });
+    const list: { tipo: "warning" | "success" | "info"; msg: string }[] = [];
+    statsPorEmpresa.forEach((s) => {
+      if (s.metaMensal === 0) return;
+      const progresso = s.total / s.metaMensal;
+      const diasPassados = s.diasLancados;
+      const esperado = s.diasLancados > 0 ? (s.diasLancados / s.diasUteis) : 0;
+      if (progresso < esperado * 0.85 && diasPassados > 0) {
+        const faltaDia = s.metaDiariaMensal - s.mediaDiaria;
+        list.push({
+          tipo: "warning",
+          msg: `${s.emp.nome}: média diária R$ ${fmt(s.mediaDiaria)} — precisa de +${fmt(faltaDia)}/dia para atingir a meta.`,
+        });
+      } else if (progresso >= 1) {
+        list.push({ tipo: "success", msg: `${s.emp.nome}: Meta mensal atingida!` });
+      } else if (diasPassados > 0) {
+        list.push({ tipo: "info", msg: `${s.emp.nome}: No caminho certo. Média ${fmt(s.mediaDiaria)}/dia.` });
       }
+      // Quinzenal
+      if (s.metaQuinzenal > 0 && mes === hoje.getMonth() + 1 && hoje.getDate() <= 15) {
+        const totalQuinzenal = s.rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15)
+          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        if (totalQuinzenal < s.metaQuinzenal * 0.8 && s.diasUteisRestantesQuinzenal === 0) {
+          list.push({ tipo: "warning", msg: `${s.emp.nome}: Meta quinzenal não atingida (${fmt(totalQuinzenal)} de ${fmt(s.metaQuinzenal)}).` });
+        }
+      }
+    });
+    if (list.length === 0 && totalGeral > 0) {
+      list.push({ tipo: "success", msg: "Todas as unidades estão no caminho certo!" });
     }
-
     return list;
-  }, [metaTotal, metaQuinzenalTotal, metaDiaria, mediaRealizada, projecao, grandTotal, totalQuinzenal, diasUteisRestantesMes, diasUteisRestantesQuinzena, hoje, dia15]);
+  }, [statsPorEmpresa, totalGeral]);
 
-  // ─── Datas com lançamentos ────────────────────────────────────────────────
-  const datasComLancamentos = useMemo(() => {
-    const set = new Set(faturamentos.map((f) => f.data as unknown as string));
-    return Array.from(set).sort().reverse();
-  }, [faturamentos]);
-
-  const mesLabel = MESES.find((m) => m.value === mes)?.label || "";
-
-  // Rótulos de categorias para o gráfico de pizza (usa labels da empresa visível ou genérico)
-  const getCatLabel = (key: string) => {
-    if (empresasVisiveis.length === 1) {
-      return getLabels(empresasVisiveis[0])[key] || key;
+  const handleDeleteFat = async (id: number) => {
+    try {
+      await deletarFat.mutateAsync({ id });
+      toast.success("Lançamento removido.");
+      refetchFat();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao remover.");
     }
-    return { avulso: "Avulso/Cabelo", produtos: "Produtos", servExtra: "Serv.Extra/Unha", lavatorio: "Lavatório/Outros", recorrencia: "Recorrência" }[key] || key;
   };
 
+  const loading = loadingEmpresas || loadingFat || loadingMetas;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900 leading-tight">Meta Dashboard</h1>
+                <h1 className="text-base font-bold text-slate-900">Meta Dashboard</h1>
                 <p className="text-xs text-slate-500">
                   {empresaVinculada
-                    ? `${empresaVinculada.charAt(0) + empresaVinculada.slice(1).toLowerCase()} · ${user?.perfil || "operador"}`
+                    ? empresasData.find((e) => e.slug === empresaVinculada)?.nome ?? empresaVinculada
                     : "Todas as Unidades"}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-slate-100 rounded-lg px-3 py-1.5">
-                <Calendar className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-700">{mesLabel} {ano}</span>
-              </div>
+              {/* Seletor de mês */}
+              <select
+                value={mes}
+                onChange={(e) => setMes(Number(e.target.value))}
+                className="text-sm border border-slate-200 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {MESES.map((m, i) => (
+                  <option key={i} value={i + 1}>{m} {ano}</option>
+                ))}
+              </select>
               {isAdmin && (
-                <Link href="/admin/usuarios">
-                  <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-slate-200">
-                    <Shield className="w-4 h-4" /> Usuários
-                  </Button>
-                </Link>
+                <button
+                  onClick={() => setActiveTab("usuarios")}
+                  className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
+                >
+                  <Users className="w-4 h-4" /> Usuários
+                </button>
               )}
-              {isGerente ? (
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab("empresas")}
+                  className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
+                >
+                  <Building2 className="w-4 h-4" /> Empresas
+                </button>
+              )}
+              {isGerente && (
                 <Button
-                  onClick={() => { setShowForm(true); setEditingData(null); }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2 rounded-xl"
+                  onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
                   size="sm"
                 >
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
-              ) : (
-                <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-xs font-medium">
-                  <Lock className="w-3.5 h-3.5" /> Somente leitura
-                </div>
+              )}
+              {!user && (
+                <a href={getLoginUrl()} className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
+                  <LogIn className="w-4 h-4" /> Entrar
+                </a>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Seletor de Mês */}
-        <div className="mb-6 flex gap-2 flex-wrap">
-          {MESES.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => setMes(m.value)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                mes === m.value
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-          <TabsList className="bg-white border border-slate-200 rounded-xl p-1">
-            <TabsTrigger value="dashboard" className="rounded-lg gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
-              <BarChart3 className="w-4 h-4" /> Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="lancamentos" className="rounded-lg gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
-              <Building2 className="w-4 h-4" /> Lançamentos
-            </TabsTrigger>
-            <TabsTrigger value="metas" className="rounded-lg gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
-              <Target className="w-4 h-4" /> Metas
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* ─── DASHBOARD ─────────────────────────────────────────────────── */}
-        {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            {/* KPIs principais */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="p-5 border-0 shadow-sm bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl">
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wide">Faturado no Mês</p>
-                <p className="text-2xl font-bold mt-1">{fmtK(grandTotal)}</p>
-                <p className="text-blue-200 text-xs mt-1">{datasComLancamentos.length} dias lançados</p>
-              </Card>
-              <Card className="p-5 border-0 shadow-sm bg-gradient-to-br from-slate-700 to-slate-900 text-white rounded-2xl">
-                <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Meta Mensal</p>
-                <p className="text-2xl font-bold mt-1">{fmtK(metaTotal)}</p>
-                <p className="text-slate-400 text-xs mt-1">{diasUteisTotal} dias úteis</p>
-              </Card>
-              <Card className="p-5 border-0 shadow-sm bg-white rounded-2xl border border-slate-100">
-                <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Média/Dia Útil</p>
-                <p className="text-2xl font-bold mt-1 text-slate-900">{fmtK(mediaRealizada)}</p>
-                <p className={`text-xs mt-1 font-medium ${mediaRealizada >= metaDiaria ? "text-emerald-600" : "text-orange-500"}`}>
-                  Meta: {fmtK(metaDiaria)}/dia
-                </p>
-              </Card>
-              <Card className="p-5 border-0 shadow-sm bg-white rounded-2xl border border-slate-100">
-                <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Projeção Final</p>
-                <p className="text-2xl font-bold mt-1 text-slate-900">{fmtK(projecao)}</p>
-                <p className={`text-xs mt-1 font-medium ${projecao >= metaTotal ? "text-emerald-600" : "text-orange-500"}`}>
-                  {projecao >= metaTotal ? "Acima da meta" : `Falta ${fmtK(metaTotal - projecao)}`}
-                </p>
-              </Card>
-            </div>
-
-            {/* Dias Úteis */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 border-0 shadow-sm rounded-2xl bg-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <CalendarDays className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">Dias úteis no mês</p>
-                  <p className="text-xl font-bold text-slate-900">{diasUteisTotal}</p>
-                </div>
-              </Card>
-              <Card className="p-4 border-0 shadow-sm rounded-2xl bg-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                  <CalendarDays className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">Dias úteis passados</p>
-                  <p className="text-xl font-bold text-slate-900">{diasUteisPassados}</p>
-                </div>
-              </Card>
-              <Card className="p-4 border-0 shadow-sm rounded-2xl bg-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                  <CalendarDays className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">Restantes no mês</p>
-                  <p className="text-xl font-bold text-slate-900">{diasUteisRestantesMes}</p>
-                </div>
-              </Card>
-              <Card className="p-4 border-0 shadow-sm rounded-2xl bg-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
-                  <CalendarDays className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">Restantes até dia 15</p>
-                  <p className="text-xl font-bold text-slate-900">{diasUteisRestantesQuinzena}</p>
-                </div>
-              </Card>
-            </div>
-
-            {/* Barras de progresso */}
-            {metaTotal > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Progresso Mensal */}
-                <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Meta Mensal</h3>
-                      <p className="text-xs text-slate-500">{mesLabel} {ano}</p>
-                    </div>
-                    <span className={`text-2xl font-bold ${progressoPercent >= 100 ? "text-emerald-600" : progressoPercent >= 70 ? "text-blue-600" : "text-orange-500"}`}>
-                      {progressoPercent.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        progressoPercent >= 100 ? "bg-gradient-to-r from-emerald-400 to-emerald-600" :
-                        progressoPercent >= 70 ? "bg-gradient-to-r from-blue-400 to-blue-600" :
-                        "bg-gradient-to-r from-orange-400 to-orange-600"
-                      }`}
-                      style={{ width: `${Math.min(progressoPercent, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-slate-500">
-                    <span>{fmt(grandTotal)}</span>
-                    <span>Meta: {fmt(metaTotal)}</span>
-                  </div>
-                </Card>
-
-                {/* Progresso Quinzenal */}
-                {metaQuinzenalTotal > 0 && (
-                  <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-slate-900">Meta Quinzenal</h3>
-                        <p className="text-xs text-slate-500">Dias 1–15 de {mesLabel}</p>
-                      </div>
-                      <span className={`text-2xl font-bold ${progressoQuinzenal >= 100 ? "text-emerald-600" : progressoQuinzenal >= 70 ? "text-purple-600" : "text-orange-500"}`}>
-                        {progressoQuinzenal.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          progressoQuinzenal >= 100 ? "bg-gradient-to-r from-emerald-400 to-emerald-600" :
-                          progressoQuinzenal >= 70 ? "bg-gradient-to-r from-purple-400 to-purple-600" :
-                          "bg-gradient-to-r from-orange-400 to-orange-600"
-                        }`}
-                        style={{ width: `${Math.min(progressoQuinzenal, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-2 text-xs text-slate-500">
-                      <span>{fmt(totalQuinzenal)}</span>
-                      <span>Meta: {fmt(metaQuinzenalTotal)}</span>
-                    </div>
-                  </Card>
-                )}
-              </div>
-            )}
-
-            {/* Alertas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {alertas.map((a, i) => (
-                <Card
-                  key={i}
-                  className={`p-4 border-0 shadow-sm rounded-2xl flex items-start gap-3 ${
-                    a.type === "success" ? "bg-emerald-50" : a.type === "warning" ? "bg-orange-50" : "bg-blue-50"
+      {/* Tabs */}
+      <div className="bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 py-2">
+            {(["dashboard", "lancamentos", "metas"] as Tab[]).map((tab) => {
+              const labels: Record<Tab, string> = {
+                dashboard: "Dashboard",
+                lancamentos: "Lançamentos",
+                metas: "Metas",
+                usuarios: "Usuários",
+                empresas: "Empresas",
+              };
+              const icons: Record<Tab, React.ReactNode> = {
+                dashboard: <TrendingUp className="w-4 h-4" />,
+                lancamentos: <Calendar className="w-4 h-4" />,
+                metas: <Target className="w-4 h-4" />,
+                usuarios: <Users className="w-4 h-4" />,
+                empresas: <Building2 className="w-4 h-4" />,
+              };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    activeTab === tab
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  {a.type === "success" ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${a.type === "warning" ? "text-orange-500" : "text-blue-500"}`} />
-                  )}
-                  <div>
-                    <p className={`font-semibold text-sm ${a.type === "success" ? "text-emerald-800" : a.type === "warning" ? "text-orange-800" : "text-blue-800"}`}>
-                      {a.title}
-                    </p>
-                    <p className={`text-xs mt-0.5 ${a.type === "success" ? "text-emerald-700" : a.type === "warning" ? "text-orange-700" : "text-blue-700"}`}>
-                      {a.msg}
-                    </p>
+                  {icons[tab]} {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading && activeTab === "dashboard" && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          </div>
+        )}
+
+        {/* ─── DASHBOARD ─────────────────────────────────────────────────────── */}
+        {activeTab === "dashboard" && !loading && (
+          <div className="space-y-6">
+            {/* KPIs Gerais */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Faturado no Mês</p>
+                <p className="text-2xl font-bold mt-1">{fmt(totalGeral)}</p>
+                <p className="text-xs opacity-70 mt-1">{faturamentosData.length} dias lançados</p>
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Meta Mensal Total</p>
+                <p className="text-2xl font-bold mt-1">{fmt(metaTotalGeral)}</p>
+                {metaQuinzenalTotal > 0 && (
+                  <p className="text-xs opacity-70 mt-1">Quinzenal: {fmt(metaQuinzenalTotal)}</p>
+                )}
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Progresso Geral</p>
+                <p className="text-2xl font-bold mt-1 text-slate-900">
+                  {metaTotalGeral > 0 ? `${pct(totalGeral, metaTotalGeral)}%` : "—"}
+                </p>
+                {metaTotalGeral > 0 && (
+                  <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(pct(totalGeral, metaTotalGeral), 100)}%`,
+                        backgroundColor: pct(totalGeral, metaTotalGeral) >= 100 ? "#10b981" : "#3b82f6",
+                      }}
+                    />
                   </div>
+                )}
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Falta para Meta</p>
+                <p className={`text-2xl font-bold mt-1 ${totalGeral >= metaTotalGeral ? "text-emerald-600" : "text-slate-900"}`}>
+                  {metaTotalGeral > 0
+                    ? totalGeral >= metaTotalGeral
+                      ? "Atingida!"
+                      : fmt(metaTotalGeral - totalGeral)
+                    : "—"}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {metaTotalGeral > 0 && totalGeral < metaTotalGeral ? "restante" : ""}
+                </p>
+              </Card>
+            </div>
+
+            {/* Cards por Empresa */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {statsPorEmpresa.map((s) => (
+                <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-white overflow-hidden relative">
+                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: s.emp.cor }} />
+                  <div className="flex items-center gap-2 mb-4 mt-1">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: s.emp.cor + "20" }}>
+                      <Building2 className="w-4 h-4" style={{ color: s.emp.cor }} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{s.emp.nome}</h3>
+                      <p className="text-xs text-slate-500">{s.diasLancados} dias lançados</p>
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-lg font-bold text-slate-900">{fmt(s.total)}</p>
+                    </div>
+                  </div>
+
+                  {/* Progresso mensal */}
+                  {s.metaMensal > 0 && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-slate-500">Meta Mensal: {fmt(s.metaMensal)}</span>
+                        <span className="font-semibold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${s.progressoMensal}%`, backgroundColor: s.emp.cor }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-50 rounded-xl p-2.5">
+                      <p className="text-xs text-slate-500">Média Diária Real</p>
+                      <p className="text-sm font-bold text-slate-900">{fmt(s.mediaDiaria)}</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-2.5">
+                      <p className="text-xs text-slate-500">Meta/Dia ({s.diasUteis}d úteis)</p>
+                      <p className="text-sm font-bold text-slate-900">{s.metaDiariaMensal > 0 ? fmt(s.metaDiariaMensal) : "—"}</p>
+                    </div>
+                    {s.metaQuinzenal > 0 && (
+                      <div className="bg-purple-50 rounded-xl p-2.5">
+                        <p className="text-xs text-purple-500">Meta Quinzenal</p>
+                        <p className="text-sm font-bold text-purple-700">{fmt(s.metaQuinzenal)}</p>
+                      </div>
+                    )}
+                    {s.metaQuinzenal > 0 && (
+                      <div className="bg-purple-50 rounded-xl p-2.5">
+                        <p className="text-xs text-purple-500">Meta/Dia Quinz. ({s.diasUteisQuinzenal}d)</p>
+                        <p className="text-sm font-bold text-purple-700">{fmt(s.metaDiariaQuinzenal)}</p>
+                      </div>
+                    )}
+                    <div className="bg-slate-50 rounded-xl p-2.5">
+                      <p className="text-xs text-slate-500">Dias úteis restantes</p>
+                      <p className="text-sm font-bold text-slate-900">{s.diasUteisRestantes}</p>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-2.5">
+                      <p className="text-xs text-slate-500">Projeção Final</p>
+                      <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-600" : "text-slate-900"}`}>
+                        {s.projecaoFinal > 0 ? fmt(s.projecaoFinal) : "—"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Indicador de status */}
+                  {s.mediaDiaria > 0 && s.metaDiariaMensal > 0 && (
+                    <div className={`mt-3 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg ${
+                      s.mediaDiaria >= s.metaDiariaMensal
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-orange-50 text-orange-700"
+                    }`}>
+                      {s.mediaDiaria >= s.metaDiariaMensal
+                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo</>
+                        : <><TrendingDown className="w-3.5 h-3.5" /> Precisa melhorar {fmt(s.metaDiariaMensal - s.mediaDiaria)}/dia</>
+                      }
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>
 
-            {/* Cards por empresa */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {empresasVisiveis.map((emp) => {
-                const s = stats[emp] || { total: 0, avulso: 0, produtos: 0, servExtra: 0, lavatorio: 0, recorrencia: 0, dias: 0 };
-                const metaEmp = metas[emp]?.mensal || 0;
-                const metaQEmp = metas[emp]?.quinzenal || 0;
-                const pct = metaEmp > 0 ? Math.min((s.total / metaEmp) * 100, 100) : 0;
-                const labels = getLabels(emp);
-
-                return (
-                  <Card key={emp} className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: EMPRESA_COLORS[emp] }} />
-                        <h3 className="font-semibold text-slate-900">{emp.charAt(0) + emp.slice(1).toLowerCase()}</h3>
-                      </div>
-                      <Badge variant="outline" className="text-xs">{s.dias} dias</Badge>
+            {/* Alertas */}
+            {alertas.length > 0 && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-500" /> Alertas
+                </h3>
+                <div className="space-y-2">
+                  {alertas.map((a, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-start gap-2.5 p-3 rounded-xl text-sm ${
+                        a.tipo === "warning" ? "bg-orange-50 text-orange-800" :
+                        a.tipo === "success" ? "bg-emerald-50 text-emerald-800" :
+                        "bg-blue-50 text-blue-800"
+                      }`}
+                    >
+                      {a.tipo === "warning" ? <TrendingDown className="w-4 h-4 mt-0.5 flex-shrink-0" /> :
+                       a.tipo === "success" ? <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" /> :
+                       <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />}
+                      {a.msg}
                     </div>
-                    <p className="text-2xl font-bold text-slate-900 mb-1">{fmt(s.total)}</p>
-                    {metaEmp > 0 && (
-                      <>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: EMPRESA_COLORS[emp] }} />
-                        </div>
-                        <p className="text-xs text-slate-500 mb-2">{pct.toFixed(1)}% da meta mensal {fmt(metaEmp)}</p>
-                      </>
-                    )}
-                    {metaQEmp > 0 && (
-                      <p className="text-xs text-purple-600 font-medium mb-2">Meta quinzenal: {fmt(metaQEmp)}</p>
-                    )}
-                    <div className="mt-2 space-y-1 text-xs text-slate-600">
-                      <div className="flex justify-between"><span>{labels.avulso}</span><span className="font-medium">{fmt(s.avulso)}</span></div>
-                      <div className="flex justify-between"><span>{labels.produtos}</span><span className="font-medium">{fmt(s.produtos)}</span></div>
-                      <div className="flex justify-between"><span>{labels.servExtra}</span><span className="font-medium">{fmt(s.servExtra)}</span></div>
-                      <div className="flex justify-between"><span>{labels.lavatorio}</span><span className="font-medium">{fmt(s.lavatorio)}</span></div>
-                      <div className="flex justify-between"><span>{labels.recorrencia}</span><span className="font-medium">{fmt(s.recorrencia)}</span></div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             {/* Gráficos */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-6 border-0 shadow-sm rounded-2xl bg-white">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-blue-600" /> Faturamento por Empresa e Categoria
-                </h3>
-                {faturamentos.length === 0 ? (
-                  <div className="h-64 flex items-center justify-center text-slate-400 text-sm">Nenhum dado lançado para {mesLabel}</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={barDataEmpresas} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            {totalGeral > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico de barras por empresa */}
+                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                  <h3 className="font-semibold text-slate-900 mb-4">Faturamento vs Meta por Empresa</h3>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart data={barData as any[]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="empresa" tick={{ fontSize: 12, fill: "#64748b" }} />
-                      <YAxis tickFormatter={(v) => fmtK(v)} tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                      <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} />
-                      <Legend wrapperStyle={{ fontSize: "12px" }} />
-                      {Object.keys(barDataEmpresas[0] || {}).filter(k => k !== "empresa").map((key, i) => (
-                        <Bar key={key} dataKey={key} stackId="a" fill={CATEGORIA_COLORS[i % CATEGORIA_COLORS.length]}
-                          radius={i === Object.keys(barDataEmpresas[0] || {}).filter(k => k !== "empresa").length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]} />
-                      ))}
+                      <XAxis dataKey="empresa" tick={{ fontSize: 11, fill: "#64748b" }} />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip formatter={(v: any) => fmtFull(v)} />
+                      <Bar dataKey="total" name="Faturado" radius={[4, 4, 0, 0]}>
+                        {(barData as any[]).map((entry: any, index: number) => (
+                          <Cell key={index} fill={entry?.cor ?? "#3b82f6"} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                )}
-              </Card>
+                </Card>
 
-              <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-blue-600" /> Composição por Empresa
-                </h3>
-                {pieDataEmpresas.length === 0 ? (
-                  <div className="h-64 flex items-center justify-center text-slate-400 text-sm">Sem dados</div>
-                ) : (
-                  <>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <RechartsPie>
-                        <Pie data={pieDataEmpresas} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                          {pieDataEmpresas.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                {/* Gráfico de pizza por empresa */}
+                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                  <h3 className="font-semibold text-slate-900 mb-4">Composição do Faturamento</h3>
+                  {pieDataEmpresas.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={240}>
+                      <PieChart>
+                        <Pie
+                          data={pieDataEmpresas}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
+                        >
+                          {pieDataEmpresas.map((entry, index) => (
+                            <Cell key={index} fill={entry.color} />
+                          ))}
                         </Pie>
-                        <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} />
-                      </RechartsPie>
+                        <Tooltip formatter={(v: any) => fmtFull(v)} />
+                        <Legend />
+                      </PieChart>
                     </ResponsiveContainer>
-                    <div className="space-y-2 mt-2">
-                      {pieDataEmpresas.map((d) => (
-                        <div key={d.name} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                            <span className="text-slate-600">{d.name}</span>
-                          </div>
-                          <span className="font-semibold text-slate-900">{grandTotal > 0 ? ((d.value / grandTotal) * 100).toFixed(1) : 0}%</span>
-                        </div>
-                      ))}
+                  ) : (
+                    <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
+                      Sem dados para exibir
                     </div>
-                  </>
-                )}
-              </Card>
-            </div>
+                  )}
+                </Card>
+              </div>
+            )}
 
-            {/* Pizza por categoria */}
-            {pieDataCategorias.length > 0 && (
-              <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-purple-600" /> Composição por Categoria de Receita
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={220}>
-                    <RechartsPie>
-                      <Pie data={pieDataCategorias} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value">
-                        {pieDataCategorias.map((_, i) => <Cell key={i} fill={CATEGORIA_COLORS[i % CATEGORIA_COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} />
-                    </RechartsPie>
-                  </ResponsiveContainer>
-                  <div className="flex flex-col justify-center space-y-3">
-                    {pieDataCategorias.map((d, i) => (
-                      <div key={d.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: CATEGORIA_COLORS[i % CATEGORIA_COLORS.length] }} />
-                          <span className="text-sm text-slate-600">{getCatLabel(d.name)}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-slate-900">{fmt(d.value)}</p>
-                          <p className="text-xs text-slate-400">{grandTotal > 0 ? ((d.value / grandTotal) * 100).toFixed(1) : 0}%</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* Gráficos de categorias por empresa */}
+            {totalGeral > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {statsPorEmpresa.filter((s) => s.total > 0).map((s) => {
+                  const labels = s.emp.tipoCategorias === "seraphine"
+                    ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                    : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+                  const pieData = labels
+                    .map((l, i) => ({ name: l, value: s.catTotals[i] }))
+                    .filter((d) => d.value > 0);
+                  const COLORS = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
+                  return (
+                    <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                      <h3 className="font-semibold text-slate-900 mb-3 text-sm">{s.emp.nome} — Categorias</h3>
+                      {pieData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={180}>
+                          <PieChart>
+                            <Pie data={pieData} cx="50%" cy="50%" outerRadius={65} dataKey="value" paddingAngle={2}>
+                              {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip formatter={(v: any) => fmtFull(v)} />
+                            <Legend iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-32 text-slate-400 text-xs">Sem dados</div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {totalGeral === 0 && !loading && (
+              <Card className="p-10 border-0 shadow-sm rounded-2xl bg-white text-center">
+                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">Nenhum lançamento em {MESES[mes - 1]} {ano}</p>
+                {isGerente && (
+                  <Button
+                    onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Primeiro Lançamento
+                  </Button>
+                )}
               </Card>
             )}
           </div>
         )}
 
-        {/* ─── LANÇAMENTOS ──────────────────────────────────────────────── */}
+        {/* ─── LANÇAMENTOS ───────────────────────────────────────────────────── */}
         {activeTab === "lancamentos" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Lançamentos de {mesLabel} {ano}</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Lançamentos — {MESES[mes - 1]} {ano}
+              </h2>
               {isGerente && (
-                <Button onClick={() => { setShowForm(true); setEditingData(null); }} className="bg-blue-600 hover:bg-blue-700 text-white gap-2 rounded-xl" size="sm">
+                <Button
+                  onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                  size="sm"
+                >
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
               )}
             </div>
 
-            {datasComLancamentos.length === 0 ? (
-              <Card className="p-12 border-0 shadow-sm rounded-2xl bg-white text-center">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
-                  <BarChart3 className="w-8 h-8 text-blue-400" />
-                </div>
-                <h3 className="font-semibold text-slate-900 mb-2">Nenhum lançamento em {mesLabel}</h3>
-                <p className="text-slate-500 text-sm mb-4">Comece adicionando os faturamentos diários das empresas.</p>
-                {isGerente && (
-                  <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-                    <Plus className="w-4 h-4 mr-2" /> Primeiro Lançamento
-                  </Button>
-                )}
+            {loadingFat ? (
+              <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+            ) : faturamentosData.length === 0 ? (
+              <Card className="p-8 border-0 shadow-sm rounded-2xl bg-white text-center">
+                <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-500">Nenhum lançamento neste mês.</p>
               </Card>
             ) : (
-              datasComLancamentos.map((data) => {
-                const rowsNaData = faturamentos.filter((f) => (f.data as unknown as string) === data);
-                const [, , dia] = data.split("-");
-                const dataFormatada = new Date(data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
-                const totalDia = rowsNaData.reduce((s, f) =>
-                  s + parseFloat(String(f.avulso || 0)) + parseFloat(String(f.produtos || 0)) + parseFloat(String(f.servExtra || 0)) + parseFloat(String(f.lavatorio || 0)) + parseFloat(String(f.recorrencia || 0)), 0);
-
+              empresasVisiveis.map((emp) => {
+                const rows = faturamentosData
+                  .filter((f: any) => f.empresaSlug === emp.slug)
+                  .sort((a: any, b: any) => b.data.localeCompare(a.data));
+                if (rows.length === 0) return null;
+                const labels = emp.tipoCategorias === "seraphine"
+                  ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                  : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                 return (
-                  <Card key={data} className="border-0 shadow-sm rounded-2xl bg-white overflow-hidden">
-                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <span className="text-sm font-bold text-blue-700">{dia}</span>
-                        </div>
-                        <span className="text-sm font-medium text-slate-700 capitalize">{dataFormatada}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-slate-900">{fmt(totalDia)}</span>
-                        {isGerente && (
-                          <Button size="sm" variant="outline" className="text-xs rounded-lg"
-                            onClick={() => { setEditingData({ empresa: rowsNaData[0]?.empresa as any, data }); setShowForm(true); }}>
-                            Editar
-                          </Button>
-                        )}
-                      </div>
+                  <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-white overflow-hidden">
+                    <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: emp.cor }} />
+                      <h3 className="font-semibold text-slate-900">{emp.nome}</h3>
+                      <span className="ml-auto text-xs text-slate-500">{rows.length} registros</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-slate-100">
-                            <th className="text-left py-2.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa</th>
-                            <th className="text-right py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avulso/Cabelo</th>
-                            <th className="text-right py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Produtos</th>
-                            <th className="text-right py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Serv.Extra/Unha</th>
-                            <th className="text-right py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Lav./Outros</th>
-                            <th className="text-right py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Recorrência</th>
-                            <th className="text-right py-2.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</th>
+                          <tr className="bg-slate-50">
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Data</th>
+                            {labels.map((l) => (
+                              <th key={l} className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">{l}</th>
+                            ))}
+                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</th>
+                            {isGerente && <th className="px-4 py-2.5" />}
                           </tr>
                         </thead>
                         <tbody>
-                          {rowsNaData.map((row) => {
-                            const total = parseFloat(String(row.avulso || 0)) + parseFloat(String(row.produtos || 0)) + parseFloat(String(row.servExtra || 0)) + parseFloat(String(row.lavatorio || 0)) + parseFloat(String(row.recorrencia || 0));
+                          {rows.map((row: any) => {
+                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5].map((v: any) => parseFloat(v || "0"));
+                            const total = cats.reduce((a: number, b: number) => a + b, 0);
+                            const [, , dia] = row.data.split("-");
                             return (
-                              <tr key={row.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                <td className="py-3 px-5">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: EMPRESA_COLORS[row.empresa] }} />
-                                    <span className="font-medium text-slate-800">{row.empresa.charAt(0) + row.empresa.slice(1).toLowerCase()}</span>
-                                  </div>
+                              <tr key={row.id} className="border-t border-slate-50 hover:bg-slate-50 transition-colors">
+                                <td className="px-4 py-3 font-medium text-slate-900">
+                                  {parseInt(dia)}/{mes.toString().padStart(2, "0")}
                                 </td>
-                                <td className="py-3 px-3 text-right text-slate-700">{fmt(parseFloat(String(row.avulso || 0)))}</td>
-                                <td className="py-3 px-3 text-right text-slate-700">{fmt(parseFloat(String(row.produtos || 0)))}</td>
-                                <td className="py-3 px-3 text-right text-slate-700">{fmt(parseFloat(String(row.servExtra || 0)))}</td>
-                                <td className="py-3 px-3 text-right text-slate-700">{fmt(parseFloat(String(row.lavatorio || 0)))}</td>
-                                <td className="py-3 px-3 text-right text-slate-700">{fmt(parseFloat(String(row.recorrencia || 0)))}</td>
-                                <td className="py-3 px-5 text-right font-bold text-slate-900">{fmt(total)}</td>
+                                {cats.map((v: number, i: number) => (
+                                  <td key={i} className="px-4 py-3 text-right text-slate-700">
+                                    {v > 0 ? fmt(v) : <span className="text-slate-300">—</span>}
+                                  </td>
+                                ))}
+                                <td className="px-4 py-3 text-right font-bold text-slate-900">{fmt(total)}</td>
+                                {isGerente && (
+                                  <td className="px-4 py-3 text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <button
+                                        onClick={() => { setEditingFaturamento({ ...row, empresaSlug: emp.slug }); setShowFaturamentoForm(true); }}
+                                        className="text-xs text-blue-600 hover:underline px-2 py-1 rounded-lg hover:bg-blue-50"
+                                      >
+                                        Editar
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteFat(row.id)}
+                                        className="text-xs text-red-500 hover:underline px-2 py-1 rounded-lg hover:bg-red-50"
+                                      >
+                                        Excluir
+                                      </button>
+                                    </div>
+                                  </td>
+                                )}
                               </tr>
                             );
                           })}
@@ -760,22 +679,56 @@ export default function Home() {
           </div>
         )}
 
-        {/* ─── METAS ────────────────────────────────────────────────────── */}
+        {/* ─── METAS ─────────────────────────────────────────────────────────── */}
         {activeTab === "metas" && (
-          <MetaConfig mes={mes} ano={ano} mesLabel={mesLabel} metasData={metasData} onSaved={refetchMetas} empresaVinculada={empresaVinculada} isGerente={isGerente} />
+          <MetaConfig
+            mes={mes}
+            ano={ano}
+            mesLabel={MESES[mes - 1]}
+            metasData={metasData as any[]}
+            empresasData={empresasVisiveis}
+            onSaved={refetchMetas}
+            empresaVinculada={empresaVinculada}
+            isGerente={isGerente}
+          />
         )}
+
+        {/* ─── USUÁRIOS ──────────────────────────────────────────────────────── */}
+        {activeTab === "usuarios" && isAdmin && (
+          <AdminUsers empresasData={empresasData} />
+        )}
+
+        {/* ─── EMPRESAS ──────────────────────────────────────────────────────── */}
+        {activeTab === "empresas" && isAdmin && <Empresas />}
       </main>
 
-      {/* Modal de Lançamento */}
-      {showForm && (
-        <FaturamentoForm
-          mes={mes}
-          ano={ano}
-          initialData={editingData}
-          existingData={faturamentos as any}
-          onClose={() => setShowForm(false)}
-          onSaved={() => { refetchFat(); setShowForm(false); }}
-        />
+      {/* Modal de lançamento */}
+      {showFaturamentoForm && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                {editingFaturamento ? "Editar Lançamento" : "Novo Lançamento"}
+              </h2>
+              <FaturamentoForm
+                mes={mes}
+                ano={ano}
+                empresas={empresasVisiveis}
+                empresaVinculada={empresaVinculada}
+                initialData={editingFaturamento}
+                onSaved={() => {
+                  setShowFaturamentoForm(false);
+                  setEditingFaturamento(null);
+                  refetchFat();
+                }}
+                onCancel={() => {
+                  setShowFaturamentoForm(false);
+                  setEditingFaturamento(null);
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

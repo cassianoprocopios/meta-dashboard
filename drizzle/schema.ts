@@ -2,7 +2,7 @@ import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "d
 
 /**
  * Core user table backing auth flow.
- * Estendida com perfil (gerente/operador) e empresa vinculada.
+ * Estendida com perfil (gerente/operador) e empresa vinculada (por slug).
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -10,12 +10,10 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  /** admin = dono do sistema; manager = gerente de unidade; operator = operador somente leitura */
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  /** Perfil dentro do sistema de metas */
   perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
-  /** Empresa vinculada ao usuário (null = acesso a todas, apenas admin) */
-  empresaVinculada: mysqlEnum("empresaVinculada", ["MORUMBI", "MASCOTE", "SERAPHINE"]),
+  /** Slug da empresa vinculada (ex: "MORUMBI"). Null = acesso a todas (admin). */
+  empresaVinculada: varchar("empresaVinculada", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -24,15 +22,35 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// ─── EMPRESAS ─────────────────────────────────────────────────────────────────
+// Tabela dinâmica de empresas gerenciada pelo admin
+export const empresas = mysqlTable("empresas", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(), // ex: "MORUMBI"
+  nome: varchar("nome", { length: 128 }).notNull(),
+  cor: varchar("cor", { length: 16 }).notNull().default("#3b82f6"), // hex color
+  /** Tipo de categorias: "padrao" (Avulso/Produtos/ServExtra/Lavatorio/Recorrencia) ou "seraphine" (Cabelo/Unha/Outros/Produtos/Recorrencia) */
+  tipoCategorias: mysqlEnum("tipoCategorias", ["padrao", "seraphine"]).notNull().default("padrao"),
+  ativo: int("ativo").notNull().default(1), // 1=ativo, 0=inativo
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Empresa = typeof empresas.$inferSelect;
+export type InsertEmpresa = typeof empresas.$inferInsert;
+
 // ─── METAS ────────────────────────────────────────────────────────────────────
-// Meta mensal e quinzenal por empresa
+// Meta mensal e quinzenal por empresa, com dias úteis manuais
 export const metas = mysqlTable("metas", {
   id: int("id").autoincrement().primaryKey(),
-  empresa: mysqlEnum("empresa", ["MORUMBI", "MASCOTE", "SERAPHINE"]).notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   mes: int("mes").notNull(), // 1-12
   ano: int("ano").notNull(),
   metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }).notNull().default("0"),
   metaQuinzenal: decimal("metaQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Dias úteis do mês para esta empresa (definido manualmente) */
+  diasUteis: int("diasUteis").notNull().default(26),
+  /** Dias úteis da quinzena (dias 1-15) para esta empresa */
+  diasUteisQuinzenal: int("diasUteisQuinzenal").notNull().default(13),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -41,25 +59,20 @@ export type Meta = typeof metas.$inferSelect;
 export type InsertMeta = typeof metas.$inferInsert;
 
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
-// Morumbi e Mascote: avulso, produtos, servExtra, lavatorio, recorrencia
-// Seraphine:         cabelo, unha, outros, produtos (campo produtos reutilizado)
+// Campos genéricos que se adaptam ao tipo de empresa:
+// padrao:   cat1=Avulso, cat2=Produtos, cat3=Serv.Extra, cat4=Lavatório, cat5=Recorrência
+// seraphine: cat1=Cabelo, cat2=Produtos, cat3=Unha,      cat4=Outros,    cat5=Recorrência
 export const faturamentos = mysqlTable("faturamentos", {
   id: int("id").autoincrement().primaryKey(),
-  empresa: mysqlEnum("empresa", ["MORUMBI", "MASCOTE", "SERAPHINE"]).notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   data: varchar("data", { length: 10 }).notNull(), // YYYY-MM-DD
-
-  // Categorias Morumbi / Mascote
-  avulso: decimal("avulso", { precision: 12, scale: 2 }).notNull().default("0"),
-  produtos: decimal("produtos", { precision: 12, scale: 2 }).notNull().default("0"),
-  servExtra: decimal("servExtra", { precision: 12, scale: 2 }).notNull().default("0"),
-  lavatorio: decimal("lavatorio", { precision: 12, scale: 2 }).notNull().default("0"),
-  recorrencia: decimal("recorrencia", { precision: 12, scale: 2 }).notNull().default("0"),
-
-  // Categorias exclusivas Seraphine (cabelo usa avulso, unha usa servExtra, outros usa lavatorio)
-  // cabelo → avulso | unha → servExtra | outros → lavatorio | produtos → produtos | recorrencia → recorrencia
-
+  cat1: decimal("cat1", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat2: decimal("cat2", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat3: decimal("cat3", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat4: decimal("cat4", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat5: decimal("cat5", { precision: 12, scale: 2 }).notNull().default("0"),
   observacao: text("observacao"),
-  lancadoPor: int("lancadoPor"), // FK users.id
+  lancadoPor: int("lancadoPor"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
