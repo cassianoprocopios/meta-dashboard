@@ -25,3 +25,17 @@
 ## Testes
 - [x] Testes das procedures de faturamento
 - [x] Testes das procedures de metas
+
+## Evolução v2 - Metas, Acesso e Categorias
+- [x] Adicionar campo `metaQuinzenal` na tabela metas
+- [x] Alterar colunas de faturamento para categorias por empresa (Morumbi/Mascote: avulso, produtos, servExtra, lavatorio, recorrencia; Seraphine: cabelo, unha, outros, produtos)
+- [x] Adicionar campo `empresa` e `perfil` (gerente/operador) na tabela users
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Tela de administração de usuários (apenas owner/admin pode criar e atribuir empresa+perfil)
+- [x] Proteger routers de lançamento: apenas gerentes podem salvar
+- [x] Filtrar dados por empresa do usuário logado (operador só vê sua unidade)
+- [x] Formulário de lançamento com campos específicos por empresa
+- [x] Dashboard com card de meta quinzenal
+- [x] Cálculo de dias úteis restantes (até dia 15 e até fim do mês)
+- [x] Alertas atualizados com base em dias úteis restantes
+- [x] Testes das novas procedures

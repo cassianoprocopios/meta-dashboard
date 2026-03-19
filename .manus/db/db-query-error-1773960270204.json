@@ -1,0 +1,8 @@
+{
+  "query": "\n-- Renomear colunas antigas para os novos nomes (Morumbi/Mascote)\nALTER TABLE faturamentos\n  CHANGE COLUMN servicos avulso DECIMAL(12,2) NOT NULL DEFAULT 0,\n  CHANGE COLUMN vendaProdutos produtos DECIMAL(12,2) NOT NULL DEFAULT 0,\n  CHANGE COLUMN novasAssinaturas servExtra DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN lavatorio DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER servExtra,\n  ADD COLUMN lancadoPor INT NULL AFTER observacao;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Renomear colunas antigas para os novos nomes (Morumbi/Mascote)\nALTER TABLE faturamentos\n  CHANGE COLUMN servicos avulso DECIMAL(12,2) NOT NULL DEFAULT 0,\n  CHANGE COLUMN vendaProdutos produtos DECIMAL(12,2) NOT NULL DEFAULT 0,\n  CHANGE COLUMN novasAssinaturas servExtra DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN lavatorio DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER servExtra,\n  ADD COLUMN lancadoPor INT NULL AFTER observacao;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 3: Unknown column 'servextra' in 'faturamentos'"
+  ]
+}

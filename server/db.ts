@@ -5,7 +5,6 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -18,21 +17,16 @@ export async function getDb() {
   return _db;
 }
 
+// ─── USERS ────────────────────────────────────────────────────────────────────
+
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
+  if (!user.openId) throw new Error("User openId is required for upsert");
 
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
+  if (!db) { console.warn("[Database] Cannot upsert user: database not available"); return; }
 
   try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
+    const values: InsertUser = { openId: user.openId };
     const updateSet: Record<string, unknown> = {};
 
     const textFields = ["name", "email", "loginMethod"] as const;
@@ -60,17 +54,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.role = 'admin';
     }
 
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
+    if (!values.lastSignedIn) values.lastSignedIn = new Date();
+    if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
 
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -79,17 +66,28 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  if (!db) { console.warn("[Database] Cannot get user: database not available"); return undefined; }
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// ─── FATURAMENTOS ────────────────────────────────────────────────────────────
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).orderBy(asc(users.name));
+}
+
+export async function updateUserPerfil(
+  userId: number,
+  perfil: "gerente" | "operador",
+  empresaVinculada: "MORUMBI" | "MASCOTE" | "SERAPHINE" | null
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ perfil, empresaVinculada: empresaVinculada ?? undefined }).where(eq(users.id, userId));
+}
+
+// ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 
 export async function getFaturamentoByDataEmpresa(
   data: string,
@@ -105,7 +103,7 @@ export async function getFaturamentoByDataEmpresa(
   return result[0];
 }
 
-export async function getAllFaturamentos(mes: number, ano: number) {
+export async function getAllFaturamentos(mes: number, ano: number, empresa?: "MORUMBI" | "MASCOTE" | "SERAPHINE") {
   const db = await getDb();
   if (!db) return [];
   const allRows = await db
@@ -115,7 +113,9 @@ export async function getAllFaturamentos(mes: number, ano: number) {
   return allRows.filter((row) => {
     const dataStr = row.data as unknown as string;
     const [rowAno, rowMes] = dataStr.split("-").map(Number);
-    return rowMes === mes && rowAno === ano;
+    const matchesMes = rowMes === mes && rowAno === ano;
+    const matchesEmpresa = empresa ? row.empresa === empresa : true;
+    return matchesMes && matchesEmpresa;
   });
 }
 
@@ -130,11 +130,13 @@ export async function upsertFaturamento(input: InsertFaturamento) {
     await db
       .update(faturamentos)
       .set({
-        servicos: input.servicos,
-        vendaProdutos: input.vendaProdutos,
-        novasAssinaturas: input.novasAssinaturas,
+        avulso: input.avulso,
+        produtos: input.produtos,
+        servExtra: input.servExtra,
+        lavatorio: input.lavatorio,
         recorrencia: input.recorrencia,
         observacao: input.observacao,
+        lancadoPor: input.lancadoPor,
       })
       .where(eq(faturamentos.id, existing.id));
     return { ...existing, ...input, id: existing.id };
@@ -150,7 +152,7 @@ export async function deleteFaturamento(id: number) {
   await db.delete(faturamentos).where(eq(faturamentos.id, id));
 }
 
-// ─── METAS ───────────────────────────────────────────────────────────────────
+// ─── METAS ────────────────────────────────────────────────────────────────────
 
 export async function getMetasByMes(mes: number, ano: number) {
   const db = await getDb();
@@ -182,7 +184,10 @@ export async function upsertMeta(input: InsertMeta) {
     input.ano as number
   );
   if (existing) {
-    await db.update(metas).set({ metaMensal: input.metaMensal }).where(eq(metas.id, existing.id));
+    await db.update(metas).set({
+      metaMensal: input.metaMensal,
+      metaQuinzenal: input.metaQuinzenal,
+    }).where(eq(metas.id, existing.id));
     return { ...existing, ...input, id: existing.id };
   } else {
     const result = await db.insert(metas).values(input);

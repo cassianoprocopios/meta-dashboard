@@ -1,0 +1,9 @@
+{
+  "query": "\nALTER TABLE faturamentos CHANGE COLUMN servicos avulso DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos CHANGE COLUMN vendaProdutos produtos DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos CHANGE COLUMN novasAssinaturas servExtra DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos ADD COLUMN lavatorio DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER servExtra;\nALTER TABLE faturamentos ADD COLUMN lancadoPor INT NULL AFTER observacao;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nALTER TABLE faturamentos CHANGE COLUMN servicos avulso DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos CHANGE COLUMN vendaProdutos produtos DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos CHANGE COLUMN novasAssinaturas servExtra DECIMAL(12,2) NOT NULL DEFAULT 0;\nALTER TABLE faturamentos ADD COLUMN lavatorio DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER servExtra;\nALTER TABLE faturamentos ADD COLUMN lancadoPor INT NULL AFTER observacao;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1249
+}
