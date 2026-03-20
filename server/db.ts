@@ -1,6 +1,22 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { categorias, empresas, faturamentos, InsertEmpresa, InsertFaturamento, InsertMeta, InsertUser, metas, users } from "../drizzle/schema";
+import {
+  accessLogs,
+  bonificacoes,
+  categorias,
+  empresas,
+  faturamentos,
+  InsertAccessLog,
+  InsertBonificacao,
+  InsertEmpresa,
+  InsertFaturamento,
+  InsertMeta,
+  InsertUser,
+  metas,
+  tenants,
+  userEmpresas,
+  users,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -15,6 +31,68 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+// ─── TENANTS ──────────────────────────────────────────────────────────────────
+
+export async function getAllTenants() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(tenants).orderBy(asc(tenants.nome));
+}
+
+export async function getTenantById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getTenantBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tenants).where(eq(tenants.slug, slug)).limit(1);
+  return result[0];
+}
+
+export async function getTenantByAdminEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tenants).where(eq(tenants.adminEmail, email)).limit(1);
+  return result[0];
+}
+
+export async function createTenant(data: {
+  nome: string;
+  slug: string;
+  adminEmail: string;
+  plano?: "trial" | "basico" | "pro";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(tenants).values({
+    nome: data.nome,
+    slug: data.slug,
+    adminEmail: data.adminEmail,
+    plano: data.plano ?? "trial",
+    ativo: 1,
+  });
+  // Buscar o tenant recém criado pelo slug para obter o ID real
+  const created = await db.select().from(tenants).where(eq(tenants.slug, data.slug)).limit(1);
+  if (!created[0]) throw new Error("Tenant não encontrado após criação");
+  return { id: created[0].id, ...data };
+}
+
+export async function updateTenantAtivo(tenantId: number, ativo: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants).set({ ativo }).where(eq(tenants.id, tenantId));
+}
+
+export async function updateTenantPlano(tenantId: number, plano: "trial" | "basico" | "pro") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants).set({ plano }).where(eq(tenants.id, tenantId));
 }
 
 // ─── USERS ────────────────────────────────────────────────────────────────────
@@ -71,34 +149,138 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function getAllUsers() {
+export async function getUserByEmail(email: string) {
   const db = await getDb();
-  if (!db) return [];
-  return db.select().from(users).orderBy(asc(users.name));
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
 }
 
-export async function updateUserPerfil(
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/** Retorna todos os utilizadores de um tenant */
+export async function getAllUsersByTenant(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).where(eq(users.tenantId, tenantId)).orderBy(asc(users.name));
+}
+
+export async function createUserWithPassword(data: {
+  tenantId: number;
+  name: string;
+  email: string;
+  passwordHash: string;
+  perfil: "gerente" | "operador";
+  empresaVinculada: string | null;
+  role?: "user" | "admin";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const openId = `local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const result = await db.insert(users).values({
+    openId,
+    tenantId: data.tenantId,
+    name: data.name,
+    email: data.email,
+    loginMethod: "password",
+    passwordHash: data.passwordHash,
+    perfil: data.perfil,
+    empresaVinculada: data.empresaVinculada ?? undefined,
+    role: data.role ?? "user",
+    ativo: 1,
+    lastSignedIn: new Date(),
+  });
+  return { id: (result as any).insertId, openId };
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function updateUserAtivo(userId: number, ativo: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ ativo, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function updateUserLastSignedIn(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+}
+
+export async function deleteUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(users).where(eq(users.id, userId));
+}
+
+export async function updateUserFull(
   userId: number,
-  perfil: "gerente" | "operador",
-  empresaVinculada: string | null
+  data: {
+    name?: string;
+    email?: string;
+    perfil?: string;
+    empresaVinculada?: string | null;
+    role?: "user" | "admin";
+    passwordHash?: string;
+  }
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(users).set({ perfil, empresaVinculada: empresaVinculada ?? undefined }).where(eq(users.id, userId));
+
+  const updateSet: Record<string, unknown> = { updatedAt: new Date() };
+  if (data.name !== undefined) updateSet.name = data.name;
+  if (data.email !== undefined) updateSet.email = data.email;
+  if (data.perfil !== undefined) updateSet.perfil = data.perfil;
+  if ("empresaVinculada" in data) updateSet.empresaVinculada = data.empresaVinculada ?? null;
+  if (data.role !== undefined) updateSet.role = data.role;
+  if (data.passwordHash !== undefined) updateSet.passwordHash = data.passwordHash;
+
+  await db.update(users).set(updateSet).where(eq(users.id, userId));
+}
+
+// ─── USER EMPRESAS (N:N) ──────────────────────────────────────────────────────
+
+export async function getUserEmpresaSlugs(userId: number): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(userEmpresas).where(eq(userEmpresas.userId, userId));
+  return rows.map((r) => r.empresaSlug);
+}
+
+export async function setUserEmpresas(userId: number, tenantId: number, slugs: string[]): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(userEmpresas).where(eq(userEmpresas.userId, userId));
+  if (slugs.length > 0) {
+    await db.insert(userEmpresas).values(slugs.map((s) => ({ userId, tenantId, empresaSlug: s })));
+  }
 }
 
 // ─── EMPRESAS ─────────────────────────────────────────────────────────────────
 
-export async function getAllEmpresas() {
+export async function getEmpresasByTenant(tenantId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(empresas).where(eq(empresas.ativo, 1)).orderBy(asc(empresas.nome));
+  return db.select().from(empresas)
+    .where(and(eq(empresas.tenantId, tenantId), eq(empresas.ativo, 1)))
+    .orderBy(asc(empresas.nome));
 }
 
-export async function getEmpresaBySlug(slug: string) {
+export async function getEmpresaBySlugAndTenant(slug: string, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(empresas).where(eq(empresas.slug, slug)).limit(1);
+  const result = await db.select().from(empresas)
+    .where(and(eq(empresas.slug, slug), eq(empresas.tenantId, tenantId)))
+    .limit(1);
   return result[0];
 }
 
@@ -135,23 +317,28 @@ export async function updateEmpresa(
 
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 
-export async function getFaturamentoByDataEmpresa(data: string, empresaSlug: string) {
+export async function getFaturamentoByDataEmpresaTenant(data: string, empresaSlug: string, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db
     .select()
     .from(faturamentos)
-    .where(and(eq(faturamentos.data, data), eq(faturamentos.empresaSlug, empresaSlug)))
+    .where(and(
+      eq(faturamentos.data, data),
+      eq(faturamentos.empresaSlug, empresaSlug),
+      eq(faturamentos.tenantId, tenantId)
+    ))
     .limit(1);
   return result[0];
 }
 
-export async function getAllFaturamentos(mes: number, ano: number, empresaSlug?: string) {
+export async function getAllFaturamentosByTenant(tenantId: number, mes: number, ano: number, empresaSlug?: string) {
   const db = await getDb();
   if (!db) return [];
   const allRows = await db
     .select()
     .from(faturamentos)
+    .where(eq(faturamentos.tenantId, tenantId))
     .orderBy(asc(faturamentos.data), asc(faturamentos.empresaSlug));
   return allRows.filter((row) => {
     const [rowAno, rowMes] = row.data.split("-").map(Number);
@@ -164,23 +351,21 @@ export async function getAllFaturamentos(mes: number, ano: number, empresaSlug?:
 export async function upsertFaturamento(input: InsertFaturamento) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const existing = await getFaturamentoByDataEmpresa(
+  const existing = await getFaturamentoByDataEmpresaTenant(
     input.data as string,
-    input.empresaSlug as string
+    input.empresaSlug as string,
+    input.tenantId as number
   );
   if (existing) {
-    await db
-      .update(faturamentos)
-      .set({
-        cat1: input.cat1,
-        cat2: input.cat2,
-        cat3: input.cat3,
-        cat4: input.cat4,
-        cat5: input.cat5,
-        observacao: input.observacao,
-        lancadoPor: input.lancadoPor,
-      })
-      .where(eq(faturamentos.id, existing.id));
+    await db.update(faturamentos).set({
+      cat1: input.cat1,
+      cat2: input.cat2,
+      cat3: input.cat3,
+      cat4: input.cat4,
+      cat5: input.cat5,
+      observacao: input.observacao,
+      lancadoPor: input.lancadoPor,
+    }).where(eq(faturamentos.id, existing.id));
     return { ...existing, ...input, id: existing.id };
   } else {
     const result = await db.insert(faturamentos).values(input);
@@ -196,19 +381,25 @@ export async function deleteFaturamento(id: number) {
 
 // ─── METAS ────────────────────────────────────────────────────────────────────
 
-export async function getMetasByMes(mes: number, ano: number) {
+export async function getMetasByMesAndTenant(tenantId: number, mes: number, ano: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(metas).where(and(eq(metas.mes, mes), eq(metas.ano, ano)));
+  return db.select().from(metas)
+    .where(and(eq(metas.tenantId, tenantId), eq(metas.mes, mes), eq(metas.ano, ano)));
 }
 
-export async function getMetaByEmpresaMes(empresaSlug: string, mes: number, ano: number) {
+export async function getMetaByEmpresaMesTenant(empresaSlug: string, mes: number, ano: number, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db
     .select()
     .from(metas)
-    .where(and(eq(metas.empresaSlug, empresaSlug), eq(metas.mes, mes), eq(metas.ano, ano)))
+    .where(and(
+      eq(metas.empresaSlug, empresaSlug),
+      eq(metas.mes, mes),
+      eq(metas.ano, ano),
+      eq(metas.tenantId, tenantId)
+    ))
     .limit(1);
   return result[0];
 }
@@ -216,10 +407,11 @@ export async function getMetaByEmpresaMes(empresaSlug: string, mes: number, ano:
 export async function upsertMeta(input: InsertMeta) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const existing = await getMetaByEmpresaMes(
+  const existing = await getMetaByEmpresaMesTenant(
     input.empresaSlug as string,
     input.mes as number,
-    input.ano as number
+    input.ano as number,
+    input.tenantId as number
   );
   if (existing) {
     await db.update(metas).set({
@@ -235,71 +427,78 @@ export async function upsertMeta(input: InsertMeta) {
   }
 }
 
-// ─── AUTH COM SENHA PRÓPRIA ───────────────────────────────────────────────────
+// ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────────
 
-export async function getUserByEmail(email: string) {
+export async function getBonificacaoByEmpresaTenant(empresaSlug: string, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  const result = await db.select().from(bonificacoes)
+    .where(and(eq(bonificacoes.empresaSlug, empresaSlug), eq(bonificacoes.tenantId, tenantId)))
+    .limit(1);
+  return result[0];
 }
 
-export async function getUserById(id: number) {
+export async function getAllBonificacoesByTenant(tenantId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return [];
+  return db.select().from(bonificacoes).where(eq(bonificacoes.tenantId, tenantId));
 }
 
-export async function createUserWithPassword(data: {
-  name: string;
-  email: string;
-  passwordHash: string;
-  perfil: "gerente" | "operador";
-  empresaVinculada: string | null;
-  role?: "user" | "admin";
-}) {
+export async function upsertBonificacao(data: InsertBonificacao) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Gerar openId único para utilizadores criados manualmente
-  const openId = `local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const result = await db.insert(users).values({
-    openId,
-    name: data.name,
-    email: data.email,
-    loginMethod: "password",
-    passwordHash: data.passwordHash,
-    perfil: data.perfil,
-    empresaVinculada: data.empresaVinculada ?? undefined,
-    role: data.role ?? "user",
-    ativo: 1,
-    lastSignedIn: new Date(),
-  });
-  return { id: (result as any).insertId, openId };
+  const existing = await getBonificacaoByEmpresaTenant(
+    data.empresaSlug as string,
+    data.tenantId as number
+  );
+  if (existing) {
+    await db.update(bonificacoes).set({
+      pctQuinzenalSemMeta: data.pctQuinzenalSemMeta,
+      pctQuinzenalComMeta: data.pctQuinzenalComMeta,
+      pctMensalSemMeta: data.pctMensalSemMeta,
+      pctMensalComMeta: data.pctMensalComMeta,
+    }).where(eq(bonificacoes.id, existing.id));
+  } else {
+    await db.insert(bonificacoes).values(data);
+  }
 }
 
-export async function updateUserPassword(userId: number, passwordHash: string) {
+// ─── CATEGORIAS DINÂMICAS ─────────────────────────────────────────────────────
+
+export async function getCategoriasByEmpresaTenant(empresaSlug: string, tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(categorias)
+    .where(and(
+      eq(categorias.empresaSlug, empresaSlug),
+      eq(categorias.tenantId, tenantId),
+      eq(categorias.ativo, 1)
+    ))
+    .orderBy(asc(categorias.ordem), asc(categorias.id));
+}
+
+export async function addCategoria(empresaSlug: string, tenantId: number, nome: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+  const existing = await db.select().from(categorias)
+    .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.tenantId, tenantId)));
+  const maxOrdem = existing.length > 0 ? Math.max(...existing.map(c => c.ordem)) : 0;
+  await db.insert(categorias).values({ empresaSlug, tenantId, nome, ordem: maxOrdem + 1, ativo: 1 });
 }
 
-export async function updateUserAtivo(userId: number, ativo: number) {
+export async function removeCategoria(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(users).set({ ativo, updatedAt: new Date() }).where(eq(users.id, userId));
+  await db.update(categorias).set({ ativo: 0 }).where(eq(categorias.id, id));
 }
 
-export async function updateUserLastSignedIn(userId: number) {
+export async function updateCategoriaNome(id: number, nome: string) {
   const db = await getDb();
-  if (!db) return;
-  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+  if (!db) throw new Error("Database not available");
+  await db.update(categorias).set({ nome }).where(eq(categorias.id, id));
 }
 
 // ─── ACCESS LOGS ─────────────────────────────────────────────────────────────
-
-import { accessLogs, InsertAccessLog } from "../drizzle/schema";
-import { desc } from "drizzle-orm";
 
 export async function createAccessLog(data: InsertAccessLog) {
   const db = await getDb();
@@ -311,137 +510,30 @@ export async function createAccessLog(data: InsertAccessLog) {
   }
 }
 
-export async function getAccessLogs(limit = 200) {
+export async function getAccessLogs(limit = 200, tenantId?: number) {
   const db = await getDb();
   if (!db) return [];
+  if (tenantId) {
+    return db.select().from(accessLogs)
+      .where(eq(accessLogs.tenantId, tenantId))
+      .orderBy(desc(accessLogs.createdAt))
+      .limit(limit);
+  }
   return db.select().from(accessLogs).orderBy(desc(accessLogs.createdAt)).limit(limit);
 }
 
-// ─── DELETE USER ──────────────────────────────────────────────────────────────
-export async function deleteUser(userId: number) {
+/** Estatísticas de uso por tenant para o super-admin */
+export async function getTenantStats(tenantId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.delete(users).where(eq(users.id, userId));
-}
-
-// ─── UPDATE USER FULL ─────────────────────────────────────────────────────────
-export async function updateUserFull(
-  userId: number,
-  data: {
-    name?: string;
-    email?: string;
-    perfil?: string;
-    empresaVinculada?: string | null;
-    role?: "user" | "admin";
-    passwordHash?: string;
-  }
-) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  const updateSet: Record<string, unknown> = { updatedAt: new Date() };
-  if (data.name !== undefined) updateSet.name = data.name;
-  if (data.email !== undefined) updateSet.email = data.email;
-  if (data.perfil !== undefined) updateSet.perfil = data.perfil;
-  if ("empresaVinculada" in data) updateSet.empresaVinculada = data.empresaVinculada ?? null;
-  if (data.role !== undefined) updateSet.role = data.role;
-  if (data.passwordHash !== undefined) updateSet.passwordHash = data.passwordHash;
-
-  await db.update(users).set(updateSet).where(eq(users.id, userId));
-}
-
-// ─── USER EMPRESAS (N:N) ──────────────────────────────────────────────────────
-import { userEmpresas, bonificacoes, InsertBonificacao } from "../drizzle/schema";
-
-/** Retorna os slugs das empresas às quais o utilizador tem acesso */
-export async function getUserEmpresaSlugs(userId: number): Promise<string[]> {
-  const db = await getDb();
-  if (!db) return [];
-  const rows = await db.select().from(userEmpresas).where(eq(userEmpresas.userId, userId));
-  return rows.map((r) => r.empresaSlug);
-}
-
-/** Substitui todas as empresas do utilizador pelas novas slugs */
-export async function setUserEmpresas(userId: number, slugs: string[]): Promise<void> {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Remove todas as entradas existentes
-  await db.delete(userEmpresas).where(eq(userEmpresas.userId, userId));
-  // Insere as novas
-  if (slugs.length > 0) {
-    await db.insert(userEmpresas).values(slugs.map((s) => ({ userId, empresaSlug: s })));
-  }
-}
-
-// ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────────
-
-export async function getBonificacaoByEmpresa(empresaSlug: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(bonificacoes)
-    .where(eq(bonificacoes.empresaSlug, empresaSlug))
-    .limit(1);
-  return result[0];
-}
-
-export async function getAllBonificacoes() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(bonificacoes);
-}
-
-export async function upsertBonificacao(data: InsertBonificacao) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const existing = await getBonificacaoByEmpresa(data.empresaSlug as string);
-  if (existing) {
-    await db.update(bonificacoes).set({
-      pctQuinzenalSemMeta: data.pctQuinzenalSemMeta,
-      pctQuinzenalComMeta: data.pctQuinzenalComMeta,
-      pctMensalSemMeta: data.pctMensalSemMeta,
-      pctMensalComMeta: data.pctMensalComMeta,
-    }).where(eq(bonificacoes.empresaSlug, data.empresaSlug as string));
-  } else {
-    await db.insert(bonificacoes).values(data);
-  }
-}
-
-// ─── CATEGORIAS DINÂMICAS ─────────────────────────────────────────────────────
-
-export async function getCategoriasByEmpresa(empresaSlug: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(categorias)
-    .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.ativo, 1)))
-    .orderBy(asc(categorias.ordem), asc(categorias.id));
-}
-
-export async function addCategoria(empresaSlug: string, nome: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Calcular próxima ordem
-  const existing = await db.select().from(categorias)
-    .where(eq(categorias.empresaSlug, empresaSlug));
-  const maxOrdem = existing.length > 0 ? Math.max(...existing.map(c => c.ordem)) : 0;
-  await db.insert(categorias).values({
-    empresaSlug,
-    nome,
-    ordem: maxOrdem + 1,
-    ativo: 1,
-  });
-}
-
-export async function removeCategoria(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Soft delete - marca como inativo
-  await db.update(categorias).set({ ativo: 0 }).where(eq(categorias.id, id));
-}
-
-export async function updateCategoriaNome(id: number, nome: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(categorias).set({ nome }).where(eq(categorias.id, id));
+  if (!db) return { totalUsers: 0, totalEmpresas: 0, totalLancamentos: 0 };
+  const [usersCount, empresasCount, lancamentosCount] = await Promise.all([
+    db.select().from(users).where(eq(users.tenantId, tenantId)),
+    db.select().from(empresas).where(and(eq(empresas.tenantId, tenantId), eq(empresas.ativo, 1))),
+    db.select().from(faturamentos).where(eq(faturamentos.tenantId, tenantId)),
+  ]);
+  return {
+    totalUsers: usersCount.length,
+    totalEmpresas: empresasCount.length,
+    totalLancamentos: lancamentosCount.length,
+  };
 }

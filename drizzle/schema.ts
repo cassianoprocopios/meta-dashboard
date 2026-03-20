@@ -1,22 +1,35 @@
 import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Estendida com perfil, empresa vinculada, senha própria e controle de ativo.
- */
+// ─── TENANTS (Empresas Clientes do SaaS) ─────────────────────────────────────
+// Cada tenant é uma empresa cliente que comprou acesso ao sistema
+export const tenants = mysqlTable("tenants", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 128 }).notNull(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  adminEmail: varchar("adminEmail", { length: 320 }).notNull(),
+  plano: mysqlEnum("plano", ["trial", "basico", "pro"]).notNull().default("trial"),
+  /** 1 = ativo, 0 = bloqueado pelo super-admin */
+  ativo: int("ativo").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = typeof tenants.$inferInsert;
+
+// ─── UTILIZADORES ─────────────────────────────────────────────────────────────
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
+  /** tenantId = null apenas para super-admin (Cassiano) */
+  tenantId: int("tenantId"),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
-  /** Slug da empresa vinculada (legado - mantido para compatibilidade). Null = acesso a todas (admin). */
   empresaVinculada: varchar("empresaVinculada", { length: 64 }),
-  /** Hash bcrypt da senha própria do sistema (independente do OAuth) */
   passwordHash: varchar("passwordHash", { length: 256 }),
-  /** Se o utilizador está ativo (1) ou bloqueado (0) */
   ativo: int("ativo").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -27,9 +40,9 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // ─── RELAÇÃO N:N UTILIZADOR ↔ EMPRESAS ───────────────────────────────────────
-// Cada utilizador pode ter acesso a múltiplas empresas
 export const userEmpresas = mysqlTable("userEmpresas", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
   userId: int("userId").notNull(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -41,6 +54,7 @@ export type InsertUserEmpresa = typeof userEmpresas.$inferInsert;
 // ─── LOG DE ACESSOS ───────────────────────────────────────────────────────────
 export const accessLogs = mysqlTable("accessLogs", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId"),
   userId: int("userId"),
   userName: varchar("userName", { length: 256 }),
   userEmail: varchar("userEmail", { length: 320 }),
@@ -54,10 +68,11 @@ export const accessLogs = mysqlTable("accessLogs", {
 export type AccessLog = typeof accessLogs.$inferSelect;
 export type InsertAccessLog = typeof accessLogs.$inferInsert;
 
-// ─── EMPRESAS ─────────────────────────────────────────────────────────────────
+// ─── EMPRESAS (Unidades de cada Tenant) ──────────────────────────────────────
 export const empresas = mysqlTable("empresas", {
   id: int("id").autoincrement().primaryKey(),
-  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  tenantId: int("tenantId").notNull(),
+  slug: varchar("slug", { length: 64 }).notNull(),
   nome: varchar("nome", { length: 128 }).notNull(),
   cor: varchar("cor", { length: 16 }).notNull().default("#3b82f6"),
   tipoCategorias: mysqlEnum("tipoCategorias", ["padrao", "seraphine"]).notNull().default("padrao"),
@@ -74,17 +89,13 @@ export type Empresa = typeof empresas.$inferSelect;
 export type InsertEmpresa = typeof empresas.$inferInsert;
 
 // ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────────
-// Percentuais configuráveis por empresa para cálculo de bonificação
 export const bonificacoes = mysqlTable("bonificacoes", {
   id: int("id").autoincrement().primaryKey(),
-  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull().unique(),
-  /** % sobre montante quinzenal quando NÃO bate a meta quinzenal */
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   pctQuinzenalSemMeta: decimal("pctQuinzenalSemMeta", { precision: 6, scale: 2 }).notNull().default("0"),
-  /** % sobre montante quinzenal quando BATE a meta quinzenal */
   pctQuinzenalComMeta: decimal("pctQuinzenalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
-  /** % sobre montante mensal quando NÃO bate a meta mensal */
   pctMensalSemMeta: decimal("pctMensalSemMeta", { precision: 6, scale: 2 }).notNull().default("0"),
-  /** % sobre montante mensal quando BATE a meta mensal */
   pctMensalComMeta: decimal("pctMensalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -93,9 +104,9 @@ export type Bonificacao = typeof bonificacoes.$inferSelect;
 export type InsertBonificacao = typeof bonificacoes.$inferInsert;
 
 // ─── CATEGORIAS DE FATURAMENTO ──────────────────────────────────────────────
-// Categorias dinâmicas por empresa, gerenciadas por gerentes e admins
 export const categorias = mysqlTable("categorias", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   nome: varchar("nome", { length: 64 }).notNull(),
   ordem: int("ordem").notNull().default(0),
@@ -109,6 +120,7 @@ export type InsertCategoria = typeof categorias.$inferInsert;
 // ─── METAS ────────────────────────────────────────────────────────────────────
 export const metas = mysqlTable("metas", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   mes: int("mes").notNull(),
   ano: int("ano").notNull(),
@@ -126,6 +138,7 @@ export type InsertMeta = typeof metas.$inferInsert;
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 export const faturamentos = mysqlTable("faturamentos", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   data: varchar("data", { length: 10 }).notNull(),
   cat1: decimal("cat1", { precision: 12, scale: 2 }).notNull().default("0"),
@@ -134,7 +147,7 @@ export const faturamentos = mysqlTable("faturamentos", {
   cat4: decimal("cat4", { precision: 12, scale: 2 }).notNull().default("0"),
   cat5: decimal("cat5", { precision: 12, scale: 2 }).notNull().default("0"),
   observacao: text("observacao"),
-  lancadoPor: int("lancadoPor"),
+  lancadoPor: varchar("lancadoPor", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

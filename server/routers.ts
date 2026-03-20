@@ -6,14 +6,13 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
-  getAllFaturamentos,
+  getAllFaturamentosByTenant,
   upsertFaturamento,
   deleteFaturamento,
-  getMetasByMes,
+  getMetasByMesAndTenant,
   upsertMeta,
-  getAllUsers,
-  updateUserPerfil,
-  getAllEmpresas,
+  getAllUsersByTenant,
+  getEmpresasByTenant,
   createEmpresa,
   deactivateEmpresa,
   updateEmpresa,
@@ -29,20 +28,39 @@ import {
   updateUserFull,
   getUserEmpresaSlugs,
   setUserEmpresas,
-  getAllBonificacoes,
-  getBonificacaoByEmpresa,
+  getAllBonificacoesByTenant,
+  getBonificacaoByEmpresaTenant,
   upsertBonificacao,
-  getCategoriasByEmpresa,
+  getCategoriasByEmpresaTenant,
   addCategoria,
   removeCategoria,
   updateCategoriaNome,
+  getAllTenants,
+  createTenant,
+  updateTenantAtivo,
+  updateTenantPlano,
+  getTenantStats,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
+import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
 
 // JWT helper para sessão própria
 const APP_COOKIE = "meta_session";
 const JWT_SECRET = new TextEncoder().encode(ENV.cookieSecret || "meta-dashboard-secret-2024");
+
+/** Lê um cookie do request (compatível com e sem cookie-parser) */
+function getCookie(req: any, name: string): string | undefined {
+  // Se cookie-parser está instalado, usa req.cookies
+  if (req.cookies && typeof req.cookies === 'object') {
+    return req.cookies[name];
+  }
+  // Fallback: parsear o header manualmente
+  const cookieHeader = req.headers?.cookie;
+  if (!cookieHeader) return undefined;
+  const parsed = parseCookieHeader(cookieHeader);
+  return parsed[name];
+}
 
 async function signAppToken(userId: number) {
   return new SignJWT({ userId })
@@ -68,14 +86,27 @@ function getClientIp(req: any): string {
   );
 }
 
+/** Retorna o tenantId do utilizador autenticado. Super-admin (tenantId=null) usa tenantId=1 como fallback */
+async function getTenantIdFromCtx(ctx: any): Promise<number> {
+  const appToken = getCookie(ctx.req, APP_COOKIE);
+  if (appToken) {
+    const payload = await verifyAppToken(appToken);
+    if (payload) {
+      const user = await getUserById(payload.userId);
+      if (user?.tenantId) return user.tenantId;
+    }
+  }
+  if (ctx.user?.tenantId) return ctx.user.tenantId;
+  return 1; // fallback para o tenant original
+}
+
 export const appRouter = router({
   system: systemRouter,
 
-  // ─── AUTH MANUS OAUTH (mantido para compatibilidade) ─────────────────────
+  // ─── AUTH ─────────────────────────────────────────────────────────────────
   auth: router({
     me: publicProcedure.query(async (opts) => {
-      // Verificar sessão própria primeiro
-      const appToken = opts.ctx.req.cookies?.[APP_COOKIE];
+      const appToken = getCookie(opts.ctx.req, APP_COOKIE);
       if (appToken) {
         const payload = await verifyAppToken(appToken);
         if (payload) {
@@ -87,24 +118,17 @@ export const appRouter = router({
     }),
 
     logout: publicProcedure.mutation(async ({ ctx }) => {
-      // Limpar sessão OAuth
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      // Limpar sessão própria
       ctx.res.clearCookie(APP_COOKIE, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
 
-    // Login com email + senha própria
     loginComSenha: publicProcedure
-      .input(z.object({
-        email: z.string().email(),
-        senha: z.string().min(4),
-      }))
+      .input(z.object({ email: z.string().email(), senha: z.string().min(4) }))
       .mutation(async ({ input, ctx }) => {
         const ip = getClientIp(ctx.req);
         const ua = ctx.req.headers["user-agent"] || "";
-
         const user = await getUserByEmail(input.email);
 
         if (!user || !user.passwordHash) {
@@ -112,6 +136,7 @@ export const appRouter = router({
             userId: user?.id ?? null,
             userName: user?.name ?? null,
             userEmail: input.email,
+            tenantId: user?.tenantId ?? null,
             acao: "login_falhou",
             ip,
             userAgent: ua,
@@ -125,6 +150,7 @@ export const appRouter = router({
             userId: user.id,
             userName: user.name ?? null,
             userEmail: user.email ?? null,
+            tenantId: user.tenantId ?? null,
             acao: "login_falhou",
             ip,
             userAgent: ua,
@@ -139,6 +165,7 @@ export const appRouter = router({
             userId: user.id,
             userName: user.name ?? null,
             userEmail: user.email ?? null,
+            tenantId: user.tenantId ?? null,
             acao: "login_falhou",
             ip,
             userAgent: ua,
@@ -147,24 +174,21 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos." });
         }
 
-        // Sucesso
         await updateUserLastSignedIn(user.id);
         await createAccessLog({
           userId: user.id,
           userName: user.name ?? null,
           userEmail: user.email ?? null,
+          tenantId: user.tenantId ?? null,
           acao: "login",
           ip,
           userAgent: ua,
-          detalhes: `Login bem-sucedido`,
+          detalhes: "Login bem-sucedido",
         });
 
         const token = await signAppToken(user.id);
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie(APP_COOKIE, token, {
-          ...cookieOptions,
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
-        });
+        ctx.res.cookie(APP_COOKIE, token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
         return {
           success: true,
@@ -175,13 +199,13 @@ export const appRouter = router({
             role: user.role,
             perfil: user.perfil,
             empresaVinculada: user.empresaVinculada,
+            tenantId: user.tenantId,
           },
         };
       }),
 
-    // Logout da sessão própria com log
     logoutApp: publicProcedure.mutation(async ({ ctx }) => {
-      const appToken = ctx.req.cookies?.[APP_COOKIE];
+      const appToken = getCookie(ctx.req, APP_COOKIE);
       if (appToken) {
         const payload = await verifyAppToken(appToken);
         if (payload) {
@@ -191,6 +215,7 @@ export const appRouter = router({
               userId: user.id,
               userName: user.name ?? null,
               userEmail: user.email ?? null,
+              tenantId: user.tenantId ?? null,
               acao: "logout",
               ip: getClientIp(ctx.req),
               userAgent: ctx.req.headers["user-agent"] || "",
@@ -205,9 +230,8 @@ export const appRouter = router({
       return { success: true };
     }),
 
-    // Verificar sessão própria
     verificarSessao: publicProcedure.query(async ({ ctx }) => {
-      const appToken = ctx.req.cookies?.[APP_COOKIE];
+      const appToken = getCookie(ctx.req, APP_COOKIE);
       if (!appToken) return null;
       const payload = await verifyAppToken(appToken);
       if (!payload) return null;
@@ -220,6 +244,7 @@ export const appRouter = router({
         role: user.role,
         perfil: user.perfil,
         empresaVinculada: user.empresaVinculada,
+        tenantId: user.tenantId,
         lastSignedIn: user.lastSignedIn,
       };
     }),
@@ -227,26 +252,29 @@ export const appRouter = router({
 
   // ─── EMPRESAS ──────────────────────────────────────────────────────────────
   empresa: router({
-    listar: publicProcedure.query(async () => {
-      return getAllEmpresas();
+    listar: publicProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return getEmpresasByTenant(tenantId);
     }),
 
     criar: protectedProcedure
       .input(z.object({
-        slug: z.string().min(2).max(64).toUpperCase(),
+        slug: z.string().min(2).max(64),
         nome: z.string().min(2).max(128),
         cor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#3b82f6"),
         tipoCategorias: z.enum(["padrao", "seraphine"]).default("padrao"),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem criar empresas." });
+        if (ctx.user.role !== "admin" && ctx.user.perfil !== "gerente") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores e gerentes podem criar empresas." });
         }
+        const tenantId = await getTenantIdFromCtx(ctx);
         return createEmpresa({
           slug: input.slug.toUpperCase(),
           nome: input.nome,
           cor: input.cor,
           tipoCategorias: input.tipoCategorias,
+          tenantId,
           ativo: 1,
         });
       }),
@@ -274,8 +302,8 @@ export const appRouter = router({
         cat5Nome: z.string().min(1).max(64).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem editar empresas." });
+        if (ctx.user.role !== "admin" && ctx.user.perfil !== "gerente") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores e gerentes podem editar empresas." });
         }
         const { id, ...data } = input;
         await updateEmpresa(id, data);
@@ -288,62 +316,61 @@ export const appRouter = router({
     listar: publicProcedure
       .input(z.object({ mes: z.number().min(1).max(12), ano: z.number().min(2020) }))
       .query(async ({ input, ctx }) => {
-        // Admin vê tudo; utilizador vê apenas as suas empresas (via userEmpresas)
-        if (!ctx.user || ctx.user.role === "admin") {
-          return getAllFaturamentos(input.mes, input.ano);
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const user = ctx.user;
+        if (!user || user.role === "admin") {
+          return getAllFaturamentosByTenant(tenantId, input.mes, input.ano);
         }
-        const slugs = await getUserEmpresaSlugs(ctx.user.id);
+        const slugs = await getUserEmpresaSlugs(user.id);
         if (slugs.length === 0) {
-          // Fallback para empresaVinculada legado
-          return getAllFaturamentos(input.mes, input.ano, ctx.user.empresaVinculada ?? undefined);
+          return getAllFaturamentosByTenant(tenantId, input.mes, input.ano, user.empresaVinculada ?? undefined);
         }
-        // Busca faturamentos de todas as empresas do utilizador
         const allResults = await Promise.all(
-          slugs.map((slug) => getAllFaturamentos(input.mes, input.ano, slug))
+          slugs.map((slug) => getAllFaturamentosByTenant(tenantId, input.mes, input.ano, slug))
         );
         return allResults.flat();
       }),
 
     salvar: protectedProcedure
       .input(z.object({
-        empresaSlug: z.string().min(1),
         data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        cat1: z.number().min(0).default(0),
-        cat2: z.number().min(0).default(0),
-        cat3: z.number().min(0).default(0),
-        cat4: z.number().min(0).default(0),
-        cat5: z.number().min(0).default(0),
+        empresaSlug: z.string().min(1),
+        cat1: z.string().default("0"),
+        cat2: z.string().default("0"),
+        cat3: z.string().default("0"),
+        cat4: z.string().default("0"),
+        cat5: z.string().default("0"),
         observacao: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem realizar lançamentos." });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem lançar faturamentos." });
         }
-        if (
-          ctx.user.role !== "admin" &&
-          ctx.user.empresaVinculada &&
-          ctx.user.empresaVinculada !== input.empresaSlug
-        ) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode lançar dados da sua unidade." });
+        // Verificar acesso à empresa: gerente só pode lançar na sua empresa vinculada
+        if (ctx.user.role !== "admin") {
+          const slugs = await getUserEmpresaSlugs(ctx.user.id);
+          const empresaVinculada = ctx.user.empresaVinculada;
+          if (slugs.length > 0) {
+            if (!slugs.includes(input.empresaSlug)) {
+              throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode lançar dados da sua unidade." });
+            }
+          } else if (empresaVinculada && empresaVinculada !== input.empresaSlug) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode lançar dados da sua unidade." });
+          }
         }
+        const tenantId = await getTenantIdFromCtx(ctx);
         return upsertFaturamento({
-          empresaSlug: input.empresaSlug,
-          data: input.data,
-          cat1: String(input.cat1),
-          cat2: String(input.cat2),
-          cat3: String(input.cat3),
-          cat4: String(input.cat4),
-          cat5: String(input.cat5),
-          observacao: input.observacao ?? null,
-          lancadoPor: ctx.user.id,
+          ...input,
+          tenantId,
+          lancadoPor: ctx.user.name ?? ctx.user.email ?? "desconhecido",
         });
       }),
 
-    deletar: protectedProcedure
+    excluir: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem deletar lançamentos." });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem excluir faturamentos." });
         }
         await deleteFaturamento(input.id);
         return { success: true };
@@ -354,8 +381,9 @@ export const appRouter = router({
   meta: router({
     listar: publicProcedure
       .input(z.object({ mes: z.number().min(1).max(12), ano: z.number().min(2020) }))
-      .query(async ({ input }) => {
-        return getMetasByMes(input.mes, input.ano);
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return getMetasByMesAndTenant(tenantId, input.mes, input.ano);
       }),
 
     salvar: protectedProcedure
@@ -363,74 +391,68 @@ export const appRouter = router({
         empresaSlug: z.string().min(1),
         mes: z.number().min(1).max(12),
         ano: z.number().min(2020),
-        metaMensal: z.number().min(0),
-        metaQuinzenal: z.number().min(0),
-        diasUteis: z.number().min(1).max(31).default(26),
-        diasUteisQuinzenal: z.number().min(1).max(15).default(13),
+        metaMensal: z.string(),
+        metaQuinzenal: z.string(),
+        diasUteis: z.number().min(0).max(31),
+        diasUteisQuinzenal: z.number().min(0).max(15),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem configurar metas." });
         }
-        if (
-          ctx.user.role !== "admin" &&
-          ctx.user.empresaVinculada &&
-          ctx.user.empresaVinculada !== input.empresaSlug
-        ) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar metas da sua unidade." });
+        // Verificar acesso à empresa: gerente só pode configurar meta da sua empresa vinculada
+        if (ctx.user.role !== "admin") {
+          const slugs = await getUserEmpresaSlugs(ctx.user.id);
+          const empresaVinculada = ctx.user.empresaVinculada;
+          if (slugs.length > 0) {
+            if (!slugs.includes(input.empresaSlug)) {
+              throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar metas da sua unidade." });
+            }
+          } else if (empresaVinculada && empresaVinculada !== input.empresaSlug) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar metas da sua unidade." });
+          }
         }
-        return upsertMeta({
-          empresaSlug: input.empresaSlug,
-          mes: input.mes,
-          ano: input.ano,
-          metaMensal: String(input.metaMensal),
-          metaQuinzenal: String(input.metaQuinzenal),
-          diasUteis: input.diasUteis,
-          diasUteisQuinzenal: input.diasUteisQuinzenal,
-        });
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return upsertMeta({ ...input, tenantId });
       }),
   }),
 
-  // ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────
+  // ─── BONIFICAÇÕES ──────────────────────────────────────────────────────────
   bonificacao: router({
     listar: protectedProcedure.query(async ({ ctx }) => {
-      // Admin vê todas; gerente vê apenas as das suas empresas
-      const all = await getAllBonificacoes();
-      if (ctx.user.role === "admin") return all;
-      const slugs = await getUserEmpresaSlugs(ctx.user.id);
-      return all.filter((b) => slugs.includes(b.empresaSlug));
+      if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes." });
+      }
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return getAllBonificacoesByTenant(tenantId);
     }),
 
     salvar: protectedProcedure
       .input(z.object({
         empresaSlug: z.string().min(1),
-        pctQuinzenalSemMeta: z.number().min(0).max(100),
-        pctQuinzenalComMeta: z.number().min(0).max(100),
-        pctMensalSemMeta: z.number().min(0).max(100),
-        pctMensalComMeta: z.number().min(0).max(100),
+        pctQuinzenalSemMeta: z.string(),
+        pctQuinzenalComMeta: z.string(),
+        pctMensalSemMeta: z.string(),
+        pctMensalComMeta: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem configurar bonificações." });
         }
-        await upsertBonificacao({
-          empresaSlug: input.empresaSlug,
-          pctQuinzenalSemMeta: String(input.pctQuinzenalSemMeta),
-          pctQuinzenalComMeta: String(input.pctQuinzenalComMeta),
-          pctMensalSemMeta: String(input.pctMensalSemMeta),
-          pctMensalComMeta: String(input.pctMensalComMeta),
-        });
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await upsertBonificacao({ ...input, tenantId });
         return { success: true };
       }),
   }),
 
-  // ─── ADMIN DE USUÁRIOS ─────────────────────────────────────────────────────
+  // ─── ADMIN DE UTILIZADORES ─────────────────────────────────────────────────
   admin: router({
     listarUsuarios: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
       }
-      return getAllUsers();
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return getAllUsersByTenant(tenantId);
     }),
 
     criarUsuario: protectedProcedure
@@ -439,58 +461,43 @@ export const appRouter = router({
         email: z.string().email(),
         senha: z.string().min(6),
         perfil: z.enum(["gerente", "operador"]),
-        empresaVinculada: z.string().nullable(),
+        empresaVinculada: z.string().nullable().optional(),
         role: z.enum(["user", "admin"]).default("user"),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
         }
-        // Verificar se email já existe
+        const tenantId = await getTenantIdFromCtx(ctx);
         const existing = await getUserByEmail(input.email);
         if (existing) {
-          throw new TRPCError({ code: "CONFLICT", message: "Este email já está em uso." });
+          throw new TRPCError({ code: "CONFLICT", message: "Email já registado." });
         }
         const passwordHash = await bcrypt.hash(input.senha, 12);
-        const result = await createUserWithPassword({
+        const newUser = await createUserWithPassword({
+          tenantId,
           name: input.name,
           email: input.email,
           passwordHash,
           perfil: input.perfil,
-          empresaVinculada: input.empresaVinculada,
+          empresaVinculada: input.empresaVinculada ?? null,
           role: input.role,
         });
         await createAccessLog({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId,
           acao: "criar_usuario",
           ip: null,
           userAgent: null,
-          detalhes: `Criou utilizador: ${input.email} (${input.perfil})`,
+          detalhes: `Criou utilizador: ${input.email}`,
         });
-        return { success: true, id: result.id };
-      }),
-
-    atualizarPerfil: protectedProcedure
-      .input(z.object({
-        userId: z.number(),
-        perfil: z.enum(["gerente", "operador"]),
-        empresaVinculada: z.string().nullable(),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
-        }
-        await updateUserPerfil(input.userId, input.perfil, input.empresaVinculada);
-        return { success: true };
+        return { success: true, userId: newUser.id };
       }),
 
     redefinirSenha: protectedProcedure
-      .input(z.object({
-        userId: z.number(),
-        novaSenha: z.string().min(6),
-      }))
+      .input(z.object({ userId: z.number(), novaSenha: z.string().min(6) }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
@@ -501,6 +508,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
           acao: "redefinir_senha",
           ip: null,
           userAgent: null,
@@ -510,10 +518,7 @@ export const appRouter = router({
       }),
 
     toggleAtivo: protectedProcedure
-      .input(z.object({
-        userId: z.number(),
-        ativo: z.number().min(0).max(1),
-      }))
+      .input(z.object({ userId: z.number(), ativo: z.number().min(0).max(1) }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
@@ -523,6 +528,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
           acao: input.ativo === 1 ? "ativar_usuario" : "bloquear_usuario",
           ip: null,
           userAgent: null,
@@ -545,6 +551,7 @@ export const appRouter = router({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
           acao: "excluir_usuario",
           ip: null,
           userAgent: null,
@@ -569,14 +576,13 @@ export const appRouter = router({
         }
         const { userId, novaSenha, ...data } = input;
         let passwordHash: string | undefined;
-        if (novaSenha) {
-          passwordHash = await bcrypt.hash(novaSenha, 12);
-        }
+        if (novaSenha) passwordHash = await bcrypt.hash(novaSenha, 12);
         await updateUserFull(userId, { ...data, passwordHash });
         await createAccessLog({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
           acao: "editar_usuario",
           ip: null,
           userAgent: null,
@@ -585,11 +591,9 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Gerir empresas do utilizador (múltiplas unidades)
     listarEmpresasUsuario: protectedProcedure
       .input(z.object({ userId: z.number() }))
       .query(async ({ input, ctx }) => {
-        // Admin pode ver qualquer utilizador; utilizador pode ver a si mesmo
         if (ctx.user.role !== "admin" && ctx.user.id !== input.userId) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
         }
@@ -597,19 +601,18 @@ export const appRouter = router({
       }),
 
     definirEmpresasUsuario: protectedProcedure
-      .input(z.object({
-        userId: z.number(),
-        slugs: z.array(z.string()),
-      }))
+      .input(z.object({ userId: z.number(), slugs: z.array(z.string()) }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
         }
-        await setUserEmpresas(input.userId, input.slugs);
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await setUserEmpresas(input.userId, tenantId, input.slugs);
         await createAccessLog({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
           userEmail: ctx.user.email ?? null,
+          tenantId,
           acao: "editar_empresas_usuario",
           ip: null,
           userAgent: null,
@@ -618,50 +621,37 @@ export const appRouter = router({
         return { success: true };
       }),
 
-     // Painel de auditoria (apenas owner/dev)
     listarAcessos: protectedProcedure
       .input(z.object({ limit: z.number().min(1).max(500).default(200) }))
       .query(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
         }
-        return getAccessLogs(input.limit);
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return getAccessLogs(input.limit, tenantId);
       }),
   }),
 
-  // ─── CATEGORIAS DINÂMICAS ───────────────────────────────────────────────────────────────────
+  // ─── CATEGORIAS DINÂMICAS ──────────────────────────────────────────────────
   categorias: router({
-    // Listar categorias de uma empresa (qualquer utilizador autenticado)
     listar: protectedProcedure
       .input(z.object({ empresaSlug: z.string().min(1) }))
-      .query(async ({ input }) => {
-        return getCategoriasByEmpresa(input.empresaSlug);
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return getCategoriasByEmpresaTenant(input.empresaSlug, tenantId);
       }),
 
-    // Adicionar categoria (gerente ou admin)
     adicionar: protectedProcedure
-      .input(z.object({
-        empresaSlug: z.string().min(1),
-        nome: z.string().min(1).max(64),
-      }))
+      .input(z.object({ empresaSlug: z.string().min(1), nome: z.string().min(1).max(64) }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
         }
-        await addCategoria(input.empresaSlug, input.nome);
-        await createAccessLog({
-          userId: ctx.user.id,
-          userName: ctx.user.name ?? null,
-          userEmail: ctx.user.email ?? null,
-          acao: "adicionar_categoria",
-          ip: null,
-          userAgent: null,
-          detalhes: `Adicionou categoria "${input.nome}" à empresa ${input.empresaSlug}`,
-        });
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await addCategoria(input.empresaSlug, tenantId, input.nome);
         return { success: true };
       }),
 
-    // Remover categoria (gerente ou admin)
     remover: protectedProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input, ctx }) => {
@@ -672,12 +662,8 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Editar nome de categoria (gerente ou admin)
     editar: protectedProcedure
-      .input(z.object({
-        id: z.number().int().positive(),
-        nome: z.string().min(1).max(64),
-      }))
+      .input(z.object({ id: z.number().int().positive(), nome: z.string().min(1).max(64) }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
@@ -686,5 +672,144 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── REGISTRO PÚBLICO DE TENANT ─────────────────────────────────────────────
+  registro: router({
+    novoTenant: publicProcedure
+      .input(z.object({
+        nomeEmpresa: z.string().min(2).max(128),
+        nomeAdmin: z.string().min(2).max(128),
+        email: z.string().email(),
+        senha: z.string().min(6),
+        telefone: z.string().optional(),
+        plano: z.enum(["trial", "basico", "pro"]).default("trial"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Verificar se o email já existe
+        const existingUser = await getUserByEmail(input.email);
+        if (existingUser) {
+          throw new TRPCError({ code: "CONFLICT", message: "Este email já está em uso. Tente fazer login." });
+        }
+        // Gerar slug a partir do nome da empresa
+        const slug = input.nomeEmpresa
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .substring(0, 64);
+        // Criar o tenant
+        const tenant = await createTenant({
+          nome: input.nomeEmpresa,
+          slug,
+          adminEmail: input.email,
+          plano: input.plano,
+        });
+        // Criar o admin do tenant
+        const passwordHash = await bcrypt.hash(input.senha, 12);
+        await createUserWithPassword({
+          tenantId: tenant.id,
+          name: input.nomeAdmin,
+          email: input.email,
+          passwordHash,
+          perfil: "gerente",
+          empresaVinculada: null,
+          role: "admin",
+        });
+        // Registar log
+        await createAccessLog({
+          userId: null,
+          userName: input.nomeAdmin,
+          userEmail: input.email,
+          tenantId: tenant.id,
+          acao: "registro_tenant",
+          ip: getClientIp(ctx.req),
+          userAgent: ctx.req.headers["user-agent"] || "",
+          detalhes: `Novo tenant registado: ${input.nomeEmpresa}`,
+        });
+        return { success: true, tenantId: tenant.id, slug };
+      }),
+  }),
+
+  superAdmin: router({
+    listarTenants: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
+      }
+      const tenants = await getAllTenants();
+      const tenantsComStats = await Promise.all(
+        tenants.map(async (t) => ({
+          ...t,
+          stats: await getTenantStats(t.id),
+        }))
+      );
+      return tenantsComStats;
+    }),
+
+    criarTenant: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(2).max(128),
+        slug: z.string().min(2).max(64).regex(/^[a-z0-9-]+$/),
+        adminEmail: z.string().email(),
+        adminNome: z.string().min(2).max(128),
+        adminSenha: z.string().min(6),
+        plano: z.enum(["trial", "basico", "pro"]).default("trial"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
+        }
+        // Criar o tenant
+        const tenant = await createTenant({
+          nome: input.nome,
+          slug: input.slug,
+          adminEmail: input.adminEmail,
+          plano: input.plano,
+        });
+        // Criar o admin do tenant
+        const passwordHash = await bcrypt.hash(input.adminSenha, 12);
+        await createUserWithPassword({
+          tenantId: tenant.id,
+          name: input.adminNome,
+          email: input.adminEmail,
+          passwordHash,
+          perfil: "gerente",
+          empresaVinculada: null,
+          role: "admin",
+        });
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId: 1,
+          acao: "criar_tenant",
+          ip: null,
+          userAgent: null,
+          detalhes: `Criou tenant: ${input.nome} (${input.slug})`,
+        });
+        return { success: true, tenantId: tenant.id };
+      }),
+
+    toggleTenantAtivo: protectedProcedure
+      .input(z.object({ tenantId: z.number(), ativo: z.number().min(0).max(1) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
+        }
+        await updateTenantAtivo(input.tenantId, input.ativo);
+        return { success: true };
+      }),
+
+    alterarPlano: protectedProcedure
+      .input(z.object({ tenantId: z.number(), plano: z.enum(["trial", "basico", "pro"]) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
+        }
+        await updateTenantPlano(input.tenantId, input.plano);
+        return { success: true };
+      }),
+  }),
 });
+
 export type AppRouter = typeof appRouter;

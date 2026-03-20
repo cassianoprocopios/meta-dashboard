@@ -76,7 +76,13 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
 
   const handleSalvar = async (slug: string) => {
     try {
-      await salvarBon.mutateAsync({ empresaSlug: slug, ...formPct });
+      await salvarBon.mutateAsync({
+        empresaSlug: slug,
+        pctQuinzenalSemMeta: String(formPct.pctQuinzenalSemMeta),
+        pctQuinzenalComMeta: String(formPct.pctQuinzenalComMeta),
+        pctMensalSemMeta: String(formPct.pctMensalSemMeta),
+        pctMensalComMeta: String(formPct.pctMensalComMeta),
+      });
       toast.success("Bonificação salva com sucesso!");
       refetchBon();
       setEditando(null);

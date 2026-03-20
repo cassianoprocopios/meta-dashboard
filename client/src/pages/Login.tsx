@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Target, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Target, Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import TenantRegister from "./TenantRegister";
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -11,6 +12,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   const loginMutation = trpc.auth.loginComSenha.useMutation({
     onSuccess: (data) => {
@@ -31,6 +33,20 @@ export default function Login({ onLogin }: LoginProps) {
     loginMutation.mutate({ email, senha });
   };
 
+  // Após registro bem-sucedido, fazer login automático
+  const handleRegistroSuccess = (data: { tenantId: number; slug: string; email: string; senha: string }) => {
+    loginMutation.mutate({ email: data.email, senha: data.senha });
+  };
+
+  if (showRegister) {
+    return (
+      <TenantRegister
+        onBack={() => setShowRegister(false)}
+        onSuccess={handleRegistroSuccess}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -40,7 +56,7 @@ export default function Login({ onLogin }: LoginProps) {
             <Target className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Meta Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Painel de Gestão de Metas</p>
+          <p className="text-slate-400 text-sm mt-1">Painel de Gestão de Metas para Salões</p>
         </div>
 
         {/* Card de login */}
@@ -99,11 +115,31 @@ export default function Login({ onLogin }: LoginProps) {
               )}
             </button>
           </form>
+
+          {/* Link para registro */}
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-slate-400 text-sm">
+              Ainda não tem uma conta?{" "}
+              <button
+                onClick={() => setShowRegister(true)}
+                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+              >
+                Criar conta gratuita
+              </button>
+            </p>
+          </div>
         </div>
 
-        <p className="text-center text-slate-500 text-xs mt-6">
-          Acesso restrito. Contacte o administrador para obter credenciais.
-        </p>
+        {/* Rodapé */}
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-slate-500 text-xs">
+            Sistema exclusivo para gestão de metas de salões de beleza.
+          </p>
+          <p className="text-slate-600 text-xs flex items-center justify-center gap-1">
+            <Shield className="w-3 h-3" />
+            Dados isolados e seguros por empresa
+          </p>
+        </div>
       </div>
     </div>
   );

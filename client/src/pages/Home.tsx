@@ -19,6 +19,7 @@ import AdminUsers from "@/pages/AdminUsers";
 import Empresas from "@/pages/Empresas";
 import Auditoria from "@/pages/Auditoria";
 import Bonificacao from "@/pages/Bonificacao";
+import SuperAdmin from "@/pages/SuperAdmin";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -62,10 +63,13 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [showFaturamentoForm, setShowFaturamentoForm] = useState(false);
   const [editingFaturamento, setEditingFaturamento] = useState<any>(null);
+  const [showSuperAdmin, setShowSuperAdmin] = useState(false);
 
   const isAdmin = user?.role === "admin";
   const isGerente = user?.perfil === "gerente" || isAdmin;
   const empresaVinculada = user?.empresaVinculada ?? null;
+  // Super-admin: utilizador sem tenantId é o owner do sistema
+  const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
 
   // Queries
   const { data: empresasData = [], isLoading: loadingEmpresas } = trpc.empresa.listar.useQuery();
@@ -79,7 +83,7 @@ export default function Home() {
     { enabled: !!user && !isAdmin }
   );
 
-  const deletarFat = trpc.faturamento.deletar.useMutation();
+  const deletarFat = trpc.faturamento.excluir.useMutation();
 
   // Empresas visíveis para este usuário
   const empresasVisiveis = useMemo(() => {
@@ -276,6 +280,14 @@ export default function Home() {
                   <option key={i} value={i + 1}>{m} {ano}</option>
                 ))}
               </select>
+              {isSuperAdmin && (
+                <button
+                  onClick={() => setShowSuperAdmin(true)}
+                  className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium"
+                >
+                  <Shield className="w-4 h-4" /> Super Admin
+                </button>
+              )}
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab("usuarios")}
@@ -835,6 +847,13 @@ export default function Home() {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Painel Super Admin (overlay) */}
+      {showSuperAdmin && isSuperAdmin && (
+        <div className="fixed inset-0 z-50 bg-slate-50 overflow-auto">
+          <SuperAdmin onBack={() => setShowSuperAdmin(false)} />
         </div>
       )}
     </div>

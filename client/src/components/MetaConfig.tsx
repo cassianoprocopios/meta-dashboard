@@ -109,8 +109,8 @@ export default function MetaConfig({
           empresaSlug: emp.slug,
           mes,
           ano,
-          metaMensal: mensal,
-          metaQuinzenal: quinzenal,
+          metaMensal: String(mensal),
+          metaQuinzenal: String(quinzenal),
           diasUteis,
           diasUteisQuinzenal,
         });

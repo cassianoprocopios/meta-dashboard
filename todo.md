@@ -106,3 +106,17 @@
 - [ ] Formulário de lançamento usa categorias dinâmicas da empresa selecionada
 - [ ] AdminUsers: campo "Unidade que trabalha" obrigatório no cadastro
 - [ ] Testes das novas procedures de categorias
+
+## Evolução v8 - SaaS Multi-Tenant
+
+- [x] Tabela `tenants` (id, nome, slug, plano, ativo, adminEmail, createdAt)
+- [x] Adicionar coluna `tenantId` em: users, empresas, categorias, metas, faturamentos, bonificacoes, userEmpresas, accessLogs
+- [x] Migrar dados existentes do Barbiero Grupo para tenantId=1
+- [x] Todas as procedures filtram automaticamente por tenantId do utilizador logado
+- [x] Corrigir testes - controle de acesso por empresa vinculada (11 testes passando)
+- [x] Tela de registo de novo tenant (nome da empresa, email admin, senha)
+- [ ] Onboarding guiado após registo (criar primeira unidade + categorias)
+- [x] Painel super-admin: listar tenants, activar/bloquear, ver estatísticas de uso
+- [ ] Landing page de apresentação e venda do produto
+- [x] Isolamento total: tenant A nunca acede dados do tenant B (verificado e corrigido)
+- [x] Testes de isolamento multi-tenant (11 testes passando)

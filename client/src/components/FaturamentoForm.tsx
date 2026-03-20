@@ -75,12 +75,16 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
     }
   }, [empresaSlug]);
 
-  const parseVal = (v: string) => {
+  const parseValStr = (v: string): string => {
+    const n = parseFloat(v.replace(",", "."));
+    return isNaN(n) ? "0" : String(n);
+  };
+  const parseValNum = (v: string): number => {
     const n = parseFloat(v.replace(",", "."));
     return isNaN(n) ? 0 : n;
   };
 
-  const total = cats.reduce((s, v) => s + parseVal(v), 0);
+  const total = cats.reduce((s, v) => s + parseValNum(v), 0);
 
   const handleSave = async () => {
     if (!empresaSlug) { toast.error("Selecione a empresa."); return; }
@@ -90,11 +94,11 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
       await salvar.mutateAsync({
         empresaSlug,
         data,
-        cat1: parseVal(cats[0]),
-        cat2: parseVal(cats[1]),
-        cat3: parseVal(cats[2]),
-        cat4: parseVal(cats[3]),
-        cat5: parseVal(cats[4]),
+        cat1: parseValStr(cats[0]),
+        cat2: parseValStr(cats[1]),
+        cat3: parseValStr(cats[2]),
+        cat4: parseValStr(cats[3]),
+        cat5: parseValStr(cats[4]),
         observacao: observacao || undefined,
       });
       toast.success("Lançamento salvo com sucesso!");
