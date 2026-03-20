@@ -18,6 +18,7 @@ import {
   updateEmpresa,
   getUserByEmail,
   getUserById,
+  getTenantById,
   createUserWithPassword,
   updateUserPassword,
   updateUserAtivo,
@@ -180,6 +181,23 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos." });
         }
 
+        // Verificar se o tenant está ativo e dentro da validade
+        if (user.tenantId !== null) {
+          const tenant = await getTenantById(user.tenantId);
+          if (!tenant || tenant.ativo === 0) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "TENANT_BLOCKED",
+            });
+          }
+          if (tenant.validadeAte && new Date(tenant.validadeAte) < new Date()) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "TENANT_EXPIRED",
+            });
+          }
+        }
+
         await updateUserLastSignedIn(user.id);
         await createAccessLog({
           userId: user.id,
@@ -209,6 +227,23 @@ export const appRouter = router({
           },
         };
       }),
+
+    /** Retorna o status do tenant do utilizador autenticado */
+    tenantStatus: publicProcedure.query(async ({ ctx }) => {
+      const appToken = getCookie(ctx.req, APP_COOKIE);
+      if (!appToken) return { status: "ok" as const };
+      const payload = await verifyAppToken(appToken);
+      if (!payload) return { status: "ok" as const };
+      const user = await getUserById(payload.userId);
+      if (!user || user.tenantId === null) return { status: "ok" as const };
+      const tenant = await getTenantById(user.tenantId);
+      if (!tenant) return { status: "not_found" as const, message: "Tenant não encontrado." };
+      if (tenant.ativo === 0) return { status: "blocked" as const, message: "Sua conta foi bloqueada. Entre em contato com o suporte." };
+      if (tenant.validadeAte && new Date(tenant.validadeAte) < new Date()) {
+        return { status: "expired" as const, message: "Sua licença expirou. Entre em contato para renovar." };
+      }
+      return { status: "ok" as const };
+    }),
 
     logoutApp: publicProcedure.mutation(async ({ ctx }) => {
       const appToken = getCookie(ctx.req, APP_COOKIE);

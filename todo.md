@@ -179,3 +179,16 @@
 - [x] Backend: recepcionista bloqueada em metas, bonificação, exclusão de faturamentos, usuários, empresas
 - [x] Banner de boas-vindas no dashboard com botão grande de lançamento
 - [x] Testar: 11 testes passando
+
+## Fluxo de Provisionamento pelo Desenvolvedor
+
+- [x] Dev Panel: criar tenant + admin em uma operação (nome empresa, email genérico, senha, validade)
+- [x] Cada tenant admin só vê e gerencia suas próprias empresas (isolamento por tenantId)
+- [x] Admin pode criar usuários dentro do seu tenant (gerente, recepcionista, operador)
+- [x] Admin pode criar empresas dentro do seu tenant
+- [x] Middleware de validade: bloquear acesso se tenant expirado ou cancelado
+- [x] Tela de "Acesso Bloqueado" com mensagem ao admin quando licença expirar
+- [x] Dev Panel: listar todos os tenants com status (ativo, expirado, cancelado), validade e admin
+- [x] Dev Panel: renovar validade de qualquer tenant
+- [x] Dev Panel: cancelar/reativar tenant com um clique
+- [x] Dev Panel: ver credenciais do admin de cada tenant (email + botão de copiar)

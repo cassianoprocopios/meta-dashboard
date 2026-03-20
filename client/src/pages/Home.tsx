@@ -20,6 +20,7 @@ import Empresas from "@/pages/Empresas";
 import Auditoria from "@/pages/Auditoria";
 import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
+import TenantBloqueado from "@/pages/TenantBloqueado";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -71,6 +72,22 @@ export default function Home() {
   const empresaVinculada = user?.empresaVinculada ?? null;
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
+
+  // Verificar status do tenant (bloqueado/expirado)
+  const { data: tenantStatus } = trpc.auth.tenantStatus.useQuery(
+    undefined,
+    { enabled: !!(user as any)?.tenantId, refetchInterval: 5 * 60 * 1000 }
+  );
+
+  // Se o tenant estiver bloqueado ou expirado, mostrar tela de bloqueio
+  if (tenantStatus && tenantStatus.status !== "ok") {
+    return (
+      <TenantBloqueado
+        status={tenantStatus.status as "blocked" | "expired" | "not_found"}
+        message={(tenantStatus as any).message}
+      />
+    );
+  }
   // Recepcionista pode lançar faturamentos mas NÃO pode ver metas, bonificação, usuários, empresas, auditoria, lançamentos histórico
   const podeLancarFaturamento = isGerente || isRecepcionista;
   // Tabs visíveis para recepcionista: apenas dashboard

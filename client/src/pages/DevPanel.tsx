@@ -4,11 +4,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Building2, Plus, Edit2, Power, Calendar, Users, BarChart2,
   CheckCircle, XCircle, Clock, AlertTriangle, RefreshCw, X, Loader2,
-  Shield, Eye, EyeOff
+  Shield, Eye, EyeOff, Copy, Check, Key, ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,7 +38,79 @@ function isExpired(validadeAte: Date | string | null | undefined) {
 function isExpiringSoon(validadeAte: Date | string | null | undefined) {
   if (!validadeAte) return false;
   const diff = new Date(validadeAte).getTime() - Date.now();
-  return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000; // 7 dias
+  return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000;
+}
+
+function gerarSenhaAleatoria(len = 12) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
+  return Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
+// ─── Modal de Sucesso (mostra credenciais) ────────────────────────────────────
+function ModalCredenciais({ nome, email, senha, onClose }: { nome: string; email: string; senha: string; onClose: () => void }) {
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedSenha, setCopiedSenha] = useState(false);
+
+  const copiar = (texto: string, tipo: "email" | "senha") => {
+    navigator.clipboard.writeText(texto).then(() => {
+      if (tipo === "email") { setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }
+      else { setCopiedSenha(true); setTimeout(() => setCopiedSenha(false), 2000); }
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="p-6 text-center border-b border-slate-100">
+          <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <CheckCircle className="w-7 h-7 text-emerald-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800">Tenant Criado!</h2>
+          <p className="text-sm text-slate-500 mt-1">Guarde as credenciais abaixo para repassar ao cliente.</p>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Empresa</p>
+            <p className="text-base font-semibold text-slate-800">{nome}</p>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Email de Acesso</p>
+            <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200">
+              <span className="flex-1 text-sm font-mono text-slate-700 truncate">{email}</span>
+              <button
+                onClick={() => copiar(email, "email")}
+                className="shrink-0 p-1 hover:bg-slate-200 rounded-lg transition-colors text-slate-500"
+              >
+                {copiedEmail ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Senha Inicial</p>
+            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2.5 border border-amber-200">
+              <span className="flex-1 text-sm font-mono text-amber-800 font-bold tracking-widest">{senha}</span>
+              <button
+                onClick={() => copiar(senha, "senha")}
+                className="shrink-0 p-1 hover:bg-amber-200 rounded-lg transition-colors text-amber-600"
+              >
+                {copiedSenha ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Esta senha não será exibida novamente. Copie agora.
+            </p>
+          </div>
+
+          <Button onClick={onClose} className="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl mt-2">
+            Entendido, já copiei
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Modal de Criação de Tenant ────────────────────────────────────────────────
@@ -49,12 +120,13 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
     slug: "",
     adminEmail: "",
     adminNome: "",
-    adminSenha: "",
+    adminSenha: gerarSenhaAleatoria(),
     plano: "trial" as Plano,
     validadeAte: "",
     observacoes: "",
   });
-  const [showSenha, setShowSenha] = useState(false);
+  const [showSenha, setShowSenha] = useState(true);
+  const [credenciais, setCredenciais] = useState<{ nome: string; email: string; senha: string } | null>(null);
   const criar = trpc.devPanel.criarTenant.useMutation();
 
   const handleSlugAuto = (nome: string) => {
@@ -74,25 +146,35 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
         validadeAte: form.validadeAte || null,
         observacoes: form.observacoes || null,
       });
-      toast.success(`Tenant "${form.nome}" criado com sucesso!`);
+      setCredenciais({ nome: form.nome, email: form.adminEmail, senha: form.adminSenha });
       onSuccess();
-      onClose();
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao criar tenant.");
     }
   };
+
+  if (credenciais) {
+    return (
+      <ModalCredenciais
+        nome={credenciais.nome}
+        email={credenciais.email}
+        senha={credenciais.senha}
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Novo Tenant</h2>
-              <p className="text-xs text-slate-500">Cadastrar nova empresa cliente</p>
+              <h2 className="text-lg font-bold text-slate-800">Novo Cliente</h2>
+              <p className="text-xs text-slate-500">Cadastrar empresa + admin de acesso</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -100,10 +182,10 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Dados do Tenant */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Dados da Empresa</h3>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Dados da Empresa</h3>
             <div>
               <label className="text-xs font-medium text-slate-600 mb-1 block">Nome da Empresa *</label>
               <Input
@@ -114,7 +196,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">Slug (identificador único) *</label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Identificador (slug) *</label>
               <Input
                 value={form.slug}
                 onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
@@ -122,7 +204,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                 required
                 pattern="[a-z0-9-]+"
               />
-              <p className="text-xs text-slate-400 mt-1">Apenas letras minúsculas, números e hífens</p>
+              <p className="text-xs text-slate-400 mt-1">Apenas letras minúsculas, números e hífens. Gerado automaticamente.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -130,7 +212,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                 <select
                   value={form.plano}
                   onChange={e => setForm(f => ({ ...f, plano: e.target.value as Plano }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="trial">Trial (gratuito)</option>
                   <option value="basico">Básico</option>
@@ -138,7 +220,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-1 block">Validade</label>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Válido até</label>
                 <Input
                   type="date"
                   value={form.validadeAte}
@@ -148,9 +230,12 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
             </div>
           </div>
 
-          {/* Dados do Admin */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Acesso do Administrador</h3>
+          {/* Credenciais do Admin */}
+          <div className="space-y-3 pt-1 border-t border-slate-100">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Credenciais do Administrador</h3>
+            <p className="text-xs text-slate-400">
+              O email pode ser genérico (ex: <code className="bg-slate-100 px-1 rounded">admin@salao-beleza</code>). Não precisa ser um email real.
+            </p>
             <div>
               <label className="text-xs font-medium text-slate-600 mb-1 block">Nome do Admin *</label>
               <Input
@@ -161,18 +246,25 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">
-                Email de Acesso * <span className="text-slate-400 font-normal">(pode ser genérico, ex: joao@salaobeleza)</span>
-              </label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Email de Acesso * <span className="text-slate-400 font-normal">(único na plataforma)</span></label>
               <Input
                 value={form.adminEmail}
                 onChange={e => setForm(f => ({ ...f, adminEmail: e.target.value }))}
-                placeholder="Ex: admin@salao-beleza-total"
+                placeholder="Ex: joao@salao-beleza"
                 required
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">Senha Inicial *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-slate-600">Senha Inicial *</label>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, adminSenha: gerarSenhaAleatoria() }))}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                >
+                  <Key className="w-3 h-3" /> Gerar nova senha
+                </button>
+              </div>
               <div className="relative">
                 <Input
                   type={showSenha ? "text" : "password"}
@@ -181,7 +273,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                   placeholder="Mínimo 6 caracteres"
                   required
                   minLength={6}
-                  className="pr-10"
+                  className="pr-10 font-mono"
                 />
                 <button
                   type="button"
@@ -191,6 +283,9 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                   {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> A senha será exibida após criar. Copie e repasse ao cliente.
+              </p>
             </div>
           </div>
 
@@ -202,17 +297,17 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
               onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
               placeholder="Notas sobre este cliente, contrato, etc."
               rows={2}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" disabled={criar.isPending} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="submit" disabled={criar.isPending} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white">
               {criar.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              Criar Tenant
+              Criar Cliente
             </Button>
           </div>
         </form>
@@ -260,7 +355,7 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
               <Edit2 className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Editar Tenant</h2>
+              <h2 className="text-lg font-bold text-slate-800">Editar Cliente</h2>
               <p className="text-xs text-slate-500">{tenant.nome} · #{tenant.id}</p>
             </div>
           </div>
@@ -272,19 +367,32 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="text-xs font-medium text-slate-600 mb-1 block">Nome da Empresa *</label>
-            <Input
-              value={form.nome}
-              onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
-              required
-            />
+            <Input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} required />
           </div>
+
+          {/* Email do admin (somente leitura) */}
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Email do Admin</label>
+            <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+              <span className="flex-1 text-sm font-mono text-slate-600 truncate">{tenant.adminEmail}</span>
+              <button
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(tenant.adminEmail); toast.success("Email copiado!"); }}
+                className="shrink-0 p-1 hover:bg-slate-200 rounded transition-colors text-slate-400"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Para redefinir a senha, use o painel Admin.</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-600 mb-1 block">Plano *</label>
               <select
                 value={form.plano}
                 onChange={e => setForm(f => ({ ...f, plano: e.target.value as Plano }))}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="trial">Trial</option>
                 <option value="basico">Básico</option>
@@ -296,13 +404,14 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
               <select
                 value={form.ativo}
                 onChange={e => setForm(f => ({ ...f, ativo: Number(e.target.value) }))}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value={1}>Ativo</option>
                 <option value={0}>Bloqueado</option>
               </select>
             </div>
           </div>
+
           <div>
             <label className="text-xs font-medium text-slate-600 mb-1 block">Validade do Acesso</label>
             <Input
@@ -312,22 +421,22 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
             />
             <p className="text-xs text-slate-400 mt-1">Deixe em branco para acesso sem validade</p>
           </div>
+
           <div>
             <label className="text-xs font-medium text-slate-600 mb-1 block">Observações internas</label>
             <textarea
               value={form.observacoes}
               onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
               rows={3}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
           </div>
+
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancelar
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={editar.isPending} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white">
               {editar.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Edit2 className="w-4 h-4 mr-2" />}
-              Salvar Alterações
+              Salvar
             </Button>
           </div>
         </form>
@@ -350,13 +459,12 @@ export default function DevPanel() {
   );
   const toggleAtivo = trpc.devPanel.toggleAtivo.useMutation();
 
-  // Verificar acesso
   const isSuperDev = user?.role === "admin" && !(user as any)?.tenantId;
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -368,7 +476,7 @@ export default function DevPanel() {
           <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Acesso Restrito</h1>
           <p className="text-slate-500">Este painel é exclusivo para o desenvolvedor do sistema.</p>
-          <a href="/" className="mt-4 inline-block text-blue-600 hover:underline text-sm">← Voltar ao início</a>
+          <a href="/" className="mt-4 inline-block text-indigo-600 hover:underline text-sm">← Voltar ao início</a>
         </div>
       </div>
     );
@@ -376,7 +484,10 @@ export default function DevPanel() {
 
   // Filtrar tenants
   const tenantsFiltrados = tenants.filter(t => {
-    const matchBusca = !busca || t.nome.toLowerCase().includes(busca.toLowerCase()) || t.slug.includes(busca.toLowerCase()) || t.adminEmail.toLowerCase().includes(busca.toLowerCase());
+    const matchBusca = !busca
+      || t.nome.toLowerCase().includes(busca.toLowerCase())
+      || t.slug.includes(busca.toLowerCase())
+      || t.adminEmail.toLowerCase().includes(busca.toLowerCase());
     const expired = isExpired(t.validadeAte);
     if (filtroStatus === "ativos") return matchBusca && t.ativo === 1 && !expired;
     if (filtroStatus === "bloqueados") return matchBusca && t.ativo === 0;
@@ -384,7 +495,6 @@ export default function DevPanel() {
     return matchBusca;
   });
 
-  // Estatísticas
   const totalAtivos = tenants.filter(t => t.ativo === 1 && !isExpired(t.validadeAte)).length;
   const totalBloqueados = tenants.filter(t => t.ativo === 0).length;
   const totalExpirados = tenants.filter(t => isExpired(t.validadeAte)).length;
@@ -412,10 +522,10 @@ export default function DevPanel() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-800">Painel do Desenvolvedor</h1>
-              <p className="text-xs text-slate-500">Gestão de tenants e licenças</p>
+              <p className="text-xs text-slate-500">Gestão de clientes e licenças</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => refetch()}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500"
@@ -423,15 +533,15 @@ export default function DevPanel() {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
-            <a href="/" className="text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-              ← Voltar
+            <a href="/" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Voltar
             </a>
             <Button
               onClick={() => setShowCriar(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
               size="sm"
             >
-              <Plus className="w-4 h-4" /> Novo Tenant
+              <Plus className="w-4 h-4" /> Novo Cliente
             </Button>
           </div>
         </div>
@@ -441,7 +551,7 @@ export default function DevPanel() {
         {/* Cards de estatísticas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: "Total de Tenants", value: tenants.length, icon: Building2, cor: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Total de Clientes", value: tenants.length, icon: Building2, cor: "text-indigo-600", bg: "bg-indigo-50" },
             { label: "Ativos", value: totalAtivos, icon: CheckCircle, cor: "text-emerald-600", bg: "bg-emerald-50" },
             { label: "Bloqueados / Expirados", value: totalBloqueados + totalExpirados, icon: XCircle, cor: "text-red-500", bg: "bg-red-50" },
             { label: "Total de Usuários", value: totalUsers, icon: Users, cor: "text-blue-600", bg: "bg-blue-50" },
@@ -468,7 +578,7 @@ export default function DevPanel() {
             placeholder="Buscar por nome, slug ou email..."
             className="flex-1"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(["todos", "ativos", "bloqueados", "expirados"] as const).map(f => (
               <button
                 key={f}
@@ -485,7 +595,7 @@ export default function DevPanel() {
           </div>
         </div>
 
-        {/* Tabela de Tenants */}
+        {/* Lista de Tenants */}
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
@@ -493,7 +603,10 @@ export default function DevPanel() {
         ) : tenantsFiltrados.length === 0 ? (
           <div className="text-center py-12 text-slate-400">
             <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>Nenhum tenant encontrado</p>
+            <p className="text-sm">Nenhum cliente encontrado</p>
+            <button onClick={() => setShowCriar(true)} className="mt-3 text-indigo-600 hover:underline text-sm">
+              + Cadastrar primeiro cliente
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -503,13 +616,13 @@ export default function DevPanel() {
               const statusOk = t.ativo === 1 && !expired;
 
               return (
-                <Card key={t.id} className={`p-4 border-0 shadow-sm transition-all hover:shadow-md ${!statusOk ? "opacity-75" : ""}`}>
+                <Card key={t.id} className={`p-4 border-0 shadow-sm transition-all hover:shadow-md ${!statusOk ? "opacity-70" : ""}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Info principal */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-slate-800 truncate">{t.nome}</h3>
-                        <span className="text-xs text-slate-400 font-mono">#{t.id} · {t.slug}</span>
+                        <h3 className="font-semibold text-slate-800">{t.nome}</h3>
+                        <span className="text-xs text-slate-400 font-mono">#{t.id}</span>
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${planoCor[t.plano as Plano] ?? planoCor.trial}`}>
                           {planoLabel[t.plano as Plano] ?? t.plano}
                         </span>
@@ -529,9 +642,21 @@ export default function DevPanel() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5 truncate">{t.adminEmail}</p>
+
+                      {/* Email do admin com botão de copiar */}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-sm text-slate-500 font-mono">{t.adminEmail}</span>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(t.adminEmail); toast.success("Email copiado!"); }}
+                          className="p-0.5 hover:bg-slate-100 rounded transition-colors text-slate-400 hover:text-slate-600"
+                          title="Copiar email"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
                       {t.observacoes && (
-                        <p className="text-xs text-slate-400 mt-1 italic truncate">{t.observacoes}</p>
+                        <p className="text-xs text-slate-400 mt-1 italic">{t.observacoes}</p>
                       )}
                     </div>
 
@@ -539,15 +664,15 @@ export default function DevPanel() {
                     <div className="flex items-center gap-4 text-sm text-slate-500 shrink-0">
                       <div className="flex items-center gap-1.5">
                         <Users className="w-4 h-4 text-slate-400" />
-                        <span>{t.totalUsers} usuários</span>
+                        <span>{t.totalUsers}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Building2 className="w-4 h-4 text-slate-400" />
-                        <span>{t.totalEmpresas} unidades</span>
+                        <span>{t.totalEmpresas}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <BarChart2 className="w-4 h-4 text-slate-400" />
-                        <span>{t.totalLancamentos} lançamentos</span>
+                        <span>{t.totalLancamentos}</span>
                       </div>
                     </div>
 
@@ -560,7 +685,7 @@ export default function DevPanel() {
                     </div>
 
                     {/* Ações */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => setEditando(t)}
                         className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors text-slate-400"
@@ -576,7 +701,7 @@ export default function DevPanel() {
                             ? "hover:bg-red-50 hover:text-red-600 text-slate-400"
                             : "hover:bg-emerald-50 hover:text-emerald-600 text-slate-400"
                         }`}
-                        title={t.ativo === 1 ? "Bloquear" : "Ativar"}
+                        title={t.ativo === 1 ? "Bloquear acesso" : "Reativar acesso"}
                       >
                         <Power className="w-4 h-4" />
                       </button>
