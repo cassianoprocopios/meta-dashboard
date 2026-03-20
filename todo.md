@@ -169,3 +169,13 @@
 - [x] Modal de criação de tenant com email genérico
 - [x] Modal de edição: alterar plano, validade, status, observações
 - [x] Indicador visual de tenants expirados ou próximos do vencimento
+
+## Perfil Recepcionista - Revisão Completa de Acesso
+
+- [x] Auditar frontend: verificar todas as abas visíveis para recepcionista
+- [x] Recepcionista vê APENAS: Dashboard e botão de lançar faturamento
+- [x] Recepcionista NÃO vê: Metas, Bonificação, Usuários, Empresas, Auditoria, Lançamentos histórico
+- [x] Recepcionista NÃO vê: botões de Super Admin, Admin, Dev Panel, Empresas no header
+- [x] Backend: recepcionista bloqueada em metas, bonificação, exclusão de faturamentos, usuários, empresas
+- [x] Banner de boas-vindas no dashboard com botão grande de lançamento
+- [x] Testar: 11 testes passando

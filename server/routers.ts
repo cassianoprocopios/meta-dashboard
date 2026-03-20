@@ -377,9 +377,11 @@ export const appRouter = router({
     excluir: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
-        // Recepcionista também pode excluir faturamentos que lançou
-        const perfisPerm = ["gerente", "recepcionista"];
-        if (!perfisPerm.includes(ctx.user.perfil) && ctx.user.role !== "admin") {
+        // Recepcionista NÃO pode excluir faturamentos - apenas gerente e admin
+        if (ctx.user.perfil === "recepcionista") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Recepcionistas não podem excluir lançamentos. Solicite ao gerente." });
+        }
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão para excluir faturamentos." });
         }
         await deleteFaturamento(input.id);

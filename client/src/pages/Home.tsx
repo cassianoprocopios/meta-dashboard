@@ -71,8 +71,17 @@ export default function Home() {
   const empresaVinculada = user?.empresaVinculada ?? null;
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
-  // Recepcionista pode lançar faturamentos mas não pode ver metas, bonificação, usuários, empresas
-  const podelancarFaturamento = isGerente || isRecepcionista;
+  // Recepcionista pode lançar faturamentos mas NÃO pode ver metas, bonificação, usuários, empresas, auditoria, lançamentos histórico
+  const podeLancarFaturamento = isGerente || isRecepcionista;
+  // Tabs visíveis para recepcionista: apenas dashboard
+  const tabsVisiveis: Tab[] = isRecepcionista
+    ? ["dashboard"]
+    : [
+        "dashboard",
+        "lancamentos",
+        ...(isGerente ? ["metas"] as Tab[] : []),
+        ...(isGerente ? ["bonificacao"] as Tab[] : []),
+      ];
 
   // Queries
   const { data: empresasData = [], isLoading: loadingEmpresas } = trpc.empresa.listar.useQuery();
@@ -313,7 +322,7 @@ export default function Home() {
                   <Users className="w-4 h-4" /> Usuários
                 </button>
               )}
-              {(isAdmin || isGerente) && (
+              {(isAdmin || isGerente) && !isRecepcionista && (
                 <button
                   onClick={() => setActiveTab("empresas")}
                   className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
@@ -321,7 +330,7 @@ export default function Home() {
                   <Building2 className="w-4 h-4" /> Empresas
                 </button>
               )}
-              {podelancarFaturamento && (
+              {podeLancarFaturamento && (
                 <Button
                   onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
                   className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
@@ -354,7 +363,8 @@ export default function Home() {
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2">
-            {(["dashboard", "lancamentos", ...(isGerente && !isRecepcionista ? ["metas"] : []), ...(isGerente && !isRecepcionista ? ["bonificacao"] : [])] as Tab[]).map((tab) => {              const labels: Record<Tab, string> = {
+            {tabsVisiveis.map((tab) => {
+              const labels: Record<Tab, string> = {
                 dashboard: "Dashboard",
                 lancamentos: "Lançamentos",
                 metas: "Metas",
@@ -400,6 +410,24 @@ export default function Home() {
         {/* ─── DASHBOARD ─────────────────────────────────────────────────────── */}
         {activeTab === "dashboard" && !loading && (
           <div className="space-y-6">
+            {/* Banner de acesso rápido para recepcionista */}
+            {isRecepcionista && (
+              <Card className="p-6 border-0 shadow-sm rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold">Olá, {user?.name ?? "Recepcionista"}!</h2>
+                    <p className="text-sm text-blue-100 mt-1">Registre o faturamento do dia clicando no botão ao lado.</p>
+                  </div>
+                  <Button
+                    onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                    className="gap-2 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-semibold shadow-md"
+                    size="lg"
+                  >
+                    <Plus className="w-5 h-5" /> Lançar Faturamento
+                  </Button>
+                </div>
+              </Card>
+            )}
             {/* KPIs Gerais */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
@@ -706,7 +734,7 @@ export default function Home() {
               <h2 className="text-lg font-semibold text-slate-900">
                 Lançamentos — {MESES[mes - 1]} {ano}
               </h2>
-              {isGerente && (
+              {(isGerente || isRecepcionista) && (
                 <Button
                   onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
                   className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
@@ -768,24 +796,24 @@ export default function Home() {
                                   </td>
                                 ))}
                                 <td className="px-4 py-3 text-right font-bold text-slate-900">{fmt(total)}</td>
-                                {isGerente && (
-                                  <td className="px-4 py-3 text-right">
-                                    <div className="flex items-center justify-end gap-1">
-                                      <button
-                                        onClick={() => { setEditingFaturamento({ ...row, empresaSlug: emp.slug }); setShowFaturamentoForm(true); }}
-                                        className="text-xs text-blue-600 hover:underline px-2 py-1 rounded-lg hover:bg-blue-50"
-                                      >
-                                        Editar
-                                      </button>
-                                      <button
-                                        onClick={() => handleDeleteFat(row.id)}
-                                        className="text-xs text-red-500 hover:underline px-2 py-1 rounded-lg hover:bg-red-50"
-                                      >
-                                        Excluir
-                                      </button>
-                                    </div>
-                                  </td>
-                                )}
+                {isGerente && !isRecepcionista && (
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => { setEditingFaturamento({ ...row, empresaSlug: emp.slug }); setShowFaturamentoForm(true); }}
+                        className="text-xs text-blue-600 hover:underline px-2 py-1 rounded-lg hover:bg-blue-50"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFat(row.id)}
+                        className="text-xs text-red-500 hover:underline px-2 py-1 rounded-lg hover:bg-red-50"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </td>
+                )}
                               </tr>
                             );
                           })}
