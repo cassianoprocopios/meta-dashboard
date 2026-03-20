@@ -192,3 +192,14 @@
 - [x] Dev Panel: renovar validade de qualquer tenant
 - [x] Dev Panel: cancelar/reativar tenant com um clique
 - [x] Dev Panel: ver credenciais do admin de cada tenant (email + botão de copiar)
+
+## Admin cria utilizadores para suas empresas
+
+- [x] Auditar backend: admin.criarUsuario filtra empresas pelo tenantId do admin
+- [x] Backend: procedure admin.listarEmpresas retorna apenas empresas do tenant do admin
+- [x] Backend: procedure admin.criarUsuario aceita perfil recepcionista/gerente + empresa vinculada
+- [x] Frontend: tela AdminUsers com botão "Novo Utilizador" visível para admin do tenant
+- [x] Frontend: formulário de criação com campos: nome, email, senha, perfil (gerente/recepcionista/operador), empresa(s) vinculada(s)
+- [x] Frontend: lista de utilizadores do tenant com ações de editar, desativar e redefinir senha
+- [x] Frontend: badges visuais por perfil (Gerente/Recepcionista/Operador/Admin)
+- [x] Testar: 11 testes passando
