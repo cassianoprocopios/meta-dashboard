@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, email, LEFT(passwordHash, 30) as hash_inicio, loginMethod FROM users WHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, name, email, LEFT(passwordHash, 30) as hash_inicio, loginMethod FROM users WHERE id = 1;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "cassiano procopio",
+      "email": "cassiano@barbierogrupo.com",
+      "hash_inicio": "$2b$12$uIi05yVMqmP3vW6d2RSEcuy",
+      "loginMethod": "google"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\thash_inicio\tloginMethod\n1\tcassiano procopio\tcassiano@barbierogrupo.com\t$2b$12$uIi05yVMqmP3vW6d2RSEcuy\tgoogle\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

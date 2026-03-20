@@ -231,6 +231,7 @@ export async function updateUserFull(
     empresaVinculada?: string | null;
     role?: "user" | "admin";
     passwordHash?: string;
+    telefone?: string | null;
   }
 ) {
   const db = await getDb();
@@ -243,8 +244,52 @@ export async function updateUserFull(
   if ("empresaVinculada" in data) updateSet.empresaVinculada = data.empresaVinculada ?? null;
   if (data.role !== undefined) updateSet.role = data.role;
   if (data.passwordHash !== undefined) updateSet.passwordHash = data.passwordHash;
+  if ("telefone" in data) updateSet.telefone = data.telefone ?? null;
 
   await db.update(users).set(updateSet).where(eq(users.id, userId));
+}
+
+/** Retorna todos os utilizadores de todos os tenants (apenas super-admin) */
+export async function getAllUsersForAdmin() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: users.id,
+    tenantId: users.tenantId,
+    name: users.name,
+    email: users.email,
+    telefone: users.telefone,
+    role: users.role,
+    perfil: users.perfil,
+    empresaVinculada: users.empresaVinculada,
+    ativo: users.ativo,
+    createdAt: users.createdAt,
+    lastSignedIn: users.lastSignedIn,
+    tenantNome: tenants.nome,
+    tenantSlug: tenants.slug,
+    tenantPlano: tenants.plano,
+  })
+  .from(users)
+  .leftJoin(tenants, eq(users.tenantId, tenants.id))
+  .orderBy(asc(users.tenantId), asc(users.name));
+}
+
+/** Retorna estatísticas de utilizadores para o admin dashboard */
+export async function getUserStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, ativos: 0, inativos: 0, novosMes: 0 };
+  const allUsers = await db.select({
+    ativo: users.ativo,
+    createdAt: users.createdAt,
+  }).from(users);
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  return {
+    total: allUsers.length,
+    ativos: allUsers.filter(u => u.ativo === 1).length,
+    inativos: allUsers.filter(u => u.ativo === 0).length,
+    novosMes: allUsers.filter(u => u.createdAt && new Date(u.createdAt) >= firstOfMonth).length,
+  };
 }
 
 // ─── USER EMPRESAS (N:N) ──────────────────────────────────────────────────────

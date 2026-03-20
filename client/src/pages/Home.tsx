@@ -281,12 +281,20 @@ export default function Home() {
                 ))}
               </select>
               {isSuperAdmin && (
-                <button
-                  onClick={() => setShowSuperAdmin(true)}
-                  className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium"
-                >
-                  <Shield className="w-4 h-4" /> Super Admin
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowSuperAdmin(true)}
+                    className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium"
+                  >
+                    <Shield className="w-4 h-4" /> Super Admin
+                  </button>
+                  <a
+                    href="/admin"
+                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium"
+                  >
+                    <Users className="w-4 h-4" /> Admin
+                  </a>
+                </>
               )}
               {isAdmin && (
                 <button

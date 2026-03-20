@@ -120,3 +120,17 @@
 - [ ] Landing page de apresentação e venda do produto
 - [x] Isolamento total: tenant A nunca acede dados do tenant B (verificado e corrigido)
 - [x] Testes de isolamento multi-tenant (11 testes passando)
+
+### Área de Admin - Dashboard de Utilizadores
+- [x] Adicionar campo `telefone` na tabela users
+- [x] Migrar banco de dados (coluna adicionada via SQL direto)
+- [x] Procedure adminDashboard.listarUtilizadores (nome, email, telefone, role, ativo, lastSignedIn, tenantId)
+- [x] Procedure adminDashboard.redefinirSenha (nova senha gerada ou definida pelo admin)
+- [x] Procedure adminDashboard.atualizarTelefone (atualizar telefone do utilizador)
+- [x] Página AdminDashboard com tabela completa de utilizadores
+- [x] Filtros: busca por nome/email, filtro por tenant, filtro por status (ativo/inativo)
+- [x] Estatísticas no topo: total utilizadores, ativos, inativos, novos este mês
+- [x] Modal de redefinição de senha com geração automática ou senha manual
+- [x] Botão de activar/desactivar utilizador
+- [x] Integrar link "Admin" no painel super-admin e no header
+- [x] Rota /admin adicionada no App.tsx

@@ -30,6 +30,7 @@ export const users = mysqlTable("users", {
   perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
   empresaVinculada: varchar("empresaVinculada", { length: 64 }),
   passwordHash: varchar("passwordHash", { length: 256 }),
+  telefone: varchar("telefone", { length: 32 }),
   ativo: int("ativo").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

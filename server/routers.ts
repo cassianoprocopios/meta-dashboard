@@ -40,6 +40,8 @@ import {
   updateTenantAtivo,
   updateTenantPlano,
   getTenantStats,
+  getAllUsersForAdmin,
+  getUserStats,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -807,6 +809,71 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
         }
         await updateTenantPlano(input.tenantId, input.plano);
+        return { success: true };
+      }),
+  }),
+
+  // ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
+  adminDashboard: router({
+    /** Lista todos os utilizadores de todos os tenants (apenas super-admin) */
+    listarUtilizadores: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        return getAllUsersForAdmin();
+      }),
+
+    /** Estatísticas gerais de utilizadores */
+    stats: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        return getUserStats();
+      }),
+
+    /** Redefine a senha de um utilizador (apenas super-admin) */
+    redefinirSenha: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        novaSenha: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        const bcrypt = await import("bcryptjs");
+        const hash = await bcrypt.hash(input.novaSenha, 10);
+        await updateUserPassword(input.userId, hash);
+        return { success: true };
+      }),
+
+    /** Atualiza o telefone de um utilizador */
+    atualizarTelefone: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        telefone: z.string().max(32).nullable(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        await updateUserFull(input.userId, { telefone: input.telefone });
+        return { success: true };
+      }),
+
+    /** Ativa ou desativa um utilizador */
+    toggleAtivo: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        ativo: z.number().min(0).max(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        await updateUserAtivo(input.userId, input.ativo);
         return { success: true };
       }),
   }),
