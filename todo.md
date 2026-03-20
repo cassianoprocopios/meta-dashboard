@@ -134,3 +134,38 @@
 - [x] Botão de activar/desactivar utilizador
 - [x] Integrar link "Admin" no painel super-admin e no header
 - [x] Rota /admin adicionada no App.tsx
+
+## Perfil Recepcionista + Gerente Bonificação + Painel Desenvolvedor
+
+### Perfil Recepcionista
+- [x] Adicionar `recepcionista` ao enum `perfil` na tabela users
+- [x] Migrar schema com novo enum (via SQL direto)
+- [x] Recepcionista pode lançar faturamentos (procedure permitida)
+- [x] Recepcionista vê dashboard apenas da empresa vinculada
+- [x] Recepcionista NÃO pode ver aba de metas
+- [x] Recepcionista NÃO pode ver aba de bonificação
+- [x] Recepcionista NÃO pode ver aba de usuários
+- [x] Recepcionista NÃO pode ver aba de empresas
+- [x] Ajustar frontend para ocultar abas restritas por perfil
+
+### Gerente - Bonificação Read-Only
+- [x] Gerente pode VER bonificação (valores que vai ganhar)
+- [x] Gerente NÃO pode alterar porcentagens de bonificação
+- [x] Procedure bonificacao.listar: permitida para gerente (read)
+- [x] Procedure bonificacao.configurar: bloqueada para gerente (apenas admin)
+- [x] Frontend: ocultar botões de edição de bonificação para gerente
+
+### Painel do Desenvolvedor
+- [x] Adicionar campos `validadeAte` (datetime), `observacoes` (text) na tabela tenants
+- [x] Migrar schema (via SQL direto)
+- [x] Procedure devPanel.listarTenants (todos os tenants com stats)
+- [x] Procedure devPanel.criarTenant (email genérico, sem validação de domínio real)
+- [x] Procedure devPanel.editarTenant (nome, plano, ativo, validadeAte, observacoes)
+- [x] Procedure devPanel.toggleAtivo (ativar/bloquear tenant)
+- [x] Procedure devPanel.renovarValidade (estender data de validade)
+- [x] Email genérico: formato livre, único na plataforma, sem verificação de domínio
+- [x] Página DevPanel acessível apenas para role=admin com tenantId=null (super-dev)
+- [x] Tabela de tenants com: nome, slug, plano, ativo, validade, nº usuários, último acesso
+- [x] Modal de criação de tenant com email genérico
+- [x] Modal de edição: alterar plano, validade, status, observações
+- [x] Indicador visual de tenants expirados ou próximos do vencimento

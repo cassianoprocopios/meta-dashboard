@@ -175,7 +175,7 @@ export async function createUserWithPassword(data: {
   name: string;
   email: string;
   passwordHash: string;
-  perfil: "gerente" | "operador";
+  perfil: "gerente" | "operador" | "recepcionista";
   empresaVinculada: string | null;
   role?: "user" | "admin";
 }) {
@@ -581,4 +581,123 @@ export async function getTenantStats(tenantId: number) {
     totalEmpresas: empresasCount.length,
     totalLancamentos: lancamentosCount.length,
   };
+}
+
+// ─── PAINEL DO DESENVOLVEDOR ──────────────────────────────────────────────────
+
+/** Lista todos os tenants com estatísticas de uso (apenas para o desenvolvedor) */
+export async function getAllTenantsWithStats() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const allTenants = await db.select().from(tenants).orderBy(asc(tenants.createdAt));
+
+  const results = await Promise.all(
+    allTenants.map(async (t) => {
+      const [usersCount, empresasCount, lancamentosCount, lastAccess] = await Promise.all([
+        db.select({ id: users.id }).from(users).where(eq(users.tenantId, t.id)),
+        db.select({ id: empresas.id }).from(empresas).where(and(eq(empresas.tenantId, t.id), eq(empresas.ativo, 1))),
+        db.select({ id: faturamentos.id }).from(faturamentos).where(eq(faturamentos.tenantId, t.id)),
+        db.select({ createdAt: accessLogs.createdAt })
+          .from(accessLogs)
+          .where(eq(accessLogs.tenantId, t.id))
+          .orderBy(desc(accessLogs.createdAt))
+          .limit(1),
+      ]);
+      return {
+        ...t,
+        totalUsers: usersCount.length,
+        totalEmpresas: empresasCount.length,
+        totalLancamentos: lancamentosCount.length,
+        ultimoAcesso: lastAccess[0]?.createdAt ?? null,
+      };
+    })
+  );
+  return results;
+}
+
+/** Cria um novo tenant com email genérico (sem validação de domínio) */
+export async function createTenantDev(data: {
+  nome: string;
+  slug: string;
+  adminEmail: string;
+  plano: "trial" | "basico" | "pro";
+  validadeAte?: Date | null;
+  observacoes?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Verificar se slug já existe
+  const existing = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, data.slug));
+  if (existing.length > 0) throw new Error("Slug já existe");
+
+  // Verificar se email já existe
+  const existingEmail = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.adminEmail, data.adminEmail));
+  if (existingEmail.length > 0) throw new Error("Email já registado em outro tenant");
+
+  await db.insert(tenants).values({
+    nome: data.nome,
+    slug: data.slug,
+    adminEmail: data.adminEmail,
+    plano: data.plano,
+    ativo: 1,
+    validadeAte: data.validadeAte ?? null,
+    observacoes: data.observacoes ?? null,
+  });
+
+  // Buscar o tenant criado pelo slug
+  const [created] = await db.select().from(tenants).where(eq(tenants.slug, data.slug));
+  return created;
+}
+
+/** Cria o utilizador admin para um tenant recém-criado pelo desenvolvedor */
+export async function createAdminUserForTenant(data: {
+  tenantId: number;
+  name: string;
+  email: string;
+  passwordHash: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Verificar se email já existe em qualquer tenant
+  const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, data.email));
+  if (existing.length > 0) throw new Error("Email já registado na plataforma");
+
+  const openId = `dev_${data.tenantId}_${Date.now()}`;
+  await db.insert(users).values({
+    tenantId: data.tenantId,
+    openId,
+    name: data.name,
+    email: data.email,
+    passwordHash: data.passwordHash,
+    loginMethod: "password",
+    role: "admin",
+    perfil: "gerente",
+    ativo: 1,
+  });
+
+  const [created] = await db.select().from(users).where(eq(users.email, data.email));
+  return created;
+}
+
+/** Atualiza dados de um tenant (desenvolvedor) */
+export async function updateTenantDev(tenantId: number, data: {
+  nome?: string;
+  plano?: "trial" | "basico" | "pro";
+  ativo?: number;
+  validadeAte?: Date | null;
+  observacoes?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  const updateSet: Record<string, unknown> = {};
+  if (data.nome !== undefined) updateSet.nome = data.nome;
+  if (data.plano !== undefined) updateSet.plano = data.plano;
+  if (data.ativo !== undefined) updateSet.ativo = data.ativo;
+  if (data.validadeAte !== undefined) updateSet.validadeAte = data.validadeAte;
+  if (data.observacoes !== undefined) updateSet.observacoes = data.observacoes;
+  if (Object.keys(updateSet).length === 0) return;
+  await db.update(tenants).set(updateSet).where(eq(tenants.id, tenantId));
 }

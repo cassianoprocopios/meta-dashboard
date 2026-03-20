@@ -67,9 +67,12 @@ export default function Home() {
 
   const isAdmin = user?.role === "admin";
   const isGerente = user?.perfil === "gerente" || isAdmin;
+  const isRecepcionista = user?.perfil === "recepcionista";
   const empresaVinculada = user?.empresaVinculada ?? null;
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
+  // Recepcionista pode lançar faturamentos mas não pode ver metas, bonificação, usuários, empresas
+  const podelancarFaturamento = isGerente || isRecepcionista;
 
   // Queries
   const { data: empresasData = [], isLoading: loadingEmpresas } = trpc.empresa.listar.useQuery();
@@ -294,6 +297,12 @@ export default function Home() {
                   >
                     <Users className="w-4 h-4" /> Admin
                   </a>
+                  <a
+                    href="/dev"
+                    className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-50 transition-colors font-medium"
+                  >
+                    <Building2 className="w-4 h-4" /> Dev Panel
+                  </a>
                 </>
               )}
               {isAdmin && (
@@ -312,7 +321,7 @@ export default function Home() {
                   <Building2 className="w-4 h-4" /> Empresas
                 </button>
               )}
-              {isGerente && (
+              {podelancarFaturamento && (
                 <Button
                   onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
                   className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
@@ -345,7 +354,7 @@ export default function Home() {
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2">
-            {(["dashboard", "lancamentos", "metas", ...(isGerente ? ["bonificacao"] : [])] as Tab[]).map((tab) => {              const labels: Record<Tab, string> = {
+            {(["dashboard", "lancamentos", ...(isGerente && !isRecepcionista ? ["metas"] : []), ...(isGerente && !isRecepcionista ? ["bonificacao"] : [])] as Tab[]).map((tab) => {              const labels: Record<Tab, string> = {
                 dashboard: "Dashboard",
                 lancamentos: "Lançamentos",
                 metas: "Metas",

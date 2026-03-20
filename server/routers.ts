@@ -42,6 +42,10 @@ import {
   getTenantStats,
   getAllUsersForAdmin,
   getUserStats,
+  getAllTenantsWithStats,
+  createTenantDev,
+  createAdminUserForTenant,
+  updateTenantDev,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -345,8 +349,10 @@ export const appRouter = router({
         observacao: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem lançar faturamentos." });
+        // Recepcionista, gerente e admin podem lançar faturamentos
+        const perfisPerm = ["gerente", "recepcionista"];
+        if (!perfisPerm.includes(ctx.user.perfil) && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão para lançar faturamentos." });
         }
         // Verificar acesso à empresa: gerente só pode lançar na sua empresa vinculada
         if (ctx.user.role !== "admin") {
@@ -371,8 +377,10 @@ export const appRouter = router({
     excluir: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem excluir faturamentos." });
+        // Recepcionista também pode excluir faturamentos que lançou
+        const perfisPerm = ["gerente", "recepcionista"];
+        if (!perfisPerm.includes(ctx.user.perfil) && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão para excluir faturamentos." });
         }
         await deleteFaturamento(input.id);
         return { success: true };
@@ -399,8 +407,9 @@ export const appRouter = router({
         diasUteisQuinzenal: z.number().min(0).max(15),
       }))
       .mutation(async ({ input, ctx }) => {
+        // Recepcionista NÃO pode alterar metas
         if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes podem configurar metas." });
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem configurar metas." });
         }
         // Verificar acesso à empresa: gerente só pode configurar meta da sua empresa vinculada
         if (ctx.user.role !== "admin") {
@@ -422,8 +431,9 @@ export const appRouter = router({
   // ─── BONIFICAÇÕES ──────────────────────────────────────────────────────────
   bonificacao: router({
     listar: protectedProcedure.query(async ({ ctx }) => {
+      // Gerente pode VER bonificação (read-only). Recepcionista não tem acesso.
       if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
       }
       const tenantId = await getTenantIdFromCtx(ctx);
       return getAllBonificacoesByTenant(tenantId);
@@ -462,7 +472,7 @@ export const appRouter = router({
         name: z.string().min(2).max(128),
         email: z.string().email(),
         senha: z.string().min(6),
-        perfil: z.enum(["gerente", "operador"]),
+        perfil: z.enum(["gerente", "operador", "recepcionista"]),
         empresaVinculada: z.string().nullable().optional(),
         role: z.enum(["user", "admin"]).default("user"),
       }))
@@ -567,7 +577,7 @@ export const appRouter = router({
         userId: z.number(),
         name: z.string().min(2).max(128).optional(),
         email: z.string().email().optional(),
-        perfil: z.enum(["gerente", "operador"]).optional(),
+        perfil: z.enum(["gerente", "operador", "recepcionista"]).optional(),
         empresaVinculada: z.string().nullable().optional(),
         role: z.enum(["user", "admin"]).optional(),
         novaSenha: z.string().min(6).optional(),
@@ -874,6 +884,133 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
         }
         await updateUserAtivo(input.userId, input.ativo);
+        return { success: true };
+      }),
+  }),
+
+  // ─── PAINEL DO DESENVOLVEDOR ─────────────────────────────────────────────────
+  // Acesso exclusivo para o desenvolvedor (role=admin, tenantId=null)
+  devPanel: router({
+    /** Lista todos os tenants com estatísticas */
+    listarTenants: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin" || ctx.user.tenantId !== null) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo ao desenvolvedor." });
+      }
+      return getAllTenantsWithStats();
+    }),
+
+    /** Cria um novo tenant com email genérico (sem validação de domínio real) */
+    criarTenant: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(2).max(128),
+        slug: z.string().min(2).max(64).regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+        adminEmail: z.string().min(3).max(320),  // email genérico, sem validação de domínio
+        adminNome: z.string().min(2).max(128),
+        adminSenha: z.string().min(6),
+        plano: z.enum(["trial", "basico", "pro"]).default("trial"),
+        validadeAte: z.string().nullable().optional(),  // ISO date string
+        observacoes: z.string().max(1000).nullable().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin" || ctx.user.tenantId !== null) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo ao desenvolvedor." });
+        }
+        try {
+          const tenant = await createTenantDev({
+            nome: input.nome,
+            slug: input.slug,
+            adminEmail: input.adminEmail,
+            plano: input.plano,
+            validadeAte: input.validadeAte ? new Date(input.validadeAte) : null,
+            observacoes: input.observacoes ?? null,
+          });
+          const passwordHash = await bcrypt.hash(input.adminSenha, 12);
+          await createAdminUserForTenant({
+            tenantId: tenant.id,
+            name: input.adminNome,
+            email: input.adminEmail,
+            passwordHash,
+          });
+          await createAccessLog({
+            userId: ctx.user.id,
+            userName: ctx.user.name ?? null,
+            userEmail: ctx.user.email ?? null,
+            tenantId: null,
+            acao: "dev_criar_tenant",
+            ip: null,
+            userAgent: null,
+            detalhes: `Criou tenant: ${input.nome} (${input.slug})`,
+          });
+          return { success: true, tenantId: tenant.id, slug: tenant.slug };
+        } catch (e: any) {
+          throw new TRPCError({ code: "CONFLICT", message: e.message ?? "Erro ao criar tenant." });
+        }
+      }),
+
+    /** Edita dados de um tenant (plano, validade, status, observações) */
+    editarTenant: protectedProcedure
+      .input(z.object({
+        tenantId: z.number(),
+        nome: z.string().min(2).max(128).optional(),
+        plano: z.enum(["trial", "basico", "pro"]).optional(),
+        ativo: z.number().min(0).max(1).optional(),
+        validadeAte: z.string().nullable().optional(),
+        observacoes: z.string().max(1000).nullable().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin" || ctx.user.tenantId !== null) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo ao desenvolvedor." });
+        }
+        const { tenantId, validadeAte, ...rest } = input;
+        await updateTenantDev(tenantId, {
+          ...rest,
+          validadeAte: validadeAte ? new Date(validadeAte) : (validadeAte === null ? null : undefined),
+        });
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId: null,
+          acao: "dev_editar_tenant",
+          ip: null,
+          userAgent: null,
+          detalhes: `Editou tenant ID ${tenantId}`,
+        });
+        return { success: true };
+      }),
+
+    /** Renova a validade de um tenant */
+    renovarValidade: protectedProcedure
+      .input(z.object({
+        tenantId: z.number(),
+        validadeAte: z.string(),  // ISO date string
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin" || ctx.user.tenantId !== null) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo ao desenvolvedor." });
+        }
+        await updateTenantDev(input.tenantId, { validadeAte: new Date(input.validadeAte) });
+        return { success: true };
+      }),
+
+    /** Ativa ou bloqueia um tenant */
+    toggleAtivo: protectedProcedure
+      .input(z.object({ tenantId: z.number(), ativo: z.number().min(0).max(1) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin" || ctx.user.tenantId !== null) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso exclusivo ao desenvolvedor." });
+        }
+        await updateTenantDev(input.tenantId, { ativo: input.ativo });
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId: null,
+          acao: input.ativo === 1 ? "dev_ativar_tenant" : "dev_bloquear_tenant",
+          ip: null,
+          userAgent: null,
+          detalhes: `Tenant ID ${input.tenantId} ${input.ativo === 1 ? "ativado" : "bloqueado"}`,
+        });
         return { success: true };
       }),
   }),

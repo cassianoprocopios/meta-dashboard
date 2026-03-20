@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import TenantRegister from "./pages/TenantRegister";
+import DevPanel from "./pages/DevPanel";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -52,6 +53,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/admin"}>{() => <AdminDashboard onBack={() => window.history.back()} />}</Route>
       <Route path={"/register"}>{() => <TenantRegister onBack={() => window.history.back()} onSuccess={() => window.location.href = "/"} />}</Route>
+      <Route path={"/dev"} component={DevPanel} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

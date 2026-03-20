@@ -10,6 +10,10 @@ export const tenants = mysqlTable("tenants", {
   plano: mysqlEnum("plano", ["trial", "basico", "pro"]).notNull().default("trial"),
   /** 1 = ativo, 0 = bloqueado pelo super-admin */
   ativo: int("ativo").notNull().default(1),
+  /** Data de validade do acesso ao sistema (null = sem validade) */
+  validadeAte: timestamp("validadeAte"),
+  /** Observações internas do desenvolvedor sobre este tenant */
+  observacoes: text("observacoes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -27,7 +31,7 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
+  perfil: mysqlEnum("perfil", ["gerente", "operador", "recepcionista"]).default("operador").notNull(),
   empresaVinculada: varchar("empresaVinculada", { length: 64 }),
   passwordHash: varchar("passwordHash", { length: 256 }),
   telefone: varchar("telefone", { length: 32 }),
