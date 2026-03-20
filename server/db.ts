@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { empresas, faturamentos, InsertEmpresa, InsertFaturamento, InsertMeta, InsertUser, metas, users } from "../drizzle/schema";
+import { categorias, empresas, faturamentos, InsertEmpresa, InsertFaturamento, InsertMeta, InsertUser, metas, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -406,4 +406,42 @@ export async function upsertBonificacao(data: InsertBonificacao) {
   } else {
     await db.insert(bonificacoes).values(data);
   }
+}
+
+// ─── CATEGORIAS DINÂMICAS ─────────────────────────────────────────────────────
+
+export async function getCategoriasByEmpresa(empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(categorias)
+    .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.ativo, 1)))
+    .orderBy(asc(categorias.ordem), asc(categorias.id));
+}
+
+export async function addCategoria(empresaSlug: string, nome: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Calcular próxima ordem
+  const existing = await db.select().from(categorias)
+    .where(eq(categorias.empresaSlug, empresaSlug));
+  const maxOrdem = existing.length > 0 ? Math.max(...existing.map(c => c.ordem)) : 0;
+  await db.insert(categorias).values({
+    empresaSlug,
+    nome,
+    ordem: maxOrdem + 1,
+    ativo: 1,
+  });
+}
+
+export async function removeCategoria(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Soft delete - marca como inativo
+  await db.update(categorias).set({ ativo: 0 }).where(eq(categorias.id, id));
+}
+
+export async function updateCategoriaNome(id: number, nome: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(categorias).set({ nome }).where(eq(categorias.id, id));
 }

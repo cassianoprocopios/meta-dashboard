@@ -28,9 +28,6 @@ function toDateStr(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-const LABELS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-const LABELS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
-
 export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, initialData, onSaved, onCancel }: Props) {
   const hoje = new Date();
   const defaultEmpresa = empresaVinculada ?? (empresas[0]?.slug ?? "");
@@ -56,7 +53,20 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   const salvar = trpc.faturamento.salvar.useMutation();
 
   const empresaAtual = empresas.find((e) => e.slug === empresaSlug);
-  const labels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
+
+  // Buscar categorias dinâmicas do banco
+  const { data: categoriasData = [] } = trpc.categorias.listar.useQuery(
+    { empresaSlug: empresaSlug },
+    { enabled: !!empresaSlug }
+  );
+
+  // Usar categorias do banco se disponíveis, senão fallback para padrão
+  const LABELS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+  const LABELS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
+  const fallbackLabels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
+  const labels = categoriasData.length > 0
+    ? categoriasData.slice(0, 5).map((c) => c.nome)
+    : fallbackLabels;
 
   // Reset cats when empresa changes (only for new entries)
   useEffect(() => {
@@ -128,7 +138,9 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                 <div>
                   <p className="font-semibold text-slate-900 text-sm">{emp.nome}</p>
                   <p className="text-xs text-slate-500">
-                    {emp.tipoCategorias === "seraphine" ? "Cabelo / Produtos / Unha / Outros / Recorrência" : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência"}
+                    {categoriasData.length > 0
+                    ? categoriasData.slice(0, 5).map((c) => c.nome).join(" / ")
+                    : (emp.tipoCategorias === "seraphine" ? "Cabelo / Produtos / Unha / Outros / Recorrência" : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência")}
                   </p>
                 </div>
               </button>

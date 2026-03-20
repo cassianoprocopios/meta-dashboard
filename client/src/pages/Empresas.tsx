@@ -10,23 +10,157 @@ const CORES_SUGERIDAS = [
   "#06b6d4", "#84cc16", "#f97316", "#ec4899", "#6366f1",
 ];
 
-const DEFAULT_CATS = {
-  padrao: ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"],
-  seraphine: ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"],
-};
-
 interface EditState {
   nome: string;
   cor: string;
   tipoCategorias: "padrao" | "seraphine";
-  cat1Nome: string;
-  cat2Nome: string;
-  cat3Nome: string;
-  cat4Nome: string;
-  cat5Nome: string;
 }
 
-export default function Empresas() {
+interface CategoriasPanelProps {
+  empresaSlug: string;
+  empresaCor: string;
+  currentUser: { role: string; perfil: string } | null;
+}
+
+function CategoriasPanel({ empresaSlug, empresaCor, currentUser }: CategoriasPanelProps) {
+  const [novaCategoria, setNovaCategoria] = useState("");
+  const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [editNome, setEditNome] = useState("");
+
+  const { data: cats = [], refetch } = trpc.categorias.listar.useQuery({ empresaSlug });
+  const adicionar = trpc.categorias.adicionar.useMutation();
+  const remover = trpc.categorias.remover.useMutation();
+  const editar = trpc.categorias.editar.useMutation();
+
+  const canManage = currentUser?.role === "admin" || currentUser?.perfil === "gerente";
+
+  const handleAdicionar = async () => {
+    if (!novaCategoria.trim()) return;
+    try {
+      await adicionar.mutateAsync({ empresaSlug, nome: novaCategoria.trim() });
+      toast.success(`Categoria "${novaCategoria}" adicionada!`);
+      setNovaCategoria("");
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao adicionar categoria.");
+    }
+  };
+
+  const handleRemover = async (id: number, nome: string) => {
+    try {
+      await remover.mutateAsync({ id });
+      toast.success(`Categoria "${nome}" removida.`);
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao remover categoria.");
+    }
+  };
+
+  const handleEditar = async (id: number) => {
+    if (!editNome.trim()) return;
+    try {
+      await editar.mutateAsync({ id, nome: editNome.trim() });
+      toast.success("Categoria atualizada!");
+      setEditandoId(null);
+      setEditNome("");
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao editar categoria.");
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-1.5 mb-2">
+        <Tag className="w-3.5 h-3.5" style={{ color: empresaCor }} />
+        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Categorias de Faturamento</span>
+      </div>
+
+      <div className="space-y-1.5">
+        {cats.map((cat) => (
+          <div key={cat.id} className="flex items-center gap-2 group">
+            {editandoId === cat.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editNome}
+                  onChange={(e) => setEditNome(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleEditar(cat.id)}
+                  className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                <button onClick={() => handleEditar(cat.id)} disabled={editar.isPending} className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                  {editar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                </button>
+                <button onClick={() => { setEditandoId(null); setEditNome(""); }} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-slate-50 text-slate-700 border border-slate-100">
+                  {cat.nome}
+                </span>
+                {canManage && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => { setEditandoId(cat.id); setEditNome(cat.nome); }}
+                      className="p-1 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleRemover(cat.id, cat.nome)}
+                      disabled={remover.isPending}
+                      className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
+                      title="Remover"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+
+        {cats.length === 0 && (
+          <p className="text-xs text-slate-400 italic py-1">Nenhuma categoria cadastrada.</p>
+        )}
+      </div>
+
+      {canManage && (
+        <div className="flex gap-2 mt-3">
+          <input
+            type="text"
+            value={novaCategoria}
+            onChange={(e) => setNovaCategoria(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdicionar()}
+            placeholder="Nome da nova categoria..."
+            className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <Button
+            size="sm"
+            onClick={handleAdicionar}
+            disabled={adicionar.isPending || !novaCategoria.trim()}
+            className="rounded-xl gap-1.5 text-white"
+            style={{ backgroundColor: empresaCor }}
+          >
+            {adicionar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            Adicionar
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface EmpresasProps {
+  currentUser: { role: string; perfil: string; id: number } | null;
+}
+
+export default function Empresas({ currentUser }: EmpresasProps) {
   const [showForm, setShowForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -37,11 +171,6 @@ export default function Empresas() {
     nome: "",
     cor: "#3b82f6",
     tipoCategorias: "padrao" as "padrao" | "seraphine",
-    cat1Nome: "Avulso",
-    cat2Nome: "Produtos",
-    cat3Nome: "Serv. Extra",
-    cat4Nome: "Lavatório",
-    cat5Nome: "Recorrência",
   });
 
   const { data: empresas = [], refetch, isLoading } = trpc.empresa.listar.useQuery();
@@ -49,19 +178,9 @@ export default function Empresas() {
   const remover = trpc.empresa.remover.useMutation();
   const atualizar = trpc.empresa.atualizar.useMutation();
 
-  // Quando o tipo muda no form de criação, preenche os nomes padrão
-  const handleTipoChange = (tipo: "padrao" | "seraphine") => {
-    const cats = DEFAULT_CATS[tipo];
-    setForm((p) => ({
-      ...p,
-      tipoCategorias: tipo,
-      cat1Nome: cats[0],
-      cat2Nome: cats[1],
-      cat3Nome: cats[2],
-      cat4Nome: cats[3],
-      cat5Nome: cats[4],
-    }));
-  };
+  const isAdmin = currentUser?.role === "admin";
+  const isGerente = currentUser?.perfil === "gerente";
+  const canManage = isAdmin || isGerente;
 
   const handleCreate = async () => {
     if (!form.slug.trim() || !form.nome.trim()) {
@@ -75,21 +194,8 @@ export default function Empresas() {
         cor: form.cor,
         tipoCategorias: form.tipoCategorias,
       });
-      // Atualizar categorias personalizadas
-      const allEmps = await refetch();
-      const newEmp = allEmps.data?.find((e) => e.slug === form.slug.toUpperCase().replace(/\s+/g, "_"));
-      if (newEmp) {
-        await atualizar.mutateAsync({
-          id: newEmp.id,
-          cat1Nome: form.cat1Nome,
-          cat2Nome: form.cat2Nome,
-          cat3Nome: form.cat3Nome,
-          cat4Nome: form.cat4Nome,
-          cat5Nome: form.cat5Nome,
-        });
-      }
       toast.success(`Empresa "${form.nome}" criada com sucesso!`);
-      setForm({ slug: "", nome: "", cor: "#3b82f6", tipoCategorias: "padrao", cat1Nome: "Avulso", cat2Nome: "Produtos", cat3Nome: "Serv. Extra", cat4Nome: "Lavatório", cat5Nome: "Recorrência" });
+      setForm({ slug: "", nome: "", cor: "#3b82f6", tipoCategorias: "padrao" });
       setShowForm(false);
       refetch();
     } catch (e: any) {
@@ -114,11 +220,6 @@ export default function Empresas() {
       nome: emp.nome,
       cor: emp.cor,
       tipoCategorias: emp.tipoCategorias,
-      cat1Nome: emp.cat1Nome,
-      cat2Nome: emp.cat2Nome,
-      cat3Nome: emp.cat3Nome,
-      cat4Nome: emp.cat4Nome,
-      cat5Nome: emp.cat5Nome,
     });
   };
 
@@ -135,20 +236,6 @@ export default function Empresas() {
     }
   };
 
-  const handleEditTipoChange = (tipo: "padrao" | "seraphine") => {
-    if (!editState) return;
-    const cats = DEFAULT_CATS[tipo];
-    setEditState((p) => p ? ({
-      ...p,
-      tipoCategorias: tipo,
-      cat1Nome: cats[0],
-      cat2Nome: cats[1],
-      cat3Nome: cats[2],
-      cat4Nome: cats[3],
-      cat5Nome: cats[4],
-    }) : null);
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -156,20 +243,24 @@ export default function Empresas() {
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Gestão de Empresas</h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Adicione, edite ou remova unidades. Apenas administradores têm acesso.
+            {isAdmin
+              ? "Adicione, edite ou remova unidades e gerencie as categorias de faturamento."
+              : "Gerencie as categorias de faturamento das suas unidades."}
           </p>
         </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Empresa
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Empresa
+          </Button>
+        )}
       </div>
 
-      {/* Formulário de criação */}
-      {showForm && (
+      {/* Formulário de criação (apenas admin) */}
+      {isAdmin && showForm && (
         <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
           <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <Plus className="w-4 h-4 text-blue-600" />
@@ -196,15 +287,16 @@ export default function Empresas() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Tipo de Categorias</label>
+              <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Tipo de Categorias (padrão inicial)</label>
               <select
                 value={form.tipoCategorias}
-                onChange={(e) => handleTipoChange(e.target.value as "padrao" | "seraphine")}
+                onChange={(e) => setForm((p) => ({ ...p, tipoCategorias: e.target.value as "padrao" | "seraphine" }))}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="padrao">Padrão (Avulso / Produtos / Serv. Extra / Lavatório / Recorrência)</option>
                 <option value="seraphine">Seraphine (Cabelo / Produtos / Unha / Outros / Recorrência)</option>
               </select>
+              <p className="text-xs text-slate-400 mt-1">As categorias serão criadas automaticamente e podem ser editadas depois.</p>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Cor de Identificação</label>
@@ -216,28 +308,6 @@ export default function Empresas() {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Nomes das categorias */}
-          <div className="mt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Tag className="w-4 h-4 text-blue-600" />
-              <h4 className="text-sm font-semibold text-slate-700">Nomes das Categorias de Faturamento</h4>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {(["cat1Nome", "cat2Nome", "cat3Nome", "cat4Nome", "cat5Nome"] as const).map((field, i) => (
-                <div key={field}>
-                  <label className="text-xs text-slate-500 mb-1 block">Cat. {i + 1}</label>
-                  <input
-                    type="text"
-                    value={form[field]}
-                    onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={`Categoria ${i + 1}`}
-                  />
-                </div>
-              ))}
             </div>
           </div>
 
@@ -273,7 +343,7 @@ export default function Empresas() {
                 <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: isEditing && es ? es.cor : emp.cor }} />
 
                 {isEditing && es ? (
-                  /* ── Modo edição ── */
+                  /* ── Modo edição (apenas admin) ── */
                   <div className="mt-1 space-y-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-mono text-slate-400">{emp.slug}</span>
@@ -293,14 +363,6 @@ export default function Empresas() {
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-500 mb-1 block">Tipo de Categorias</label>
-                      <select value={es.tipoCategorias} onChange={(e) => handleEditTipoChange(e.target.value as "padrao" | "seraphine")} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="padrao">Padrão</option>
-                        <option value="seraphine">Seraphine</option>
-                      </select>
-                    </div>
-
-                    <div>
                       <label className="text-xs text-slate-500 mb-1 block">Cor</label>
                       <div className="flex items-center gap-2">
                         <input type="color" value={es.cor} onChange={(e) => setEditState((p) => p ? { ...p, cor: e.target.value } : null)} className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer" />
@@ -309,26 +371,6 @@ export default function Empresas() {
                             <button key={c} onClick={() => setEditState((p) => p ? { ...p, cor: c } : null)} className="w-5 h-5 rounded-full border-2 transition-all" style={{ backgroundColor: c, borderColor: es.cor === c ? "#1e293b" : "transparent" }} />
                           ))}
                         </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Tag className="w-3.5 h-3.5 text-blue-500" />
-                        <label className="text-xs font-semibold text-slate-600">Categorias de Faturamento</label>
-                      </div>
-                      <div className="grid grid-cols-1 gap-2">
-                        {(["cat1Nome", "cat2Nome", "cat3Nome", "cat4Nome", "cat5Nome"] as const).map((field, i) => (
-                          <div key={field} className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400 w-12 shrink-0">Cat. {i + 1}</span>
-                            <input
-                              type="text"
-                              value={es[field]}
-                              onChange={(e) => setEditState((p) => p ? { ...p, [field]: e.target.value } : null)}
-                              className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
@@ -345,38 +387,34 @@ export default function Empresas() {
                           <p className="text-xs text-slate-400 font-mono">{emp.slug}</p>
                         </div>
                       </div>
-                      <div className="flex gap-1">
-                        <button onClick={() => startEdit(emp)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" title="Editar empresa">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        {confirmDelete === emp.id ? (
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="destructive" onClick={() => handleDelete(emp.id)} disabled={remover.isPending} className="text-xs rounded-lg h-7 px-2">Confirmar</Button>
-                            <Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)} className="text-xs rounded-lg h-7 px-2">Cancelar</Button>
-                          </div>
-                        ) : (
-                          <button onClick={() => setConfirmDelete(emp.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remover empresa">
-                            <Trash2 className="w-4 h-4" />
+                      {isAdmin && (
+                        <div className="flex gap-1">
+                          <button onClick={() => startEdit(emp)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" title="Editar empresa">
+                            <Pencil className="w-4 h-4" />
                           </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Categorias */}
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Tag className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Categorias</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[emp.cat1Nome, emp.cat2Nome, emp.cat3Nome, emp.cat4Nome, emp.cat5Nome].map((cat, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                            {cat}
-                          </span>
-                        ))}
-                      </div>
+                          {confirmDelete === emp.id ? (
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="destructive" onClick={() => handleDelete(emp.id)} disabled={remover.isPending} className="text-xs rounded-lg h-7 px-2">Confirmar</Button>
+                              <Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)} className="text-xs rounded-lg h-7 px-2">Cancelar</Button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setConfirmDelete(emp.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remover empresa">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </>
+                )}
+
+                {/* Painel de categorias dinâmicas — visível em ambos os modos */}
+                {!isEditing && (
+                  <CategoriasPanel
+                    empresaSlug={emp.slug}
+                    empresaCor={emp.cor}
+                    currentUser={currentUser}
+                  />
                 )}
               </Card>
             );
@@ -388,8 +426,9 @@ export default function Empresas() {
       <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
         <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-700">
-          Ao remover uma empresa, ela deixa de aparecer no sistema mas os dados históricos são preservados.
-          Alterar os nomes das categorias afeta apenas a exibição — os dados lançados são mantidos.
+          {isAdmin
+            ? "Ao remover uma empresa, ela deixa de aparecer no sistema mas os dados históricos são preservados. Gerentes e administradores podem adicionar ou remover categorias de faturamento a qualquer momento."
+            : "Como gerente, pode adicionar ou remover categorias de faturamento das suas unidades. As alterações afetam apenas a exibição — os dados lançados são mantidos."}
         </p>
       </div>
     </div>

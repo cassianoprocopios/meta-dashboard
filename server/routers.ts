@@ -32,6 +32,10 @@ import {
   getAllBonificacoes,
   getBonificacaoByEmpresa,
   upsertBonificacao,
+  getCategoriasByEmpresa,
+  addCategoria,
+  removeCategoria,
+  updateCategoriaNome,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { ENV } from "./_core/env";
@@ -614,7 +618,7 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Painel de auditoria (apenas owner/dev)
+     // Painel de auditoria (apenas owner/dev)
     listarAcessos: protectedProcedure
       .input(z.object({ limit: z.number().min(1).max(500).default(200) }))
       .query(async ({ input, ctx }) => {
@@ -624,6 +628,63 @@ export const appRouter = router({
         return getAccessLogs(input.limit);
       }),
   }),
-});
 
+  // ─── CATEGORIAS DINÂMICAS ───────────────────────────────────────────────────────────────────
+  categorias: router({
+    // Listar categorias de uma empresa (qualquer utilizador autenticado)
+    listar: protectedProcedure
+      .input(z.object({ empresaSlug: z.string().min(1) }))
+      .query(async ({ input }) => {
+        return getCategoriasByEmpresa(input.empresaSlug);
+      }),
+
+    // Adicionar categoria (gerente ou admin)
+    adicionar: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string().min(1),
+        nome: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
+        }
+        await addCategoria(input.empresaSlug, input.nome);
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          acao: "adicionar_categoria",
+          ip: null,
+          userAgent: null,
+          detalhes: `Adicionou categoria "${input.nome}" à empresa ${input.empresaSlug}`,
+        });
+        return { success: true };
+      }),
+
+    // Remover categoria (gerente ou admin)
+    remover: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
+        }
+        await removeCategoria(input.id);
+        return { success: true };
+      }),
+
+    // Editar nome de categoria (gerente ou admin)
+    editar: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        nome: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
+        }
+        await updateCategoriaNome(input.id, input.nome);
+        return { success: true };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

@@ -39,13 +39,17 @@ export default function AdminUsers({ empresasData, currentUser }: AdminUsersProp
     name: "", email: "", senha: "",
     perfil: "gerente" as "gerente" | "operador",
     role: "user" as "user" | "admin",
+    empresaVinculada: "",
   });
+
+  // Empresas selecionadas no form de criação
+  const [formEmpresas, setFormEmpresas] = useState<string[]>([]);
 
   // Empresas selecionadas por userId (para edição)
   const [selectedEmpresas, setSelectedEmpresas] = useState<Record<number, string[]>>({});
 
   const criar = trpc.admin.criarUsuario.useMutation({
-    onSuccess: () => { toast.success("Utilizador criado!"); refetch(); setShowCreate(false); setForm({ name: "", email: "", senha: "", perfil: "gerente", role: "user" }); },
+    onSuccess: () => { toast.success("Utilizador criado!"); refetch(); setShowCreate(false); setFormEmpresas([]); setForm({ name: "", email: "", senha: "", perfil: "gerente", role: "user", empresaVinculada: "" }); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -175,9 +179,65 @@ export default function AdminUsers({ empresasData, currentUser }: AdminUsersProp
               </select>
             </div>
           </div>
+
+          {/* Seleção de unidades obrigatória */}
+          <div className="mt-4">
+            <label className="text-xs font-semibold text-slate-600 mb-2 block uppercase tracking-wide">
+              Unidades de Acesso <span className="text-red-500">*</span>
+            </label>
+            <p className="text-xs text-slate-400 mb-3">Selecione as unidades que este utilizador poderá visualizar e operar.</p>
+            <div className="flex flex-wrap gap-2">
+              {empresasData.map((emp) => {
+                const sel = formEmpresas.includes(emp.slug);
+                return (
+                  <button
+                    key={emp.slug}
+                    type="button"
+                    onClick={() => setFormEmpresas((prev) =>
+                      sel ? prev.filter((s) => s !== emp.slug) : [...prev, emp.slug]
+                    )}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                      sel
+                        ? "text-white border-transparent shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    }`}
+                    style={sel ? { backgroundColor: emp.cor, borderColor: emp.cor } : {}}
+                  >
+                    {sel && <Check className="w-3.5 h-3.5" />}
+                    <Building2 className="w-3.5 h-3.5" />
+                    {emp.nome}
+                  </button>
+                );
+              })}
+            </div>
+            {formEmpresas.length === 0 && (
+              <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                Selecione pelo menos uma unidade.
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3 mt-4">
             <Button
-              onClick={() => criar.mutate({ ...form, empresaVinculada: null })}
+              onClick={() => {
+                if (formEmpresas.length === 0 && !form.empresaVinculada) {
+                  toast.error("Selecione pelo menos uma unidade para o utilizador.");
+                  return;
+                }
+                criar.mutate(
+                  { ...form, empresaVinculada: form.empresaVinculada || formEmpresas[0] || null },
+                  {
+                    onSuccess: async (data: any) => {
+                      // Definir as empresas do novo utilizador
+                      if (formEmpresas.length > 0 && data?.id) {
+                        try { await definirEmpresas.mutateAsync({ userId: data.id, slugs: formEmpresas }); } catch {}
+                      }
+                      setFormEmpresas([]);
+                    }
+                  }
+                );
+              }}
               disabled={criar.isPending || !form.name || !form.email || !form.senha}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >

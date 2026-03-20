@@ -92,6 +92,20 @@ export const bonificacoes = mysqlTable("bonificacoes", {
 export type Bonificacao = typeof bonificacoes.$inferSelect;
 export type InsertBonificacao = typeof bonificacoes.$inferInsert;
 
+// ─── CATEGORIAS DE FATURAMENTO ──────────────────────────────────────────────
+// Categorias dinâmicas por empresa, gerenciadas por gerentes e admins
+export const categorias = mysqlTable("categorias", {
+  id: int("id").autoincrement().primaryKey(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  nome: varchar("nome", { length: 64 }).notNull(),
+  ordem: int("ordem").notNull().default(0),
+  ativo: int("ativo").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Categoria = typeof categorias.$inferSelect;
+export type InsertCategoria = typeof categorias.$inferInsert;
+
 // ─── METAS ────────────────────────────────────────────────────────────────────
 export const metas = mysqlTable("metas", {
   id: int("id").autoincrement().primaryKey(),

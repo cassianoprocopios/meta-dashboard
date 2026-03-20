@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Inserir categorias das empresas existentes na nova tabela\nINSERT INTO `categorias` (`empresaSlug`, `nome`, `ordem`)\nSELECT slug, cat1Nome, 1 FROM `empresas` WHERE cat1Nome IS NOT NULL AND cat1Nome != ''\nUNION ALL\nSELECT slug, cat2Nome, 2 FROM `empresas` WHERE cat2Nome IS NOT NULL AND cat2Nome != ''\nUNION ALL\nSELECT slug, cat3Nome, 3 FROM `empresas` WHERE cat3Nome IS NOT NULL AND cat3Nome != ''\nUNION ALL\nSELECT slug, cat4Nome, 4 FROM `empresas` WHERE cat4Nome IS NOT NULL AND cat4Nome != ''\nUNION ALL\nSELECT slug, cat5Nome, 5 FROM `empresas` WHERE cat5Nome IS NOT NULL AND cat5Nome != '';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Inserir categorias das empresas existentes na nova tabela\nINSERT INTO `categorias` (`empresaSlug`, `nome`, `ordem`)\nSELECT slug, cat1Nome, 1 FROM `empresas` WHERE cat1Nome IS NOT NULL AND cat1Nome != ''\nUNION ALL\nSELECT slug, cat2Nome, 2 FROM `empresas` WHERE cat2Nome IS NOT NULL AND cat2Nome != ''\nUNION ALL\nSELECT slug, cat3Nome, 3 FROM `empresas` WHERE cat3Nome IS NOT NULL AND cat3Nome != ''\nUNION ALL\nSELECT slug, cat4Nome, 4 FROM `empresas` WHERE cat4Nome IS NOT NULL AND cat4Nome != ''\nUNION ALL\nSELECT slug, cat5Nome, 5 FROM `empresas` WHERE cat5Nome IS NOT NULL AND cat5Nome != '';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 98
+}

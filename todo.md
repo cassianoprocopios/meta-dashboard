@@ -96,3 +96,13 @@
 - [ ] Aba Bonificação: visível apenas para gerentes, mostra valor calculado por unidade
 - [ ] Config de bonificação na aba Empresas (apenas admin)
 - [ ] Testes das novas procedures
+
+## Evolução v7 - Categorias Dinâmicas e Unidade Obrigatória
+
+- [ ] Tabela `categorias` no banco (id, empresaSlug, nome, ordem)
+- [ ] Migrar dados existentes de cat1Nome..cat5Nome para tabela categorias
+- [ ] Procedures tRPC: listar, adicionar, remover categorias por empresa
+- [ ] Aba Empresas: interface para adicionar/remover categorias inline (gerente e admin)
+- [ ] Formulário de lançamento usa categorias dinâmicas da empresa selecionada
+- [ ] AdminUsers: campo "Unidade que trabalha" obrigatório no cadastro
+- [ ] Testes das novas procedures de categorias

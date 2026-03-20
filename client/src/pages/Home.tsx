@@ -284,7 +284,7 @@ export default function Home() {
                   <Users className="w-4 h-4" /> Usuários
                 </button>
               )}
-              {isAdmin && (
+              {(isAdmin || isGerente) && (
                 <button
                   onClick={() => setActiveTab("empresas")}
                   className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
@@ -803,7 +803,7 @@ export default function Home() {
         )}
 
         {/* ─── EMPRESAS ──────────────────────────────────────────────────────── */}
-        {activeTab === "empresas" && isAdmin && <Empresas />}
+        {activeTab === "empresas" && (isAdmin || user?.perfil === "gerente") && <Empresas currentUser={user} />}
 
         {/* ─── AUDITORIA ─────────────────────────────────────────────────────── */}
         {activeTab === "auditoria" && isAdmin && <Auditoria />}
