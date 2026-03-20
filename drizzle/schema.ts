@@ -2,7 +2,7 @@ import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "d
 
 /**
  * Core user table backing auth flow.
- * Estendida com perfil (gerente/operador) e empresa vinculada (por slug).
+ * Estendida com perfil, empresa vinculada, senha própria e controle de ativo.
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -14,6 +14,10 @@ export const users = mysqlTable("users", {
   perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
   /** Slug da empresa vinculada (ex: "MORUMBI"). Null = acesso a todas (admin). */
   empresaVinculada: varchar("empresaVinculada", { length: 64 }),
+  /** Hash bcrypt da senha própria do sistema (independente do OAuth) */
+  passwordHash: varchar("passwordHash", { length: 256 }),
+  /** Se o utilizador está ativo (1) ou bloqueado (0) */
+  ativo: int("ativo").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -22,22 +26,36 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// ─── LOG DE ACESSOS ───────────────────────────────────────────────────────────
+// Regista cada login, logout e ação relevante para auditoria
+export const accessLogs = mysqlTable("accessLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  userName: varchar("userName", { length: 256 }),
+  userEmail: varchar("userEmail", { length: 320 }),
+  acao: varchar("acao", { length: 64 }).notNull(), // "login", "logout", "login_falhou"
+  ip: varchar("ip", { length: 64 }),
+  userAgent: text("userAgent"),
+  detalhes: text("detalhes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AccessLog = typeof accessLogs.$inferSelect;
+export type InsertAccessLog = typeof accessLogs.$inferInsert;
+
 // ─── EMPRESAS ─────────────────────────────────────────────────────────────────
-// Tabela dinâmica de empresas gerenciada pelo admin
 export const empresas = mysqlTable("empresas", {
   id: int("id").autoincrement().primaryKey(),
-  slug: varchar("slug", { length: 64 }).notNull().unique(), // ex: "MORUMBI"
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
   nome: varchar("nome", { length: 128 }).notNull(),
-  cor: varchar("cor", { length: 16 }).notNull().default("#3b82f6"), // hex color
-  /** Tipo de categorias: "padrao" ou "seraphine" */
+  cor: varchar("cor", { length: 16 }).notNull().default("#3b82f6"),
   tipoCategorias: mysqlEnum("tipoCategorias", ["padrao", "seraphine"]).notNull().default("padrao"),
-  /** Nomes personalizados das categorias (cat1..cat5) */
   cat1Nome: varchar("cat1Nome", { length: 64 }).notNull().default("Avulso"),
   cat2Nome: varchar("cat2Nome", { length: 64 }).notNull().default("Produtos"),
   cat3Nome: varchar("cat3Nome", { length: 64 }).notNull().default("Serv. Extra"),
   cat4Nome: varchar("cat4Nome", { length: 64 }).notNull().default("Lavatório"),
   cat5Nome: varchar("cat5Nome", { length: 64 }).notNull().default("Recorrência"),
-  ativo: int("ativo").notNull().default(1), // 1=ativo, 0=inativo
+  ativo: int("ativo").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -45,17 +63,14 @@ export type Empresa = typeof empresas.$inferSelect;
 export type InsertEmpresa = typeof empresas.$inferInsert;
 
 // ─── METAS ────────────────────────────────────────────────────────────────────
-// Meta mensal e quinzenal por empresa, com dias úteis manuais
 export const metas = mysqlTable("metas", {
   id: int("id").autoincrement().primaryKey(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
-  mes: int("mes").notNull(), // 1-12
+  mes: int("mes").notNull(),
   ano: int("ano").notNull(),
   metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }).notNull().default("0"),
   metaQuinzenal: decimal("metaQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
-  /** Dias úteis do mês para esta empresa (definido manualmente) */
   diasUteis: int("diasUteis").notNull().default(26),
-  /** Dias úteis da quinzena (dias 1-15) para esta empresa */
   diasUteisQuinzenal: int("diasUteisQuinzenal").notNull().default(13),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -65,11 +80,10 @@ export type Meta = typeof metas.$inferSelect;
 export type InsertMeta = typeof metas.$inferInsert;
 
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
-// Campos genéricos cat1-cat5 cujos nomes são definidos por empresa
 export const faturamentos = mysqlTable("faturamentos", {
   id: int("id").autoincrement().primaryKey(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
-  data: varchar("data", { length: 10 }).notNull(), // YYYY-MM-DD
+  data: varchar("data", { length: 10 }).notNull(),
   cat1: decimal("cat1", { precision: 12, scale: 2 }).notNull().default("0"),
   cat2: decimal("cat2", { precision: 12, scale: 2 }).notNull().default("0"),
   cat3: decimal("cat3", { precision: 12, scale: 2 }).notNull().default("0"),

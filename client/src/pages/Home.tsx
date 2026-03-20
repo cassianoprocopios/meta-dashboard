@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
-  CheckCircle2, Clock, Building2, Users, Loader2, LogIn,
+  CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -17,6 +17,7 @@ import FaturamentoForm from "@/components/FaturamentoForm";
 import MetaConfig from "@/components/MetaConfig";
 import AdminUsers from "@/pages/AdminUsers";
 import Empresas from "@/pages/Empresas";
+import Auditoria from "@/pages/Auditoria";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -34,7 +35,23 @@ function pct(v: number, total: number) {
   return Math.round((v / total) * 100);
 }
 
-type Tab = "dashboard" | "lancamentos" | "metas" | "usuarios" | "empresas";
+type Tab = "dashboard" | "lancamentos" | "metas" | "usuarios" | "empresas" | "auditoria";
+
+function LogoutButton() {
+  const logoutMutation = trpc.auth.logoutApp.useMutation({
+    onSuccess: () => { window.location.reload(); },
+  });
+  return (
+    <button
+      onClick={() => logoutMutation.mutate()}
+      disabled={logoutMutation.isPending}
+      className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+      title="Sair"
+    >
+      {logoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+    </button>
+  );
+}
 
 export default function Home() {
   const { user } = useAuth();
@@ -272,6 +289,16 @@ export default function Home() {
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
               )}
+              {/* Info do usuário e logout */}
+              {user && (
+                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
+                  <div className="hidden sm:flex flex-col items-end">
+                    <span className="text-xs font-semibold text-slate-700 leading-none">{user.name ?? user.email}</span>
+                    <span className="text-xs text-slate-400 leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
+                  </div>
+                  <LogoutButton />
+                </div>
+              )}
               {!user && (
                 <a href={getLoginUrl()} className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
                   <LogIn className="w-4 h-4" /> Entrar
@@ -293,6 +320,7 @@ export default function Home() {
                 metas: "Metas",
                 usuarios: "Usuários",
                 empresas: "Empresas",
+                auditoria: "Auditoria",
               };
               const icons: Record<Tab, React.ReactNode> = {
                 dashboard: <TrendingUp className="w-4 h-4" />,
@@ -300,6 +328,7 @@ export default function Home() {
                 metas: <Target className="w-4 h-4" />,
                 usuarios: <Users className="w-4 h-4" />,
                 empresas: <Building2 className="w-4 h-4" />,
+                auditoria: <Shield className="w-4 h-4" />,
               };
               return (
                 <button
@@ -744,11 +773,14 @@ export default function Home() {
 
         {/* ─── USUÁRIOS ──────────────────────────────────────────────────────── */}
         {activeTab === "usuarios" && isAdmin && (
-          <AdminUsers empresasData={empresasData} />
+          <AdminUsers empresasData={empresasData} currentUser={user} />
         )}
 
         {/* ─── EMPRESAS ──────────────────────────────────────────────────────── */}
         {activeTab === "empresas" && isAdmin && <Empresas />}
+
+        {/* ─── AUDITORIA ─────────────────────────────────────────────────────── */}
+        {activeTab === "auditoria" && isAdmin && <Auditoria />}
       </main>
 
       {/* Modal de lançamento */}

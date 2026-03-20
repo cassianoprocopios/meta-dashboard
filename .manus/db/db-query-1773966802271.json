@@ -1,0 +1,9 @@
+{
+  "query": "\nALTER TABLE users \n  ADD COLUMN IF NOT EXISTS passwordHash VARCHAR(256),\n  ADD COLUMN IF NOT EXISTS ativo INT NOT NULL DEFAULT 1;\n\nCREATE TABLE IF NOT EXISTS accessLogs (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT,\n  userName VARCHAR(256),\n  userEmail VARCHAR(320),\n  acao VARCHAR(64) NOT NULL,\n  ip VARCHAR(64),\n  userAgent TEXT,\n  detalhes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL\n);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nALTER TABLE users \n  ADD COLUMN IF NOT EXISTS passwordHash VARCHAR(256),\n  ADD COLUMN IF NOT EXISTS ativo INT NOT NULL DEFAULT 1;\n\nCREATE TABLE IF NOT EXISTS accessLogs (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT,\n  userName VARCHAR(256),\n  userEmail VARCHAR(320),\n  acao VARCHAR(64) NOT NULL,\n  ip VARCHAR(64),\n  userAgent TEXT,\n  detalhes TEXT,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL\n);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1526
+}

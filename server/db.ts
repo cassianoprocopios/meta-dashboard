@@ -234,3 +234,118 @@ export async function upsertMeta(input: InsertMeta) {
     return { ...input, id: (result as any).insertId };
   }
 }
+
+// ─── AUTH COM SENHA PRÓPRIA ───────────────────────────────────────────────────
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createUserWithPassword(data: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  perfil: "gerente" | "operador";
+  empresaVinculada: string | null;
+  role?: "user" | "admin";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Gerar openId único para utilizadores criados manualmente
+  const openId = `local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const result = await db.insert(users).values({
+    openId,
+    name: data.name,
+    email: data.email,
+    loginMethod: "password",
+    passwordHash: data.passwordHash,
+    perfil: data.perfil,
+    empresaVinculada: data.empresaVinculada ?? undefined,
+    role: data.role ?? "user",
+    ativo: 1,
+    lastSignedIn: new Date(),
+  });
+  return { id: (result as any).insertId, openId };
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function updateUserAtivo(userId: number, ativo: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ ativo, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function updateUserLastSignedIn(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+}
+
+// ─── ACCESS LOGS ─────────────────────────────────────────────────────────────
+
+import { accessLogs, InsertAccessLog } from "../drizzle/schema";
+import { desc } from "drizzle-orm";
+
+export async function createAccessLog(data: InsertAccessLog) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(accessLogs).values(data);
+  } catch (e) {
+    console.warn("[AccessLog] Failed to insert:", e);
+  }
+}
+
+export async function getAccessLogs(limit = 200) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(accessLogs).orderBy(desc(accessLogs.createdAt)).limit(limit);
+}
+
+// ─── DELETE USER ──────────────────────────────────────────────────────────────
+export async function deleteUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(users).where(eq(users.id, userId));
+}
+
+// ─── UPDATE USER FULL ─────────────────────────────────────────────────────────
+export async function updateUserFull(
+  userId: number,
+  data: {
+    name?: string;
+    email?: string;
+    perfil?: string;
+    empresaVinculada?: string | null;
+    role?: "user" | "admin";
+    passwordHash?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateSet: Record<string, unknown> = { updatedAt: new Date() };
+  if (data.name !== undefined) updateSet.name = data.name;
+  if (data.email !== undefined) updateSet.email = data.email;
+  if (data.perfil !== undefined) updateSet.perfil = data.perfil;
+  if ("empresaVinculada" in data) updateSet.empresaVinculada = data.empresaVinculada ?? null;
+  if (data.role !== undefined) updateSet.role = data.role;
+  if (data.passwordHash !== undefined) updateSet.passwordHash = data.passwordHash;
+
+  await db.update(users).set(updateSet).where(eq(users.id, userId));
+}

@@ -65,3 +65,20 @@
 - [ ] Indicador visual: meta/dia subiu ou desceu em relação à meta original
 - [ ] FaturamentoForm: usar nomes de categorias dinâmicos da empresa
 - [ ] Testes das novas procedures
+
+## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
+
+- [ ] Adicionar campo `passwordHash` e `ativo` na tabela users
+- [ ] Criar tabela `accessLogs` (id, userId, acao, ip, userAgent, createdAt)
+- [ ] Migrar banco de dados
+- [ ] Procedure `auth.loginComSenha` (email + senha, retorna JWT)
+- [ ] Procedure `auth.logoutApp` limpa sessão e regista log
+- [ ] Página de login com formulário email+senha
+- [ ] Redirecionar para login quando não autenticado
+- [ ] Procedure `admin.criarUsuario` (nome, email, senha, perfil, empresa)
+- [ ] Procedure `admin.editarUsuario` (perfil, empresa, ativo)
+- [ ] Procedure `admin.redefinirSenha` (nova senha)
+- [ ] Procedure `admin.listarUsuarios` com último acesso
+- [ ] Página AdminUsers atualizada com criação/edição inline e redefinição de senha
+- [ ] Painel de auditoria (apenas owner): lista de acessos com IP, data, ação
+- [ ] Testes das procedures de auth e admin

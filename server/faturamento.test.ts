@@ -56,9 +56,11 @@ describe("auth.logout", () => {
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.logout();
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({ maxAge: -1 });
+    // Logout clears both the Manus OAuth cookie and the app's own session cookie
+    expect(clearedCookies.length).toBeGreaterThanOrEqual(1);
+    const manusCookie = clearedCookies.find((c) => c.name === COOKIE_NAME);
+    expect(manusCookie).toBeDefined();
+    expect(manusCookie?.options).toMatchObject({ maxAge: -1 });
   });
 });
 
