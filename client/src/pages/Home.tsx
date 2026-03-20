@@ -18,6 +18,7 @@ import MetaConfig from "@/components/MetaConfig";
 import AdminUsers from "@/pages/AdminUsers";
 import Empresas from "@/pages/Empresas";
 import Auditoria from "@/pages/Auditoria";
+import Bonificacao from "@/pages/Bonificacao";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -35,7 +36,7 @@ function pct(v: number, total: number) {
   return Math.round((v / total) * 100);
 }
 
-type Tab = "dashboard" | "lancamentos" | "metas" | "usuarios" | "empresas" | "auditoria";
+type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "usuarios" | "empresas" | "auditoria";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logoutApp.useMutation({
@@ -72,14 +73,25 @@ export default function Home() {
     trpc.faturamento.listar.useQuery({ mes, ano });
   const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
     trpc.meta.listar.useQuery({ mes, ano });
+  // Empresas do utilizador (múltiplas unidades)
+  const { data: userEmpresasSlugs = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
+    { userId: user?.id ?? 0 },
+    { enabled: !!user && !isAdmin }
+  );
 
   const deletarFat = trpc.faturamento.deletar.useMutation();
 
   // Empresas visíveis para este usuário
   const empresasVisiveis = useMemo(() => {
-    if (!empresaVinculada) return empresasData;
-    return empresasData.filter((e) => e.slug === empresaVinculada);
-  }, [empresasData, empresaVinculada]);
+    if (isAdmin) return empresasData;
+    // Se tem userEmpresas definidas, usar essas
+    if (userEmpresasSlugs.length > 0) {
+      return empresasData.filter((e) => userEmpresasSlugs.includes(e.slug));
+    }
+    // Fallback: empresaVinculada legado
+    if (empresaVinculada) return empresasData.filter((e) => e.slug === empresaVinculada);
+    return empresasData;
+  }, [empresasData, empresaVinculada, userEmpresasSlugs, isAdmin]);
 
   // Calcular totais por empresa
   const statsPorEmpresa = useMemo(() => {
@@ -313,11 +325,11 @@ export default function Home() {
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2">
-            {(["dashboard", "lancamentos", "metas"] as Tab[]).map((tab) => {
-              const labels: Record<Tab, string> = {
+            {(["dashboard", "lancamentos", "metas", ...(isGerente ? ["bonificacao"] : [])] as Tab[]).map((tab) => {              const labels: Record<Tab, string> = {
                 dashboard: "Dashboard",
                 lancamentos: "Lançamentos",
                 metas: "Metas",
+                bonificacao: "Bonificação",
                 usuarios: "Usuários",
                 empresas: "Empresas",
                 auditoria: "Auditoria",
@@ -326,6 +338,7 @@ export default function Home() {
                 dashboard: <TrendingUp className="w-4 h-4" />,
                 lancamentos: <Calendar className="w-4 h-4" />,
                 metas: <Target className="w-4 h-4" />,
+                bonificacao: <CheckCircle2 className="w-4 h-4" />,
                 usuarios: <Users className="w-4 h-4" />,
                 empresas: <Building2 className="w-4 h-4" />,
                 auditoria: <Shield className="w-4 h-4" />,
@@ -771,7 +784,20 @@ export default function Home() {
           />
         )}
 
-        {/* ─── USUÁRIOS ──────────────────────────────────────────────────────── */}
+        {/* ─── BONIFICAÇÃO ─────────────────────────────────────────────────── */}
+        {activeTab === "bonificacao" && isGerente && (
+          <Bonificacao
+            mes={mes}
+            ano={ano}
+            mesLabel={MESES[mes - 1]}
+            empresasData={empresasVisiveis}
+            metasData={metasData as any[]}
+            faturamentosData={faturamentosData as any[]}
+            isAdmin={isAdmin}
+          />
+        )}
+
+        {/* ─── USUÁRIOS ────────────────────────────────────────────────────── */}
         {activeTab === "usuarios" && isAdmin && (
           <AdminUsers empresasData={empresasData} currentUser={user} />
         )}

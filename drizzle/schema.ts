@@ -12,7 +12,7 @@ export const users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   perfil: mysqlEnum("perfil", ["gerente", "operador"]).default("operador").notNull(),
-  /** Slug da empresa vinculada (ex: "MORUMBI"). Null = acesso a todas (admin). */
+  /** Slug da empresa vinculada (legado - mantido para compatibilidade). Null = acesso a todas (admin). */
   empresaVinculada: varchar("empresaVinculada", { length: 64 }),
   /** Hash bcrypt da senha própria do sistema (independente do OAuth) */
   passwordHash: varchar("passwordHash", { length: 256 }),
@@ -26,14 +26,25 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// ─── RELAÇÃO N:N UTILIZADOR ↔ EMPRESAS ───────────────────────────────────────
+// Cada utilizador pode ter acesso a múltiplas empresas
+export const userEmpresas = mysqlTable("userEmpresas", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserEmpresa = typeof userEmpresas.$inferSelect;
+export type InsertUserEmpresa = typeof userEmpresas.$inferInsert;
+
 // ─── LOG DE ACESSOS ───────────────────────────────────────────────────────────
-// Regista cada login, logout e ação relevante para auditoria
 export const accessLogs = mysqlTable("accessLogs", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId"),
   userName: varchar("userName", { length: 256 }),
   userEmail: varchar("userEmail", { length: 320 }),
-  acao: varchar("acao", { length: 64 }).notNull(), // "login", "logout", "login_falhou"
+  acao: varchar("acao", { length: 64 }).notNull(),
   ip: varchar("ip", { length: 64 }),
   userAgent: text("userAgent"),
   detalhes: text("detalhes"),
@@ -61,6 +72,25 @@ export const empresas = mysqlTable("empresas", {
 
 export type Empresa = typeof empresas.$inferSelect;
 export type InsertEmpresa = typeof empresas.$inferInsert;
+
+// ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────────
+// Percentuais configuráveis por empresa para cálculo de bonificação
+export const bonificacoes = mysqlTable("bonificacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull().unique(),
+  /** % sobre montante quinzenal quando NÃO bate a meta quinzenal */
+  pctQuinzenalSemMeta: decimal("pctQuinzenalSemMeta", { precision: 6, scale: 2 }).notNull().default("0"),
+  /** % sobre montante quinzenal quando BATE a meta quinzenal */
+  pctQuinzenalComMeta: decimal("pctQuinzenalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
+  /** % sobre montante mensal quando NÃO bate a meta mensal */
+  pctMensalSemMeta: decimal("pctMensalSemMeta", { precision: 6, scale: 2 }).notNull().default("0"),
+  /** % sobre montante mensal quando BATE a meta mensal */
+  pctMensalComMeta: decimal("pctMensalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Bonificacao = typeof bonificacoes.$inferSelect;
+export type InsertBonificacao = typeof bonificacoes.$inferInsert;
 
 // ─── METAS ────────────────────────────────────────────────────────────────────
 export const metas = mysqlTable("metas", {

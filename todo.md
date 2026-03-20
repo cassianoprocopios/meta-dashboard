@@ -82,3 +82,17 @@
 - [ ] Página AdminUsers atualizada com criação/edição inline e redefinição de senha
 - [ ] Painel de auditoria (apenas owner): lista de acessos com IP, data, ação
 - [ ] Testes das procedures de auth e admin
+
+## Evolução v6 - Múltiplas Unidades por Utilizador e Bonificações
+
+- [ ] Tabela `userEmpresas` (relação N:N entre users e empresas)
+- [ ] Tabela `bonificacoes` (percentuais por empresa: pctQuinzenalSemMeta, pctQuinzenalComMeta, pctMensalSemMeta, pctMensalComMeta)
+- [ ] Migrar banco de dados
+- [ ] Router tRPC: listar/salvar bonificações por empresa (apenas admin)
+- [ ] Router tRPC: calcular bonificação por empresa e mês (apenas gerente)
+- [ ] Router tRPC: listar empresas do utilizador logado (via userEmpresas)
+- [ ] AdminUsers: seleção de múltiplas unidades por utilizador (checkboxes)
+- [ ] Dashboard: filtrar empresas exibidas pelas unidades do utilizador logado
+- [ ] Aba Bonificação: visível apenas para gerentes, mostra valor calculado por unidade
+- [ ] Config de bonificação na aba Empresas (apenas admin)
+- [ ] Testes das novas procedures

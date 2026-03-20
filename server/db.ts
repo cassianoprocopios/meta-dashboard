@@ -349,3 +349,61 @@ export async function updateUserFull(
 
   await db.update(users).set(updateSet).where(eq(users.id, userId));
 }
+
+// ─── USER EMPRESAS (N:N) ──────────────────────────────────────────────────────
+import { userEmpresas, bonificacoes, InsertBonificacao } from "../drizzle/schema";
+
+/** Retorna os slugs das empresas às quais o utilizador tem acesso */
+export async function getUserEmpresaSlugs(userId: number): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(userEmpresas).where(eq(userEmpresas.userId, userId));
+  return rows.map((r) => r.empresaSlug);
+}
+
+/** Substitui todas as empresas do utilizador pelas novas slugs */
+export async function setUserEmpresas(userId: number, slugs: string[]): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Remove todas as entradas existentes
+  await db.delete(userEmpresas).where(eq(userEmpresas.userId, userId));
+  // Insere as novas
+  if (slugs.length > 0) {
+    await db.insert(userEmpresas).values(slugs.map((s) => ({ userId, empresaSlug: s })));
+  }
+}
+
+// ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────────
+
+export async function getBonificacaoByEmpresa(empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(bonificacoes)
+    .where(eq(bonificacoes.empresaSlug, empresaSlug))
+    .limit(1);
+  return result[0];
+}
+
+export async function getAllBonificacoes() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bonificacoes);
+}
+
+export async function upsertBonificacao(data: InsertBonificacao) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getBonificacaoByEmpresa(data.empresaSlug as string);
+  if (existing) {
+    await db.update(bonificacoes).set({
+      pctQuinzenalSemMeta: data.pctQuinzenalSemMeta,
+      pctQuinzenalComMeta: data.pctQuinzenalComMeta,
+      pctMensalSemMeta: data.pctMensalSemMeta,
+      pctMensalComMeta: data.pctMensalComMeta,
+    }).where(eq(bonificacoes.empresaSlug, data.empresaSlug as string));
+  } else {
+    await db.insert(bonificacoes).values(data);
+  }
+}

@@ -27,6 +27,11 @@ import {
   getAccessLogs,
   deleteUser,
   updateUserFull,
+  getUserEmpresaSlugs,
+  setUserEmpresas,
+  getAllBonificacoes,
+  getBonificacaoByEmpresa,
+  upsertBonificacao,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { ENV } from "./_core/env";
@@ -279,8 +284,20 @@ export const appRouter = router({
     listar: publicProcedure
       .input(z.object({ mes: z.number().min(1).max(12), ano: z.number().min(2020) }))
       .query(async ({ input, ctx }) => {
-        const empresaSlug = ctx.user?.empresaVinculada ?? undefined;
-        return getAllFaturamentos(input.mes, input.ano, empresaSlug);
+        // Admin vê tudo; utilizador vê apenas as suas empresas (via userEmpresas)
+        if (!ctx.user || ctx.user.role === "admin") {
+          return getAllFaturamentos(input.mes, input.ano);
+        }
+        const slugs = await getUserEmpresaSlugs(ctx.user.id);
+        if (slugs.length === 0) {
+          // Fallback para empresaVinculada legado
+          return getAllFaturamentos(input.mes, input.ano, ctx.user.empresaVinculada ?? undefined);
+        }
+        // Busca faturamentos de todas as empresas do utilizador
+        const allResults = await Promise.all(
+          slugs.map((slug) => getAllFaturamentos(input.mes, input.ano, slug))
+        );
+        return allResults.flat();
       }),
 
     salvar: protectedProcedure
@@ -367,6 +384,39 @@ export const appRouter = router({
           diasUteis: input.diasUteis,
           diasUteisQuinzenal: input.diasUteisQuinzenal,
         });
+      }),
+  }),
+
+  // ─── BONIFICAÇÕES ─────────────────────────────────────────────────────────
+  bonificacao: router({
+    listar: protectedProcedure.query(async ({ ctx }) => {
+      // Admin vê todas; gerente vê apenas as das suas empresas
+      const all = await getAllBonificacoes();
+      if (ctx.user.role === "admin") return all;
+      const slugs = await getUserEmpresaSlugs(ctx.user.id);
+      return all.filter((b) => slugs.includes(b.empresaSlug));
+    }),
+
+    salvar: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string().min(1),
+        pctQuinzenalSemMeta: z.number().min(0).max(100),
+        pctQuinzenalComMeta: z.number().min(0).max(100),
+        pctMensalSemMeta: z.number().min(0).max(100),
+        pctMensalComMeta: z.number().min(0).max(100),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem configurar bonificações." });
+        }
+        await upsertBonificacao({
+          empresaSlug: input.empresaSlug,
+          pctQuinzenalSemMeta: String(input.pctQuinzenalSemMeta),
+          pctQuinzenalComMeta: String(input.pctQuinzenalComMeta),
+          pctMensalSemMeta: String(input.pctMensalSemMeta),
+          pctMensalComMeta: String(input.pctMensalComMeta),
+        });
+        return { success: true };
       }),
   }),
 
@@ -527,6 +577,39 @@ export const appRouter = router({
           ip: null,
           userAgent: null,
           detalhes: `Editou utilizador ID: ${userId}`,
+        });
+        return { success: true };
+      }),
+
+    // Gerir empresas do utilizador (múltiplas unidades)
+    listarEmpresasUsuario: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        // Admin pode ver qualquer utilizador; utilizador pode ver a si mesmo
+        if (ctx.user.role !== "admin" && ctx.user.id !== input.userId) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito." });
+        }
+        return getUserEmpresaSlugs(input.userId);
+      }),
+
+    definirEmpresasUsuario: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        slugs: z.array(z.string()),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        await setUserEmpresas(input.userId, input.slugs);
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          acao: "editar_empresas_usuario",
+          ip: null,
+          userAgent: null,
+          detalhes: `Definiu empresas do utilizador ID ${input.userId}: ${input.slugs.join(", ")}`,
         });
         return { success: true };
       }),

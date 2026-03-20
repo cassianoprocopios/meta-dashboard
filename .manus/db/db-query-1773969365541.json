@@ -1,0 +1,19 @@
+{
+  "query": "SELECT id, name, email, role, perfil, ativo, loginMethod FROM users WHERE email = 'cassiano@barbierogrupo.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, name, email, role, perfil, ativo, loginMethod FROM users WHERE email = 'cassiano@barbierogrupo.com';",
+  "rows": [
+    {
+      "id": "1",
+      "name": "cassiano procopio",
+      "email": "cassiano@barbierogrupo.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "loginMethod": "password"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tperfil\tativo\tloginMethod\n1\tcassiano procopio\tcassiano@barbierogrupo.com\tadmin\tgerente\t1\tpassword\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

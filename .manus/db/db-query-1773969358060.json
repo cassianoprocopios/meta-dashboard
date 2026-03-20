@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE users \nSET \n  passwordHash = '$2b$12$uIi05yVMqmP3vW6d2RSEcuyoWe0ZBHvqG6.tY6B5HKmkBJII.0Szq',\n  loginMethod = 'password',\n  role = 'admin',\n  perfil = 'gerente',\n  ativo = 1,\n  updatedAt = NOW()\nWHERE email = 'cassiano@barbierogrupo.com' AND id = 1;\n\nDELETE FROM users WHERE id = 90073;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE users \nSET \n  passwordHash = '$2b$12$uIi05yVMqmP3vW6d2RSEcuyoWe0ZBHvqG6.tY6B5HKmkBJII.0Szq',\n  loginMethod = 'password',\n  role = 'admin',\n  perfil = 'gerente',\n  ativo = 1,\n  updatedAt = NOW()\nWHERE email = 'cassiano@barbierogrupo.com' AND id = 1;\n\nDELETE FROM users WHERE id = 90073;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 97
+}
