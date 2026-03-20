@@ -115,6 +115,24 @@ export async function deactivateEmpresa(id: number) {
   await db.update(empresas).set({ ativo: 0 }).where(eq(empresas.id, id));
 }
 
+export async function updateEmpresa(
+  id: number,
+  data: {
+    nome?: string;
+    cor?: string;
+    tipoCategorias?: "padrao" | "seraphine";
+    cat1Nome?: string;
+    cat2Nome?: string;
+    cat3Nome?: string;
+    cat4Nome?: string;
+    cat5Nome?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(empresas).set(data).where(eq(empresas.id, id));
+}
+
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 
 export async function getFaturamentoByDataEmpresa(data: string, empresaSlug: string) {

@@ -54,3 +54,14 @@
 - [x] Cards individuais de meta mensal e quinzenal por empresa
 - [x] Cálculo de meta/dia baseado nos dias úteis manuais da empresa
 - [x] Testes das novas procedures de empresas
+
+## Evolução v4 - Meta/Dia Dinâmica e Categorias Editáveis
+
+- [ ] Adicionar colunas cat1Nome..cat5Nome na tabela `empresas`
+- [ ] Router empresa.atualizar para editar nome, cor, categorias e nomes das categorias
+- [ ] Aba Empresas: formulário de edição de nomes das categorias (cat1..cat5)
+- [ ] Dashboard por empresa: meta/dia necessária para quinzenal (baseada em faturado + dias úteis restantes até dia 15)
+- [ ] Dashboard por empresa: meta/dia necessária para mensal (baseada em faturado + dias úteis restantes no mês)
+- [ ] Indicador visual: meta/dia subiu ou desceu em relação à meta original
+- [ ] FaturamentoForm: usar nomes de categorias dinâmicos da empresa
+- [ ] Testes das novas procedures

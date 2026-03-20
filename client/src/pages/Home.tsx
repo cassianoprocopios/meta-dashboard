@@ -84,12 +84,20 @@ export default function Home() {
       const metaDiariaQuinzenal = diasUteisQuinzenal > 0 ? metaQuinzenal / diasUteisQuinzenal : 0;
 
       // Dias úteis restantes no mês
-      const diaAtual = hoje.getDate();
+      const rowsQuinzenal = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
+      const diasLancadosQuinzenal = rowsQuinzenal.length;
+      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) =>
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+
       const diasUteisRestantes = Math.max(0, diasUteis - diasLancados);
-      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - rows.filter((r: any) => {
-        const d = parseInt(r.data.split("-")[2]);
-        return d <= 15;
-      }).length);
+      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasLancadosQuinzenal);
+
+      // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
+      const faltaMensal = Math.max(0, metaMensal - total);
+      const metaDiariaDinamicaMensal = diasUteisRestantes > 0 ? faltaMensal / diasUteisRestantes : 0;
+
+      const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
+      const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
       // Projeção
       const projecaoFinal = diasLancados > 0 && diasUteis > 0
@@ -109,18 +117,23 @@ export default function Home() {
       return {
         emp,
         total,
+        totalQuinzenal,
         diasLancados,
+        diasLancadosQuinzenal,
         mediaDiaria,
         metaMensal,
         metaQuinzenal,
         metaDiariaMensal,
         metaDiariaQuinzenal,
+        metaDiariaDinamicaMensal,
+        metaDiariaDinamicaQuinzenal,
         diasUteis,
         diasUteisQuinzenal,
         diasUteisRestantes,
         diasUteisRestantesQuinzenal,
         projecaoFinal,
         progressoMensal: metaMensal > 0 ? Math.min((total / metaMensal) * 100, 100) : 0,
+        progressoQuinzenal: metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0,
         catTotals,
         rows,
       };
@@ -364,64 +377,99 @@ export default function Home() {
 
             {/* Cards por Empresa */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {statsPorEmpresa.map((s) => (
+              {statsPorEmpresa.map((s) => {
+                const metaDiaAtualMensal = s.diasUteisRestantes > 0 ? s.metaDiariaDinamicaMensal : s.metaDiariaMensal;
+                const metaDiaAtualQuinzenal = s.diasUteisRestantesQuinzenal > 0 ? s.metaDiariaDinamicaQuinzenal : s.metaDiariaQuinzenal;
+                const menorQueMeta = s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && s.mediaDiaria < metaDiaAtualMensal;
+                const menorQueMetaQ = s.diasLancadosQuinzenal > 0 && metaDiaAtualQuinzenal > 0 && (s.totalQuinzenal / Math.max(s.diasLancadosQuinzenal, 1)) < metaDiaAtualQuinzenal;
+
+                return (
                 <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-white overflow-hidden relative">
-                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: s.emp.cor }} />
+                  <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ backgroundColor: s.emp.cor }} />
+
+                  {/* Cabeçalho */}
                   <div className="flex items-center gap-2 mb-4 mt-1">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: s.emp.cor + "20" }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.emp.cor + "20" }}>
                       <Building2 className="w-4 h-4" style={{ color: s.emp.cor }} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">{s.emp.nome}</h3>
-                      <p className="text-xs text-slate-500">{s.diasLancados} dias lançados</p>
+                      <p className="text-xs text-slate-400">{s.diasLancados} dias lançados</p>
                     </div>
                     <div className="ml-auto text-right">
-                      <p className="text-lg font-bold text-slate-900">{fmt(s.total)}</p>
+                      <p className="text-xl font-bold text-slate-900">{fmt(s.total)}</p>
+                      <p className="text-xs text-slate-400">faturado no mês</p>
                     </div>
                   </div>
 
-                  {/* Progresso mensal */}
+                  {/* Progresso Mensal */}
                   {s.metaMensal > 0 && (
                     <div className="mb-3">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-500">Meta Mensal: {fmt(s.metaMensal)}</span>
-                        <span className="font-semibold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
+                        <span className="text-slate-500 font-medium">Meta Mensal: {fmt(s.metaMensal)}</span>
+                        <span className="font-bold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
                       </div>
                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${s.progressoMensal}%`, backgroundColor: s.emp.cor }}
-                        />
+                        <div className="h-full rounded-full transition-all" style={{ width: `${s.progressoMensal}%`, backgroundColor: s.emp.cor }} />
                       </div>
                     </div>
                   )}
 
-                  {/* Stats grid */}
+                  {/* Progresso Quinzenal */}
+                  {s.metaQuinzenal > 0 && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-purple-500 font-medium">Meta Quinzenal: {fmt(s.metaQuinzenal)}</span>
+                        <span className="font-bold text-purple-600">{s.progressoQuinzenal.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all bg-purple-400" style={{ width: `${s.progressoQuinzenal}%` }} />
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">{fmt(s.totalQuinzenal)} faturados até dia 15</p>
+                    </div>
+                  )}
+
+                  {/* Grid de métricas */}
                   <div className="grid grid-cols-2 gap-2">
+                    {/* Média diária real */}
                     <div className="bg-slate-50 rounded-xl p-2.5">
                       <p className="text-xs text-slate-500">Média Diária Real</p>
                       <p className="text-sm font-bold text-slate-900">{fmt(s.mediaDiaria)}</p>
                     </div>
-                    <div className="bg-slate-50 rounded-xl p-2.5">
-                      <p className="text-xs text-slate-500">Meta/Dia ({s.diasUteis}d úteis)</p>
-                      <p className="text-sm font-bold text-slate-900">{s.metaDiariaMensal > 0 ? fmt(s.metaDiariaMensal) : "—"}</p>
+
+                    {/* Meta/dia mensal dinâmica */}
+                    <div className={`rounded-xl p-2.5 ${menorQueMeta ? "bg-orange-50" : "bg-emerald-50"}`}>
+                      <p className={`text-xs font-medium ${menorQueMeta ? "text-orange-500" : "text-emerald-600"}`}>
+                        Precisa/Dia (Mensal)
+                      </p>
+                      <p className={`text-sm font-bold ${menorQueMeta ? "text-orange-700" : "text-emerald-700"}`}>
+                        {metaDiaAtualMensal > 0 ? fmt(metaDiaAtualMensal) : "—"}
+                      </p>
+                      {s.diasUteisRestantes > 0 && s.metaMensal > 0 && (
+                        <p className="text-xs mt-0.5" style={{ color: menorQueMeta ? "#c2410c" : "#059669" }}>
+                          {s.diasUteisRestantes}d úteis restantes
+                        </p>
+                      )}
                     </div>
+
+                    {/* Meta/dia quinzenal dinâmica */}
                     {s.metaQuinzenal > 0 && (
-                      <div className="bg-purple-50 rounded-xl p-2.5">
-                        <p className="text-xs text-purple-500">Meta Quinzenal</p>
-                        <p className="text-sm font-bold text-purple-700">{fmt(s.metaQuinzenal)}</p>
+                      <div className={`rounded-xl p-2.5 ${menorQueMetaQ ? "bg-orange-50" : "bg-purple-50"}`}>
+                        <p className={`text-xs font-medium ${menorQueMetaQ ? "text-orange-500" : "text-purple-500"}`}>
+                          Precisa/Dia (Quinz.)
+                        </p>
+                        <p className={`text-sm font-bold ${menorQueMetaQ ? "text-orange-700" : "text-purple-700"}`}>
+                          {metaDiaAtualQuinzenal > 0 ? fmt(metaDiaAtualQuinzenal) : "—"}
+                        </p>
+                        {s.diasUteisRestantesQuinzenal > 0 && (
+                          <p className={`text-xs mt-0.5 ${menorQueMetaQ ? "text-orange-600" : "text-purple-400"}`}>
+                            {s.diasUteisRestantesQuinzenal}d até dia 15
+                          </p>
+                        )}
                       </div>
                     )}
-                    {s.metaQuinzenal > 0 && (
-                      <div className="bg-purple-50 rounded-xl p-2.5">
-                        <p className="text-xs text-purple-500">Meta/Dia Quinz. ({s.diasUteisQuinzenal}d)</p>
-                        <p className="text-sm font-bold text-purple-700">{fmt(s.metaDiariaQuinzenal)}</p>
-                      </div>
-                    )}
-                    <div className="bg-slate-50 rounded-xl p-2.5">
-                      <p className="text-xs text-slate-500">Dias úteis restantes</p>
-                      <p className="text-sm font-bold text-slate-900">{s.diasUteisRestantes}</p>
-                    </div>
+
+                    {/* Projeção final */}
                     <div className="bg-slate-50 rounded-xl p-2.5">
                       <p className="text-xs text-slate-500">Projeção Final</p>
                       <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-600" : "text-slate-900"}`}>
@@ -430,21 +478,22 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Indicador de status */}
-                  {s.mediaDiaria > 0 && s.metaDiariaMensal > 0 && (
-                    <div className={`mt-3 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg ${
-                      s.mediaDiaria >= s.metaDiariaMensal
+                  {/* Indicador de status mensal */}
+                  {s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && (
+                    <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl ${
+                      s.mediaDiaria >= metaDiaAtualMensal
                         ? "bg-emerald-50 text-emerald-700"
                         : "bg-orange-50 text-orange-700"
                     }`}>
-                      {s.mediaDiaria >= s.metaDiariaMensal
-                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo</>
-                        : <><TrendingDown className="w-3.5 h-3.5" /> Precisa melhorar {fmt(s.metaDiariaMensal - s.mediaDiaria)}/dia</>
+                      {s.mediaDiaria >= metaDiaAtualMensal
+                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo para a meta mensal</>
+                        : <><TrendingDown className="w-3.5 h-3.5" /> Precisa de +{fmt(metaDiaAtualMensal - s.mediaDiaria)}/dia para atingir a meta</>
                       }
                     </div>
                   )}
                 </Card>
-              ))}
+                );
+              })}
             </div>
 
             {/* Alertas */}

@@ -15,6 +15,7 @@ import {
   getAllEmpresas,
   createEmpresa,
   deactivateEmpresa,
+  updateEmpresa,
 } from "./db";
 
 export const appRouter = router({
@@ -61,6 +62,27 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem remover empresas." });
         }
         await deactivateEmpresa(input.id);
+        return { success: true };
+      }),
+
+    atualizar: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        nome: z.string().min(2).max(128).optional(),
+        cor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+        tipoCategorias: z.enum(["padrao", "seraphine"]).optional(),
+        cat1Nome: z.string().min(1).max(64).optional(),
+        cat2Nome: z.string().min(1).max(64).optional(),
+        cat3Nome: z.string().min(1).max(64).optional(),
+        cat4Nome: z.string().min(1).max(64).optional(),
+        cat5Nome: z.string().min(1).max(64).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem editar empresas." });
+        }
+        const { id, ...data } = input;
+        await updateEmpresa(id, data);
         return { success: true };
       }),
   }),

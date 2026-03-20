@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE empresas\nSET cat1Nome = 'Cabelo', cat2Nome = 'Produtos', cat3Nome = 'Unha', cat4Nome = 'Outros', cat5Nome = 'Recorrência'\nWHERE tipoCategorias = 'seraphine';\n\nUPDATE empresas\nSET cat1Nome = 'Avulso', cat2Nome = 'Produtos', cat3Nome = 'Serv. Extra', cat4Nome = 'Lavatório', cat5Nome = 'Recorrência'\nWHERE tipoCategorias = 'padrao';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE empresas\nSET cat1Nome = 'Cabelo', cat2Nome = 'Produtos', cat3Nome = 'Unha', cat4Nome = 'Outros', cat5Nome = 'Recorrência'\nWHERE tipoCategorias = 'seraphine';\n\nUPDATE empresas\nSET cat1Nome = 'Avulso', cat2Nome = 'Produtos', cat3Nome = 'Serv. Extra', cat4Nome = 'Lavatório', cat5Nome = 'Recorrência'\nWHERE tipoCategorias = 'padrao';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 77
+}

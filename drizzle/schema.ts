@@ -29,8 +29,14 @@ export const empresas = mysqlTable("empresas", {
   slug: varchar("slug", { length: 64 }).notNull().unique(), // ex: "MORUMBI"
   nome: varchar("nome", { length: 128 }).notNull(),
   cor: varchar("cor", { length: 16 }).notNull().default("#3b82f6"), // hex color
-  /** Tipo de categorias: "padrao" (Avulso/Produtos/ServExtra/Lavatorio/Recorrencia) ou "seraphine" (Cabelo/Unha/Outros/Produtos/Recorrencia) */
+  /** Tipo de categorias: "padrao" ou "seraphine" */
   tipoCategorias: mysqlEnum("tipoCategorias", ["padrao", "seraphine"]).notNull().default("padrao"),
+  /** Nomes personalizados das categorias (cat1..cat5) */
+  cat1Nome: varchar("cat1Nome", { length: 64 }).notNull().default("Avulso"),
+  cat2Nome: varchar("cat2Nome", { length: 64 }).notNull().default("Produtos"),
+  cat3Nome: varchar("cat3Nome", { length: 64 }).notNull().default("Serv. Extra"),
+  cat4Nome: varchar("cat4Nome", { length: 64 }).notNull().default("Lavatório"),
+  cat5Nome: varchar("cat5Nome", { length: 64 }).notNull().default("Recorrência"),
   ativo: int("ativo").notNull().default(1), // 1=ativo, 0=inativo
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -59,9 +65,7 @@ export type Meta = typeof metas.$inferSelect;
 export type InsertMeta = typeof metas.$inferInsert;
 
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
-// Campos genéricos que se adaptam ao tipo de empresa:
-// padrao:   cat1=Avulso, cat2=Produtos, cat3=Serv.Extra, cat4=Lavatório, cat5=Recorrência
-// seraphine: cat1=Cabelo, cat2=Produtos, cat3=Unha,      cat4=Outros,    cat5=Recorrência
+// Campos genéricos cat1-cat5 cujos nomes são definidos por empresa
 export const faturamentos = mysqlTable("faturamentos", {
   id: int("id").autoincrement().primaryKey(),
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
