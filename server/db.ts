@@ -190,7 +190,8 @@ export async function createUserWithPassword(data: {
     loginMethod: "password",
     passwordHash: data.passwordHash,
     perfil: data.perfil,
-    empresaVinculada: data.empresaVinculada ?? undefined,
+    empresaVinculada: data.empresaVinculada ?? null,
+    telefone: null,
     role: data.role ?? "user",
     ativo: 1,
     lastSignedIn: new Date(),
@@ -675,6 +676,8 @@ export async function createAdminUserForTenant(data: {
     loginMethod: "password",
     role: "admin",
     perfil: "gerente",
+    telefone: null,
+    empresaVinculada: null,
     ativo: 1,
   });
 

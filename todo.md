@@ -203,3 +203,9 @@
 - [x] Frontend: lista de utilizadores do tenant com ações de editar, desativar e redefinir senha
 - [x] Frontend: badges visuais por perfil (Gerente/Recepcionista/Operador/Admin)
 - [x] Testar: 11 testes passando
+
+## Correção: erro ao criar utilizador (coluna telefone)
+
+- [x] Coluna `telefone` já aceita NULL no banco (verificado via SHOW COLUMNS)
+- [x] Corrigir função `createUserWithPassword` no db.ts para passar `telefone: null` explicitamente
+- [x] Corrigir função `createAdminUserForTenant` no db.ts para passar `telefone: null` e `empresaVinculada: null`
