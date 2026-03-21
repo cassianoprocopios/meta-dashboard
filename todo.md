@@ -233,3 +233,16 @@
 - [x] Bloqueio automático quando contrato expirar (tela de aviso clara)
 - [x] Procedures backend: toggleEmpresaAtiva, toggleUsuarioAtivo adicionadas ao router admin
 - [x] Link "Painel Admin" no header do Home.tsx para admin do tenant
+
+## Onboarding do Primeiro Login do Administrador
+
+- [x] Componente Onboarding com 3 etapas: boas-vindas, criar empresa, criar usuário
+- [x] Detecção automática: exibir onboarding quando admin não tem empresas nem usuários
+- [x] Etapa 1 - Boas-vindas: apresentar o sistema, mostrar o que o admin pode fazer
+- [x] Etapa 2 - Criar primeira empresa: formulário simplificado (nome, slug, cor)
+- [x] Etapa 3 - Criar primeiro usuário: formulário com nome, email, senha, perfil
+- [x] Barra de progresso visual entre etapas
+- [x] Possibilidade de pular o onboarding e completar depois
+- [x] Ao concluir, recarregar dados do AdminPanel
+- [x] Integrar no AdminPanel como overlay/modal de primeiro acesso
+- [x] Botão "Guia de configuração" no header para reabrir o onboarding enquanto não há empresas

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import {
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
   AlertTriangle, UserPlus, RefreshCw
 } from "lucide-react";
+import Onboarding from "@/components/Onboarding";
 
 type Perfil = "gerente" | "recepcionista" | "operador";
 
@@ -298,11 +299,23 @@ export default function AdminPanel() {
   const [aba, setAba] = useState<"empresas" | "usuarios">("empresas");
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const utils = trpc.useUtils();
 
-  const { data: empresas = [], refetch: refetchEmpresas } = trpc.empresa.listar.useQuery();
+  const { data: empresas = [], isLoading: loadingEmpresas, refetch: refetchEmpresas } = trpc.empresa.listar.useQuery();
   const { data: usuarios = [], refetch: refetchUsuarios } = trpc.admin.listarUsuarios.useQuery();
+
+  // Detectar primeiro acesso: exibir onboarding se não há empresas e o admin tem tenantId
+  useEffect(() => {
+    if (!loadingEmpresas && empresas.length === 0 && user && (user as any).tenantId) {
+      // Verificar se o usuário já pulou o onboarding nesta sessão
+      const skipped = sessionStorage.getItem("onboarding_skipped");
+      if (!skipped) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [loadingEmpresas, empresas.length, user]);
 
   const toggleEmpresa = trpc.admin.toggleEmpresaAtiva.useMutation({
     onSuccess: () => { toast.success("Status da empresa atualizado!"); refetchEmpresas(); },
@@ -341,6 +354,16 @@ export default function AdminPanel() {
               <BarChart2 className="w-4 h-4" />
               Dashboard
             </a>
+            {/* Botão para reabrir o guia de configuração */}
+            {empresas.length === 0 && (
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium"
+              >
+                <Shield className="w-4 h-4" />
+                Guia de configuração
+              </button>
+            )}
             <button
               onClick={logout}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
@@ -571,6 +594,22 @@ export default function AdminPanel() {
           empresas={empresas as Array<{ id: number; nome: string; slug: string }>}
           onClose={() => setShowCriarUsuario(false)}
           onSuccess={refetchUsuarios}
+        />
+      )}
+
+      {/* Onboarding de primeiro acesso */}
+      {showOnboarding && (
+        <Onboarding
+          userName={user?.name || "Administrador"}
+          onComplete={() => {
+            setShowOnboarding(false);
+            refetchEmpresas();
+            refetchUsuarios();
+          }}
+          onSkip={() => {
+            sessionStorage.setItem("onboarding_skipped", "1");
+            setShowOnboarding(false);
+          }}
         />
       )}
     </div>
