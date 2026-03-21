@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Users, Plus, Power, LogOut, Loader2,
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
-  AlertTriangle, UserPlus, RefreshCw
+  AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save
 } from "lucide-react";
 import Onboarding from "@/components/Onboarding";
 
@@ -293,6 +293,307 @@ function ModalCriarUsuario({ empresas, onClose, onSuccess }: {
   );
 }
 
+// ─── Modal de Editar Usuário ─────────────────────────────────────────────────
+function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
+  usuario: { id: number; name: string; email: string; perfil: string; ativo: boolean };
+  empresas: Array<{ id: number; nome: string; slug: string }>;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [name, setName] = useState(usuario.name);
+  const [perfil, setPerfil] = useState<Perfil>((usuario.perfil as Perfil) || "gerente");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [showSenha, setShowSenha] = useState(false);
+  const [empresasSelecionadas, setEmpresasSelecionadas] = useState<string[]>([]);
+  const [abaAtiva, setAbaAtiva] = useState<"dados" | "senha">("dados");
+  const [senhaCopiada, setSenhaCopiada] = useState(false);
+
+  const utils = trpc.useUtils();
+
+  // Carregar empresas vinculadas atuais
+  const { data: empresasVinculadas = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
+    { userId: usuario.id },
+    {
+      onSuccess: (slugs: string[]) => setEmpresasSelecionadas(slugs),
+    } as any
+  );
+
+  // Sincronizar empresas vinculadas quando carregarem
+  useEffect(() => {
+    if (empresasVinculadas.length > 0) {
+      setEmpresasSelecionadas(empresasVinculadas);
+    }
+  }, [empresasVinculadas.join(",")]);
+
+  const definirEmpresas = trpc.admin.definirEmpresasUsuario.useMutation();
+
+  const editar = trpc.admin.editarUsuario.useMutation({
+    onSuccess: async () => {
+      await definirEmpresas.mutateAsync({ userId: usuario.id, slugs: empresasSelecionadas });
+      toast.success("Usuário atualizado com sucesso!");
+      utils.admin.listarUsuarios.invalidate();
+      onSuccess();
+      onClose();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const redefinirSenha = trpc.admin.editarUsuario.useMutation({
+    onSuccess: () => {
+      toast.success("Senha redefinida com sucesso!");
+      setNovaSenha("");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const toggleEmpresa = (slug: string) => {
+    setEmpresasSelecionadas(prev =>
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    );
+  };
+
+  const gerarSenha = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
+    const nova = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    setNovaSenha(nova);
+    setShowSenha(true);
+  };
+
+  const copiarSenha = () => {
+    navigator.clipboard.writeText(novaSenha);
+    setSenhaCopiada(true);
+    setTimeout(() => setSenhaCopiada(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Pencil className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Editar Usuário</h2>
+              <p className="text-xs text-slate-500 truncate max-w-[200px]">{usuario.email}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Abas */}
+        <div className="flex border-b border-slate-100">
+          {(["dados", "senha"] as const).map((aba) => (
+            <button
+              key={aba}
+              onClick={() => setAbaAtiva(aba)}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                abaAtiva === aba
+                  ? "text-blue-600 border-b-2 border-blue-500"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {aba === "dados" ? (
+                <span className="flex items-center justify-center gap-1.5"><Save className="w-3.5 h-3.5" /> Dados e Acesso</span>
+              ) : (
+                <span className="flex items-center justify-center gap-1.5"><KeyRound className="w-3.5 h-3.5" /> Redefinir Senha</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Aba: Dados e Acesso */}
+        {abaAtiva === "dados" && (
+          <div className="p-6 space-y-4">
+            {/* Nome */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Nome Completo</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+
+            {/* Email (somente leitura) */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <input
+                value={usuario.email}
+                disabled
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-400 bg-slate-50 text-sm cursor-not-allowed"
+              />
+              <p className="text-xs text-slate-400 mt-1">O email não pode ser alterado.</p>
+            </div>
+
+            {/* Perfil */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Nível de Acesso</label>
+              <div className="space-y-2">
+                {(["gerente", "recepcionista", "operador"] as Perfil[]).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPerfil(p)}
+                    className={`w-full flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                      perfil === p ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-colors ${
+                      perfil === p ? "border-blue-500 bg-blue-500" : "border-slate-300"
+                    }`} />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{perfilLabel[p]}</p>
+                      <p className="text-xs text-slate-500">{perfilDesc[p]}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Empresas */}
+            {empresas.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Empresas com Acesso</label>
+                <div className="space-y-2">
+                  {empresas.map((emp) => (
+                    <button
+                      key={emp.slug}
+                      type="button"
+                      onClick={() => toggleEmpresa(emp.slug)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                        empresasSelecionadas.includes(emp.slug)
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                        empresasSelecionadas.includes(emp.slug) ? "border-blue-500 bg-blue-500" : "border-slate-300"
+                      }`}>
+                        {empresasSelecionadas.includes(emp.slug) && <CheckCircle className="w-3 h-3 text-white" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{emp.nome}</p>
+                        <p className="text-xs text-slate-400 font-mono">{emp.slug}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {empresasSelecionadas.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Nenhuma empresa selecionada — o usuário não terá acesso a dados.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Aba: Redefinir Senha */}
+        {abaAtiva === "senha" && (
+          <div className="p-6 space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
+              <p className="font-semibold mb-1">Atenção</p>
+              <p>Ao redefinir a senha, o usuário precisará usar a nova senha no próximo login. Certifique-se de repassar as credenciais com segurança.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Nova Senha</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type={showSenha ? "text" : "password"}
+                    value={novaSenha}
+                    onChange={(e) => setNovaSenha(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSenha(!showSenha)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={gerarSenha}
+                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Gerar
+                </button>
+              </div>
+            </div>
+
+            {/* Botão copiar senha */}
+            {novaSenha && showSenha && (
+              <button
+                type="button"
+                onClick={copiarSenha}
+                className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                {senhaCopiada ? (
+                  <><CheckCircle className="w-4 h-4 text-emerald-500" /> Senha copiada!</>
+                ) : (
+                  <><Shield className="w-4 h-4" /> Copiar senha gerada</>
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={() => redefinirSenha.mutate({ userId: usuario.id, novaSenha })}
+              disabled={!novaSenha || novaSenha.length < 6 || redefinirSenha.isPending}
+              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {redefinirSenha.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Redefinindo...</>
+              ) : (
+                <><KeyRound className="w-4 h-4" /> Redefinir Senha</>  
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Footer: Salvar (apenas na aba dados) */}
+        {abaAtiva === "dados" && (
+          <div className="flex gap-3 p-6 pt-0 sticky bottom-0 bg-white rounded-b-2xl border-t border-slate-100">
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => editar.mutate({ userId: usuario.id, name, perfil })}
+              disabled={!name || editar.isPending}
+              className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {editar.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Salvar Alterações
+            </button>
+          </div>
+        )}
+        {abaAtiva === "senha" && (
+          <div className="p-6 pt-0">
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user, logout } = useAuth();
@@ -300,6 +601,7 @@ export default function AdminPanel() {
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState<any>(null);
 
   const utils = trpc.useUtils();
 
@@ -541,8 +843,8 @@ export default function AdminPanel() {
                           <p className="text-xs text-slate-400">{u.email}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                      <div className="flex items-center gap-2">
+                        <span className={`hidden sm:inline-flex px-2.5 py-1 rounded-full text-xs font-semibold border ${
                           perfilCor[u.perfil as Perfil] || "bg-slate-100 text-slate-600 border-slate-200"
                         }`}>
                           {perfilLabel[u.perfil as Perfil] || u.perfil}
@@ -554,6 +856,15 @@ export default function AdminPanel() {
                         }`}>
                           {u.ativo ? "Ativo" : "Inativo"}
                         </span>
+                        {/* Botão Editar */}
+                        <button
+                          onClick={() => setUsuarioEditando(u)}
+                          className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          title="Editar usuário"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        {/* Botão Ativar/Desativar */}
                         <button
                           onClick={() => toggleUsuario.mutate({ userId: u.id, ativo: !u.ativo })}
                           disabled={toggleUsuario.isPending}
@@ -594,6 +905,19 @@ export default function AdminPanel() {
           empresas={empresas as Array<{ id: number; nome: string; slug: string }>}
           onClose={() => setShowCriarUsuario(false)}
           onSuccess={refetchUsuarios}
+        />
+      )}
+
+      {/* Modal de Editar Usuário */}
+      {usuarioEditando && (
+        <ModalEditarUsuario
+          usuario={usuarioEditando}
+          empresas={empresas as Array<{ id: number; nome: string; slug: string }>}
+          onClose={() => setUsuarioEditando(null)}
+          onSuccess={() => {
+            refetchUsuarios();
+            setUsuarioEditando(null);
+          }}
         />
       )}
 

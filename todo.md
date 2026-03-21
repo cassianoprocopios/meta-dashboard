@@ -246,3 +246,13 @@
 - [x] Ao concluir, recarregar dados do AdminPanel
 - [x] Integrar no AdminPanel como overlay/modal de primeiro acesso
 - [x] Botão "Guia de configuração" no header para reabrir o onboarding enquanto não há empresas
+
+## Edição de Usuários no AdminPanel
+
+- [x] Verificar/adicionar procedure admin.editarUsuario (perfil, empresaVinculada) — já existia
+- [x] Verificar procedure admin.listarEmpresasUsuario para carregar empresas vinculadas atuais
+- [x] Modal de edição de usuário: campos de perfil, empresas vinculadas (checkboxes), nome
+- [x] Botão de redefinir senha no modal de edição (aba separada com geração e cópia de senha)
+- [x] Botão de editar em cada linha da tabela de usuários
+- [x] Invalidação da query após salvar
+- [x] 11 testes passando
