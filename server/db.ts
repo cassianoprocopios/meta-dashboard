@@ -170,6 +170,22 @@ export async function getAllUsersByTenant(tenantId: number) {
   return db.select().from(users).where(eq(users.tenantId, tenantId)).orderBy(asc(users.name));
 }
 
+/** Retorna todos os usuários do tenant com os slugs de empresas vinculadas embutidos */
+export async function getAllUsersByTenantWithEmpresas(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const allUsers = await db.select().from(users).where(eq(users.tenantId, tenantId)).orderBy(asc(users.name));
+  if (allUsers.length === 0) return [];
+  const allVinculos = await db
+    .select()
+    .from(userEmpresas)
+    .where(inArray(userEmpresas.userId, allUsers.map((u) => u.id)));
+  return allUsers.map((u) => ({
+    ...u,
+    empresasSlugs: allVinculos.filter((e) => e.userId === u.id).map((e) => e.empresaSlug),
+  }));
+}
+
 export async function createUserWithPassword(data: {
   tenantId: number;
   name: string;

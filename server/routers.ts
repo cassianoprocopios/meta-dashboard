@@ -12,6 +12,7 @@ import {
   getMetasByMesAndTenant,
   upsertMeta,
   getAllUsersByTenant,
+  getAllUsersByTenantWithEmpresas,
   getEmpresasByTenant,
   createEmpresa,
   deactivateEmpresa,
@@ -502,7 +503,7 @@ export const appRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
       }
       const tenantId = await getTenantIdFromCtx(ctx);
-      return getAllUsersByTenant(tenantId);
+      return getAllUsersByTenantWithEmpresas(tenantId);
     }),
 
     criarUsuario: protectedProcedure

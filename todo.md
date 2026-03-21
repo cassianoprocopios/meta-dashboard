@@ -256,3 +256,13 @@
 - [x] Botão de editar em cada linha da tabela de usuários
 - [x] Invalidação da query após salvar
 - [x] 11 testes passando
+
+## Badges de Empresas e Exclusão de Usuários
+
+- [x] Exibir badges de empresas vinculadas diretamente na linha de cada usuário
+- [x] Carregar empresas vinculadas em lote via getAllUsersByTenantWithEmpresas (sem N+1 queries)
+- [x] Modal de confirmação de exclusão com digitação do nome do usuário para confirmar
+- [x] Procedure admin.excluirUsuario já existia no backend com log de auditoria
+- [x] Botão de excluir (Trash2) em cada linha da lista de usuários
+- [x] Feedback visual após exclusão (toast + invalidação da lista)
+- [x] Aviso visual "Sem empresa vinculada" para usuários sem vínculos

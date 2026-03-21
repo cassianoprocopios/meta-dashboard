@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Users, Plus, Power, LogOut, Loader2,
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
-  AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save
+  AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save, Trash2
 } from "lucide-react";
 import Onboarding from "@/components/Onboarding";
 
@@ -286,6 +286,114 @@ function ModalCriarUsuario({ empresas, onClose, onSuccess }: {
           >
             {criar.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
             Criar Usuário
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal de Confirmar Exclusão ──────────────────────────────────────────────
+function ModalConfirmarExclusao({ usuario, onClose, onSuccess }: {
+  usuario: { id: number; name: string; email: string };
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [confirmacao, setConfirmacao] = useState("");
+  const utils = trpc.useUtils();
+
+  const excluir = trpc.admin.excluirUsuario.useMutation({
+    onSuccess: () => {
+      toast.success(`Usuário "${usuario.name}" excluído com sucesso.`);
+      utils.admin.listarUsuarios.invalidate();
+      onSuccess();
+      onClose();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const nomeConfirmado = confirmacao.trim().toLowerCase() === usuario.name.trim().toLowerCase();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-red-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Excluir Usuário</h2>
+              <p className="text-xs text-slate-500">Esta ação não pode ser desfeita</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Aviso */}
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-red-700 mb-1">Atenção: ação irreversível</p>
+            <p className="text-sm text-red-600">
+              O usuário <strong>{usuario.name}</strong> será permanentemente removido do sistema,
+              incluindo todos os seus registros de acesso e vínculos com empresas.
+            </p>
+          </div>
+
+          {/* Card do usuário */}
+          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-slate-600">
+                {usuario.name?.charAt(0)?.toUpperCase() || "?"}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-800 truncate">{usuario.name}</p>
+              <p className="text-xs text-slate-400 truncate">{usuario.email}</p>
+            </div>
+          </div>
+
+          {/* Campo de confirmação */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Digite <span className="font-bold text-slate-900">{usuario.name}</span> para confirmar
+            </label>
+            <input
+              value={confirmacao}
+              onChange={(e) => setConfirmacao(e.target.value)}
+              placeholder={`Digite o nome do usuário...`}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+              autoFocus
+            />
+            {confirmacao.length > 0 && !nomeConfirmado && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                O nome digitado não corresponde.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-3 p-6 pt-0">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => excluir.mutate({ userId: usuario.id })}
+            disabled={!nomeConfirmado || excluir.isPending}
+            className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            {excluir.isPending ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Excluindo...</>
+            ) : (
+              <><Trash2 className="w-4 h-4" /> Excluir Definitivamente</>
+            )}
           </button>
         </div>
       </div>
@@ -602,6 +710,7 @@ export default function AdminPanel() {
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<any>(null);
+  const [usuarioExcluindo, setUsuarioExcluindo] = useState<any>(null);
 
   const utils = trpc.useUtils();
 
@@ -831,24 +940,51 @@ export default function AdminPanel() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {usuarios.map((u: any) => (
-                    <div key={u.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                    <div key={u.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 hover:bg-slate-50 transition-colors gap-3">
+                      {/* Info do usuário */}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-slate-600">
                             {u.name?.charAt(0)?.toUpperCase() || "?"}
                           </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{u.name}</p>
-                          <p className="text-xs text-slate-400">{u.email}</p>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-slate-800">{u.name}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                              perfilCor[u.perfil as Perfil] || "bg-slate-100 text-slate-600 border-slate-200"
+                            }`}>
+                              {perfilLabel[u.perfil as Perfil] || u.perfil}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                          {/* Badges de empresas vinculadas */}
+                          {u.empresasSlugs && u.empresasSlugs.length > 0 ? (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {(u.empresasSlugs as string[]).map((slug: string) => {
+                                const emp = (empresas as any[]).find((e: any) => e.slug === slug);
+                                return (
+                                  <span
+                                    key={slug}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 text-xs font-medium"
+                                  >
+                                    <Building2 className="w-3 h-3" />
+                                    {emp?.nome || slug}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Sem empresa vinculada
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`hidden sm:inline-flex px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                          perfilCor[u.perfil as Perfil] || "bg-slate-100 text-slate-600 border-slate-200"
-                        }`}>
-                          {perfilLabel[u.perfil as Perfil] || u.perfil}
-                        </span>
+
+                      {/* Ações */}
+                      <div className="flex items-center gap-2 flex-shrink-0 pl-14 sm:pl-0">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                           u.ativo
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -870,12 +1006,20 @@ export default function AdminPanel() {
                           disabled={toggleUsuario.isPending}
                           className={`p-2 rounded-lg transition-colors ${
                             u.ativo
-                              ? "text-slate-400 hover:text-red-500 hover:bg-red-50"
+                              ? "text-slate-400 hover:text-amber-500 hover:bg-amber-50"
                               : "text-slate-400 hover:text-emerald-500 hover:bg-emerald-50"
                           }`}
                           title={u.ativo ? "Desativar" : "Ativar"}
                         >
                           <Power className="w-4 h-4" />
+                        </button>
+                        {/* Botão Excluir */}
+                        <button
+                          onClick={() => setUsuarioExcluindo(u)}
+                          className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Excluir usuário"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -905,6 +1049,15 @@ export default function AdminPanel() {
           empresas={empresas as Array<{ id: number; nome: string; slug: string }>}
           onClose={() => setShowCriarUsuario(false)}
           onSuccess={refetchUsuarios}
+        />
+      )}
+
+      {/* Modal de Confirmar Exclusão */}
+      {usuarioExcluindo && (
+        <ModalConfirmarExclusao
+          usuario={usuarioExcluindo}
+          onClose={() => setUsuarioExcluindo(null)}
+          onSuccess={() => setUsuarioExcluindo(null)}
         />
       )}
 
