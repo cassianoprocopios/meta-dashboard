@@ -47,6 +47,7 @@ import {
   createTenantDev,
   createAdminUserForTenant,
   updateTenantDev,
+  updateEmpresaAtivo,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -678,6 +679,44 @@ export const appRouter = router({
         }
         const tenantId = await getTenantIdFromCtx(ctx);
         return getAccessLogs(input.limit, tenantId);
+      }),
+    toggleEmpresaAtiva: protectedProcedure
+      .input(z.object({ empresaId: z.number(), ativo: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        await updateEmpresaAtivo(input.empresaId, input.ativo ? 1 : 0);
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
+          acao: input.ativo ? "ativar_empresa" : "desativar_empresa",
+          ip: null,
+          userAgent: null,
+          detalhes: `Empresa ID ${input.empresaId} ${input.ativo ? "ativada" : "desativada"}`,
+        });
+        return { success: true };
+      }),
+    toggleUsuarioAtivo: protectedProcedure
+      .input(z.object({ userId: z.number(), ativo: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        await updateUserAtivo(input.userId, input.ativo ? 1 : 0);
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId: ctx.user.tenantId ?? null,
+          acao: input.ativo ? "ativar_usuario" : "bloquear_usuario",
+          ip: null,
+          userAgent: null,
+          detalhes: `Utilizador ID ${input.userId} ${input.ativo ? "ativado" : "bloqueado"}`,
+        });
+        return { success: true };
       }),
   }),
 

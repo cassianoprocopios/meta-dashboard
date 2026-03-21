@@ -343,6 +343,12 @@ export async function deactivateEmpresa(id: number) {
   await db.update(empresas).set({ ativo: 0 }).where(eq(empresas.id, id));
 }
 
+export async function updateEmpresaAtivo(id: number, ativo: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(empresas).set({ ativo }).where(eq(empresas.id, id));
+}
+
 export async function updateEmpresa(
   id: number,
   data: {

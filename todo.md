@@ -209,3 +209,27 @@
 - [x] Coluna `telefone` já aceita NULL no banco (verificado via SHOW COLUMNS)
 - [x] Corrigir função `createUserWithPassword` no db.ts para passar `telefone: null` explicitamente
 - [x] Corrigir função `createAdminUserForTenant` no db.ts para passar `telefone: null` e `empresaVinculada: null`
+
+## Dashboard Administrativo Centralizado
+
+### Painel do Desenvolvedor (Super Admin)
+- [ ] Tela de login dedicada e clara para acesso ao Dev Panel
+- [ ] Listar todos os administradores (tenants) com: nome, email, plano, validade, status
+- [ ] Indicador visual: ativo (verde), expirado (vermelho), próximo do vencimento (amarelo)
+- [ ] Criar novo administrador: nome da empresa, email genérico, senha, plano, validade
+- [ ] Editar administrador: alterar plano, validade, status, observações
+- [ ] Cancelar/reativar contrato com um clique
+- [ ] Renovar validade diretamente no painel
+- [ ] Ver credenciais do admin (email + botão copiar)
+- [ ] Estatísticas: total de admins, ativos, expirados, novos este mês
+
+### Dashboard do Administrador
+- [x] Tela de login limpa com email/senha para o admin
+- [x] Dashboard do admin: visão geral das empresas do seu tenant (/admin-panel)
+- [x] Gestão de empresas: criar, ativar/desativar empresas do tenant
+- [x] Gestão de usuários: criar usuários (gerente, recepcionista) vinculados às suas empresas
+- [x] Cada usuário criado pelo admin fica isolado no tenant do admin
+- [x] Admin não vê dados de outros tenants
+- [x] Bloqueio automático quando contrato expirar (tela de aviso clara)
+- [x] Procedures backend: toggleEmpresaAtiva, toggleUsuarioAtivo adicionadas ao router admin
+- [x] Link "Painel Admin" no header do Home.tsx para admin do tenant
