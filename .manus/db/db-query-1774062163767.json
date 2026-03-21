@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT ue.*, e.nome, e.slug\nFROM userEmpresas ue\nJOIN empresas e ON e.slug = ue.empresaSlug\nWHERE ue.userId = 510049;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT ue.*, e.nome, e.slug\nFROM userEmpresas ue\nJOIN empresas e ON e.slug = ue.empresaSlug\nWHERE ue.userId = 510049;\n",
+  "rows": [
+    {
+      "id": "90009",
+      "userId": "510049",
+      "empresaSlug": "MORUMBI",
+      "createdAt": "2026-03-21 01:07:23",
+      "tenantId": "1",
+      "nome": "Morumbi",
+      "slug": "MORUMBI"
+    },
+    {
+      "id": "90010",
+      "userId": "510049",
+      "empresaSlug": "SERAPHINE",
+      "createdAt": "2026-03-21 01:07:23",
+      "tenantId": "1",
+      "nome": "Seraphine",
+      "slug": "SERAPHINE"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tempresaSlug\tcreatedAt\ttenantId\tnome\tslug\n90009\t510049\tMORUMBI\t2026-03-21 01:07:23\t1\tMorumbi\tMORUMBI\n90010\t510049\tSERAPHINE\t2026-03-21 01:07:23\t1\tSeraphine\tSERAPHINE\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

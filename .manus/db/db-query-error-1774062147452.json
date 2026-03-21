@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT u.id, u.name, u.email, u.perfil, u.role, u.ativo, u.empresa_vinculada, u.tenant_id\nFROM users u\nWHERE u.email = 'camila@barbiero.com';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT u.id, u.name, u.email, u.perfil, u.role, u.ativo, u.empresa_vinculada, u.tenant_id\nFROM users u\nWHERE u.email = 'camila@barbiero.com';\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'u.empresa_vinculada' in 'field list'"
+  ]
+}

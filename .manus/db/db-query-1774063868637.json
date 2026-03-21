@@ -1,0 +1,19 @@
+{
+  "query": "\nSELECT * FROM empresas WHERE tenantId = 90002;\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 90002;\nSELECT * FROM tenants WHERE id = 90002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT * FROM empresas WHERE tenantId = 90002;\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 90002;\nSELECT * FROM tenants WHERE id = 90002;\n",
+  "rows": [
+    {
+      "total_faturamentos": "0"
+    },
+    {
+      "total_faturamentos": "id\tnome\tslug\tadminEmail\tplano\tativo\tcreatedAt\tupdatedAt\tvalidadeAte\tobservacoes"
+    },
+    {
+      "total_faturamentos": "90002\tBarbiero Barbearia\tbarbiero-barbearia\tmila.nascimento76@gmail.com\ttrial\t1\t2026-03-20 14:43:16\t2026-03-20 14:43:16\tNULL\tNULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_faturamentos\n0\nid\tnome\tslug\tadminEmail\tplano\tativo\tcreatedAt\tupdatedAt\tvalidadeAte\tobservacoes\n90002\tBarbiero Barbearia\tbarbiero-barbearia\tmila.nascimento76@gmail.com\ttrial\t1\t2026-03-20 14:43:16\t2026-03-20 14:43:16\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

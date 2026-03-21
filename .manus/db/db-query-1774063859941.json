@@ -1,0 +1,20 @@
+{
+  "query": "\nSELECT id, name, email, perfil, role, ativo, tenantId, createdAt\nFROM users\nWHERE email = 'mila.nascimento76@gmail.com';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, name, email, perfil, role, ativo, tenantId, createdAt\nFROM users\nWHERE email = 'mila.nascimento76@gmail.com';\n",
+  "rows": [
+    {
+      "id": "360001",
+      "name": "Camila Nascimento",
+      "email": "mila.nascimento76@gmail.com",
+      "perfil": "gerente",
+      "role": "admin",
+      "ativo": "1",
+      "tenantId": "90002",
+      "createdAt": "2026-03-20 14:43:16"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tperfil\trole\tativo\ttenantId\tcreatedAt\n360001\tCamila Nascimento\tmila.nascimento76@gmail.com\tgerente\tadmin\t1\t90002\t2026-03-20 14:43:16\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Usuários com empresaVinculada preenchido E vínculos em userEmpresas (conflito)\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId,\n       GROUP_CONCAT(ue.empresaSlug ORDER BY ue.empresaSlug SEPARATOR ', ') as empresas_vinculadas\nFROM users u\nINNER JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL\nGROUP BY u.id, u.name, u.email, u.empresaVinculada, u.tenantId;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Usuários com empresaVinculada preenchido E vínculos em userEmpresas (conflito)\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId,\n       GROUP_CONCAT(ue.empresaSlug ORDER BY ue.empresaSlug SEPARATOR ', ') as empresas_vinculadas\nFROM users u\nINNER JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL\nGROUP BY u.id, u.name, u.email, u.empresaVinculada, u.tenantId;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 65
+}

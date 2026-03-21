@@ -1,0 +1,23 @@
+{
+  "query": "\nSELECT id, name, email, perfil, role, ativo, empresaVinculada, tenantId\nFROM users\nWHERE email = 'camila@barbiero.com';\n\nSELECT * FROM empresas WHERE nome LIKE '%eraphine%' OR slug LIKE '%eraphine%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, name, email, perfil, role, ativo, empresaVinculada, tenantId\nFROM users\nWHERE email = 'camila@barbiero.com';\n\nSELECT * FROM empresas WHERE nome LIKE '%eraphine%' OR slug LIKE '%eraphine%';\n",
+  "rows": [
+    {
+      "id": "510049",
+      "name": "Camila ",
+      "email": "camila@barbiero.com",
+      "perfil": "gerente",
+      "role": "user",
+      "ativo": "1",
+      "empresaVinculada": "MORUMBI",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [
+    "id\tslug\tnome\tcor\ttipoCategorias\tativo\tcreatedAt\tcat1Nome\tcat2Nome\tcat3Nome\tcat4Nome\tcat5Nome\ttenantId",
+    "3\tSERAPHINE\tSeraphine\t#a855f7\tseraphine\t1\t2026-03-19 23:09:23\tCabelo\tProdutos\tUnha\tOutros\t.\t1"
+  ],
+  "stdout": "id\tname\temail\tperfil\trole\tativo\tempresaVinculada\ttenantId\n510049\tCamila \tcamila@barbiero.com\tgerente\tuser\t1\tMORUMBI\t1\nid\tslug\tnome\tcor\ttipoCategorias\tativo\tcreatedAt\tcat1Nome\tcat2Nome\tcat3Nome\tcat4Nome\tcat5Nome\ttenantId\n3\tSERAPHINE\tSeraphine\t#a855f7\tseraphine\t1\t2026-03-19 23:09:23\tCabelo\tProdutos\tUnha\tOutros\t.\t1\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

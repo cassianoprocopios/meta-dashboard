@@ -1,0 +1,25 @@
+{
+  "query": "\nSHOW TABLES LIKE '%user%';\nSHOW TABLES LIKE '%empresa%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSHOW TABLES LIKE '%user%';\nSHOW TABLES LIKE '%empresa%';\n",
+  "rows": [
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)": "userEmpresas"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)": "users"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)": "Tables_in_MANH2fxvkecBuwjELBL3u8 (%empresa%)"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)": "empresas"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)": "userEmpresas"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_MANH2fxvkecBuwjELBL3u8 (%user%)\nuserEmpresas\nusers\nTables_in_MANH2fxvkecBuwjELBL3u8 (%empresa%)\nempresas\nuserEmpresas\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

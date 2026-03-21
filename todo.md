@@ -284,3 +284,16 @@
 - [x] Bug: empresa criada pelo usuário "dom pablo" não aparecia no AdminPanel — corrigido: `admin.listarTodasEmpresas` retorna ativas e inativas
 - [x] Comparativo do mês anterior no dashboard (mesmos dias já apurados) — card geral + badge por empresa
 - [x] Análise de IA — nova aba "Análise IA" com procedure `ia.analisarDesempenho` + componente AnaliseIA.tsx
+
+## Correções de Dados (Mar 2026)
+
+- [x] Corrigir vínculo da camila@barbiero.com com a unidade Seraphine — empresaVinculada corrigida para NULL, userEmpresas já tinha MORUMBI+SERAPHINE
+- [x] Excluir todos os registros de mila.nascimento76@gmail.com — usuário, tenant 90002, 3 logs de acesso removidos
+
+## Correção empresaVinculada (Mar 2026)
+
+- [x] Corrigir procedure criarUsuario: sempre salva empresaVinculada=NULL, usa empresasSlugs para vínculos N:N
+- [x] Corrigir procedure editarUsuario: sempre salva empresaVinculada=NULL, aceita empresasSlugs
+- [x] Corrigir função setUserEmpresas no db.ts: limpa empresaVinculada automaticamente antes de inserir vínculos
+- [x] Auditoria: 0 usuários com conflito encontrados no banco (campo já estava limpo)
+- [x] 11 testes passando, TypeScript sem erros

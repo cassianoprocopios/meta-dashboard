@@ -321,6 +321,9 @@ export async function getUserEmpresaSlugs(userId: number): Promise<string[]> {
 export async function setUserEmpresas(userId: number, tenantId: number, slugs: string[]): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Sempre limpar o campo legado empresaVinculada ao usar a tabela userEmpresas
+  // Isso evita conflito entre o campo legado e os vínculos N:N
+  await db.update(users).set({ empresaVinculada: null, updatedAt: new Date() }).where(eq(users.id, userId));
   await db.delete(userEmpresas).where(eq(userEmpresas.userId, userId));
   if (slugs.length > 0) {
     await db.insert(userEmpresas).values(slugs.map((s) => ({ userId, tenantId, empresaSlug: s })));

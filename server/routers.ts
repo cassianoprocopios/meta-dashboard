@@ -523,7 +523,8 @@ export const appRouter = router({
         email: z.string().email(),
         senha: z.string().min(6),
         perfil: z.enum(["gerente", "operador", "recepcionista"]),
-        empresaVinculada: z.string().nullable().optional(),
+        empresasSlugs: z.array(z.string()).optional(), // N:N via userEmpresas (preferêncial)
+        empresaVinculada: z.string().nullable().optional(), // legado — ignorado se empresasSlugs fornecido
         role: z.enum(["user", "admin"]).default("user"),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -536,15 +537,21 @@ export const appRouter = router({
           throw new TRPCError({ code: "CONFLICT", message: "Email já registado." });
         }
         const passwordHash = await bcrypt.hash(input.senha, 12);
+        // Sempre criar com empresaVinculada=NULL; os vínculos são geridos via userEmpresas
         const newUser = await createUserWithPassword({
           tenantId,
           name: input.name,
           email: input.email,
           passwordHash,
           perfil: input.perfil,
-          empresaVinculada: input.empresaVinculada ?? null,
+          empresaVinculada: null,
           role: input.role,
         });
+        // Se foram fornecidos slugs de empresas, criar os vínculos N:N
+        const slugs = input.empresasSlugs ?? (input.empresaVinculada ? [input.empresaVinculada] : []);
+        if (slugs.length > 0) {
+          await setUserEmpresas(newUser.id, tenantId, slugs);
+        }
         await createAccessLog({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
@@ -553,7 +560,7 @@ export const appRouter = router({
           acao: "criar_usuario",
           ip: null,
           userAgent: null,
-          detalhes: `Criou utilizador: ${input.email}`,
+          detalhes: `Criou utilizador: ${input.email} com empresas: ${slugs.join(", ") || "nenhuma"}`,
         });
         return { success: true, userId: newUser.id };
       }),
@@ -628,7 +635,8 @@ export const appRouter = router({
         name: z.string().min(2).max(128).optional(),
         email: z.string().email().optional(),
         perfil: z.enum(["gerente", "operador", "recepcionista"]).optional(),
-        empresaVinculada: z.string().nullable().optional(),
+        empresasSlugs: z.array(z.string()).optional(), // N:N via userEmpresas (preferencial)
+        empresaVinculada: z.string().nullable().optional(), // legado — sempre sobrescrito para NULL
         role: z.enum(["user", "admin"]).optional(),
         novaSenha: z.string().min(6).optional(),
       }))
@@ -636,10 +644,16 @@ export const appRouter = router({
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
         }
-        const { userId, novaSenha, ...data } = input;
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { userId, novaSenha, empresasSlugs, empresaVinculada: _legado, ...data } = input;
         let passwordHash: string | undefined;
         if (novaSenha) passwordHash = await bcrypt.hash(novaSenha, 12);
-        await updateUserFull(userId, { ...data, passwordHash });
+        // Sempre salvar empresaVinculada=NULL — os vínculos são geridos via userEmpresas
+        await updateUserFull(userId, { ...data, empresaVinculada: null, passwordHash });
+        // Se foram fornecidos slugs, atualizar os vínculos N:N
+        if (empresasSlugs !== undefined) {
+          await setUserEmpresas(userId, tenantId, empresasSlugs);
+        }
         await createAccessLog({
           userId: ctx.user.id,
           userName: ctx.user.name ?? null,
@@ -648,7 +662,7 @@ export const appRouter = router({
           acao: "editar_usuario",
           ip: null,
           userAgent: null,
-          detalhes: `Editou utilizador ID: ${userId}`,
+          detalhes: `Editou utilizador ID: ${userId}${empresasSlugs ? ` | empresas: ${empresasSlugs.join(", ")}` : ""}`,
         });
         return { success: true };
       }),

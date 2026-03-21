@@ -1,0 +1,13 @@
+{
+  "query": "\n-- Usuários com empresaVinculada preenchido (legado) — sem vínculos em userEmpresas\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId\nFROM users u\nLEFT JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL AND ue.id IS NULL;\n\n-- Total geral de usuários com empresaVinculada preenchido\nSELECT COUNT(*) as total_com_legado FROM users WHERE empresaVinculada IS NOT NULL;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Usuários com empresaVinculada preenchido (legado) — sem vínculos em userEmpresas\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId\nFROM users u\nLEFT JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL AND ue.id IS NULL;\n\n-- Total geral de usuários com empresaVinculada preenchido\nSELECT COUNT(*) as total_com_legado FROM users WHERE empresaVinculada IS NOT NULL;\n",
+  "rows": [
+    {
+      "total_com_legado": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_com_legado\n0\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

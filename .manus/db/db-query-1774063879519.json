@@ -1,0 +1,19 @@
+{
+  "query": "\n-- 1. Excluir logs de acesso do usuário\nDELETE FROM accessLogs WHERE userId = 360001;\n\n-- 2. Excluir vínculos de empresas do usuário (se houver)\nDELETE FROM userEmpresas WHERE userId = 360001;\n\n-- 3. Excluir o usuário\nDELETE FROM users WHERE id = 360001 AND email = 'mila.nascimento76@gmail.com';\n\n-- 4. Excluir o tenant (não tem empresas nem faturamentos)\nDELETE FROM tenants WHERE id = 90002 AND adminEmail = 'mila.nascimento76@gmail.com';\n\n-- Confirmar que foi excluído\nSELECT COUNT(*) as restante FROM users WHERE email = 'mila.nascimento76@gmail.com';\nSELECT COUNT(*) as restante_tenant FROM tenants WHERE id = 90002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- 1. Excluir logs de acesso do usuário\nDELETE FROM accessLogs WHERE userId = 360001;\n\n-- 2. Excluir vínculos de empresas do usuário (se houver)\nDELETE FROM userEmpresas WHERE userId = 360001;\n\n-- 3. Excluir o usuário\nDELETE FROM users WHERE id = 360001 AND email = 'mila.nascimento76@gmail.com';\n\n-- 4. Excluir o tenant (não tem empresas nem faturamentos)\nDELETE FROM tenants WHERE id = 90002 AND adminEmail = 'mila.nascimento76@gmail.com';\n\n-- Confirmar que foi excluído\nSELECT COUNT(*) as restante FROM users WHERE email = 'mila.nascimento76@gmail.com';\nSELECT COUNT(*) as restante_tenant FROM tenants WHERE id = 90002;\n",
+  "rows": [
+    {
+      "restante": "0"
+    },
+    {
+      "restante": "restante_tenant"
+    },
+    {
+      "restante": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "restante\n0\nrestante_tenant\n0\n",
+  "stderr": "",
+  "execution_time_ms": 122
+}

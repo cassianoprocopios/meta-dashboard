@@ -1,0 +1,18 @@
+{
+  "query": "\nUPDATE users\nSET empresaVinculada = NULL\nWHERE email = 'camila@barbiero.com' AND id = 510049;\n\nSELECT id, name, email, perfil, empresaVinculada, tenantId\nFROM users\nWHERE email = 'camila@barbiero.com';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE users\nSET empresaVinculada = NULL\nWHERE email = 'camila@barbiero.com' AND id = 510049;\n\nSELECT id, name, email, perfil, empresaVinculada, tenantId\nFROM users\nWHERE email = 'camila@barbiero.com';\n",
+  "rows": [
+    {
+      "id": "510049",
+      "name": "Camila ",
+      "email": "camila@barbiero.com",
+      "perfil": "gerente",
+      "empresaVinculada": "NULL",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tperfil\tempresaVinculada\ttenantId\n510049\tCamila \tcamila@barbiero.com\tgerente\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 70
+}
