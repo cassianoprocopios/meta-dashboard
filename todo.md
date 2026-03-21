@@ -266,3 +266,15 @@
 - [x] Botão de excluir (Trash2) em cada linha da lista de usuários
 - [x] Feedback visual após exclusão (toast + invalidação da lista)
 - [x] Aviso visual "Sem empresa vinculada" para usuários sem vínculos
+
+## Responsividade Mobile e Histórico de Cadastros
+
+- [x] Responsivo: Login.tsx — já estava responsivo (p-4, max-w-md, inputs w-full)
+- [x] Responsivo: Home.tsx — menu hambúrguer em mobile, abas com scroll horizontal, botões compactos
+- [x] Responsivo: AdminPanel.tsx — header compacto, abas com scroll horizontal, listas adaptativas
+- [x] Responsivo: Modais do AdminPanel — já usam Dialog com padding responsivo
+- [x] Aba "Histórico" no AdminPanel com todos os cadastros (empresas, usuários, acessos)
+- [x] Procedure backend: admin.listarHistorico (getHistoricoCompleto no db.ts)
+- [x] Filtro por tipo de evento no histórico (Todos / Empresas / Usuários / Acessos)
+- [x] Lista cronológica com ícones coloridos por tipo de evento
+- [x] 11 testes passando, TypeScript sem erros

@@ -49,6 +49,7 @@ import {
   createAdminUserForTenant,
   updateTenantDev,
   updateEmpresaAtivo,
+  getHistoricoCompleto,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -718,6 +719,16 @@ export const appRouter = router({
           detalhes: `Utilizador ID ${input.userId} ${input.ativo ? "ativado" : "bloqueado"}`,
         });
         return { success: true };
+      }),
+
+    listarHistorico: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(300) }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return getHistoricoCompleto(tenantId, input.limit);
       }),
   }),
 

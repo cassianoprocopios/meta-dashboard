@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
-  CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield,
+  CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -72,6 +72,7 @@ export default function Home() {
   const empresaVinculada = user?.empresaVinculada ?? null;
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Verificar status do tenant (bloqueado/expirado)
   const { data: tenantStatus } = trpc.auth.tenantStatus.useQuery(
@@ -284,22 +285,24 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-base font-bold text-slate-900">Meta Dashboard</h1>
-                <p className="text-xs text-slate-500">
+                <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">Meta Dashboard</h1>
+                <p className="text-xs text-slate-500 leading-tight hidden sm:block">
                   {empresaVinculada
                     ? empresasData.find((e) => e.slug === empresaVinculada)?.nome ?? empresaVinculada
                     : "Todas as Unidades"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {/* Seletor de mês */}
+
+            {/* Ações desktop */}
+            <div className="hidden md:flex items-center gap-2">
               <select
                 value={mes}
                 onChange={(e) => setMes(Number(e.target.value))}
@@ -311,63 +314,30 @@ export default function Home() {
               </select>
               {isSuperAdmin && (
                 <>
-                  <button
-                    onClick={() => setShowSuperAdmin(true)}
-                    className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium"
-                  >
+                  <button onClick={() => setShowSuperAdmin(true)} className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium">
                     <Shield className="w-4 h-4" /> Super Admin
                   </button>
-                  <a
-                    href="/admin"
-                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium"
-                  >
+                  <a href="/admin" className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium">
                     <Users className="w-4 h-4" /> Admin
                   </a>
-                  <a
-                    href="/dev"
-                    className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-50 transition-colors font-medium"
-                  >
+                  <a href="/dev" className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-50 transition-colors font-medium">
                     <Building2 className="w-4 h-4" /> Dev Panel
                   </a>
                 </>
               )}
               {isAdmin && !isSuperAdmin && (
-                <a
-                  href="/admin-panel"
-                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium"
-                >
+                <a href="/admin-panel" className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium">
                   <Shield className="w-4 h-4" /> Painel Admin
                 </a>
               )}
-              {isAdmin && (
-                <button
-                  onClick={() => setActiveTab("usuarios")}
-                  className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
-                >
-                  <Users className="w-4 h-4" /> Usuários
-                </button>
-              )}
-              {(isAdmin || isGerente) && !isRecepcionista && (
-                <button
-                  onClick={() => setActiveTab("empresas")}
-                  className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors"
-                >
-                  <Building2 className="w-4 h-4" /> Empresas
-                </button>
-              )}
               {podeLancarFaturamento && (
-                <Button
-                  onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
-                  className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
-                  size="sm"
-                >
+                <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
               )}
-              {/* Info do usuário e logout */}
               {user && (
-                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
-                  <div className="hidden sm:flex flex-col items-end">
+                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-slate-200">
+                  <div className="flex flex-col items-end">
                     <span className="text-xs font-semibold text-slate-700 leading-none">{user.name ?? user.email}</span>
                     <span className="text-xs text-slate-400 leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
                   </div>
@@ -380,14 +350,78 @@ export default function Home() {
                 </a>
               )}
             </div>
+
+            {/* Ações mobile */}
+            <div className="flex md:hidden items-center gap-2">
+              {podeLancarFaturamento && (
+                <button
+                  onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                  className="p-2 rounded-xl bg-blue-600 text-white"
+                  title="Novo Lançamento"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              )}
+              <LogoutButton />
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                {mobileMenuOpen ? <XIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
+
+          {/* Menu mobile expandido */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-slate-100 py-3 space-y-1">
+              {/* Seletor de mês */}
+              <div className="px-1 pb-2">
+                <label className="text-xs text-slate-500 font-medium mb-1 block">Mês de referência</label>
+                <select
+                  value={mes}
+                  onChange={(e) => { setMes(Number(e.target.value)); setMobileMenuOpen(false); }}
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {MESES.map((m, i) => (
+                    <option key={i} value={i + 1}>{m} {ano}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Info do usuário */}
+              {user && (
+                <div className="px-1 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-sm font-semibold text-slate-800">{user.name ?? user.email}</p>
+                  <p className="text-xs text-slate-400 capitalize">{(user as any).perfil ?? user.role}</p>
+                </div>
+              )}
+              {isSuperAdmin && (
+                <>
+                  <button onClick={() => { setShowSuperAdmin(true); setMobileMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-purple-600 hover:bg-purple-50 transition-colors font-medium">
+                    <Shield className="w-4 h-4" /> Super Admin
+                  </button>
+                  <a href="/admin" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+                    <Users className="w-4 h-4" /> Admin
+                  </a>
+                  <a href="/dev" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium">
+                    <Building2 className="w-4 h-4" /> Dev Panel
+                  </a>
+                </>
+              )}
+              {isAdmin && !isSuperAdmin && (
+                <a href="/admin-panel" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+                  <Shield className="w-4 h-4" /> Painel Admin
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Tabs */}
+      {/* Tabs com scroll horizontal em mobile */}
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 py-2">
+          <div className="flex gap-1 py-2 overflow-x-auto scrollbar-none -mx-1 px-1">
             {tabsVisiveis.map((tab) => {
               const labels: Record<Tab, string> = {
                 dashboard: "Dashboard",
@@ -411,13 +445,14 @@ export default function Home() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  {icons[tab]} {labels[tab]}
+                  {icons[tab]} <span className="hidden sm:inline">{labels[tab]}</span>
+                  <span className="sm:hidden">{labels[tab].split(" ")[0]}</span>
                 </button>
               );
             })}

@@ -726,3 +726,75 @@ export async function updateTenantDev(tenantId: number, data: {
   if (Object.keys(updateSet).length === 0) return;
   await db.update(tenants).set(updateSet).where(eq(tenants.id, tenantId));
 }
+
+/** Retorna o histórico completo do tenant: empresas criadas, usuários criados e logs de acesso */
+export async function getHistoricoCompleto(tenantId: number, limit = 300) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Buscar empresas do tenant (todas, incluindo inativas)
+  const todasEmpresas = await db.select({
+    id: empresas.id,
+    nome: empresas.nome,
+    slug: empresas.slug,
+    createdAt: empresas.createdAt,
+  }).from(empresas).where(eq(empresas.tenantId, tenantId));
+
+  // Buscar usuários do tenant (exceto o próprio admin)
+  const todosUsuarios = await db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    perfil: users.perfil,
+    role: users.role,
+    createdAt: users.createdAt,
+  }).from(users).where(eq(users.tenantId, tenantId));
+
+  // Buscar logs de acesso do tenant
+  const logs = await db.select().from(accessLogs)
+    .where(eq(accessLogs.tenantId, tenantId))
+    .orderBy(desc(accessLogs.createdAt))
+    .limit(limit);
+
+  // Montar lista unificada de eventos
+  const eventos: Array<{
+    tipo: "empresa_criada" | "usuario_criado" | "acesso";
+    titulo: string;
+    descricao: string;
+    data: Date;
+    extra?: string;
+  }> = [];
+
+  todasEmpresas.forEach((e) => {
+    eventos.push({
+      tipo: "empresa_criada",
+      titulo: `Empresa criada: ${e.nome}`,
+      descricao: `Slug: ${e.slug}`,
+      data: new Date(e.createdAt),
+    });
+  });
+
+  todosUsuarios.forEach((u) => {
+    eventos.push({
+      tipo: "usuario_criado",
+      titulo: `Usuário cadastrado: ${u.name ?? u.email}`,
+      descricao: `${u.email} — perfil: ${u.perfil ?? u.role}`,
+      data: new Date(u.createdAt),
+    });
+  });
+
+  logs.forEach((l) => {
+    eventos.push({
+      tipo: "acesso",
+      titulo: l.acao.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      descricao: l.detalhes ?? `${l.userName ?? l.userEmail ?? "Usuário desconhecido"}`,
+      data: new Date(l.createdAt),
+      extra: l.ip ?? undefined,
+    });
+  });
+
+  // Ordenar por data decrescente
+  eventos.sort((a, b) => b.data.getTime() - a.data.getTime());
+
+  return eventos.slice(0, limit);
+}
