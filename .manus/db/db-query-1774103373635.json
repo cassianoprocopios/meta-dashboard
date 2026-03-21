@@ -1,0 +1,15 @@
+{
+  "query": "\n-- Usuários com empresaVinculada preenchido (legado puro — sem vínculos em userEmpresas)\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId,\n       COUNT(ue.id) as total_vinculos_atuais\nFROM users u\nLEFT JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL\nGROUP BY u.id, u.name, u.email, u.empresaVinculada, u.tenantId\nORDER BY u.tenantId, u.name;\n\n-- Resumo geral\nSELECT \n  COUNT(*) as total_usuarios,\n  SUM(CASE WHEN empresaVinculada IS NOT NULL THEN 1 ELSE 0 END) as com_legado,\n  SUM(CASE WHEN empresaVinculada IS NULL THEN 1 ELSE 0 END) as sem_legado\nFROM users;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Usuários com empresaVinculada preenchido (legado puro — sem vínculos em userEmpresas)\nSELECT u.id, u.name, u.email, u.empresaVinculada, u.tenantId,\n       COUNT(ue.id) as total_vinculos_atuais\nFROM users u\nLEFT JOIN userEmpresas ue ON ue.userId = u.id\nWHERE u.empresaVinculada IS NOT NULL\nGROUP BY u.id, u.name, u.email, u.empresaVinculada, u.tenantId\nORDER BY u.tenantId, u.name;\n\n-- Resumo geral\nSELECT \n  COUNT(*) as total_usuarios,\n  SUM(CASE WHEN empresaVinculada IS NOT NULL THEN 1 ELSE 0 END) as com_legado,\n  SUM(CASE WHEN empresaVinculada IS NULL THEN 1 ELSE 0 END) as sem_legado\nFROM users;\n",
+  "rows": [
+    {
+      "total_usuarios": "14",
+      "com_legado": "0",
+      "sem_legado": "14"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_usuarios\tcom_legado\tsem_legado\n14\t0\t14\n",
+  "stderr": "",
+  "execution_time_ms": 333
+}

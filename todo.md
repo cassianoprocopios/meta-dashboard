@@ -297,3 +297,10 @@
 - [x] Corrigir função setUserEmpresas no db.ts: limpa empresaVinculada automaticamente antes de inserir vínculos
 - [x] Auditoria: 0 usuários com conflito encontrados no banco (campo já estava limpo)
 - [x] 11 testes passando, TypeScript sem erros
+
+## Migração Legado empresaVinculada → userEmpresas (Mar 2026)
+
+- [x] Auditoria: 0 usuários legados encontrados (banco já estava limpo)
+- [x] Script migrate-empresa-vinculada.mjs: idempotente, dry-run, log detalhado, acessível via pnpm migrate:empresa
+- [x] Execução confirmada: dry-run e real funcionando corretamente
+- [x] 10 novos testes em usuario-empresas.test.ts (21 testes no total, todos passando)
