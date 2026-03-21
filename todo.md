@@ -308,3 +308,26 @@
 ## Correção de Visibilidade (Mar 2026)
 
 - [x] Corrigir visibilidade da Mascote para cintia.mezanini@gmail.com — empresa criada no tenant 60002, vínculo inserido, constraint UNIQUE(slug) alterada para UNIQUE(slug, tenantId)
+
+## Painel de Vínculos Usuários ↔ Empresas
+
+- [ ] Procedure backend: listarVinculos — retorna todos os usuários com suas empresas vinculadas por tenant
+- [ ] Procedure backend: adicionarVinculo — adiciona vínculo entre usuário e empresa
+- [ ] Procedure backend: removerVinculo — remove vínculo entre usuário e empresa
+- [ ] Componente VinculosPanel: tabela matricial (usuários × empresas) com checkboxes
+- [ ] Filtros: busca por nome/email, filtro por empresa, filtro por perfil
+- [ ] Toggle de vínculo direto na célula da tabela (otimista)
+- [ ] Indicador visual de usuários sem nenhum vínculo
+- [ ] Aba "Vínculos" no AdminPanel
+
+## Painel de Vínculos Usuário-Empresa
+
+- [x] Procedures backend: admin.listarVinculos (matriz completa usuários × empresas) e admin.toggleVinculo (toggle atômico com log de auditoria)
+- [x] Componente VinculosPanel.tsx com tabela matricial responsiva e switches interativos
+- [x] Atualização otimista: toggle imediato sem esperar resposta do servidor, rollback em caso de erro
+- [x] Filtros: busca por nome/email, filtro por perfil, filtro por empresa
+- [x] Cards de estatísticas: total usuários, empresas, vínculos ativos, usuários sem vínculo (alerta âmbar)
+- [x] Tooltips explicativos em cada switch (conceder/remover acesso)
+- [x] Legenda visual e contador de resultados filtrados
+- [x] Integrado como aba "Vínculos" no AdminPanel (entre Usuários e Histórico)
+- [x] 21 testes passando, TypeScript sem erros

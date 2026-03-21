@@ -754,6 +754,69 @@ export const appRouter = router({
         const tenantId = await getTenantIdFromCtx(ctx);
         return getHistoricoCompleto(tenantId, input.limit);
       }),
+
+    // ─── PAINEL DE VÍNCULOS ────────────────────────────────────────────────
+    listarVinculos: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+      }
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const [usuariosComEmpresas, todasEmpresas] = await Promise.all([
+        getAllUsersByTenantWithEmpresas(tenantId),
+        getAllEmpresasByTenantAdmin(tenantId),
+      ]);
+      return {
+        usuarios: usuariosComEmpresas.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          perfil: u.perfil,
+          ativo: u.ativo,
+          empresasSlugs: u.empresasSlugs,
+        })),
+        empresas: todasEmpresas.map((e) => ({
+          id: e.id,
+          slug: e.slug,
+          nome: e.nome,
+          cor: e.cor,
+          ativo: e.ativo,
+        })),
+      };
+    }),
+
+    toggleVinculo: protectedProcedure
+      .input(z.object({
+        userId: z.number().int().positive(),
+        empresaSlug: z.string().min(1),
+        vincular: z.boolean(), // true = adicionar, false = remover
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const slugsAtuais = await getUserEmpresaSlugs(input.userId);
+        let novosSlug: string[];
+        if (input.vincular) {
+          novosSlug = slugsAtuais.includes(input.empresaSlug)
+            ? slugsAtuais
+            : [...slugsAtuais, input.empresaSlug];
+        } else {
+          novosSlug = slugsAtuais.filter((s) => s !== input.empresaSlug);
+        }
+        await setUserEmpresas(input.userId, tenantId, novosSlug);
+        await createAccessLog({
+          userId: ctx.user.id,
+          userName: ctx.user.name ?? null,
+          userEmail: ctx.user.email ?? null,
+          tenantId,
+          acao: input.vincular ? "adicionar_vinculo" : "remover_vinculo",
+          ip: null,
+          userAgent: null,
+          detalhes: `${input.vincular ? "Adicionou" : "Removeu"} vínculo do usuário ID ${input.userId} com empresa ${input.empresaSlug}`,
+        });
+        return { success: true, slugsAtualizados: novosSlug };
+      }),
   }),
 
   // ─── CATEGORIAS DINÂMICAS ──────────────────────────────────────────────────

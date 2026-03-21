@@ -6,9 +6,10 @@ import {
   Building2, Users, Plus, Power, LogOut, Loader2,
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
   AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save, Trash2,
-  Clock, History, Filter
+  Clock, History, Filter, Link2
 } from "lucide-react";
 import Onboarding from "@/components/Onboarding";
+import VinculosPanel from "@/components/VinculosPanel";
 
 type Perfil = "gerente" | "recepcionista" | "operador";
 
@@ -706,7 +707,7 @@ function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user, logout } = useAuth();
-  const [aba, setAba] = useState<"empresas" | "usuarios" | "historico">("empresas");
+  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico">("empresas");
   const [filtroHistorico, setFiltroHistorico] = useState<"todos" | "empresa_criada" | "usuario_criado" | "acesso">("todos");
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
@@ -842,6 +843,17 @@ export default function AdminPanel() {
                 <Users className="w-4 h-4" />
                 Usuários
                 <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">{totalUsuarios}</span>
+              </button>
+              <button
+                onClick={() => setAba("vinculos")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                  aba === "vinculos"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <Link2 className="w-4 h-4" />
+                Vínculos
               </button>
               <button
                 onClick={() => setAba("historico")}
@@ -1049,6 +1061,13 @@ export default function AdminPanel() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Aba Vínculos */}
+          {aba === "vinculos" && (
+            <div className="p-4 sm:p-6">
+              <VinculosPanel />
             </div>
           )}
 
