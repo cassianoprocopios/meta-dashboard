@@ -1,0 +1,31 @@
+{
+  "query": "\nSHOW CREATE TABLE empresas;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSHOW CREATE TABLE empresas;\n",
+  "rows": [
+    {
+      "Table": "empresas",
+      "Create Table": "CREATE TABLE `empresas` ("
+    }
+  ],
+  "messages": [
+    "  `id` int NOT NULL AUTO_INCREMENT,",
+    "  `slug` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `nome` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `cor` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#3b82f6',",
+    "  `tipoCategorias` enum('padrao','seraphine') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'padrao',",
+    "  `ativo` int NOT NULL DEFAULT '1',",
+    "  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+    "  `cat1Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Avulso',",
+    "  `cat2Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Produtos',",
+    "  `cat3Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Serv. Extra',",
+    "  `cat4Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Lavatório',",
+    "  `cat5Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Recorrência',",
+    "  `tenantId` int NOT NULL DEFAULT '1',",
+    "  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,",
+    "  UNIQUE KEY `slug` (`slug`)",
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=120001"
+  ],
+  "stdout": "Table\tCreate Table\nempresas\tCREATE TABLE `empresas` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `slug` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `nome` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `cor` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#3b82f6',\n  `tipoCategorias` enum('padrao','seraphine') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'padrao',\n  `ativo` int NOT NULL DEFAULT '1',\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `cat1Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Avulso',\n  `cat2Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Produtos',\n  `cat3Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Serv. Extra',\n  `cat4Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Lavatório',\n  `cat5Nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Recorrência',\n  `tenantId` int NOT NULL DEFAULT '1',\n  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,\n  UNIQUE KEY `slug` (`slug`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=120001\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

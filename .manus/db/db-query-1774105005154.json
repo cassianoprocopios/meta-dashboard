@@ -1,0 +1,20 @@
+{
+  "query": "\n-- 1. Inserir a empresa Mascote no tenant 60002 da Cintia\nINSERT INTO empresas (nome, slug, cor, tipoCategorias, ativo, tenantId)\nVALUES ('Mascote', 'MASCOTE', '#a855f7', 'padrao', 1, 60002);\n\n-- 2. Vincular a Cintia (id=330001) à empresa Mascote no tenant 60002\nINSERT INTO userEmpresas (userId, empresaSlug, tenantId)\nVALUES (330001, 'MASCOTE', 60002);\n\n-- 3. Confirmar empresas do tenant 60002\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId FROM empresas e WHERE e.tenantId = 60002;\n\n-- 4. Confirmar vínculos da Cintia (id=330001)\nSELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId = 330001;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- 1. Inserir a empresa Mascote no tenant 60002 da Cintia\nINSERT INTO empresas (nome, slug, cor, tipoCategorias, ativo, tenantId)\nVALUES ('Mascote', 'MASCOTE', '#a855f7', 'padrao', 1, 60002);\n\n-- 2. Vincular a Cintia (id=330001) à empresa Mascote no tenant 60002\nINSERT INTO userEmpresas (userId, empresaSlug, tenantId)\nVALUES (330001, 'MASCOTE', 60002);\n\n-- 3. Confirmar empresas do tenant 60002\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId FROM empresas e WHERE e.tenantId = 60002;\n\n-- 4. Confirmar vínculos da Cintia (id=330001)\nSELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId = 330001;\n",
+  "rows": [
+    {
+      "id": "90002",
+      "nome": "Mascote",
+      "slug": "MASCOTE",
+      "ativo": "1",
+      "tenantId": "60002"
+    }
+  ],
+  "messages": [
+    "userId\tempresaSlug\ttenantId",
+    "330001\tMASCOTE\t60002"
+  ],
+  "stdout": "id\tnome\tslug\tativo\ttenantId\n90002\tMascote\tMASCOTE\t1\t60002\nuserId\tempresaSlug\ttenantId\n330001\tMASCOTE\t60002\n",
+  "stderr": "",
+  "execution_time_ms": 81
+}

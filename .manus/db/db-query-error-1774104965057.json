@@ -1,0 +1,8 @@
+{
+  "query": "\n-- 1. Inserir a empresa Mascote no tenant 60002 da Cintia\nINSERT INTO empresas (nome, slug, cor, ativo, tenantId)\nVALUES ('Mascote', 'MASCOTE', '#a855f7', 1, 60002);\n\n-- 2. Vincular a Cintia (id=330001) à empresa Mascote no tenant 60002\nINSERT INTO userEmpresas (userId, empresaSlug, tenantId)\nVALUES (330001, 'MASCOTE', 60002);\n\n-- 3. Confirmar o resultado\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId FROM empresas e WHERE e.tenantId = 60002;\nSELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId = 330001;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- 1. Inserir a empresa Mascote no tenant 60002 da Cintia\nINSERT INTO empresas (nome, slug, cor, ativo, tenantId)\nVALUES ('Mascote', 'MASCOTE', '#a855f7', 1, 60002);\n\n-- 2. Vincular a Cintia (id=330001) à empresa Mascote no tenant 60002\nINSERT INTO userEmpresas (userId, empresaSlug, tenantId)\nVALUES (330001, 'MASCOTE', 60002);\n\n-- 3. Confirmar o resultado\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId FROM empresas e WHERE e.tenantId = 60002;\nSELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId = 330001;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1062 (23000) at line 3: Duplicate entry '?' for key 'empresas.slug'"
+  ]
+}

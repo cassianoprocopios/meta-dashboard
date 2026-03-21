@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 // ─── TENANTS (Empresas Clientes do SaaS) ─────────────────────────────────────
 // Cada tenant é uma empresa cliente que comprou acesso ao sistema
@@ -74,6 +74,7 @@ export type AccessLog = typeof accessLogs.$inferSelect;
 export type InsertAccessLog = typeof accessLogs.$inferInsert;
 
 // ─── EMPRESAS (Unidades de cada Tenant) ──────────────────────────────────────
+// NOTA: slug é único por tenant (slug + tenantId), não globalmente.
 export const empresas = mysqlTable("empresas", {
   id: int("id").autoincrement().primaryKey(),
   tenantId: int("tenantId").notNull(),

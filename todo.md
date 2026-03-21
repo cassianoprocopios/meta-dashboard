@@ -304,3 +304,7 @@
 - [x] Script migrate-empresa-vinculada.mjs: idempotente, dry-run, log detalhado, acessível via pnpm migrate:empresa
 - [x] Execução confirmada: dry-run e real funcionando corretamente
 - [x] 10 novos testes em usuario-empresas.test.ts (21 testes no total, todos passando)
+
+## Correção de Visibilidade (Mar 2026)
+
+- [x] Corrigir visibilidade da Mascote para cintia.mezanini@gmail.com — empresa criada no tenant 60002, vínculo inserido, constraint UNIQUE(slug) alterada para UNIQUE(slug, tenantId)

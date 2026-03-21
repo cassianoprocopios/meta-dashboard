@@ -1,0 +1,83 @@
+{
+  "query": "\n-- Logs de acesso da Cintia para saber qual userId está sendo usado no login\nSELECT al.userId, al.userEmail, al.tenantId, al.acao, al.createdAt\nFROM accessLogs al\nWHERE al.userEmail = 'cintia.mezanini@gmail.com'\nORDER BY al.createdAt DESC\nLIMIT 10;\n\n-- Verificar vínculos de userEmpresas para AMBOS os IDs da Cintia\nSELECT ue.userId, ue.empresaSlug, ue.tenantId\nFROM userEmpresas ue\nWHERE ue.userId IN (330001, 510010);\n\n-- Verificar empresas do tenant 60002 (tenant da Cintia admin)\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId\nFROM empresas e\nWHERE e.tenantId = 60002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Logs de acesso da Cintia para saber qual userId está sendo usado no login\nSELECT al.userId, al.userEmail, al.tenantId, al.acao, al.createdAt\nFROM accessLogs al\nWHERE al.userEmail = 'cintia.mezanini@gmail.com'\nORDER BY al.createdAt DESC\nLIMIT 10;\n\n-- Verificar vínculos de userEmpresas para AMBOS os IDs da Cintia\nSELECT ue.userId, ue.empresaSlug, ue.tenantId\nFROM userEmpresas ue\nWHERE ue.userId IN (330001, 510010);\n\n-- Verificar empresas do tenant 60002 (tenant da Cintia admin)\nSELECT e.id, e.nome, e.slug, e.ativo, e.tenantId\nFROM empresas e\nWHERE e.tenantId = 60002;\n",
+  "rows": [
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:35:24"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "logout",
+      "createdAt": "2026-03-21 14:35:18"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:22:18"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "logout",
+      "createdAt": "2026-03-21 14:21:52"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:21:39"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:06:24"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:02:35"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:02:30"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:02:27"
+    },
+    {
+      "userId": "330001",
+      "userEmail": "cintia.mezanini@gmail.com",
+      "tenantId": "60002",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:02:15"
+    }
+  ],
+  "messages": [
+    "userId\tempresaSlug\ttenantId",
+    "510010\tMASCOTE\t1"
+  ],
+  "stdout": "userId\tuserEmail\ttenantId\tacao\tcreatedAt\n330001\tcintia.mezanini@gmail.com\t60002\tlogin\t2026-03-21 14:35:24\n330001\tcintia.mezanini@gmail.com\t60002\tlogout\t2026-03-21 14:35:18\n330001\tcintia.mezanini@gmail.com\t60002\tlogin\t2026-03-21 14:22:18\n330001\tcintia.mezanini@gmail.com\t60002\tlogout\t2026-03-21 14:21:52\n330001\tcintia.mezanini@gmail.com\t60002\tlogin\t2026-03-21 14:21:39\n330001\tcintia.mezanini@gmail.com\t60002\tlogin_falhou\t2026-03-21 14:06:24\n330001\tcintia.mezanini@gmail.com\t60002\tlogin_falhou\t2026-03-21 14:02:35\n330001\tcintia.mezanini@gmail.com\t60002\tlogin_falhou\t2026-03-21 14:02:30\n330001\tcintia.mezanini@gmail.com\t60002\tlogin_falhou\t2026-03-21 14:02:27\n330001\tcintia.mezanini@gmail.com\t60002\tlogin_falhou\t2026-03-21 14:02:15\nuserId\tempresaSlug\ttenantId\n510010\tMASCOTE\t1\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}
