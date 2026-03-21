@@ -716,7 +716,7 @@ export default function AdminPanel() {
 
   const utils = trpc.useUtils();
 
-  const { data: empresas = [], isLoading: loadingEmpresas, refetch: refetchEmpresas } = trpc.empresa.listar.useQuery();
+  const { data: empresas = [], isLoading: loadingEmpresas, refetch: refetchEmpresas } = trpc.admin.listarTodasEmpresas.useQuery();
   const { data: usuarios = [], refetch: refetchUsuarios } = trpc.admin.listarUsuarios.useQuery();
   const { data: historico = [], isLoading: loadingHistorico } = trpc.admin.listarHistorico.useQuery(
     { limit: 300 },

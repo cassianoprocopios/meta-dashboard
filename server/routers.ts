@@ -50,6 +50,7 @@ import {
   updateTenantDev,
   updateEmpresaAtivo,
   getHistoricoCompleto,
+  getAllEmpresasByTenantAdmin,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -499,6 +500,15 @@ export const appRouter = router({
 
   // ─── ADMIN DE UTILIZADORES ─────────────────────────────────────────────────
   admin: router({
+    /** Lista todas as empresas do tenant (ativas E inativas) — exclusivo para o AdminPanel */
+    listarTodasEmpresas: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
+      }
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return getAllEmpresasByTenantAdmin(tenantId);
+    }),
+
     listarUsuarios: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores." });
@@ -1100,6 +1110,96 @@ export const appRouter = router({
           detalhes: `Tenant ID ${input.tenantId} ${input.ativo === 1 ? "ativado" : "bloqueado"}`,
         });
         return { success: true };
+      }),
+  }),
+
+  // ─── ANÁLISE DE IA ─────────────────────────────────────────────────────────────────────────────────
+  ia: router({
+    /** Gera análise estratégica dos dados de faturamento usando LLM */
+    analisarDesempenho: protectedProcedure
+      .input(z.object({
+        mes: z.number().int().min(1).max(12),
+        ano: z.number().int().min(2020).max(2100),
+        mesAnterior: z.number().int().min(1).max(12),
+        anoAnterior: z.number().int().min(2020).max(2100),
+        empresas: z.array(z.object({
+          nome: z.string(),
+          slug: z.string(),
+          total: z.number(),
+          totalAnterior: z.number(),
+          metaMensal: z.number(),
+          mediaDiaria: z.number(),
+          diasLancados: z.number(),
+          diasUteis: z.number(),
+          progressoMensal: z.number(),
+          catTotals: z.array(z.number()),
+          catLabels: z.array(z.string()),
+        })),
+        totalGeral: z.number(),
+        totalGeralAnterior: z.number(),
+        metaTotalGeral: z.number(),
+        nomeMes: z.string(),
+        nomeMesAnterior: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { invokeLLM } = await import("./_core/llm");
+
+        const empresasTexto = input.empresas.map((e) => {
+          const variacaoStr = e.totalAnterior > 0
+            ? `${((e.total - e.totalAnterior) / e.totalAnterior * 100).toFixed(1)}% vs ${input.nomeMesAnterior}`
+            : "sem dado anterior";
+          const catStr = e.catLabels.map((l, i) => `${l}: R$ ${e.catTotals[i].toFixed(2)}`).join(", ");
+          return `
+**${e.nome}**
+- Faturado: R$ ${e.total.toFixed(2)} (${variacaoStr})
+- Meta mensal: R$ ${e.metaMensal.toFixed(2)} | Progresso: ${e.progressoMensal.toFixed(1)}%
+- Média diária: R$ ${e.mediaDiaria.toFixed(2)} | Dias lançados: ${e.diasLancados}/${e.diasUteis}
+- Por categoria: ${catStr}`;
+        }).join("\n");
+
+        const variacaoGeral = input.totalGeralAnterior > 0
+          ? `${((input.totalGeral - input.totalGeralAnterior) / input.totalGeralAnterior * 100).toFixed(1)}%`
+          : "sem dado anterior";
+
+        const prompt = `Você é um consultor de negócios especialista em gestão de salões de beleza e estética. Analise os dados de desempenho abaixo e fornecer uma análise estratégica completa em português brasileiro.
+
+## Dados de ${input.nomeMes} ${input.ano}
+
+**Consolidado Geral:**
+- Total faturado: R$ ${input.totalGeral.toFixed(2)}
+- Meta total: R$ ${input.metaTotalGeral.toFixed(2)}
+- Progresso geral: ${input.metaTotalGeral > 0 ? ((input.totalGeral / input.metaTotalGeral) * 100).toFixed(1) : 0}%
+- Variação vs ${input.nomeMesAnterior}: ${variacaoGeral}
+
+**Por Unidade:**
+${empresasTexto}
+
+## Sua Análise Deve Incluir:
+
+1. **Diagnóstico Geral** (2-3 parágrafos): avalie o desempenho consolidado, destaque pontos fortes e áreas críticas.
+
+2. **Análise por Unidade** (para cada empresa): identifique o que está funcionando bem e o que precisa de atenção.
+
+3. **Estratégias de Melhora** (5-7 ações concretas e priorizadas): sugira ações práticas e mensuráveis para aumentar o faturamento, com foco em:
+   - Aumento de ticket médio
+   - Fidelização de clientes
+   - Otimização de categorias com menor desempenho
+   - Metas diárias e quinzenais
+
+4. **Previsão e Meta para o Próximo Mês**: com base na tendência atual, sugira uma meta realista e ambiciosa.
+
+Seja direto, prático e use números concretos nas suas recomendações.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "Você é um consultor especialista em gestão de salões de beleza e estética. Suas análises são objetivas, baseadas em dados e focadas em ações práticas." },
+            { role: "user", content: prompt },
+          ],
+        });
+
+        const rawContent = response?.choices?.[0]?.message?.content;
+        const content = typeof rawContent === "string" ? rawContent : (rawContent ? JSON.stringify(rawContent) : "Não foi possível gerar a análise. Tente novamente.");
+        return { analise: content };
       }),
   }),
 });

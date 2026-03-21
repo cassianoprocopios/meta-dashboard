@@ -278,3 +278,9 @@
 - [x] Filtro por tipo de evento no histórico (Todos / Empresas / Usuários / Acessos)
 - [x] Lista cronológica com ícones coloridos por tipo de evento
 - [x] 11 testes passando, TypeScript sem erros
+
+## Bug Fix e Novas Funcionalidades (Mar 2026)
+
+- [x] Bug: empresa criada pelo usuário "dom pablo" não aparecia no AdminPanel — corrigido: `admin.listarTodasEmpresas` retorna ativas e inativas
+- [x] Comparativo do mês anterior no dashboard (mesmos dias já apurados) — card geral + badge por empresa
+- [x] Análise de IA — nova aba "Análise IA" com procedure `ia.analisarDesempenho` + componente AnaliseIA.tsx

@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
-  CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon,
+  CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -18,6 +18,7 @@ import MetaConfig from "@/components/MetaConfig";
 import AdminUsers from "@/pages/AdminUsers";
 import Empresas from "@/pages/Empresas";
 import Auditoria from "@/pages/Auditoria";
+import AnaliseIA from "@/pages/AnaliseIA";
 import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
@@ -38,7 +39,7 @@ function pct(v: number, total: number) {
   return Math.round((v / total) * 100);
 }
 
-type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "usuarios" | "empresas" | "auditoria";
+type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "usuarios" | "empresas" | "auditoria" | "ia";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logoutApp.useMutation({
@@ -99,6 +100,7 @@ export default function Home() {
         "lancamentos",
         ...(isGerente ? ["metas"] as Tab[] : []),
         ...(isGerente ? ["bonificacao"] as Tab[] : []),
+        ...(isGerente ? ["ia"] as Tab[] : []),
       ];
 
   // Queries
@@ -107,6 +109,14 @@ export default function Home() {
     trpc.faturamento.listar.useQuery({ mes, ano });
   const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
     trpc.meta.listar.useQuery({ mes, ano });
+
+  // Mês anterior para comparativo
+  const mesAnterior = mes === 1 ? 12 : mes - 1;
+  const anoAnterior = mes === 1 ? ano - 1 : ano;
+  const { data: faturamentosAnteriorData = [] } = trpc.faturamento.listar.useQuery(
+    { mes: mesAnterior, ano: anoAnterior },
+    { enabled: activeTab === "dashboard" }
+  );
   // Empresas do utilizador (múltiplas unidades)
   const { data: userEmpresasSlugs = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
     { userId: user?.id ?? 0 },
@@ -206,6 +216,39 @@ export default function Home() {
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const metaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.metaMensal, 0);
   const metaQuinzenalTotal = statsPorEmpresa.reduce((s, e) => s + e.metaQuinzenal, 0);
+
+  // Comparativo com mês anterior: usar apenas os mesmos dias já apurados no mês atual
+  const comparativoMesAnterior = useMemo(() => {
+    // Dias já lançados no mês atual (por empresa)
+    const diasAtualPorEmpresa: Record<string, Set<number>> = {};
+    faturamentosData.forEach((f: any) => {
+      const dia = parseInt(f.data.split("-")[2]);
+      if (!diasAtualPorEmpresa[f.empresaSlug]) diasAtualPorEmpresa[f.empresaSlug] = new Set();
+      diasAtualPorEmpresa[f.empresaSlug].add(dia);
+    });
+    // Total do mês anterior nos mesmos dias
+    let totalAnteriorMesmosDias = 0;
+    const porEmpresa: Record<string, { totalAtual: number; totalAnterior: number; diasAtual: number }> = {};
+    empresasVisiveis.forEach((emp) => {
+      const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set();
+      const rowsAtual = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
+      const totalAtual = rowsAtual.reduce((s: number, r: any) =>
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+      const rowsAnterior = faturamentosAnteriorData.filter((f: any) => {
+        if (f.empresaSlug !== emp.slug) return false;
+        const dia = parseInt(f.data.split("-")[2]);
+        return diasAtual.has(dia);
+      });
+      const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+      totalAnteriorMesmosDias += totalAnterior;
+      porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size };
+    });
+    const variacaoTotal = totalGeral > 0 && totalAnteriorMesmosDias > 0
+      ? ((totalGeral - totalAnteriorMesmosDias) / totalAnteriorMesmosDias) * 100
+      : null;
+    return { totalAnteriorMesmosDias, variacaoTotal, porEmpresa };
+  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, totalGeral]);
 
   // Dados para gráfico de barras
   const barData = useMemo(() => {
@@ -431,6 +474,7 @@ export default function Home() {
                 usuarios: "Usuários",
                 empresas: "Empresas",
                 auditoria: "Auditoria",
+                ia: "Análise IA",
               };
               const icons: Record<Tab, React.ReactNode> = {
                 dashboard: <TrendingUp className="w-4 h-4" />,
@@ -440,6 +484,7 @@ export default function Home() {
                 usuarios: <Users className="w-4 h-4" />,
                 empresas: <Building2 className="w-4 h-4" />,
                 auditoria: <Shield className="w-4 h-4" />,
+                ia: <Sparkles className="w-4 h-4" />,
               };
               return (
                 <button
@@ -493,7 +538,17 @@ export default function Home() {
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                 <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Faturado no Mês</p>
                 <p className="text-2xl font-bold mt-1">{fmt(totalGeral)}</p>
-                <p className="text-xs opacity-70 mt-1">{faturamentosData.length} dias lançados</p>
+                {comparativoMesAnterior.variacaoTotal !== null && (
+                  <p className={`text-xs mt-1 flex items-center gap-1 ${
+                    comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
+                  }`}>
+                    {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
+                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                  </p>
+                )}
+                {comparativoMesAnterior.variacaoTotal === null && (
+                  <p className="text-xs opacity-70 mt-1">{faturamentosData.length} dias lançados</p>
+                )}
               </Card>
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white">
                 <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Meta Mensal Total</p>
@@ -557,7 +612,16 @@ export default function Home() {
                     </div>
                     <div className="ml-auto text-right">
                       <p className="text-xl font-bold text-slate-900">{fmt(s.total)}</p>
-                      <p className="text-xs text-slate-400">faturado no mês</p>
+                      {(() => {
+                        const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
+                        if (!comp || comp.totalAnterior === 0) return <p className="text-xs text-slate-400">faturado no mês</p>;
+                        const variacao = ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100;
+                        return (
+                          <p className={`text-xs font-semibold ${variacao >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                            {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -924,6 +988,22 @@ export default function Home() {
 
         {/* ─── AUDITORIA ─────────────────────────────────────────────────────── */}
         {activeTab === "auditoria" && isAdmin && <Auditoria />}
+
+        {/* ─── ANÁLISE IA ───────────────────────────────────────────────────── */}
+        {activeTab === "ia" && isGerente && (
+          <AnaliseIA
+            mes={mes}
+            ano={ano}
+            mesAnterior={mesAnterior}
+            anoAnterior={anoAnterior}
+            statsPorEmpresa={statsPorEmpresa}
+            comparativoMesAnterior={comparativoMesAnterior}
+            totalGeral={totalGeral}
+            metaTotalGeral={metaTotalGeral}
+            mesLabel={MESES[mes - 1]}
+            mesAnteriorLabel={MESES[mesAnterior - 1]}
+          />
+        )}
       </main>
 
       {/* Modal de lançamento */}

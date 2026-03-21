@@ -337,6 +337,15 @@ export async function getEmpresasByTenant(tenantId: number) {
     .orderBy(asc(empresas.nome));
 }
 
+/** Retorna TODAS as empresas do tenant (ativas e inativas) — uso exclusivo do AdminPanel */
+export async function getAllEmpresasByTenantAdmin(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(empresas)
+    .where(eq(empresas.tenantId, tenantId))
+    .orderBy(asc(empresas.nome));
+}
+
 export async function getEmpresaBySlugAndTenant(slug: string, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
