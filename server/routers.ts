@@ -51,6 +51,9 @@ import {
   updateEmpresaAtivo,
   getHistoricoCompleto,
   getAllEmpresasByTenantAdmin,
+  eventoJaNotificado,
+  registrarEventoNotificado,
+  getEventosNotificados,
 } from "./db";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -1468,6 +1471,93 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         };
       }),
   }),
-});
+  notificacoes: router({
+    // Verifica e envia notificações de meta atingida e mudança de ranking
+    verificarEventos: protectedProcedure
+      .input(z.object({
+        mes: z.number(),
+        ano: z.number(),
+        // Array de empresas com seus dados atuais de progresso
+        empresas: z.array(z.object({
+          slug: z.string(),
+          nome: z.string(),
+          totalRealizado: z.number(),
+          metaMensal: z.number(),
+          pctMeta: z.number(),
+          posicaoRanking: z.number(), // 1-based
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = ctx.user.tenantId;
+        if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const { notifyOwner } = await import("./_core/notification");
+        const { mes, ano, empresas } = input;
+        const periodoKey = `${String(mes).padStart(2, "0")}-${ano}`;
+        const notificacoesEnviadas: string[] = [];
 
+        for (const emp of empresas) {
+          // 1. Verificar meta atingida
+          if (emp.pctMeta >= 100) {
+            const chaveMetaAtingida = `meta_atingida:${emp.slug}:${periodoKey}`;
+            const jaNotificado = await eventoJaNotificado(tenantId, chaveMetaAtingida);
+            if (!jaNotificado) {
+              const mensagem = `🎉 ${emp.nome} atingiu a meta mensal! Faturamento realizado: R$ ${emp.totalRealizado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (${emp.pctMeta.toFixed(1)}% da meta de R$ ${emp.metaMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}).`;
+              await notifyOwner({
+                title: `🎉 Meta atingida: ${emp.nome}`,
+                content: mensagem,
+              });
+              await registrarEventoNotificado(tenantId, chaveMetaAtingida, "meta_atingida", emp.slug, mensagem);
+              notificacoesEnviadas.push(`meta_atingida:${emp.nome}`);
+            }
+          }
+
+          // 2. Verificar mudança de posição no ranking
+          // Busca a última posição registrada para esta empresa neste período
+          const eventosRanking = await getEventosNotificados(tenantId, 50);
+          const ultimoRankingEvento = eventosRanking.find(
+            (e) => e.tipo === "mudanca_ranking" && e.empresaSlug === emp.slug && e.chave.includes(periodoKey)
+          );
+          let posicaoAnterior: number | null = null;
+          if (ultimoRankingEvento) {
+            const match = ultimoRankingEvento.chave.match(/:pos(\d+)$/);
+            if (match) posicaoAnterior = parseInt(match[1]);
+          }
+
+          if (posicaoAnterior !== null && posicaoAnterior !== emp.posicaoRanking) {
+            const chaveRanking = `ranking:${emp.slug}:${periodoKey}:pos${emp.posicaoRanking}`;
+            const jaNotificado = await eventoJaNotificado(tenantId, chaveRanking);
+            if (!jaNotificado) {
+              const direcao = emp.posicaoRanking < posicaoAnterior ? "subiu" : "caiu";
+              const emoji = direcao === "subiu" ? "📈" : "📉";
+              const mensagem = `${emoji} ${emp.nome} ${direcao} no ranking: ${posicaoAnterior}º → ${emp.posicaoRanking}º lugar. Faturamento atual: R$ ${emp.totalRealizado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (${emp.pctMeta.toFixed(1)}% da meta).`;
+              await notifyOwner({
+                title: `${emoji} Mudança no ranking: ${emp.nome}`,
+                content: mensagem,
+              });
+              await registrarEventoNotificado(tenantId, chaveRanking, "mudanca_ranking", emp.slug, mensagem);
+              notificacoesEnviadas.push(`ranking:${emp.nome}`);
+            }
+          } else if (posicaoAnterior === null) {
+            // Registra posição inicial sem notificar
+            const chaveRankingInicial = `ranking:${emp.slug}:${periodoKey}:pos${emp.posicaoRanking}`;
+            const jaNotificado = await eventoJaNotificado(tenantId, chaveRankingInicial);
+            if (!jaNotificado) {
+              await registrarEventoNotificado(tenantId, chaveRankingInicial, "mudanca_ranking", emp.slug, `Posição inicial: ${emp.posicaoRanking}º`);
+            }
+          }
+        }
+
+        return { notificacoesEnviadas, total: notificacoesEnviadas.length };
+      }),
+
+    // Lista os eventos de notificação recentes
+    listarEventos: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = ctx.user.tenantId;
+        if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return getEventosNotificados(tenantId, input.limit ?? 20);
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

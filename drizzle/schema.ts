@@ -163,3 +163,19 @@ export const faturamentos = mysqlTable("faturamentos", {
 
 export type Faturamento = typeof faturamentos.$inferSelect;
 export type InsertFaturamento = typeof faturamentos.$inferInsert;
+
+// ─── EVENTOS DE NOTIFICAÇÃO ───────────────────────────────────────────────────────────────────────────────────
+// Registra eventos já notificados para evitar duplicatas
+export const notificacaoEventos = mysqlTable("notificacaoEventos", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  // Chave única do evento: ex "meta_atingida:morumbi:2025-03" ou "ranking:morumbi:2025-03:1"
+  chave: varchar("chave", { length: 256 }).notNull(),
+  tipo: mysqlEnum("tipo", ["meta_atingida", "mudanca_ranking"]).notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mensagem: text("mensagem"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type NotificacaoEvento = typeof notificacaoEventos.$inferSelect;
+export type InsertNotificacaoEvento = typeof notificacaoEventos.$inferInsert;

@@ -13,6 +13,7 @@ import {
   InsertMeta,
   InsertUser,
   metas,
+  notificacaoEventos,
   tenants,
   userEmpresas,
   users,
@@ -844,4 +845,43 @@ export async function getHistoricoCompleto(tenantId: number, limit = 300) {
   eventos.sort((a, b) => b.data.getTime() - a.data.getTime());
 
   return eventos.slice(0, limit);
+}
+
+// ─── NOTIFICAÇÃO DE EVENTOS ───────────────────────────────────────────────────
+
+/** Verifica se um evento já foi notificado (evita duplicatas) */
+export async function eventoJaNotificado(tenantId: number, chave: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return true; // Se sem DB, assume já notificado para não enviar duplicata
+  const rows = await db
+    .select({ id: notificacaoEventos.id })
+    .from(notificacaoEventos)
+    .where(and(eq(notificacaoEventos.tenantId, tenantId), eq(notificacaoEventos.chave, chave)))
+    .limit(1);
+  return rows.length > 0;
+}
+
+/** Registra um evento como notificado */
+export async function registrarEventoNotificado(
+  tenantId: number,
+  chave: string,
+  tipo: "meta_atingida" | "mudanca_ranking",
+  empresaSlug: string,
+  mensagem: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(notificacaoEventos).values({ tenantId, chave, tipo, empresaSlug, mensagem });
+}
+
+/** Lista eventos notificados recentes de um tenant */
+export async function getEventosNotificados(tenantId: number, limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(notificacaoEventos)
+    .where(eq(notificacaoEventos.tenantId, tenantId))
+    .orderBy(desc(notificacaoEventos.createdAt))
+    .limit(limit);
 }

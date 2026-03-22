@@ -152,6 +152,15 @@ export default function Home() {
     },
   });
 
+  // Mutation para verificar e enviar notificações de meta atingida e mudança de ranking
+  const verificarEventosNotificacao = trpc.notificacoes.verificarEventos.useMutation({
+    onSuccess: (data) => {
+      if (data.notificacoesEnviadas.length > 0) {
+        toast.success(`${data.total} notificação(ões) enviada(s) ao gerente.`);
+      }
+    },
+  });
+
   // Empresas visíveis para este usuário
   const empresasVisiveis = useMemo(() => {
     if (isAdmin) return empresasData;
