@@ -508,7 +508,7 @@ export default function Home() {
       const stats = statsPorEmpresa.find((s) => s.emp.slug === emp.slug)!;
       if (!stats) return null;
       const labels = emp.tipoCategorias === "seraphine"
-        ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+        ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
         : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
       return {
         empresa: emp.nome,
@@ -1898,7 +1898,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {statsPorEmpresa.filter((s) => s.total > 0).map((s) => {
                   const labels = s.emp.tipoCategorias === "seraphine"
-                    ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                    ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
                     : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                   const pieData = labels
                     .map((l, i) => ({ name: l, value: s.catTotals[i] }))
@@ -1975,7 +1975,7 @@ export default function Home() {
                   .sort((a: any, b: any) => b.data.localeCompare(a.data));
                 if (rows.length === 0) return null;
                 const labels = emp.tipoCategorias === "seraphine"
-                  ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                  ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
                   : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">

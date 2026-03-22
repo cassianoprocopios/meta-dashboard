@@ -61,7 +61,7 @@ export default function AnaliseIA({
     const empresasPayload = statsPorEmpresa.map((s) => {
       const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
       const catLabels = s.emp.tipoCategorias === "seraphine"
-        ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+        ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
         : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
       return {
         nome: s.emp.nome,

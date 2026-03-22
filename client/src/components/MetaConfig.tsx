@@ -162,7 +162,7 @@ export default function MetaConfig({
                 <div>
                   <h3 className="font-semibold text-slate-900">{emp.nome}</h3>
                   <p className="text-xs text-slate-500">
-                    {emp.tipoCategorias === "seraphine" ? "Cabelo / Produtos / Unha / Outros" : "Avulso / Produtos / Serv. Extra / Lavatório"}
+                    {emp.tipoCategorias === "seraphine" ? "Cabelo / Manicure e Pedicure / Outros Serviços / Pacote" : "Avulso / Produtos / Serv. Extra / Lavatório"}
                   </p>
                 </div>
               </div>
