@@ -12,7 +12,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  Crosshair, ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing,
+  Crosshair, ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -1538,6 +1538,106 @@ export default function Home() {
                       <span>Projeção de fechamento</span>
                     </div>
                   )}
+                </div>
+              </Card>
+            )}
+
+            {/* Ranking de Desempenho */}
+            {statsPorEmpresa.some(s => s.metaMensal > 0) && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-yellow-500/15 flex items-center justify-center">
+                      <Trophy className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground text-sm">Ranking de Desempenho</h3>
+                      <p className="text-xs text-muted-foreground">Ordenado por % da meta atingida</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground bg-muted/40 px-2 py-1 rounded-lg">
+                    {periodoFiltro === "semanal" && semanaAtual ? semanaAtual.label : MESES[mes - 1]}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {[...statsPorEmpresa]
+                    .filter(s => s.metaMensal > 0)
+                    .sort((a, b) => (b.totalRealizado / b.metaMensal) - (a.totalRealizado / a.metaMensal))
+                    .map((s, idx) => {
+                      const pct = Math.min((s.totalRealizado / s.metaMensal) * 100, 999);
+                      const pctProj = s.projecaoFinal > 0 ? Math.min((s.projecaoFinal / s.metaMensal) * 100, 150) : null;
+                      const atingiu = s.totalRealizado >= s.metaMensal;
+                      const medalhas = ["🥇", "🥈", "🥉"];
+                      const barColor = atingiu ? "#10b981" : pct >= 75 ? "#3b82f6" : pct >= 50 ? "#f59e0b" : "#ef4444";
+                      return (
+                        <div key={s.emp.slug} className="flex items-center gap-3">
+                          {/* Posição */}
+                          <div className="w-7 text-center">
+                            {idx < 3
+                              ? <span className="text-base">{medalhas[idx]}</span>
+                              : <span className="text-xs font-bold text-muted-foreground">{idx + 1}º</span>
+                            }
+                          </div>
+
+                          {/* Info da empresa */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.emp.cor }} />
+                                <span className="text-sm font-medium text-foreground truncate">{s.emp.nome}</span>
+                                {atingiu && (
+                                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">✓ Meta!</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs text-muted-foreground">{fmt(s.totalRealizado)}</span>
+                                <span className={`text-xs font-bold ${
+                                  atingiu ? "text-emerald-400" : pct >= 75 ? "text-blue-400" : pct >= 50 ? "text-amber-400" : "text-red-400"
+                                }`}>{pct.toFixed(1)}%</span>
+                              </div>
+                            </div>
+
+                            {/* Barra de progresso */}
+                            <div className="relative h-2 bg-muted/40 rounded-full overflow-hidden">
+                              <div
+                                className="absolute top-0 left-0 h-full rounded-full transition-all"
+                                style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor, opacity: 0.85 }}
+                              />
+                              {/* Linha de projeção */}
+                              {pctProj !== null && !atingiu && (
+                                <div
+                                  className="absolute top-0 w-0.5 h-full rounded-full bg-white/40"
+                                  style={{ left: `${Math.min(pctProj, 100)}%` }}
+                                />
+                              )}
+                            </div>
+
+                            {/* Projeção de fechamento */}
+                            {pctProj !== null && !atingiu && (
+                              <p className={`text-[10px] mt-0.5 ${
+                                pctProj >= 100 ? "text-emerald-400" : "text-amber-400"
+                              }`}>
+                                Projeção: {fmt(s.projecaoFinal)} ({pctProj.toFixed(1)}%)
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Rodapé: consolidado */}
+                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Total realizado: <span className="font-semibold text-foreground">{fmt(totalGeralRealizado)}</span></span>
+                  <span>Meta total: <span className="font-semibold text-foreground">{fmt(metaTotalGeral)}</span></span>
+                  <span className={`font-bold ${
+                    totalGeralRealizado >= metaTotalGeral ? "text-emerald-400"
+                    : (totalGeralRealizado / metaTotalGeral) >= 0.75 ? "text-blue-400"
+                    : "text-amber-400"
+                  }`}>
+                    {metaTotalGeral > 0 ? ((totalGeralRealizado / metaTotalGeral) * 100).toFixed(1) : "0.0"}%
+                  </span>
                 </div>
               </Card>
             )}
