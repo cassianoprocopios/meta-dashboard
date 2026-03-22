@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
+  LineChart, Line, ReferenceLine,
 } from "recharts";
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
@@ -301,6 +302,51 @@ export default function Home() {
       };
     }).filter(Boolean);
   }, [empresasVisiveis, statsPorEmpresa]);
+
+  // Dados para gráfico de linha diário (mês atual vs mês anterior)
+  const lineDataDiario = useMemo(() => {
+    // Determinar todos os dias que aparecem em qualquer um dos dois meses
+    const diasSet = new Set<number>();
+    faturamentosData.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
+    faturamentosAnteriorData.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
+    const dias = Array.from(diasSet).sort((a, b) => a - b);
+
+    // Somar faturamento total (todas as empresas visíveis) por dia
+    const somaPorDia = (rows: any[]) => {
+      const mapa: Record<number, number> = {};
+      rows.forEach((f: any) => {
+        if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
+        const dia = parseInt(f.data.split("-")[2]);
+        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+          .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
+        mapa[dia] = (mapa[dia] ?? 0) + total;
+      });
+      return mapa;
+    };
+
+    const mapaAtual = somaPorDia(faturamentosData);
+    const mapaAnterior = somaPorDia(faturamentosAnteriorData);
+
+    // Acumulado dia a dia
+    let acumAtual = 0;
+    let acumAnterior = 0;
+    return dias.map((dia) => {
+      const valorAtual = mapaAtual[dia] ?? null;
+      const valorAnterior = mapaAnterior[dia] ?? null;
+      if (valorAtual !== null) acumAtual += valorAtual;
+      if (valorAnterior !== null) acumAnterior += valorAnterior;
+      return {
+        dia,
+        diaLabel: `${dia}`,
+        // Faturamento diário
+        fatAtual: valorAtual,
+        fatAnterior: valorAnterior,
+        // Faturamento acumulado
+        acumAtual: valorAtual !== null ? acumAtual : null,
+        acumAnterior: valorAnterior !== null ? acumAnterior : null,
+      };
+    });
+  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis]);
 
   // Dados para gráfico de pizza (por empresa)
   const pieDataEmpresas = useMemo(() => {
@@ -858,6 +904,131 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+              </Card>
+            )}
+
+            {/* Gráfico de Linha: Faturamento Diário vs Mês Anterior */}
+            {lineDataDiario.length > 0 && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 text-sm">Evolução Diária do Faturamento</h3>
+                      <p className="text-xs text-slate-400">{MESES[mes - 1]} vs {MESES[mesAnterior - 1]} — acumulado por dia</p>
+                    </div>
+                  </div>
+                  {/* Legenda manual */}
+                  <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block w-6 h-0.5 bg-blue-500 rounded" />
+                      {MESES[mes - 1]}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block w-6 h-0.5 bg-slate-300 rounded border-dashed" style={{ borderTop: "2px dashed #94a3b8", height: 0 }} />
+                      {MESES[mesAnterior - 1]}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Legenda mobile */}
+                <div className="flex sm:hidden items-center gap-4 text-xs text-slate-500 mb-3">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-5 h-0.5 bg-blue-500 rounded" />
+                    {MESES[mes - 1]}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-5 h-0.5 bg-slate-300 rounded" />
+                    {MESES[mesAnterior - 1]}
+                  </span>
+                </div>
+
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={lineDataDiario} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis
+                      dataKey="diaLabel"
+                      tick={{ fontSize: 11, fill: "#94a3b8" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#e2e8f0" }}
+                      label={{ value: "Dia", position: "insideBottomRight", offset: -5, fontSize: 10, fill: "#94a3b8" }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "#94a3b8" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                      width={40}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null;
+                        const atual = payload.find((p: any) => p.dataKey === "acumAtual");
+                        const anterior = payload.find((p: any) => p.dataKey === "acumAnterior");
+                        const fatAtual = lineDataDiario.find((d) => d.diaLabel === label)?.fatAtual;
+                        const fatAnterior = lineDataDiario.find((d) => d.diaLabel === label)?.fatAnterior;
+                        const valAtual = typeof atual?.value === "number" ? atual.value : null;
+                        const valAnterior = typeof anterior?.value === "number" ? anterior.value : null;
+                        return (
+                          <div className="bg-white border border-slate-100 shadow-lg rounded-xl p-3 text-xs min-w-[180px]">
+                            <p className="font-semibold text-slate-700 mb-2">Dia {label}</p>
+                            {valAtual != null && (
+                              <div className="mb-1">
+                                <p className="text-blue-600 font-semibold">{MESES[mes - 1]}</p>
+                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAtual)}</span></p>
+                                {fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(fatAtual)}</p>}
+                              </div>
+                            )}
+                            {valAnterior != null && (
+                              <div>
+                                <p className="text-slate-500 font-semibold">{MESES[mesAnterior - 1]}</p>
+                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAnterior)}</span></p>
+                                {fatAnterior != null && <p className="text-slate-500">No dia: {fmtFull(fatAnterior)}</p>}
+                              </div>
+                            )}
+                            {valAtual != null && valAnterior != null && (() => {
+                              const diff = valAtual - valAnterior;
+                              const pctDiff = valAnterior > 0 ? (diff / valAnterior) * 100 : null;
+                              return (
+                                <div className={`mt-2 pt-2 border-t border-slate-100 font-semibold ${
+                                  diff >= 0 ? "text-emerald-600" : "text-red-500"
+                                }`}>
+                                  {diff >= 0 ? "↑" : "↓"} {fmtFull(Math.abs(diff))}
+                                  {pctDiff !== null && <span className="ml-1 text-xs">({Math.abs(pctDiff).toFixed(1)}%)</span>}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        );
+                      }}
+                    />
+                    {/* Linha do mês atual */}
+                    <Line
+                      type="monotone"
+                      dataKey="acumAtual"
+                      name={MESES[mes - 1]}
+                      stroke="#3b82f6"
+                      strokeWidth={2.5}
+                      dot={false}
+                      activeDot={{ r: 5, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
+                      connectNulls={false}
+                    />
+                    {/* Linha do mês anterior */}
+                    <Line
+                      type="monotone"
+                      dataKey="acumAnterior"
+                      name={MESES[mesAnterior - 1]}
+                      stroke="#94a3b8"
+                      strokeWidth={2}
+                      strokeDasharray="5 3"
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#94a3b8", strokeWidth: 2, stroke: "#fff" }}
+                      connectNulls={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </Card>
             )}
 
