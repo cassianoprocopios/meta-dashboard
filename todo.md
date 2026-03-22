@@ -351,3 +351,4 @@
 - [ ] Corrigir comparativo para usar exatamente os mesmos dias lançados no mês atual vs mês anterior
 - [ ] Exibir no card o período comparado (ex: "dias 1-22 vs dias 1-22 do mês anterior")
 - [ ] Card consolidado de comparativo geral no topo do dashboard
+- [ ] Histórico de acurácia das previsões mês a mês (nova seção com gráfico de evolução e tabela)

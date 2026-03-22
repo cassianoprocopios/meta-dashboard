@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import TenantRegister from "./pages/TenantRegister";
 import DevPanel from "./pages/DevPanel";
 import AdminPanel from "./pages/AdminPanel";
+import HistoricoAcuracia from "./pages/HistoricoAcuracia";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -56,6 +57,7 @@ function Router() {
       <Route path={"/register"}>{() => <TenantRegister onBack={() => window.history.back()} onSuccess={() => window.location.href = "/"} />}</Route>
       <Route path={"/dev"} component={DevPanel} />
       <Route path={"/admin-panel"} component={AdminPanel} />
+      <Route path={"/historico-acuracia"} component={HistoricoAcuracia} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

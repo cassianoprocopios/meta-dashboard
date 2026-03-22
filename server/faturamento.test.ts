@@ -247,3 +247,46 @@ describe("alertas.notificarProjecaoBaixaMeta", () => {
     ).rejects.toThrow();
   });
 });
+
+// ─── Histórico de Acurácia ────────────────────────────────────────────────────
+
+describe("historicoAcuracia.listar", () => {
+  it("rejeita usuário não autenticado", async () => {
+    const ctx = createPublicCtx();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.historicoAcuracia.listar({ meses: 6 })).rejects.toThrow();
+  });
+
+  it("rejeita meses fora do range (0)", async () => {
+    const ctx = createCtx({ role: "user", perfil: "gerente" });
+    const caller = appRouter.createCaller(ctx);
+    await expect(
+      caller.historicoAcuracia.listar({ meses: 0 })
+    ).rejects.toThrow();
+  });
+
+  it("rejeita meses fora do range (25)", async () => {
+    const ctx = createCtx({ role: "user", perfil: "gerente" });
+    const caller = appRouter.createCaller(ctx);
+    await expect(
+      caller.historicoAcuracia.listar({ meses: 25 })
+    ).rejects.toThrow();
+  });
+
+  it("rejeita gerente sem tenant no banco (TENANT_NOT_FOUND)", async () => {
+    // O protectedProcedure valida o tenant no banco; sem tenant, lança FORBIDDEN.
+    const ctx = createCtx({ role: "user", perfil: "gerente" });
+    const caller = appRouter.createCaller(ctx);
+    await expect(
+      caller.historicoAcuracia.listar({ meses: 3 })
+    ).rejects.toThrow();
+  });
+
+  it("rejeita admin sem tenant no banco (TENANT_NOT_FOUND)", async () => {
+    const ctx = createCtx({ role: "admin", perfil: "gerente" });
+    const caller = appRouter.createCaller(ctx);
+    await expect(
+      caller.historicoAcuracia.listar({ meses: 6 })
+    ).rejects.toThrow();
+  });
+});

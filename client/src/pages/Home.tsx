@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
@@ -63,6 +64,7 @@ function LogoutButton() {
 export default function Home() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [, navigate] = useLocation();
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano] = useState(hoje.getFullYear());
@@ -1276,6 +1278,16 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+
+                {/* Link para histórico completo */}
+                <div className="flex justify-end mb-3">
+                  <button
+                    onClick={() => navigate("/historico-acuracia")}
+                    className="text-xs text-amber-500 hover:text-amber-400 font-medium flex items-center gap-1 transition-colors"
+                  >
+                    Ver histórico completo →
+                  </button>
+                </div>
 
                 {/* Detalhe por empresa */}
                 <div className="space-y-3">
