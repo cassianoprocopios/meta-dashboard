@@ -580,6 +580,29 @@ export default function Home() {
     });
   }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
 
+  // Dados para gráfico de barras de categorias Seraphine
+  const barDataCategoriasSeraphine = useMemo(() => {
+    const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"];
+    const COLORS_CAT = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
+    // Filtrar apenas empresas do tipo seraphine com dados
+    const seraphineStats = statsPorEmpresa.filter(
+      (s) => s.emp.tipoCategorias === "seraphine" && s.total > 0
+    );
+    if (seraphineStats.length === 0) return null;
+    // Montar dados no formato: cada barra = uma empresa, cada grupo = uma categoria
+    const data = LABELS_SERAPHINE.map((label, i) => {
+      const entry: Record<string, any> = { categoria: label, cor: COLORS_CAT[i] };
+      seraphineStats.forEach((s) => {
+        entry[s.emp.nome] = s.catTotals[i] || 0;
+      });
+      return entry;
+    }).filter((entry) => {
+      // Mostrar apenas categorias com pelo menos um valor > 0
+      return seraphineStats.some((s) => (entry[s.emp.nome] || 0) > 0);
+    });
+    return { data, empresas: seraphineStats.map((s) => ({ nome: s.emp.nome, cor: s.emp.cor })) };
+  }, [statsPorEmpresa]);
+
   // Dados para gráfico de pizza (por empresa)
   const pieDataEmpresas = useMemo(() => {
     return statsPorEmpresa
@@ -1924,6 +1947,75 @@ export default function Home() {
                   );
                 })}
               </div>
+            )}
+
+            {/* Gráfico de barras de categorias Seraphine */}
+            {barDataCategoriasSeraphine && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground text-sm">
+                      Categorias Seraphine — Comparativo
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Faturamento por categoria {comparativoMesAnterior.periodoLabel}
+                    </p>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart
+                    data={barDataCategoriasSeraphine.data}
+                    margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
+                    barCategoryGap="20%"
+                    barGap={4}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      dataKey="categoria"
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      angle={-20}
+                      textAnchor="end"
+                      interval={0}
+                      height={55}
+                    />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                      width={55}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        color: "hsl(var(--foreground))",
+                      }}
+                      formatter={(value: any, name: string) => [
+                        fmtFull(value),
+                        name,
+                      ]}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                      iconType="circle"
+                      iconSize={8}
+                    />
+                    {barDataCategoriasSeraphine.empresas.map((emp) => (
+                      <Bar
+                        key={emp.nome}
+                        dataKey={emp.nome}
+                        fill={emp.cor}
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={48}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
             )}
 
             {totalGeral === 0 && !loading && (
