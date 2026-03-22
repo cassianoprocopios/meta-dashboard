@@ -554,9 +554,9 @@ export default function Home() {
   const loading = loadingEmpresas || loadingFat || loadingMetas;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
+      <header className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo */}
@@ -565,8 +565,8 @@ export default function Home() {
                 <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">Meta Dashboard</h1>
-                <p className="text-xs text-slate-500 leading-tight hidden sm:block">
+                <h1 className="text-sm sm:text-base font-bold text-foreground leading-tight">Meta Dashboard</h1>
+                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
                   {empresaVinculada
                     ? empresasData.find((e) => e.slug === empresaVinculada)?.nome ?? empresaVinculada
                     : "Todas as Unidades"}
@@ -579,7 +579,7 @@ export default function Home() {
               <select
                 value={mes}
                 onChange={(e) => setMes(Number(e.target.value))}
-                className="text-sm border border-slate-200 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-border rounded-xl px-3 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {MESES.map((m, i) => (
                   <option key={i} value={i + 1}>{m} {ano}</option>
@@ -609,10 +609,10 @@ export default function Home() {
                 </Button>
               )}
               {user && (
-                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-slate-200">
+                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border">
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-semibold text-slate-700 leading-none">{user.name ?? user.email}</span>
-                    <span className="text-xs text-slate-400 leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
+                    <span className="text-xs font-semibold text-foreground leading-none">{user.name ?? user.email}</span>
+                    <span className="text-xs text-muted-foreground leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
                   </div>
                   <LogoutButton />
                 </div>
@@ -636,10 +636,10 @@ export default function Home() {
                 </button>
               )}
               <LogoutButton />
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
-              >
+            <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
+                >
                 {mobileMenuOpen ? <XIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
@@ -647,14 +647,14 @@ export default function Home() {
 
           {/* Menu mobile expandido */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-slate-100 py-3 space-y-1">
+            <div className="md:hidden border-t border-border py-3 space-y-1">
               {/* Seletor de mês */}
               <div className="px-1 pb-2">
                 <label className="text-xs text-slate-500 font-medium mb-1 block">Mês de referência</label>
                 <select
                   value={mes}
                   onChange={(e) => { setMes(Number(e.target.value)); setMobileMenuOpen(false); }}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-border rounded-xl px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {MESES.map((m, i) => (
                     <option key={i} value={i + 1}>{m} {ano}</option>
@@ -663,9 +663,9 @@ export default function Home() {
               </div>
               {/* Info do usuário */}
               {user && (
-                <div className="px-1 py-2 border-b border-slate-100 mb-1">
-                  <p className="text-sm font-semibold text-slate-800">{user.name ?? user.email}</p>
-                  <p className="text-xs text-slate-400 capitalize">{(user as any).perfil ?? user.role}</p>
+                <div className="px-1 py-2 border-b border-border mb-1">
+                  <p className="text-sm font-semibold text-foreground">{user.name ?? user.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{(user as any).perfil ?? user.role}</p>
                 </div>
               )}
               {isSuperAdmin && (
@@ -692,7 +692,7 @@ export default function Home() {
       </header>
 
       {/* Tabs com scroll horizontal em mobile */}
-      <div className="bg-white border-b border-slate-100">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2 overflow-x-auto scrollbar-none -mx-1 px-1">
             {tabsVisiveis.map((tab) => {
@@ -722,8 +722,8 @@ export default function Home() {
                   onClick={() => setActiveTab(tab)}
                   className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   {icons[tab]} <span className="hidden sm:inline">{labels[tab]}</span>
@@ -811,15 +811,15 @@ export default function Home() {
                   <p className="text-xs opacity-70 mt-1">Quinzenal: {fmt(metaQuinzenalTotal)}</p>
                 )}
               </Card>
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Progresso Geral</p>
-                <p className="text-2xl font-bold mt-1 text-slate-900">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progresso Geral</p>
+                <p className="text-2xl font-bold mt-1 text-foreground">
                   {metaTotalGeral > 0 ? `${pct(totalGeralRealizado, metaTotalGeral)}%` : "—"}
                 </p>
                 {metaTotalGeral > 0 && (
                   <>
                     {/* Barra de progresso: realizado (azul/verde) */}
-                    <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -830,7 +830,7 @@ export default function Home() {
                     </div>
                     {/* Barra secundária: previsto (só aparece quando há previstos) */}
                     {totalGeralPrevisto > 0 && (
-                      <div className="mt-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all bg-amber-300"
                           style={{ width: `${Math.min(pct(totalGeral, metaTotalGeral), 100)}%` }}
@@ -845,16 +845,16 @@ export default function Home() {
                   </>
                 )}
               </Card>
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Falta para Meta</p>
-                <p className={`text-2xl font-bold mt-1 ${totalGeralRealizado >= metaTotalGeral ? "text-emerald-600" : "text-slate-900"}`}>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Falta para Meta</p>
+                <p className={`text-2xl font-bold mt-1 ${totalGeralRealizado >= metaTotalGeral ? "text-emerald-400" : "text-foreground"}`}>
                   {metaTotalGeral > 0
                     ? totalGeralRealizado >= metaTotalGeral
                       ? "Atingida!"
                       : fmt(metaTotalGeral - totalGeralRealizado)
                     : "—"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {metaTotalGeral > 0 && totalGeralRealizado < metaTotalGeral ? "restante (realizado)" : ""}
                 </p>
               </Card>
@@ -965,7 +965,7 @@ export default function Home() {
                 {/* Barra de precisão global */}
                 {acuraciaPrevisoes.acuraciaGlobal !== null && (
                   <div className="mb-4">
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -977,7 +977,7 @@ export default function Home() {
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-xs text-slate-400 mt-1">
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
                       <span>0%</span>
                       <span className={`font-medium ${
                         acuraciaPrevisoes.acuraciaGlobal >= 85 ? "text-emerald-600"
@@ -1012,7 +1012,7 @@ export default function Home() {
                           </span>
                           <span className="text-xs text-slate-400">{ac.diasAnalisados} dia{ac.diasAnalisados !== 1 ? "s" : ""}</span>
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
@@ -1057,7 +1057,7 @@ export default function Home() {
                 const menorQueMetaQ = s.diasLancadosQuinzenal > 0 && metaDiaAtualQuinzenal > 0 && (s.totalQuinzenal / Math.max(s.diasLancadosQuinzenal, 1)) < metaDiaAtualQuinzenal;
 
                 return (
-                <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-white overflow-hidden relative">
+                <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-card overflow-hidden relative">
                   <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ backgroundColor: s.emp.cor }} />
 
                   {/* Cabeçalho */}
@@ -1066,11 +1066,11 @@ export default function Home() {
                       <Building2 className="w-4 h-4" style={{ color: s.emp.cor }} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{s.emp.nome}</h3>
+                      <h3 className="font-semibold text-foreground">{s.emp.nome}</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className="text-xs text-slate-400">{s.diasRealizados} dias realizados</p>
+                        <p className="text-xs text-muted-foreground">{s.diasRealizados} dias realizados</p>
                         {s.diasPrevistos > 0 && (
-                          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+                          <span className="text-xs font-medium text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
                             +{s.diasPrevistos} previsto{s.diasPrevistos > 1 ? "s" : ""}
                           </span>
                         )}
@@ -1078,14 +1078,14 @@ export default function Home() {
                     </div>
                     <div className="ml-auto text-right">
                       <div className="flex items-end gap-1 justify-end">
-                        <p className="text-xl font-bold text-slate-900">{fmt(s.totalRealizado)}</p>
+                        <p className="text-xl font-bold text-foreground">{fmt(s.totalRealizado)}</p>
                         {s.totalPrevisto > 0 && (
-                          <p className="text-xs font-semibold text-amber-500 mb-0.5">+{fmt(s.totalPrevisto)} prev.</p>
+                          <p className="text-xs font-semibold text-amber-400 mb-0.5">+{fmt(s.totalPrevisto)} prev.</p>
                         )}
                       </div>
                       {(() => {
                         const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
-                        if (!comp || comp.totalAnterior === 0) return <p className="text-xs text-slate-400">faturado no mês</p>;
+                        if (!comp || comp.totalAnterior === 0) return <p className="text-xs text-muted-foreground">faturado no mês</p>;
                         const variacao = ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100;
                         return (
                           <p className={`text-xs font-semibold ${variacao >= 0 ? "text-emerald-600" : "text-red-500"}`}>
@@ -1100,18 +1100,18 @@ export default function Home() {
                   {s.metaMensal > 0 && (
                     <div className="mb-3">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-500 font-medium">
+                        <span className="text-muted-foreground font-medium">
                           Meta Mensal: {fmt(s.metaMensal)}
                           {s.metaEsperadaAteHoje > 0 && s.metaEsperadaAteHoje < s.metaMensal && (
-                            <span className="text-slate-400 ml-1">(esperado até hoje: {fmt(s.metaEsperadaAteHoje)})</span>
+                            <span className="text-muted-foreground/60 ml-1">(esperado até hoje: {fmt(s.metaEsperadaAteHoje)})</span>
                           )}
                         </span>
                         <span className="font-bold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
                       </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(s.progressoMensal, 100)}%`, backgroundColor: s.emp.cor }} />
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {s.diasUteisDecorridos} de {s.diasUteis} dias úteis decorridos
                       </p>
                     </div>
@@ -1124,38 +1124,38 @@ export default function Home() {
                         <span className="text-purple-500 font-medium">Meta Quinzenal: {fmt(s.metaQuinzenal)}</span>
                         <span className="font-bold text-purple-600">{s.progressoQuinzenal.toFixed(0)}%</span>
                       </div>
-                      <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-purple-500/20 rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all bg-purple-400" style={{ width: `${s.progressoQuinzenal}%` }} />
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">{fmt(s.totalQuinzenal)} faturados até dia 15</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{fmt(s.totalQuinzenal)} faturados até dia 15</p>
                     </div>
                   )}
 
                   {/* Grid de métricas */}
                   <div className="grid grid-cols-2 gap-2">
                     {/* Média diária real */}
-                    <div className="bg-slate-50 rounded-xl p-2.5">
-                      <p className="text-xs text-slate-500">Média Diária</p>
-                      <p className="text-sm font-bold text-slate-900">{fmt(s.mediaDiaria)}</p>
-                      {s.diasPrevistos > 0 && <p className="text-xs text-amber-500 mt-0.5">só realizados</p>}
+                    <div className="bg-muted rounded-xl p-2.5">
+                      <p className="text-xs text-muted-foreground">Média Diária</p>
+                      <p className="text-sm font-bold text-foreground">{fmt(s.mediaDiaria)}</p>
+                      {s.diasPrevistos > 0 && <p className="text-xs text-amber-400 mt-0.5">só realizados</p>}
                     </div>
 
                     {/* Maior e menor dia (apenas realizados) */}
                     {s.maiorDia > 0 && (
-                      <div className="bg-slate-50 rounded-xl p-2.5">
-                        <p className="text-xs text-slate-500">Maior / Menor Dia</p>
-                        <p className="text-sm font-bold text-emerald-600">{fmt(s.maiorDia)}</p>
+                      <div className="bg-muted rounded-xl p-2.5">
+                        <p className="text-xs text-muted-foreground">Maior / Menor Dia</p>
+                        <p className="text-sm font-bold text-emerald-400">{fmt(s.maiorDia)}</p>
                         <p className="text-xs text-red-400">{fmt(s.menorDia)}</p>
-                        {s.diasPrevistos > 0 && <p className="text-xs text-amber-500 mt-0.5">só realizados</p>}
+                        {s.diasPrevistos > 0 && <p className="text-xs text-amber-400 mt-0.5">só realizados</p>}
                       </div>
                     )}
 
                     {/* Meta/dia mensal dinâmica */}
-                    <div className={`rounded-xl p-2.5 ${menorQueMeta ? "bg-orange-50" : "bg-emerald-50"}`}>
-                      <p className={`text-xs font-medium ${menorQueMeta ? "text-orange-500" : "text-emerald-600"}`}>
+                    <div className={`rounded-xl p-2.5 ${menorQueMeta ? "bg-orange-500/15" : "bg-emerald-500/15"}`}>
+                      <p className={`text-xs font-medium ${menorQueMeta ? "text-orange-400" : "text-emerald-400"}`}>
                         Precisa/Dia (Mensal)
                       </p>
-                      <p className={`text-sm font-bold ${menorQueMeta ? "text-orange-700" : "text-emerald-700"}`}>
+                      <p className={`text-sm font-bold ${menorQueMeta ? "text-orange-300" : "text-emerald-300"}`}>
                         {metaDiaAtualMensal > 0 ? fmt(metaDiaAtualMensal) : "—"}
                       </p>
                       {s.diasUteisRestantes > 0 && s.metaMensal > 0 && (
@@ -1167,15 +1167,15 @@ export default function Home() {
 
                     {/* Meta/dia quinzenal dinâmica */}
                     {s.metaQuinzenal > 0 && (
-                      <div className={`rounded-xl p-2.5 ${menorQueMetaQ ? "bg-orange-50" : "bg-purple-50"}`}>
-                        <p className={`text-xs font-medium ${menorQueMetaQ ? "text-orange-500" : "text-purple-500"}`}>
+                      <div className={`rounded-xl p-2.5 ${menorQueMetaQ ? "bg-orange-500/15" : "bg-purple-500/15"}`}>
+                        <p className={`text-xs font-medium ${menorQueMetaQ ? "text-orange-400" : "text-purple-400"}`}>
                           Precisa/Dia (Quinz.)
                         </p>
-                        <p className={`text-sm font-bold ${menorQueMetaQ ? "text-orange-700" : "text-purple-700"}`}>
+                        <p className={`text-sm font-bold ${menorQueMetaQ ? "text-orange-300" : "text-purple-300"}`}>
                           {metaDiaAtualQuinzenal > 0 ? fmt(metaDiaAtualQuinzenal) : "—"}
                         </p>
                         {s.diasUteisRestantesQuinzenal > 0 && (
-                          <p className={`text-xs mt-0.5 ${menorQueMetaQ ? "text-orange-600" : "text-purple-400"}`}>
+                          <p className={`text-xs mt-0.5 ${menorQueMetaQ ? "text-orange-400" : "text-purple-400"}`}>
                             {s.diasUteisRestantesQuinzenal}d até dia 15
                           </p>
                         )}
@@ -1183,9 +1183,9 @@ export default function Home() {
                     )}
 
                     {/* Projeção final */}
-                    <div className="bg-slate-50 rounded-xl p-2.5">
-                      <p className="text-xs text-slate-500">Projeção Final</p>
-                      <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-600" : "text-slate-900"}`}>
+                    <div className="bg-muted rounded-xl p-2.5">
+                      <p className="text-xs text-muted-foreground">Projeção Final</p>
+                      <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-400" : "text-foreground"}`}>
                         {s.projecaoFinal > 0 ? fmt(s.projecaoFinal) : "—"}
                       </p>
                     </div>
@@ -1195,8 +1195,8 @@ export default function Home() {
                   {s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && (
                     <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl ${
                       s.mediaDiaria >= metaDiaAtualMensal
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-orange-50 text-orange-700"
+                        ? "bg-emerald-500/15 text-emerald-400"
+                        : "bg-orange-500/15 text-orange-400"
                     }`}>
                       {s.mediaDiaria >= metaDiaAtualMensal
                         ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo para a meta mensal</>
@@ -1211,8 +1211,8 @@ export default function Home() {
 
             {/* Alertas */}
             {alertas.length > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" /> Alertas
                 </h3>
                 <div className="space-y-2">
@@ -1220,9 +1220,9 @@ export default function Home() {
                     <div
                       key={i}
                       className={`flex items-start gap-2.5 p-3 rounded-xl text-sm ${
-                        a.tipo === "warning" ? "bg-orange-50 text-orange-800" :
-                        a.tipo === "success" ? "bg-emerald-50 text-emerald-800" :
-                        "bg-blue-50 text-blue-800"
+                        a.tipo === "warning" ? "bg-orange-500/15 text-orange-300" :
+                        a.tipo === "success" ? "bg-emerald-500/15 text-emerald-300" :
+                        "bg-blue-500/15 text-blue-300"
                       }`}
                     >
                       {a.tipo === "warning" ? <TrendingDown className="w-4 h-4 mt-0.5 flex-shrink-0" /> :
@@ -1237,19 +1237,19 @@ export default function Home() {
 
             {/* Gráfico de Linha: Faturamento Diário vs Mês Anterior */}
             {lineDataDiario.length > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                    <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 text-sm">Evolução Diária do Faturamento</h3>
-                      <p className="text-xs text-slate-400">{MESES[mes - 1]} vs {MESES[mesAnterior - 1]} — acumulado por dia</p>
+                      <h3 className="font-semibold text-foreground text-sm">Evolução Diária do Faturamento</h3>
+                      <p className="text-xs text-muted-foreground">{MESES[mes - 1]} vs {MESES[mesAnterior - 1]} — acumulado por dia</p>
                     </div>
                   </div>
                   {/* Legenda manual */}
-                  <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500">
+                  <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block w-6 h-0.5 bg-blue-500 rounded" />
                       {MESES[mes - 1]}
@@ -1268,7 +1268,7 @@ export default function Home() {
                 </div>
 
                 {/* Legenda mobile */}
-                <div className="flex sm:hidden flex-wrap items-center gap-3 text-xs text-slate-500 mb-3">
+                <div className="flex sm:hidden flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
                   <span className="flex items-center gap-1.5">
                     <span className="inline-block w-5 h-0.5 bg-blue-500 rounded" />
                     {MESES[mes - 1]}
@@ -1287,16 +1287,16 @@ export default function Home() {
 
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={lineDataDiario} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis
                       dataKey="diaLabel"
-                      tick={{ fontSize: 11, fill: "#94a3b8" }}
+                      tick={{ fontSize: 11, fill: "#6b7280" }}
                       tickLine={false}
-                      axisLine={{ stroke: "#e2e8f0" }}
-                      label={{ value: "Dia", position: "insideBottomRight", offset: -5, fontSize: 10, fill: "#94a3b8" }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                      label={{ value: "Dia", position: "insideBottomRight", offset: -5, fontSize: 10, fill: "#6b7280" }}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: "#94a3b8" }}
+                      tick={{ fontSize: 10, fill: "#6b7280" }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
@@ -1314,35 +1314,35 @@ export default function Home() {
                         const valAnterior = typeof pAnterior?.value === "number" ? pAnterior.value : null;
                         const valRef = valAtual ?? valPrevisto;
                         return (
-                          <div className="bg-white border border-slate-100 shadow-lg rounded-xl p-3 text-xs min-w-[190px]">
-                            <p className="font-semibold text-slate-700 mb-2">Dia {label}</p>
+                          <div className="bg-popover border border-border shadow-lg rounded-xl p-3 text-xs min-w-[190px]">
+                            <p className="font-semibold text-foreground mb-2">Dia {label}</p>
                             {valAtual != null && (
                               <div className="mb-1">
-                                <p className="text-blue-600 font-semibold">{MESES[mes - 1]} — Realizado</p>
-                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAtual)}</span></p>
-                                {entry?.fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAtual)}</p>}
+                                <p className="text-blue-400 font-semibold">{MESES[mes - 1]} — Realizado</p>
+                                <p className="text-muted-foreground">Acumulado: <span className="font-bold text-foreground">{fmtFull(valAtual)}</span></p>
+                                {entry?.fatAtual != null && <p className="text-muted-foreground">No dia: {fmtFull(entry.fatAtual)}</p>}
                               </div>
                             )}
                             {valPrevisto != null && (
                               <div className="mb-1">
-                                <p className="text-amber-500 font-semibold">{MESES[mes - 1]} — Previsto</p>
-                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valPrevisto)}</span></p>
-                                {entry?.fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAtual)}</p>}
+                                <p className="text-amber-400 font-semibold">{MESES[mes - 1]} — Previsto</p>
+                                <p className="text-muted-foreground">Acumulado: <span className="font-bold text-foreground">{fmtFull(valPrevisto)}</span></p>
+                                {entry?.fatAtual != null && <p className="text-muted-foreground">No dia: {fmtFull(entry.fatAtual)}</p>}
                               </div>
                             )}
                             {valAnterior != null && (
                               <div>
-                                <p className="text-slate-500 font-semibold">{MESES[mesAnterior - 1]}</p>
-                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAnterior)}</span></p>
-                                {entry?.fatAnterior != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAnterior)}</p>}
+                                <p className="text-muted-foreground font-semibold">{MESES[mesAnterior - 1]}</p>
+                                <p className="text-muted-foreground">Acumulado: <span className="font-bold text-foreground">{fmtFull(valAnterior)}</span></p>
+                                {entry?.fatAnterior != null && <p className="text-muted-foreground">No dia: {fmtFull(entry.fatAnterior)}</p>}
                               </div>
                             )}
                             {valRef != null && valAnterior != null && (() => {
                               const diff = valRef - valAnterior;
                               const pctDiff = valAnterior > 0 ? (diff / valAnterior) * 100 : null;
                               return (
-                                <div className={`mt-2 pt-2 border-t border-slate-100 font-semibold ${
-                                  diff >= 0 ? "text-emerald-600" : "text-red-500"
+                                <div className={`mt-2 pt-2 border-t border-border font-semibold ${
+                                  diff >= 0 ? "text-emerald-400" : "text-red-400"
                                 }`}>
                                   {diff >= 0 ? "↑" : "↓"} {fmtFull(Math.abs(diff))}
                                   {pctDiff !== null && <span className="ml-1 text-xs">({Math.abs(pctDiff).toFixed(1)}%)</span>}
@@ -1398,27 +1398,27 @@ export default function Home() {
             {totalGeral > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Gráfico de barras por empresa */}
-                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                  <h3 className="font-semibold text-slate-900 mb-4">Faturamento vs Meta por Empresa</h3>
+                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                  <h3 className="font-semibold text-foreground mb-4">Faturamento vs Meta por Empresa</h3>
                   <ResponsiveContainer width="100%" height={240}>
                     <BarChart data={barData as any[]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="empresa" tick={{ fontSize: 11, fill: "#64748b" }} />
-                      <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: any) => fmtFull(v)} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="empresa" tick={{ fontSize: 11, fill: "#6b7280" }} />
+                      <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip formatter={(v: any) => fmtFull(v)} contentStyle={{ backgroundColor: "var(--popover)", border: "1px solid var(--border)", borderRadius: "0.75rem", color: "var(--foreground)" }} />
                       <Bar dataKey="total" name="Faturado" radius={[4, 4, 0, 0]}>
                         {(barData as any[]).map((entry: any, index: number) => (
                           <Cell key={index} fill={entry?.cor ?? "#3b82f6"} />
                         ))}
                       </Bar>
-                      <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="meta" name="Meta" fill="rgba(255,255,255,0.12)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </Card>
 
                 {/* Gráfico de pizza por empresa */}
-                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                  <h3 className="font-semibold text-slate-900 mb-4">Composição do Faturamento</h3>
+                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                  <h3 className="font-semibold text-foreground mb-4">Composição do Faturamento</h3>
                   {pieDataEmpresas.length > 0 ? (
                     <ResponsiveContainer width="100%" height={240}>
                       <PieChart>
@@ -1442,7 +1442,7 @@ export default function Home() {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
+                    <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
                       Sem dados para exibir
                     </div>
                   )}
@@ -1462,8 +1462,8 @@ export default function Home() {
                     .filter((d) => d.value > 0);
                   const COLORS = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
                   return (
-                    <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-                      <h3 className="font-semibold text-slate-900 mb-3 text-sm">{s.emp.nome} — Categorias</h3>
+                    <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                      <h3 className="font-semibold text-foreground mb-3 text-sm">{s.emp.nome} — Categorias</h3>
                       {pieData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={180}>
                           <PieChart>
@@ -1475,7 +1475,7 @@ export default function Home() {
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-32 text-slate-400 text-xs">Sem dados</div>
+                        <div className="flex items-center justify-center h-32 text-muted-foreground text-xs">Sem dados</div>
                       )}
                     </Card>
                   );
@@ -1484,9 +1484,9 @@ export default function Home() {
             )}
 
             {totalGeral === 0 && !loading && (
-              <Card className="p-10 border-0 shadow-sm rounded-2xl bg-white text-center">
-                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">Nenhum lançamento em {MESES[mes - 1]} {ano}</p>
+              <Card className="p-10 border-0 shadow-sm rounded-2xl bg-card text-center">
+                <Calendar className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground font-medium">Nenhum lançamento em {MESES[mes - 1]} {ano}</p>
                 {isGerente && (
                   <Button
                     onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
@@ -1504,7 +1504,7 @@ export default function Home() {
         {activeTab === "lancamentos" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-foreground">
                 Lançamentos — {MESES[mes - 1]} {ano}
               </h2>
               {(isGerente || isRecepcionista) && (
@@ -1521,9 +1521,9 @@ export default function Home() {
             {loadingFat ? (
               <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
             ) : faturamentosData.length === 0 ? (
-              <Card className="p-8 border-0 shadow-sm rounded-2xl bg-white text-center">
-                <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500">Nenhum lançamento neste mês.</p>
+              <Card className="p-8 border-0 shadow-sm rounded-2xl bg-card text-center">
+                <Calendar className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-muted-foreground">Nenhum lançamento neste mês.</p>
               </Card>
             ) : (
               empresasVisiveis.map((emp) => {
@@ -1535,21 +1535,21 @@ export default function Home() {
                   ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
                   : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                 return (
-                  <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-white overflow-hidden">
-                    <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                  <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
+                    <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: emp.cor }} />
-                      <h3 className="font-semibold text-slate-900">{emp.nome}</h3>
-                      <span className="ml-auto text-xs text-slate-500">{rows.length} registros</span>
+                      <h3 className="font-semibold text-foreground">{emp.nome}</h3>
+                      <span className="ml-auto text-xs text-muted-foreground">{rows.length} registros</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-slate-50">
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Data</th>
+                          <tr className="bg-muted/50">
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Data</th>
                             {labels.map((l) => (
-                              <th key={l} className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">{l}</th>
+                              <th key={l} className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">{l}</th>
                             ))}
-                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</th>
+                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total</th>
                             {isGerente && <th className="px-4 py-2.5" />}
                           </tr>
                         </thead>
@@ -1559,28 +1559,28 @@ export default function Home() {
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
                             return (
-                              <tr key={row.id} className="border-t border-slate-50 hover:bg-slate-50 transition-colors">
-                                <td className="px-4 py-3 font-medium text-slate-900">
+                              <tr key={row.id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                                <td className="px-4 py-3 font-medium text-foreground">
                                   {parseInt(dia)}/{mes.toString().padStart(2, "0")}
                                 </td>
                                 {cats.map((v: number, i: number) => (
-                                  <td key={i} className="px-4 py-3 text-right text-slate-700">
-                                    {v > 0 ? fmt(v) : <span className="text-slate-300">—</span>}
+                                  <td key={i} className="px-4 py-3 text-right text-foreground/80">
+                                    {v > 0 ? fmt(v) : <span className="text-muted-foreground/40">—</span>}
                                   </td>
                                 ))}
-                                <td className="px-4 py-3 text-right font-bold text-slate-900">{fmt(total)}</td>
+                                <td className="px-4 py-3 text-right font-bold text-foreground">{fmt(total)}</td>
                 {isGerente && !isRecepcionista && (
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => { setEditingFaturamento({ ...row, empresaSlug: emp.slug }); setShowFaturamentoForm(true); }}
-                        className="text-xs text-blue-600 hover:underline px-2 py-1 rounded-lg hover:bg-blue-50"
+                        className="text-xs text-blue-400 hover:underline px-2 py-1 rounded-lg hover:bg-blue-500/15"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteFat(row.id)}
-                        className="text-xs text-red-500 hover:underline px-2 py-1 rounded-lg hover:bg-red-50"
+                        className="text-xs text-red-400 hover:underline px-2 py-1 rounded-lg hover:bg-red-500/15"
                       >
                         Excluir
                       </button>
@@ -1657,10 +1657,10 @@ export default function Home() {
 
       {/* Modal de lançamento */}
       {showFaturamentoForm && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-border">
             <div className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+              <h2 className="text-lg font-semibold text-foreground mb-4">
                 {editingFaturamento ? "Editar Lançamento" : "Novo Lançamento"}
               </h2>
               <FaturamentoForm
