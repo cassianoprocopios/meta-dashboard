@@ -1488,24 +1488,25 @@ export default function Home() {
                               style={{ left: `${pctEsperado}%` }}
                             />
                           )}
-                          {/* Marcador: projeção de fechamento */}
-                          {pctProjecao !== null && !atingiu && (
+                          {/* Marcador: projeção de fechamento - sempre visível para análise */}
+                          {pctProjecao !== null && (
                             <>
                               <div
                                 className="absolute top-0 w-0.5 h-2.5 rounded-full"
                                 style={{
                                   left: `${Math.min(pctProjecao, 100)}%`,
-                                  backgroundColor: projecaoAtingeMeta ? "#10b981" : "#f59e0b",
-                                  opacity: 0.8,
+                                  backgroundColor: atingiu ? "#6ee7b7" : projecaoAtingeMeta ? "#10b981" : "#f59e0b",
+                                  opacity: atingiu ? 0.5 : 0.8,
                                 }}
                               />
                               <span
                                 className={`absolute top-3 text-[9px] font-semibold -translate-x-1/2 whitespace-nowrap ${
-                                  projecaoAtingeMeta ? "text-emerald-500" : "text-amber-500"
+                                  atingiu ? "text-emerald-300/70"
+                                  : projecaoAtingeMeta ? "text-emerald-500" : "text-amber-500"
                                 }`}
                                 style={{ left: `${Math.min(pctProjecao, 100)}%` }}
                               >
-                                {projecaoAtingeMeta ? "↑" : "↓"} {fmt(projecao)}
+                                {atingiu ? "" : projecaoAtingeMeta ? "↑" : "↓"} {fmt(projecao)}
                               </span>
                             </>
                           )}
@@ -1531,7 +1532,7 @@ export default function Home() {
                     <div className="w-px h-3 bg-muted-foreground/40" />
                     <span>Meta esperada até hoje</span>
                   </div>
-                  {statsPorEmpresa.some((s) => s.projecaoFinal > 0 && s.totalRealizado < s.metaMensal) && (
+                  {statsPorEmpresa.some((s) => s.projecaoFinal > 0) && (
                     <div className="flex items-center gap-1.5">
                       <div className="w-0.5 h-3 rounded-full bg-emerald-500/60" />
                       <span>Projeção de fechamento</span>
@@ -1684,14 +1685,18 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Indicador de status mensal */}
-                  {s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && (
+                  {/* Indicador de status mensal - sempre visível para análise */}
+                  {s.mediaDiaria > 0 && (
                     <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl ${
-                      s.mediaDiaria >= metaDiaAtualMensal
+                      s.totalRealizado >= s.metaMensal && s.metaMensal > 0
+                        ? "bg-emerald-500/20 text-emerald-300"
+                        : s.mediaDiaria >= metaDiaAtualMensal
                         ? "bg-emerald-500/15 text-emerald-400"
                         : "bg-orange-500/15 text-orange-400"
                     }`}>
-                      {s.mediaDiaria >= metaDiaAtualMensal
+                      {s.totalRealizado >= s.metaMensal && s.metaMensal > 0
+                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> Meta mensal atingida! Projeção: {fmt(s.projecaoFinal)}</>
+                        : s.mediaDiaria >= metaDiaAtualMensal
                         ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo para a meta mensal</>
                         : <><TrendingDown className="w-3.5 h-3.5" /> Precisa de +{fmt(metaDiaAtualMensal - s.mediaDiaria)}/dia para atingir a meta</>
                       }
