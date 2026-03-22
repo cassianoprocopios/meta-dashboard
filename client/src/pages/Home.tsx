@@ -243,18 +243,27 @@ export default function Home() {
 
   // Comparativo com mês anterior: usar apenas os mesmos dias já apurados no mês atual
   const comparativoMesAnterior = useMemo(() => {
-    // Dias já lançados no mês atual (por empresa)
+    // Dias já lançados no mês atual (por empresa e global)
     const diasAtualPorEmpresa: Record<string, Set<number>> = {};
+    const diasAtualGlobal = new Set<number>();
     faturamentosData.forEach((f: any) => {
       const dia = parseInt(f.data.split("-")[2]);
       if (!diasAtualPorEmpresa[f.empresaSlug]) diasAtualPorEmpresa[f.empresaSlug] = new Set();
       diasAtualPorEmpresa[f.empresaSlug].add(dia);
+      diasAtualGlobal.add(dia);
     });
+
+    // Período exato: dia mínimo e máximo lançados no mês atual
+    const diasOrdenados = Array.from(diasAtualGlobal).sort((a, b) => a - b);
+    const diaInicio = diasOrdenados.length > 0 ? diasOrdenados[0] : 1;
+    const diaFim = diasOrdenados.length > 0 ? diasOrdenados[diasOrdenados.length - 1] : 0;
+    const periodoLabel = diaFim > 0 ? `dias ${diaInicio}–${diaFim}` : "sem lançamentos";
+
     // Total do mês anterior nos mesmos dias
     let totalAnteriorMesmosDias = 0;
-    const porEmpresa: Record<string, { totalAtual: number; totalAnterior: number; diasAtual: number }> = {};
+    const porEmpresa: Record<string, { totalAtual: number; totalAnterior: number; diasAtual: number; diasAnterior: number }> = {};
     empresasVisiveis.forEach((emp) => {
-      const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set();
+      const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set<number>();
       const rowsAtual = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
@@ -266,12 +275,12 @@ export default function Home() {
       const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAnteriorMesmosDias += totalAnterior;
-      porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size };
+      porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
     const variacaoTotal = totalGeral > 0 && totalAnteriorMesmosDias > 0
       ? ((totalGeral - totalAnteriorMesmosDias) / totalAnteriorMesmosDias) * 100
       : null;
-    return { totalAnteriorMesmosDias, variacaoTotal, porEmpresa };
+    return { totalAnteriorMesmosDias, variacaoTotal, porEmpresa, periodoLabel, diaInicio, diaFim };
   }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, totalGeral]);
 
   // Dados para gráfico de barras
@@ -567,7 +576,7 @@ export default function Home() {
                     comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
                   }`}>
                     {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
-                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})
                   </p>
                 )}
                 {comparativoMesAnterior.variacaoTotal === null && (
@@ -612,6 +621,81 @@ export default function Home() {
                 </p>
               </Card>
             </div>
+
+            {/* Card Comparativo com Mês Anterior */}
+            {comparativoMesAnterior.totalAnteriorMesmosDias > 0 && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 text-sm">Comparativo com {MESES[mesAnterior - 1]}</h3>
+                      <p className="text-xs text-slate-400">{comparativoMesAnterior.periodoLabel} — mesmos dias apurados</p>
+                    </div>
+                  </div>
+                  {comparativoMesAnterior.variacaoTotal !== null && (
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      comparativoMesAnterior.variacaoTotal >= 0
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
+                      {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+
+                {/* Total consolidado */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-blue-50 rounded-xl p-3">
+                    <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
+                    <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(totalGeral)}</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
+                    <p className="text-xl font-bold text-slate-700 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
+                  </div>
+                </div>
+
+                {/* Por empresa */}
+                <div className="space-y-2">
+                  {empresasVisiveis.map((emp) => {
+                    const comp = comparativoMesAnterior.porEmpresa[emp.slug];
+                    if (!comp) return null;
+                    const variacao = comp.totalAnterior > 0
+                      ? ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100
+                      : null;
+                    return (
+                      <div key={emp.slug} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
+                        <span className="text-sm text-slate-700 flex-1 font-medium">{emp.nome}</span>
+                        <div className="flex items-center gap-3 text-right">
+                          <div>
+                            <p className="text-xs text-slate-400">{MESES[mesAnterior - 1]}</p>
+                            <p className="text-sm font-semibold text-slate-600">{comp.totalAnterior > 0 ? fmt(comp.totalAnterior) : "—"}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400">{MESES[mes - 1]}</p>
+                            <p className="text-sm font-semibold text-slate-900">{fmt(comp.totalAtual)}</p>
+                          </div>
+                          {variacao !== null ? (
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              variacao >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                            }`}>
+                              {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-400 px-2">sem dados</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
 
             {/* Cards por Empresa */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
