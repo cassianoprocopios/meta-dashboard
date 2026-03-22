@@ -150,12 +150,36 @@ export default function Home() {
 
     return empresasVisiveis.map((emp) => {
       const rows = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
+
+      // Separar lançamentos realizados (dia ≤ hoje) de previstos (dia > hoje)
+      const rowsRealizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje);
+      const rowsPrevistos = rows.filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje);
+
+      // Total geral (realizados + previstos) para exibir no card
       const total = rows.reduce((s: number, r: any) => {
         return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
       }, 0);
+      // Total apenas realizados (para cálculos de média, máximo, mínimo)
+      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => {
+        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+          .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
+      }, 0);
+      const totalPrevisto = total - totalRealizado;
+
       const diasLancados = rows.length;
-      const mediaDiaria = diasLancados > 0 ? total / diasLancados : 0;
+      const diasRealizados = rowsRealizados.length;
+      const diasPrevistos = rowsPrevistos.length;
+
+      // Média diária apenas sobre dias realizados
+      const mediaDiaria = diasRealizados > 0 ? totalRealizado / diasRealizados : 0;
+
+      // Máximo e mínimo diário apenas sobre dias realizados
+      const totaisDiariosRealizados = rowsRealizados.map((r: any) =>
+        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0)
+      );
+      const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
+      const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
 
       const meta = metasData.find((m: any) => m.empresaSlug === emp.slug);
       const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
@@ -178,7 +202,8 @@ export default function Home() {
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
       // Dias úteis restantes no mês
-      const rowsQuinzenal = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
+      // Quinzenal: apenas realizados até dia 15
+      const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
       const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
@@ -187,15 +212,16 @@ export default function Home() {
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
 
       // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
-      const faltaMensal = Math.max(0, metaMensal - total);
+      // Usa totalRealizado para não contar previstos como já conquistados
+      const faltaMensal = Math.max(0, metaMensal - totalRealizado);
       const metaDiariaDinamicaMensal = diasUteisRestantes > 0 ? faltaMensal / diasUteisRestantes : 0;
 
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Projeção
-      const projecaoFinal = diasLancados > 0 && diasUteis > 0
-        ? (total / diasLancados) * diasUteis
+      // Projeção: baseada apenas nos dias realizados
+      const projecaoFinal = diasRealizados > 0 && diasUteis > 0
+        ? (totalRealizado / diasRealizados) * diasUteis
         : 0;
 
       // Totais por categoria
@@ -211,10 +237,16 @@ export default function Home() {
       return {
         emp,
         total,
+        totalRealizado,
+        totalPrevisto,
         totalQuinzenal,
         diasLancados,
+        diasRealizados,
+        diasPrevistos,
         diasLancadosQuinzenal,
         mediaDiaria,
+        maiorDia,
+        menorDia,
         metaMensal,
         metaQuinzenal,
         metaDiariaMensal,
@@ -229,11 +261,13 @@ export default function Home() {
         metaEsperadaAteHoje,
         metaEsperadaQuinzenalAteHoje,
         projecaoFinal,
-        // Progresso real vs meta esperada até hoje (não vs meta total do mês)
-        progressoMensal: metaEsperadaAteHoje > 0 ? Math.min((total / metaEsperadaAteHoje) * 100, 150) : (metaMensal > 0 ? Math.min((total / metaMensal) * 100, 100) : 0),
+        // Progresso real vs meta esperada até hoje (baseado em realizados)
+        progressoMensal: metaEsperadaAteHoje > 0 ? Math.min((totalRealizado / metaEsperadaAteHoje) * 100, 150) : (metaMensal > 0 ? Math.min((totalRealizado / metaMensal) * 100, 100) : 0),
         progressoQuinzenal: metaEsperadaQuinzenalAteHoje > 0 ? Math.min((totalQuinzenal / metaEsperadaQuinzenalAteHoje) * 100, 150) : (metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0),
         catTotals,
         rows,
+        rowsRealizados,
+        rowsPrevistos,
       };
     });
   }, [empresasVisiveis, faturamentosData, metasData]);
@@ -305,6 +339,11 @@ export default function Home() {
 
   // Dados para gráfico de linha diário (mês atual vs mês anterior)
   const lineDataDiario = useMemo(() => {
+    const hoje = new Date();
+    const diaHojeGlobal = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear()
+      ? hoje.getDate()
+      : new Date(ano, mes, 0).getDate();
+
     // Determinar todos os dias que aparecem em qualquer um dos dois meses
     const diasSet = new Set<number>();
     faturamentosData.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
@@ -327,26 +366,35 @@ export default function Home() {
     const mapaAtual = somaPorDia(faturamentosData);
     const mapaAnterior = somaPorDia(faturamentosAnteriorData);
 
-    // Acumulado dia a dia
-    let acumAtual = 0;
+    // Acumulado dia a dia — linha realizada e linha prevista separadas
+    let acumRealizado = 0;
+    let acumPrevistoTotal = 0; // acumulado dos dias previstos somado ao realizado
     let acumAnterior = 0;
     return dias.map((dia) => {
       const valorAtual = mapaAtual[dia] ?? null;
       const valorAnterior = mapaAnterior[dia] ?? null;
-      if (valorAtual !== null) acumAtual += valorAtual;
+      const isPrevisto = dia > diaHojeGlobal;
+
+      if (valorAtual !== null && !isPrevisto) acumRealizado += valorAtual;
+      if (valorAtual !== null && isPrevisto) acumPrevistoTotal += valorAtual;
       if (valorAnterior !== null) acumAnterior += valorAnterior;
+
       return {
         dia,
         diaLabel: `${dia}`,
+        isPrevisto,
         // Faturamento diário
         fatAtual: valorAtual,
         fatAnterior: valorAnterior,
-        // Faturamento acumulado
-        acumAtual: valorAtual !== null ? acumAtual : null,
+        // Acumulado realizado (apenas dias ≤ hoje) — null para dias futuros
+        acumAtual: !isPrevisto && valorAtual !== null ? acumRealizado : null,
+        // Acumulado previsto (dias > hoje) — continua a partir do último realizado
+        acumPrevisto: isPrevisto && valorAtual !== null ? acumRealizado + acumPrevistoTotal : null,
+        // Acumulado mês anterior
         acumAnterior: valorAnterior !== null ? acumAnterior : null,
       };
     });
-  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis]);
+  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, mes, ano]);
 
   // Dados para gráfico de pizza (por empresa)
   const pieDataEmpresas = useMemo(() => {
@@ -762,10 +810,22 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">{s.emp.nome}</h3>
-                      <p className="text-xs text-slate-400">{s.diasLancados} dias lançados</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-slate-400">{s.diasRealizados} dias realizados</p>
+                        {s.diasPrevistos > 0 && (
+                          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+                            +{s.diasPrevistos} previsto{s.diasPrevistos > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="ml-auto text-right">
-                      <p className="text-xl font-bold text-slate-900">{fmt(s.total)}</p>
+                      <div className="flex items-end gap-1 justify-end">
+                        <p className="text-xl font-bold text-slate-900">{fmt(s.totalRealizado)}</p>
+                        {s.totalPrevisto > 0 && (
+                          <p className="text-xs font-semibold text-amber-500 mb-0.5">+{fmt(s.totalPrevisto)} prev.</p>
+                        )}
+                      </div>
                       {(() => {
                         const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
                         if (!comp || comp.totalAnterior === 0) return <p className="text-xs text-slate-400">faturado no mês</p>;
@@ -818,9 +878,20 @@ export default function Home() {
                   <div className="grid grid-cols-2 gap-2">
                     {/* Média diária real */}
                     <div className="bg-slate-50 rounded-xl p-2.5">
-                      <p className="text-xs text-slate-500">Média Diária Real</p>
+                      <p className="text-xs text-slate-500">Média Diária</p>
                       <p className="text-sm font-bold text-slate-900">{fmt(s.mediaDiaria)}</p>
+                      {s.diasPrevistos > 0 && <p className="text-xs text-amber-500 mt-0.5">só realizados</p>}
                     </div>
+
+                    {/* Maior e menor dia (apenas realizados) */}
+                    {s.maiorDia > 0 && (
+                      <div className="bg-slate-50 rounded-xl p-2.5">
+                        <p className="text-xs text-slate-500">Maior / Menor Dia</p>
+                        <p className="text-sm font-bold text-emerald-600">{fmt(s.maiorDia)}</p>
+                        <p className="text-xs text-red-400">{fmt(s.menorDia)}</p>
+                        {s.diasPrevistos > 0 && <p className="text-xs text-amber-500 mt-0.5">só realizados</p>}
+                      </div>
+                    )}
 
                     {/* Meta/dia mensal dinâmica */}
                     <div className={`rounded-xl p-2.5 ${menorQueMeta ? "bg-orange-50" : "bg-emerald-50"}`}>
@@ -921,24 +992,36 @@ export default function Home() {
                     </div>
                   </div>
                   {/* Legenda manual */}
-                  <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500">
+                  <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500">
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block w-6 h-0.5 bg-blue-500 rounded" />
                       {MESES[mes - 1]}
                     </span>
+                    {lineDataDiario.some((d) => d.acumPrevisto !== null) && (
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-6" style={{ borderTop: "2px dashed #f59e0b", height: 0 }} />
+                        Previsto
+                      </span>
+                    )}
                     <span className="flex items-center gap-1.5">
-                      <span className="inline-block w-6 h-0.5 bg-slate-300 rounded border-dashed" style={{ borderTop: "2px dashed #94a3b8", height: 0 }} />
+                      <span className="inline-block w-6" style={{ borderTop: "2px dashed #94a3b8", height: 0 }} />
                       {MESES[mesAnterior - 1]}
                     </span>
                   </div>
                 </div>
 
                 {/* Legenda mobile */}
-                <div className="flex sm:hidden items-center gap-4 text-xs text-slate-500 mb-3">
+                <div className="flex sm:hidden flex-wrap items-center gap-3 text-xs text-slate-500 mb-3">
                   <span className="flex items-center gap-1.5">
                     <span className="inline-block w-5 h-0.5 bg-blue-500 rounded" />
                     {MESES[mes - 1]}
                   </span>
+                  {lineDataDiario.some((d) => d.acumPrevisto !== null) && (
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block w-5 h-0.5 bg-amber-400 rounded" />
+                      Previsto
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <span className="inline-block w-5 h-0.5 bg-slate-300 rounded" />
                     {MESES[mesAnterior - 1]}
@@ -965,31 +1048,40 @@ export default function Home() {
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (!active || !payload?.length) return null;
-                        const atual = payload.find((p: any) => p.dataKey === "acumAtual");
-                        const anterior = payload.find((p: any) => p.dataKey === "acumAnterior");
-                        const fatAtual = lineDataDiario.find((d) => d.diaLabel === label)?.fatAtual;
-                        const fatAnterior = lineDataDiario.find((d) => d.diaLabel === label)?.fatAnterior;
-                        const valAtual = typeof atual?.value === "number" ? atual.value : null;
-                        const valAnterior = typeof anterior?.value === "number" ? anterior.value : null;
+                        const pAtual = payload.find((p: any) => p.dataKey === "acumAtual");
+                        const pPrevisto = payload.find((p: any) => p.dataKey === "acumPrevisto");
+                        const pAnterior = payload.find((p: any) => p.dataKey === "acumAnterior");
+                        const entry = lineDataDiario.find((d) => d.diaLabel === label);
+                        const valAtual = typeof pAtual?.value === "number" ? pAtual.value : null;
+                        const valPrevisto = typeof pPrevisto?.value === "number" ? pPrevisto.value : null;
+                        const valAnterior = typeof pAnterior?.value === "number" ? pAnterior.value : null;
+                        const valRef = valAtual ?? valPrevisto;
                         return (
-                          <div className="bg-white border border-slate-100 shadow-lg rounded-xl p-3 text-xs min-w-[180px]">
+                          <div className="bg-white border border-slate-100 shadow-lg rounded-xl p-3 text-xs min-w-[190px]">
                             <p className="font-semibold text-slate-700 mb-2">Dia {label}</p>
                             {valAtual != null && (
                               <div className="mb-1">
-                                <p className="text-blue-600 font-semibold">{MESES[mes - 1]}</p>
+                                <p className="text-blue-600 font-semibold">{MESES[mes - 1]} — Realizado</p>
                                 <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAtual)}</span></p>
-                                {fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(fatAtual)}</p>}
+                                {entry?.fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAtual)}</p>}
+                              </div>
+                            )}
+                            {valPrevisto != null && (
+                              <div className="mb-1">
+                                <p className="text-amber-500 font-semibold">{MESES[mes - 1]} — Previsto</p>
+                                <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valPrevisto)}</span></p>
+                                {entry?.fatAtual != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAtual)}</p>}
                               </div>
                             )}
                             {valAnterior != null && (
                               <div>
                                 <p className="text-slate-500 font-semibold">{MESES[mesAnterior - 1]}</p>
                                 <p className="text-slate-600">Acumulado: <span className="font-bold">{fmtFull(valAnterior)}</span></p>
-                                {fatAnterior != null && <p className="text-slate-500">No dia: {fmtFull(fatAnterior)}</p>}
+                                {entry?.fatAnterior != null && <p className="text-slate-500">No dia: {fmtFull(entry.fatAnterior)}</p>}
                               </div>
                             )}
-                            {valAtual != null && valAnterior != null && (() => {
-                              const diff = valAtual - valAnterior;
+                            {valRef != null && valAnterior != null && (() => {
+                              const diff = valRef - valAnterior;
                               const pctDiff = valAnterior > 0 ? (diff / valAnterior) * 100 : null;
                               return (
                                 <div className={`mt-2 pt-2 border-t border-slate-100 font-semibold ${
@@ -997,6 +1089,7 @@ export default function Home() {
                                 }`}>
                                   {diff >= 0 ? "↑" : "↓"} {fmtFull(Math.abs(diff))}
                                   {pctDiff !== null && <span className="ml-1 text-xs">({Math.abs(pctDiff).toFixed(1)}%)</span>}
+                                  {valPrevisto != null && <span className="ml-1 text-amber-500">(previsto)</span>}
                                 </div>
                               );
                             })()}
@@ -1004,15 +1097,27 @@ export default function Home() {
                         );
                       }}
                     />
-                    {/* Linha do mês atual */}
+                    {/* Linha do mês atual — realizado */}
                     <Line
                       type="monotone"
                       dataKey="acumAtual"
-                      name={MESES[mes - 1]}
+                      name={`${MESES[mes - 1]} (realizado)`}
                       stroke="#3b82f6"
                       strokeWidth={2.5}
                       dot={false}
                       activeDot={{ r: 5, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
+                      connectNulls={false}
+                    />
+                    {/* Linha do mês atual — previsto (dias futuros) */}
+                    <Line
+                      type="monotone"
+                      dataKey="acumPrevisto"
+                      name={`${MESES[mes - 1]} (previsto)`}
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      strokeDasharray="4 3"
+                      dot={{ r: 3, fill: "#f59e0b", strokeWidth: 0 }}
+                      activeDot={{ r: 4, fill: "#f59e0b", strokeWidth: 2, stroke: "#fff" }}
                       connectNulls={false}
                     />
                     {/* Linha do mês anterior */}
