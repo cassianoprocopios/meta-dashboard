@@ -1212,6 +1212,166 @@ export default function Home() {
               </Card>
             )}
 
+            {/* Gráfico de Progresso da Meta Mensal */}
+            {metaTotalGeral > 0 && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground text-sm">Progresso da Meta Mensal</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {periodoFiltro === "semanal" && semanaAtual
+                          ? `Semana ${semanaAtual.label} · realizado vs meta mensal`
+                          : `${MESES[mes - 1]} ${ano} · realizado vs meta`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Total realizado</p>
+                    <p className="text-lg font-bold text-foreground">{fmt(totalGeralRealizado)}</p>
+                    <p className="text-xs text-muted-foreground">de {fmt(metaTotalGeral)}</p>
+                  </div>
+                </div>
+
+                {/* Barra de progresso global */}
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Consolidado</span>
+                    <span className={`text-sm font-bold ${
+                      totalGeralRealizado >= metaTotalGeral ? "text-emerald-500"
+                      : totalGeralRealizado >= metaTotalGeral * 0.7 ? "text-primary"
+                      : "text-amber-500"
+                    }`}>
+                      {metaTotalGeral > 0 ? `${Math.min(Math.round((totalGeralRealizado / metaTotalGeral) * 100), 100)}%` : "—"}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((totalGeralRealizado / metaTotalGeral) * 100, 100)}%`,
+                        background: totalGeralRealizado >= metaTotalGeral
+                          ? "linear-gradient(90deg, #10b981, #059669)"
+                          : totalGeralRealizado >= metaTotalGeral * 0.7
+                          ? "linear-gradient(90deg, #3b82f6, #2563eb)"
+                          : "linear-gradient(90deg, #f59e0b, #d97706)",
+                      }}
+                    />
+                  </div>
+                  {/* Marcador da meta esperada até hoje */}
+                  {(() => {
+                    const metaEsperadaTotal = statsPorEmpresa.reduce((s, e) => s + e.metaEsperadaAteHoje, 0);
+                    if (metaEsperadaTotal <= 0 || metaEsperadaTotal >= metaTotalGeral) return null;
+                    const pctEsperado = Math.min((metaEsperadaTotal / metaTotalGeral) * 100, 100);
+                    return (
+                      <div className="relative mt-1 h-3">
+                        <div
+                          className="absolute top-0 w-0.5 h-3 bg-muted-foreground/40 rounded-full"
+                          style={{ left: `${pctEsperado}%` }}
+                        />
+                        <span
+                          className="absolute top-4 text-[10px] text-muted-foreground -translate-x-1/2"
+                          style={{ left: `${pctEsperado}%` }}
+                        >
+                          esperado
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Barras por empresa */}
+                <div className="space-y-3 mt-6">
+                  {statsPorEmpresa.map((s) => {
+                    if (s.metaMensal === 0) return null;
+                    const pctReal = Math.min((s.totalRealizado / s.metaMensal) * 100, 100);
+                    const pctPrev = s.totalPrevisto > 0
+                      ? Math.min(((s.totalRealizado + s.totalPrevisto) / s.metaMensal) * 100, 100)
+                      : null;
+                    const metaEsperada = s.metaEsperadaAteHoje;
+                    const pctEsperado = metaEsperada > 0 && metaEsperada < s.metaMensal
+                      ? Math.min((metaEsperada / s.metaMensal) * 100, 100)
+                      : null;
+                    const atingiu = s.totalRealizado >= s.metaMensal;
+                    return (
+                      <div key={s.emp.slug}>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.emp.cor }} />
+                            <span className="text-sm font-medium text-foreground">{s.emp.nome}</span>
+                            {atingiu && (
+                              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">✓ Meta!</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-right">
+                            <span className="text-xs text-muted-foreground">{fmt(s.totalRealizado)} / {fmt(s.metaMensal)}</span>
+                            <span className={`text-sm font-bold ${
+                              atingiu ? "text-emerald-500"
+                              : pctReal >= 70 ? "text-primary"
+                              : "text-amber-500"
+                            }`}>
+                              {Math.round(pctReal)}%
+                            </span>
+                          </div>
+                        </div>
+                        {/* Barra de progresso com camadas */}
+                        <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
+                          {/* Camada previsto (âmbar, mais larga) */}
+                          {pctPrev !== null && (
+                            <div
+                              className="absolute inset-y-0 left-0 rounded-full"
+                              style={{
+                                width: `${pctPrev}%`,
+                                backgroundColor: s.emp.cor + "40",
+                              }}
+                            />
+                          )}
+                          {/* Camada realizado (cor sólida) */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pctReal}%`,
+                              backgroundColor: s.emp.cor,
+                            }}
+                          />
+                        </div>
+                        {/* Linha de meta esperada até hoje */}
+                        {pctEsperado !== null && (
+                          <div className="relative h-1 mt-0.5">
+                            <div
+                              className="absolute top-0 w-px h-2 bg-muted-foreground/30"
+                              style={{ left: `${pctEsperado}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Legenda */}
+                <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-2 rounded-sm bg-primary" />
+                    <span>Realizado</span>
+                  </div>
+                  {statsPorEmpresa.some((s) => s.totalPrevisto > 0) && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-2 rounded-sm bg-amber-400/40" />
+                      <span>Com previstos</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-px h-3 bg-muted-foreground/40" />
+                    <span>Meta esperada até hoje</span>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* Cards por Empresa */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {statsPorEmpresa.map((s) => {
