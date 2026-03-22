@@ -1,0 +1,94 @@
+{
+  "query": "\n-- Logs de acesso recentes da Cintia\nSELECT al.userId, al.acao, al.createdAt, u.role, u.tenantId, u.perfil\nFROM accessLogs al\nJOIN users u ON u.id = al.userId\nWHERE u.email = 'cintia.mezanini@gmail.com'\nORDER BY al.createdAt DESC\nLIMIT 10;\n\n-- Verificar qual ID tem o APP_COOKIE mais recente (via lastSignedIn se existir)\nSELECT id, name, email, role, perfil, tenantId, ativo, empresaVinculada\nFROM users\nWHERE email = 'cintia.mezanini@gmail.com'\nORDER BY id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Logs de acesso recentes da Cintia\nSELECT al.userId, al.acao, al.createdAt, u.role, u.tenantId, u.perfil\nFROM accessLogs al\nJOIN users u ON u.id = al.userId\nWHERE u.email = 'cintia.mezanini@gmail.com'\nORDER BY al.createdAt DESC\nLIMIT 10;\n\n-- Verificar qual ID tem o APP_COOKIE mais recente (via lastSignedIn se existir)\nSELECT id, name, email, role, perfil, tenantId, ativo, empresaVinculada\nFROM users\nWHERE email = 'cintia.mezanini@gmail.com'\nORDER BY id;\n",
+  "rows": [
+    {
+      "userId": "330001",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 17:00:01",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 16:59:59",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 16:58:15",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login",
+      "createdAt": "2026-03-21 16:45:39",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:35:24",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "logout",
+      "createdAt": "2026-03-21 14:35:18",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:22:18",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "logout",
+      "createdAt": "2026-03-21 14:21:52",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login",
+      "createdAt": "2026-03-21 14:21:39",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    },
+    {
+      "userId": "330001",
+      "acao": "login_falhou",
+      "createdAt": "2026-03-21 14:06:24",
+      "role": "admin",
+      "tenantId": "60002",
+      "perfil": "gerente"
+    }
+  ],
+  "messages": [
+    "id\tname\temail\trole\tperfil\ttenantId\tativo\tempresaVinculada",
+    "330001\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tadmin\tgerente\t60002\t1\tNULL",
+    "510010\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tuser\tgerente\t1\t1\tNULL"
+  ],
+  "stdout": "userId\tacao\tcreatedAt\trole\ttenantId\tperfil\n330001\tlogin_falhou\t2026-03-21 17:00:01\tadmin\t60002\tgerente\n330001\tlogin_falhou\t2026-03-21 16:59:59\tadmin\t60002\tgerente\n330001\tlogin_falhou\t2026-03-21 16:58:15\tadmin\t60002\tgerente\n330001\tlogin\t2026-03-21 16:45:39\tadmin\t60002\tgerente\n330001\tlogin\t2026-03-21 14:35:24\tadmin\t60002\tgerente\n330001\tlogout\t2026-03-21 14:35:18\tadmin\t60002\tgerente\n330001\tlogin\t2026-03-21 14:22:18\tadmin\t60002\tgerente\n330001\tlogout\t2026-03-21 14:21:52\tadmin\t60002\tgerente\n330001\tlogin\t2026-03-21 14:21:39\tadmin\t60002\tgerente\n330001\tlogin_falhou\t2026-03-21 14:06:24\tadmin\t60002\tgerente\nid\tname\temail\trole\tperfil\ttenantId\tativo\tempresaVinculada\n330001\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tadmin\tgerente\t60002\t1\tNULL\n510010\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tuser\tgerente\t1\t1\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

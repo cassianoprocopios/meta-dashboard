@@ -1,0 +1,36 @@
+{
+  "query": "\n-- 1. Todos os cadastros com o email da Cintia\nSELECT id, name, email, role, perfil, empresaVinculada, tenantId, ativo\nFROM users\nWHERE email = 'cintia.mezanini@gmail.com';\n\n-- 2. Vínculos na tabela userEmpresas para TODOS os IDs encontrados\nSELECT ue.userId, ue.empresaSlug, ue.tenantId, u.name, u.email\nFROM userEmpresas ue\nJOIN users u ON u.id = ue.userId\nWHERE u.email = 'cintia.mezanini@gmail.com';\n\n-- 3. Empresas cadastradas no tenant da Cintia (tenantId=60002)\nSELECT id, nome, slug, cor, ativo, tenantId\nFROM empresas\nWHERE tenantId = 60002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- 1. Todos os cadastros com o email da Cintia\nSELECT id, name, email, role, perfil, empresaVinculada, tenantId, ativo\nFROM users\nWHERE email = 'cintia.mezanini@gmail.com';\n\n-- 2. Vínculos na tabela userEmpresas para TODOS os IDs encontrados\nSELECT ue.userId, ue.empresaSlug, ue.tenantId, u.name, u.email\nFROM userEmpresas ue\nJOIN users u ON u.id = ue.userId\nWHERE u.email = 'cintia.mezanini@gmail.com';\n\n-- 3. Empresas cadastradas no tenant da Cintia (tenantId=60002)\nSELECT id, nome, slug, cor, ativo, tenantId\nFROM empresas\nWHERE tenantId = 60002;\n",
+  "rows": [
+    {
+      "id": "330001",
+      "name": "Cintia Mezanini Kawano",
+      "email": "cintia.mezanini@gmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "empresaVinculada": "NULL",
+      "tenantId": "60002",
+      "ativo": "1"
+    },
+    {
+      "id": "510010",
+      "name": "Cintia Mezanini Kawano",
+      "email": "cintia.mezanini@gmail.com",
+      "role": "user",
+      "perfil": "gerente",
+      "empresaVinculada": "NULL",
+      "tenantId": "1",
+      "ativo": "1"
+    }
+  ],
+  "messages": [
+    "userId\tempresaSlug\ttenantId\tname\temail",
+    "330001\tMASCOTE\t60002\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com",
+    "510010\tMASCOTE\t1\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com",
+    "id\tnome\tslug\tcor\tativo\ttenantId",
+    "90002\tMascote\tMASCOTE\t#a855f7\t1\t60002"
+  ],
+  "stdout": "id\tname\temail\trole\tperfil\tempresaVinculada\ttenantId\tativo\n330001\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tadmin\tgerente\tNULL\t60002\t1\n510010\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tuser\tgerente\tNULL\t1\t1\nuserId\tempresaSlug\ttenantId\tname\temail\n330001\tMASCOTE\t60002\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\n510010\tMASCOTE\t1\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\nid\tnome\tslug\tcor\tativo\ttenantId\n90002\tMascote\tMASCOTE\t#a855f7\t1\t60002\n",
+  "stderr": "",
+  "execution_time_ms": 142
+}

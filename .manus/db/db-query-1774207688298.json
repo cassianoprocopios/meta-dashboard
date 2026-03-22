@@ -1,0 +1,19 @@
+{
+  "query": "\n-- Faturamentos de abril/2026 da Mascote no tenant 60002\nSELECT id, data, cat1, cat2, cat3, cat4, cat5, lancadoPor,\n       (cat1 + cat2 + cat3 + cat4 + cat5) AS total_dia\nFROM faturamentos\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01'\n  AND data <= '2026-04-30'\nORDER BY data;\n\n-- Meta de abril/2026 da Mascote no tenant 60002\nSELECT mes, ano, metaMensal, metaQuinzenal, diasUteis, diasUteisQuinzenal\nFROM metas\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND mes = 4\n  AND ano = 2026;\n\n-- Totais gerais de abril/2026\nSELECT\n  COUNT(*) AS dias_lancados,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5) AS total_faturado,\n  SUM(cat1) AS total_cat1,\n  SUM(cat2) AS total_cat2,\n  SUM(cat3) AS total_cat3,\n  SUM(cat4) AS total_cat4,\n  SUM(cat5) AS total_cat5\nFROM faturamentos\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01'\n  AND data <= '2026-04-30';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Faturamentos de abril/2026 da Mascote no tenant 60002\nSELECT id, data, cat1, cat2, cat3, cat4, cat5, lancadoPor,\n       (cat1 + cat2 + cat3 + cat4 + cat5) AS total_dia\nFROM faturamentos\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01'\n  AND data <= '2026-04-30'\nORDER BY data;\n\n-- Meta de abril/2026 da Mascote no tenant 60002\nSELECT mes, ano, metaMensal, metaQuinzenal, diasUteis, diasUteisQuinzenal\nFROM metas\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND mes = 4\n  AND ano = 2026;\n\n-- Totais gerais de abril/2026\nSELECT\n  COUNT(*) AS dias_lancados,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5) AS total_faturado,\n  SUM(cat1) AS total_cat1,\n  SUM(cat2) AS total_cat2,\n  SUM(cat3) AS total_cat3,\n  SUM(cat4) AS total_cat4,\n  SUM(cat5) AS total_cat5\nFROM faturamentos\nWHERE tenantId = 60002\n  AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01'\n  AND data <= '2026-04-30';\n",
+  "rows": [
+    {
+      "dias_lancados": "0",
+      "total_faturado": "NULL",
+      "total_cat1": "NULL",
+      "total_cat2": "NULL",
+      "total_cat3": "NULL",
+      "total_cat4": "NULL",
+      "total_cat5": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "dias_lancados\ttotal_faturado\ttotal_cat1\ttotal_cat2\ttotal_cat3\ttotal_cat4\ttotal_cat5\n0\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

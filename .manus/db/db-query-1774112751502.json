@@ -1,0 +1,19 @@
+{
+  "query": "\n-- Verificar status do tenant da Cintia\nSELECT id, nome, slug, plano, ativo, validadeAte, adminEmail\nFROM tenants\nWHERE id = 60002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar status do tenant da Cintia\nSELECT id, nome, slug, plano, ativo, validadeAte, adminEmail\nFROM tenants\nWHERE id = 60002;\n",
+  "rows": [
+    {
+      "id": "60002",
+      "nome": "Barbiero Mascote ",
+      "slug": "barbiero-mascote",
+      "plano": "trial",
+      "ativo": "1",
+      "validadeAte": "NULL",
+      "adminEmail": "cintia.mezanini@gmail.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tslug\tplano\tativo\tvalidadeAte\tadminEmail\n60002\tBarbiero Mascote \tbarbiero-mascote\ttrial\t1\tNULL\tcintia.mezanini@gmail.com\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

@@ -331,3 +331,17 @@
 - [x] Legenda visual e contador de resultados filtrados
 - [x] Integrado como aba "Vínculos" no AdminPanel (entre Usuários e Histórico)
 - [x] 21 testes passando, TypeScript sem erros
+
+## Correção Visibilidade Cintia (Mar 2026)
+
+- [x] Corrigir visibilidade da Mascote para cintia.mezanini@gmail.com — problema era senha incorreta (3 tentativas falhadas). Senha redefinida para 123456. Vínculo e empresa Mascote no tenant 60002 estavam corretos.
+
+## Exclusões e Correção Mascote (Mar 2026)
+
+- [x] Excluir Marcelo Wanderley Filho (id=600001) e todos os seus registros
+- [x] Excluir cassik88@hotmail.com (ids 540179 e 570434) e tenant 120002 em cascata
+- [x] Copiar 27 faturamentos e 1 meta da Mascote (tenant 1) para o tenant 60002 da Cintia
+
+## Correção Meta Diária (Mar 2026)
+
+- [x] Corrigir cálculo da meta diária para considerar apenas dias passados até hoje — progressoMensal agora compara total vs metaEsperadaAteHoje (proporcional ao dia atual), barra mostra dias decorridos/total

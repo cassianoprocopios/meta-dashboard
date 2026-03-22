@@ -1,0 +1,18 @@
+{
+  "query": "\n-- Quais meses/anos têm faturamentos no tenant 60002\nSELECT MONTH(data) as mes, YEAR(data) as ano, COUNT(*) as dias\nFROM faturamentos\nWHERE tenantId = 60002 AND empresaSlug = 'MASCOTE'\nGROUP BY YEAR(data), MONTH(data)\nORDER BY ano, mes;\n\n-- Meta de abril/2026 no tenant 1\nSELECT mes, ano, metaMensal, metaQuinzenal, diasUteis, diasUteisQuinzenal\nFROM metas\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE' AND mes = 4 AND ano = 2026;\n\n-- Faturamentos de abril/2026 no tenant 1 (Mascote)\nSELECT COUNT(*) as dias_lancados, SUM(cat1+cat2+cat3+cat4+cat5) as total\nFROM faturamentos\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01' AND data <= '2026-04-30';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Quais meses/anos têm faturamentos no tenant 60002\nSELECT MONTH(data) as mes, YEAR(data) as ano, COUNT(*) as dias\nFROM faturamentos\nWHERE tenantId = 60002 AND empresaSlug = 'MASCOTE'\nGROUP BY YEAR(data), MONTH(data)\nORDER BY ano, mes;\n\n-- Meta de abril/2026 no tenant 1\nSELECT mes, ano, metaMensal, metaQuinzenal, diasUteis, diasUteisQuinzenal\nFROM metas\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE' AND mes = 4 AND ano = 2026;\n\n-- Faturamentos de abril/2026 no tenant 1 (Mascote)\nSELECT COUNT(*) as dias_lancados, SUM(cat1+cat2+cat3+cat4+cat5) as total\nFROM faturamentos\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE'\n  AND data >= '2026-04-01' AND data <= '2026-04-30';\n",
+  "rows": [
+    {
+      "mes": "3",
+      "ano": "2026",
+      "dias": "27"
+    }
+  ],
+  "messages": [
+    "dias_lancados\ttotal",
+    "0\tNULL"
+  ],
+  "stdout": "mes\tano\tdias\n3\t2026\t27\ndias_lancados\ttotal\n0\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 79
+}

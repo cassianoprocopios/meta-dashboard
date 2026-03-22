@@ -1,0 +1,21 @@
+{
+  "query": "\n-- Logs de acesso dos três usuários\nSELECT userId, COUNT(*) as total FROM accessLogs WHERE userId IN (540179, 570434, 600001) GROUP BY userId;\n\n-- Vínculos de empresas\nSELECT userId, COUNT(*) as total FROM userEmpresas WHERE userId IN (540179, 570434, 600001) GROUP BY userId;\n\n-- Tenant do cassik88 (120002)\nSELECT id, nome, slug, plano, ativo, adminEmail FROM tenants WHERE id = 120002;\n\n-- Empresas e faturamentos do tenant 120002\nSELECT COUNT(*) as empresas FROM empresas WHERE tenantId = 120002;\nSELECT COUNT(*) as faturamentos FROM faturamentos WHERE tenantId = 120002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Logs de acesso dos três usuários\nSELECT userId, COUNT(*) as total FROM accessLogs WHERE userId IN (540179, 570434, 600001) GROUP BY userId;\n\n-- Vínculos de empresas\nSELECT userId, COUNT(*) as total FROM userEmpresas WHERE userId IN (540179, 570434, 600001) GROUP BY userId;\n\n-- Tenant do cassik88 (120002)\nSELECT id, nome, slug, plano, ativo, adminEmail FROM tenants WHERE id = 120002;\n\n-- Empresas e faturamentos do tenant 120002\nSELECT COUNT(*) as empresas FROM empresas WHERE tenantId = 120002;\nSELECT COUNT(*) as faturamentos FROM faturamentos WHERE tenantId = 120002;\n",
+  "rows": [
+    {
+      "userId": "540179",
+      "total": "1"
+    }
+  ],
+  "messages": [
+    "id\tnome\tslug\tplano\tativo\tadminEmail",
+    "120002\tBarbearia teste\tbarbearia-teste\ttrial\t1\tcassik88@hotmail.com",
+    "empresas",
+    "0",
+    "faturamentos",
+    "0"
+  ],
+  "stdout": "userId\ttotal\n540179\t1\nid\tnome\tslug\tplano\tativo\tadminEmail\n120002\tBarbearia teste\tbarbearia-teste\ttrial\t1\tcassik88@hotmail.com\nempresas\n0\nfaturamentos\n0\n",
+  "stderr": "",
+  "execution_time_ms": 87
+}

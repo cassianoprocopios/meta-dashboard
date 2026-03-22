@@ -1,0 +1,31 @@
+{
+  "query": "\n-- Faturamentos da Mascote no tenant 60002\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 60002;\n\n-- Metas da Mascote no tenant 60002\nSELECT COUNT(*) as total_metas FROM metas WHERE tenantId = 60002;\n\n-- Empresa Mascote no tenant 60002\nSELECT id, slug, nome, cor, ativo, tipoCategorias FROM empresas WHERE tenantId = 60002;\n\n-- Faturamentos da Mascote no tenant 1 (para comparar estrutura)\nSELECT COUNT(*) as fat_tenant1_mascote FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 5;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Faturamentos da Mascote no tenant 60002\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 60002;\n\n-- Metas da Mascote no tenant 60002\nSELECT COUNT(*) as total_metas FROM metas WHERE tenantId = 60002;\n\n-- Empresa Mascote no tenant 60002\nSELECT id, slug, nome, cor, ativo, tipoCategorias FROM empresas WHERE tenantId = 60002;\n\n-- Faturamentos da Mascote no tenant 1 (para comparar estrutura)\nSELECT COUNT(*) as fat_tenant1_mascote FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 5;\n",
+  "rows": [
+    {
+      "total_faturamentos": "0"
+    },
+    {
+      "total_faturamentos": "total_metas"
+    },
+    {
+      "total_faturamentos": "0"
+    },
+    {
+      "total_faturamentos": "id\tslug\tnome\tcor\tativo\ttipoCategorias"
+    },
+    {
+      "total_faturamentos": "90002\tMASCOTE\tMascote\t#a855f7\t1\tpadrao"
+    },
+    {
+      "total_faturamentos": "fat_tenant1_mascote"
+    },
+    {
+      "total_faturamentos": "27"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_faturamentos\n0\ntotal_metas\n0\nid\tslug\tnome\tcor\tativo\ttipoCategorias\n90002\tMASCOTE\tMascote\t#a855f7\t1\tpadrao\nfat_tenant1_mascote\n27\n",
+  "stderr": "",
+  "execution_time_ms": 77
+}

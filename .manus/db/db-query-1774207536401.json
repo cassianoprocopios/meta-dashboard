@@ -1,0 +1,19 @@
+{
+  "query": "\n-- Copiar faturamentos da Mascote (tenant 1 → tenant 60002)\nINSERT INTO faturamentos (empresaSlug, data, cat1, cat2, cat3, cat4, cat5, observacao, lancadoPor, createdAt, updatedAt, tenantId)\nSELECT empresaSlug, data, cat1, cat2, cat3, cat4, cat5, observacao, lancadoPor, createdAt, updatedAt, 60002\nFROM faturamentos\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n\n-- Copiar metas da Mascote (tenant 1 → tenant 60002)\nINSERT INTO metas (empresa, mes, ano, metaMensal, metaQuinzenal, createdAt, updatedAt, diasUteis, diasUteisQuinzenal, empresaSlug, tenantId)\nSELECT empresa, mes, ano, metaMensal, metaQuinzenal, createdAt, updatedAt, diasUteis, diasUteisQuinzenal, empresaSlug, 60002\nFROM metas\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n\n-- Verificar resultado\nSELECT COUNT(*) as faturamentos_copiados FROM faturamentos WHERE tenantId = 60002;\nSELECT COUNT(*) as metas_copiadas FROM metas WHERE tenantId = 60002;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Copiar faturamentos da Mascote (tenant 1 → tenant 60002)\nINSERT INTO faturamentos (empresaSlug, data, cat1, cat2, cat3, cat4, cat5, observacao, lancadoPor, createdAt, updatedAt, tenantId)\nSELECT empresaSlug, data, cat1, cat2, cat3, cat4, cat5, observacao, lancadoPor, createdAt, updatedAt, 60002\nFROM faturamentos\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n\n-- Copiar metas da Mascote (tenant 1 → tenant 60002)\nINSERT INTO metas (empresa, mes, ano, metaMensal, metaQuinzenal, createdAt, updatedAt, diasUteis, diasUteisQuinzenal, empresaSlug, tenantId)\nSELECT empresa, mes, ano, metaMensal, metaQuinzenal, createdAt, updatedAt, diasUteis, diasUteisQuinzenal, empresaSlug, 60002\nFROM metas\nWHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n\n-- Verificar resultado\nSELECT COUNT(*) as faturamentos_copiados FROM faturamentos WHERE tenantId = 60002;\nSELECT COUNT(*) as metas_copiadas FROM metas WHERE tenantId = 60002;\n",
+  "rows": [
+    {
+      "faturamentos_copiados": "27"
+    },
+    {
+      "faturamentos_copiados": "metas_copiadas"
+    },
+    {
+      "faturamentos_copiados": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "faturamentos_copiados\n27\nmetas_copiadas\n1\n",
+  "stderr": "",
+  "execution_time_ms": 107
+}

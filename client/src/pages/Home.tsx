@@ -139,6 +139,14 @@ export default function Home() {
 
   // Calcular totais por empresa
   const statsPorEmpresa = useMemo(() => {
+    // Dia atual do mês (para calcular dias decorridos até hoje)
+    const hoje = new Date();
+    const diaHoje = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear()
+      ? hoje.getDate()
+      : new Date(ano, mes, 0).getDate(); // se mês passado, usa último dia do mês
+    const ehPrimeiraQuinzena = diaHoje <= 15;
+    const diaHojeQuinzenal = Math.min(diaHoje, 15); // cap em 15 para quinzenal
+
     return empresasVisiveis.map((emp) => {
       const rows = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
       const total = rows.reduce((s: number, r: any) => {
@@ -153,8 +161,20 @@ export default function Home() {
       const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
       const diasUteis = meta?.diasUteis ?? 26;
       const diasUteisQuinzenal = meta?.diasUteisQuinzenal ?? 13;
+
+      // Meta diária fixa: divide pelo total de dias úteis do mês
       const metaDiariaMensal = diasUteis > 0 ? metaMensal / diasUteis : 0;
       const metaDiariaQuinzenal = diasUteisQuinzenal > 0 ? metaQuinzenal / diasUteisQuinzenal : 0;
+
+      // Dias úteis decorridos até hoje (proporcional ao dia atual do mês)
+      // Usa a proporção: diasUteisDecorridos = diasUteis * (diaHoje / totalDiasMes)
+      const totalDiasMes = new Date(ano, mes, 0).getDate();
+      const diasUteisDecorridos = Math.round(diasUteis * (diaHoje / totalDiasMes));
+      const diasUteisDecrridosQuinzenal = Math.round(diasUteisQuinzenal * (diaHojeQuinzenal / 15));
+
+      // Meta acumulada esperada até hoje (apenas dias passados)
+      const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
+      const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
       // Dias úteis restantes no mês
       const rowsQuinzenal = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
@@ -162,8 +182,8 @@ export default function Home() {
       const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
 
-      const diasUteisRestantes = Math.max(0, diasUteis - diasLancados);
-      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasLancadosQuinzenal);
+      const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
+      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
 
       // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
       const faltaMensal = Math.max(0, metaMensal - total);
@@ -202,11 +222,15 @@ export default function Home() {
         metaDiariaDinamicaQuinzenal,
         diasUteis,
         diasUteisQuinzenal,
+        diasUteisDecorridos,
         diasUteisRestantes,
         diasUteisRestantesQuinzenal,
+        metaEsperadaAteHoje,
+        metaEsperadaQuinzenalAteHoje,
         projecaoFinal,
-        progressoMensal: metaMensal > 0 ? Math.min((total / metaMensal) * 100, 100) : 0,
-        progressoQuinzenal: metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0,
+        // Progresso real vs meta esperada até hoje (não vs meta total do mês)
+        progressoMensal: metaEsperadaAteHoje > 0 ? Math.min((total / metaEsperadaAteHoje) * 100, 150) : (metaMensal > 0 ? Math.min((total / metaMensal) * 100, 100) : 0),
+        progressoQuinzenal: metaEsperadaQuinzenalAteHoje > 0 ? Math.min((totalQuinzenal / metaEsperadaQuinzenalAteHoje) * 100, 150) : (metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0),
         catTotals,
         rows,
       };
@@ -629,12 +653,20 @@ export default function Home() {
                   {s.metaMensal > 0 && (
                     <div className="mb-3">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-500 font-medium">Meta Mensal: {fmt(s.metaMensal)}</span>
+                        <span className="text-slate-500 font-medium">
+                          Meta Mensal: {fmt(s.metaMensal)}
+                          {s.metaEsperadaAteHoje > 0 && s.metaEsperadaAteHoje < s.metaMensal && (
+                            <span className="text-slate-400 ml-1">(esperado até hoje: {fmt(s.metaEsperadaAteHoje)})</span>
+                          )}
+                        </span>
                         <span className="font-bold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
                       </div>
                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${s.progressoMensal}%`, backgroundColor: s.emp.cor }} />
+                        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(s.progressoMensal, 100)}%`, backgroundColor: s.emp.cor }} />
                       </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {s.diasUteisDecorridos} de {s.diasUteis} dias úteis decorridos
+                      </p>
                     </div>
                   )}
 

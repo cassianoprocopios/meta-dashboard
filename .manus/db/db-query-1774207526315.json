@@ -1,0 +1,62 @@
+{
+  "query": "\n-- Estrutura de um faturamento da Mascote\nSELECT * FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 3;\n\n-- Estrutura de uma meta da Mascote\nSELECT * FROM metas WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 3;\n\n-- Total de registros a copiar\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\nSELECT COUNT(*) as total_metas FROM metas WHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Estrutura de um faturamento da Mascote\nSELECT * FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 3;\n\n-- Estrutura de uma meta da Mascote\nSELECT * FROM metas WHERE tenantId = 1 AND empresaSlug = 'MASCOTE' LIMIT 3;\n\n-- Total de registros a copiar\nSELECT COUNT(*) as total_faturamentos FROM faturamentos WHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\nSELECT COUNT(*) as total_metas FROM metas WHERE tenantId = 1 AND empresaSlug = 'MASCOTE';\n",
+  "rows": [
+    {
+      "id": "8",
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-03",
+      "cat1": "465.00",
+      "cat2": "14.00",
+      "cat3": "246.20",
+      "cat4": "157.60",
+      "cat5": "1694.41",
+      "observacao": "NULL",
+      "lancadoPor": "Cintia Mezanini Kawano",
+      "createdAt": "2026-03-19 23:31:35",
+      "updatedAt": "2026-03-20 20:10:06",
+      "tenantId": "1"
+    },
+    {
+      "id": "11",
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-05",
+      "cat1": "244.00",
+      "cat2": "174.22",
+      "cat3": "205.00",
+      "cat4": "394.00",
+      "cat5": "2410.93",
+      "observacao": "NULL",
+      "lancadoPor": "Cintia Mezanini Kawano",
+      "createdAt": "2026-03-19 23:33:19",
+      "updatedAt": "2026-03-20 22:23:50",
+      "tenantId": "1"
+    },
+    {
+      "id": "14",
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-04",
+      "cat1": "1058.00",
+      "cat2": "210.81",
+      "cat3": "312.70",
+      "cat4": "92.00",
+      "cat5": "1782.80",
+      "observacao": "NULL",
+      "lancadoPor": "Cintia Mezanini Kawano",
+      "createdAt": "2026-03-19 23:34:23",
+      "updatedAt": "2026-03-20 22:24:37",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [
+    "id\tempresa\tmes\tano\tmetaMensal\tmetaQuinzenal\tcreatedAt\tupdatedAt\tdiasUteis\tdiasUteisQuinzenal\tempresaSlug\ttenantId",
+    "2\tMASCOTE\t3\t2026\t100000.00\t50000.00\t2026-03-19 22:57:35\t2026-03-20 05:27:19\t26\t12\tMASCOTE\t1",
+    "total_faturamentos",
+    "27",
+    "total_metas",
+    "1"
+  ],
+  "stdout": "id\tempresaSlug\tdata\tcat1\tcat2\tcat3\tcat4\tcat5\tobservacao\tlancadoPor\tcreatedAt\tupdatedAt\ttenantId\n8\tMASCOTE\t2026-03-03\t465.00\t14.00\t246.20\t157.60\t1694.41\tNULL\tCintia Mezanini Kawano\t2026-03-19 23:31:35\t2026-03-20 20:10:06\t1\n11\tMASCOTE\t2026-03-05\t244.00\t174.22\t205.00\t394.00\t2410.93\tNULL\tCintia Mezanini Kawano\t2026-03-19 23:33:19\t2026-03-20 22:23:50\t1\n14\tMASCOTE\t2026-03-04\t1058.00\t210.81\t312.70\t92.00\t1782.80\tNULL\tCintia Mezanini Kawano\t2026-03-19 23:34:23\t2026-03-20 22:24:37\t1\nid\tempresa\tmes\tano\tmetaMensal\tmetaQuinzenal\tcreatedAt\tupdatedAt\tdiasUteis\tdiasUteisQuinzenal\tempresaSlug\ttenantId\n2\tMASCOTE\t3\t2026\t100000.00\t50000.00\t2026-03-19 22:57:35\t2026-03-20 05:27:19\t26\t12\tMASCOTE\t1\ntotal_faturamentos\n27\ntotal_metas\n1\n",
+  "stderr": "",
+  "execution_time_ms": 78
+}
