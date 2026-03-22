@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Save, Building2 } from "lucide-react";
+import { Save, Building2, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 
 interface EmpresaData {
@@ -32,6 +32,15 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   const hoje = new Date();
   const defaultEmpresa = empresaVinculada ?? (empresas[0]?.slug ?? "");
   const defaultData = toDateStr(ano, mes, hoje.getDate());
+
+  // Detecta se a data selecionada é futura (posterior ao dia de hoje)
+  const isDataFutura = (dateStr: string): boolean => {
+    if (!dateStr) return false;
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const selecionada = new Date(y, m - 1, d);
+    const hojeNormalizado = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    return selecionada > hojeNormalizado;
+  };
 
   const [empresaSlug, setEmpresaSlug] = useState<string>(
     initialData?.empresaSlug ?? defaultEmpresa
@@ -164,8 +173,26 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
           onChange={(e) => setData(e.target.value)}
           min={toDateStr(ano, mes, 1)}
           max={toDateStr(ano, mes, new Date(ano, mes, 0).getDate())}
-          className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
+            isDataFutura(data)
+              ? "border-amber-400 bg-amber-50 focus:ring-amber-400 text-amber-900"
+              : "border-slate-200 focus:ring-blue-500"
+          }`}
         />
+
+        {/* Aviso de data futura */}
+        {isDataFutura(data) && (
+          <div className="mt-2 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-amber-800">Data futura — lançamento previsto</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Este lançamento será salvo como <strong>previsto</strong> e não afetará os cálculos
+                de média diária, maior e menor dia até que a data seja atingida.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Categorias */}
@@ -232,10 +259,14 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         <Button
           onClick={handleSave}
           disabled={salvar.isPending}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2"
+          className={`flex-1 text-white rounded-xl gap-2 ${
+            isDataFutura(data)
+              ? "bg-amber-500 hover:bg-amber-600"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          <Save className="w-4 h-4" />
-          {salvar.isPending ? "Salvando..." : "Salvar Lançamento"}
+          {isDataFutura(data) ? <CalendarClock className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {salvar.isPending ? "Salvando..." : isDataFutura(data) ? "Salvar como Previsto" : "Salvar Lançamento"}
         </Button>
         <Button variant="outline" onClick={onCancel} className="rounded-xl">
           Cancelar
