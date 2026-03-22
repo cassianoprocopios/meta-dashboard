@@ -713,31 +713,48 @@ export default function Home() {
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Progresso Geral</p>
                 <p className="text-2xl font-bold mt-1 text-slate-900">
-                  {metaTotalGeral > 0 ? `${pct(totalGeral, metaTotalGeral)}%` : "—"}
+                  {metaTotalGeral > 0 ? `${pct(totalGeralRealizado, metaTotalGeral)}%` : "—"}
                 </p>
                 {metaTotalGeral > 0 && (
-                  <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${Math.min(pct(totalGeral, metaTotalGeral), 100)}%`,
-                        backgroundColor: pct(totalGeral, metaTotalGeral) >= 100 ? "#10b981" : "#3b82f6",
-                      }}
-                    />
-                  </div>
+                  <>
+                    {/* Barra de progresso: realizado (azul/verde) */}
+                    <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(pct(totalGeralRealizado, metaTotalGeral), 100)}%`,
+                          backgroundColor: pct(totalGeralRealizado, metaTotalGeral) >= 100 ? "#10b981" : "#3b82f6",
+                        }}
+                      />
+                    </div>
+                    {/* Barra secundária: previsto (só aparece quando há previstos) */}
+                    {totalGeralPrevisto > 0 && (
+                      <div className="mt-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all bg-amber-300"
+                          style={{ width: `${Math.min(pct(totalGeral, metaTotalGeral), 100)}%` }}
+                        />
+                      </div>
+                    )}
+                    {totalGeralPrevisto > 0 && (
+                      <p className="text-xs text-amber-500 mt-1">
+                        {pct(totalGeral, metaTotalGeral)}% com previstos
+                      </p>
+                    )}
+                  </>
                 )}
               </Card>
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Falta para Meta</p>
-                <p className={`text-2xl font-bold mt-1 ${totalGeral >= metaTotalGeral ? "text-emerald-600" : "text-slate-900"}`}>
+                <p className={`text-2xl font-bold mt-1 ${totalGeralRealizado >= metaTotalGeral ? "text-emerald-600" : "text-slate-900"}`}>
                   {metaTotalGeral > 0
-                    ? totalGeral >= metaTotalGeral
+                    ? totalGeralRealizado >= metaTotalGeral
                       ? "Atingida!"
-                      : fmt(metaTotalGeral - totalGeral)
+                      : fmt(metaTotalGeral - totalGeralRealizado)
                     : "—"}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {metaTotalGeral > 0 && totalGeral < metaTotalGeral ? "restante" : ""}
+                  {metaTotalGeral > 0 && totalGeralRealizado < metaTotalGeral ? "restante (realizado)" : ""}
                 </p>
               </Card>
             </div>
