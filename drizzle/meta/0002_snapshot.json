@@ -83,6 +83,14 @@
           "autoincrement": false,
           "onUpdate": true,
           "default": "(now())"
+        },
+        "totalPrevisto": {
+          "name": "totalPrevisto",
+          "type": "decimal(12,2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null,
+          "autoincrement": false
         }
       },
       "indexes": {},

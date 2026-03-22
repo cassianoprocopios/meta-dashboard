@@ -437,7 +437,21 @@ export async function upsertFaturamento(input: InsertFaturamento) {
     input.tenantId as number
   );
   if (existing) {
-    await db.update(faturamentos).set({
+    // Não sobrescreve totalPrevisto: preserva o valor original da previsão.
+    // Se ainda não tinha totalPrevisto (lançamento antigo) e o dia ainda é futuro,
+    // preenche agora para garantir rastreabilidade.
+    const novoTotal = [
+      parseFloat(input.cat1 as string || "0"),
+      parseFloat(input.cat2 as string || "0"),
+      parseFloat(input.cat3 as string || "0"),
+      parseFloat(input.cat4 as string || "0"),
+      parseFloat(input.cat5 as string || "0"),
+    ].reduce((a, b) => a + b, 0);
+    const hoje = new Date();
+    const [ano, mes, dia] = (input.data as string).split("-").map(Number);
+    const dataLancamento = new Date(ano, mes - 1, dia);
+    const isFuturo = dataLancamento > hoje;
+    const setObj: Record<string, any> = {
       cat1: input.cat1,
       cat2: input.cat2,
       cat3: input.cat3,
@@ -445,11 +459,32 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat5: input.cat5,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
-    }).where(eq(faturamentos.id, existing.id));
+    };
+    // Preenche totalPrevisto apenas se ainda não existia e o dia é futuro
+    if (existing.totalPrevisto === null && isFuturo) {
+      setObj.totalPrevisto = novoTotal.toFixed(2);
+    }
+    await db.update(faturamentos).set(setObj).where(eq(faturamentos.id, existing.id));
     return { ...existing, ...input, id: existing.id };
   } else {
-    const result = await db.insert(faturamentos).values(input);
-    return { ...input, id: (result as any).insertId };
+    // Ao criar, se o dia for futuro, registra o totalPrevisto
+    const hoje = new Date();
+    const [ano, mes, dia] = (input.data as string).split("-").map(Number);
+    const dataLancamento = new Date(ano, mes - 1, dia);
+    const isFuturo = dataLancamento > hoje;
+    const total = [
+      parseFloat(input.cat1 as string || "0"),
+      parseFloat(input.cat2 as string || "0"),
+      parseFloat(input.cat3 as string || "0"),
+      parseFloat(input.cat4 as string || "0"),
+      parseFloat(input.cat5 as string || "0"),
+    ].reduce((a, b) => a + b, 0);
+    const insertData = {
+      ...input,
+      totalPrevisto: isFuturo ? total.toFixed(2) : null,
+    };
+    const result = await db.insert(faturamentos).values(insertData);
+    return { ...insertData, id: (result as any).insertId };
   }
 }
 

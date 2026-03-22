@@ -154,6 +154,9 @@ export const faturamentos = mysqlTable("faturamentos", {
   cat5: decimal("cat5", { precision: 12, scale: 2 }).notNull().default("0"),
   observacao: text("observacao"),
   lancadoPor: varchar("lancadoPor", { length: 128 }),
+  // Valor total registrado quando o lançamento era previsto (dia futuro).
+  // Preenchido automaticamente ao criar; não atualizado nas edições posteriores.
+  totalPrevisto: decimal("totalPrevisto", { precision: 12, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

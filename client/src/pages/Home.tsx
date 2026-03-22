@@ -413,56 +413,68 @@ export default function Home() {
       ? hoje.getDate()
       : new Date(ano, mes, 0).getDate();
 
-    // Para cada empresa, encontrar dias que foram lançados ANTES da data (previsto)
-    // e que já passaram (dia <= diaHoje). Critério: createdAt < data do lançamento.
+    // Identifica dias que foram lançados como previstos e já passaram.
+    // Prioridade 1: campo totalPrevisto (novo — valor exato na criação).
+    // Prioridade 2: createdAt < data do lançamento (retrocompatibilidade).
     const porEmpresa: Record<string, {
       diasAnalisados: number;
       somaErroPct: number;
-      detalhes: Array<{ dia: number; valorPrevisto: number; valorRealizado: number; erroPct: number }>;
+      detalhes: Array<{ dia: number; valorPrevisto: number; valorRealizado: number; erroPct: number; fonte: "campo" | "createdAt" }>;
       acuraciaMedia: number;
     }> = {};
 
     empresasVisiveis.forEach((emp) => {
       const rows = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
-      const detalhes: Array<{ dia: number; valorPrevisto: number; valorRealizado: number; erroPct: number }> = [];
+      const detalhes: Array<{ dia: number; valorPrevisto: number; valorRealizado: number; erroPct: number; fonte: "campo" | "createdAt" }> = [];
 
       rows.forEach((row: any) => {
         const dia = parseInt(row.data.split("-")[2]);
         // Considerar apenas dias que já passaram
         if (dia > diaHoje) return;
 
-        // Verificar se foi lançado antes da data (previsto antecipado)
-        // createdAt é um Date (superjson preserva)
-        const createdAtDate = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt);
-        const dataLancamento = new Date(ano, mes - 1, dia);
-        const foiPrevisto = createdAtDate < dataLancamento;
-
-        if (!foiPrevisto) return;
-
-        // O valor atual é o "realizado" (pode ter sido editado após a data)
-        // O "previsto" seria o valor na criação — como não temos histórico,
-        // usamos o valor atual como realizado e a média diária do mês anterior
-        // como proxy do previsto (se disponível), ou o próprio valor (0% de erro).
-        // Abordagem simplificada: registrar o dia como "previsto confirmado" com
-        // o valor atual, e comparar com a média do mês anterior para esse dia.
         const valorRealizado = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5]
           .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
 
-        // Buscar valor do mesmo dia no mês anterior como "previsto de referência"
-        const rowAnterior = faturamentosAnteriorData.find(
-          (f: any) => f.empresaSlug === emp.slug && parseInt(f.data.split("-")[2]) === dia
-        );
-        const valorPrevisto = rowAnterior
-          ? [rowAnterior.cat1, rowAnterior.cat2, rowAnterior.cat3, rowAnterior.cat4, rowAnterior.cat5]
-              .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0)
-          : valorRealizado; // sem referência = erro 0%
+        let valorPrevisto: number | null = null;
+        let fonte: "campo" | "createdAt" = "campo";
 
+        // Prioridade 1: campo totalPrevisto (preenchido automaticamente ao criar previsto)
+        if (row.totalPrevisto !== null && row.totalPrevisto !== undefined) {
+          valorPrevisto = parseFloat(row.totalPrevisto);
+          fonte = "campo";
+        } else {
+          // Prioridade 2: createdAt < data do lançamento (retrocompatibilidade)
+          const createdAtDate = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt);
+          const dataLancamento = new Date(ano, mes - 1, dia);
+          // Usar apenas a data (sem hora) para comparar
+          const createdDay = new Date(createdAtDate.getFullYear(), createdAtDate.getMonth(), createdAtDate.getDate());
+          const lancDay = new Date(dataLancamento.getFullYear(), dataLancamento.getMonth(), dataLancamento.getDate());
+          if (createdDay < lancDay) {
+            // Foi lançado antes do dia — usa o valor atual como proxy do previsto
+            // e compara com o mês anterior para estimar o erro
+            const rowAnterior = faturamentosAnteriorData.find(
+              (f: any) => f.empresaSlug === emp.slug && parseInt(f.data.split("-")[2]) === dia
+            );
+            if (rowAnterior) {
+              // Usa mês anterior como referência de "o que seria esperado"
+              valorPrevisto = [rowAnterior.cat1, rowAnterior.cat2, rowAnterior.cat3, rowAnterior.cat4, rowAnterior.cat5]
+                .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
+            } else {
+              // Sem referência: assume 0% de erro (não penaliza)
+              valorPrevisto = valorRealizado;
+            }
+            fonte = "createdAt";
+          }
+        }
+
+        if (valorPrevisto === null) return; // não foi previsto
         if (valorPrevisto === 0 && valorRealizado === 0) return;
+
         const erroPct = valorPrevisto > 0
           ? Math.abs((valorRealizado - valorPrevisto) / valorPrevisto) * 100
-          : 100;
+          : valorRealizado > 0 ? 100 : 0;
 
-        detalhes.push({ dia, valorPrevisto, valorRealizado, erroPct });
+        detalhes.push({ dia, valorPrevisto, valorRealizado, erroPct, fonte });
       });
 
       const diasAnalisados = detalhes.length;
@@ -474,7 +486,7 @@ export default function Home() {
       porEmpresa[emp.slug] = { diasAnalisados, somaErroPct, detalhes, acuraciaMedia };
     });
 
-    // Acurácia global (média ponderada)
+    // Acuácia global (média ponderada)
     const totalDias = Object.values(porEmpresa).reduce((s, e) => s + e.diasAnalisados, 0);
     const somaErroGlobal = Object.values(porEmpresa).reduce((s, e) => s + e.somaErroPct, 0);
     const acuraciaGlobal = totalDias > 0 ? Math.max(0, 100 - somaErroGlobal / totalDias) : null;
@@ -1296,19 +1308,22 @@ export default function Home() {
                         {/* Detalhes dos dias */}
                         <div className="mt-1.5 space-y-1">
                           {ac.detalhes.map((d) => (
-                            <div key={d.dia} className="flex items-center gap-2 text-xs text-slate-500">
-                              <span className="w-12 text-slate-400">Dia {d.dia}</span>
-                              <span className="flex-1">
-                                Prev: <span className="font-medium text-slate-600">{fmt(d.valorPrevisto)}</span>
+                            <div key={d.dia} className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span className="w-12 text-muted-foreground/70 flex-shrink-0">Dia {d.dia}</span>
+                              <span className="flex-1 min-w-0">
+                                Prev: <span className="font-medium text-foreground/80">{fmt(d.valorPrevisto)}</span>
                                 {" → "}
-                                Real: <span className="font-medium text-slate-800">{fmt(d.valorRealizado)}</span>
+                                Real: <span className="font-medium text-foreground">{fmt(d.valorRealizado)}</span>
+                                {(d as any).fonte === "createdAt" && (
+                                  <span className="ml-1 text-[10px] text-amber-500/80">(est.)</span>
+                                )}
                               </span>
-                              <span className={`font-semibold ${
-                                d.erroPct <= 15 ? "text-emerald-600"
-                                : d.erroPct <= 30 ? "text-amber-500"
+                              <span className={`font-semibold flex-shrink-0 ${
+                                d.erroPct <= 10 ? "text-emerald-500"
+                                : d.erroPct <= 25 ? "text-amber-500"
                                 : "text-red-500"
                               }`}>
-                                {d.erroPct <= 0.5 ? "perfeito" : `${d.erroPct.toFixed(1)}% desvio`}
+                                {d.erroPct <= 0.5 ? "✓ exato" : `${d.erroPct.toFixed(1)}%`}
                               </span>
                             </div>
                           ))}
