@@ -1284,7 +1284,7 @@ export default function Home() {
                 </div>
 
                 {/* Barras por empresa */}
-                <div className="space-y-3 mt-6">
+                <div className="space-y-4 mt-6">
                   {statsPorEmpresa.map((s) => {
                     if (s.metaMensal === 0) return null;
                     const pctReal = Math.min((s.totalRealizado / s.metaMensal) * 100, 100);
@@ -1296,6 +1296,12 @@ export default function Home() {
                       ? Math.min((metaEsperada / s.metaMensal) * 100, 100)
                       : null;
                     const atingiu = s.totalRealizado >= s.metaMensal;
+                    // Projeção de fechamento: já calculada em statsPorEmpresa como projecaoFinal
+                    const projecao = s.projecaoFinal;
+                    const pctProjecao = projecao > 0 && s.metaMensal > 0
+                      ? Math.min((projecao / s.metaMensal) * 100, 120) // permite ultrapassar até 120% para visualização
+                      : null;
+                    const projecaoAtingeMeta = projecao >= s.metaMensal;
                     return (
                       <div key={s.emp.slug}>
                         <div className="flex items-center justify-between mb-1">
@@ -1338,15 +1344,37 @@ export default function Home() {
                             }}
                           />
                         </div>
-                        {/* Linha de meta esperada até hoje */}
-                        {pctEsperado !== null && (
-                          <div className="relative h-1 mt-0.5">
+                        {/* Linha de meta esperada até hoje + marcador de projeção */}
+                        <div className="relative h-4 mt-0.5">
+                          {/* Marcador: meta esperada até hoje */}
+                          {pctEsperado !== null && (
                             <div
-                              className="absolute top-0 w-px h-2 bg-muted-foreground/30"
+                              className="absolute top-0 w-px h-2.5 bg-muted-foreground/30"
                               style={{ left: `${pctEsperado}%` }}
                             />
-                          </div>
-                        )}
+                          )}
+                          {/* Marcador: projeção de fechamento */}
+                          {pctProjecao !== null && !atingiu && (
+                            <>
+                              <div
+                                className="absolute top-0 w-0.5 h-2.5 rounded-full"
+                                style={{
+                                  left: `${Math.min(pctProjecao, 100)}%`,
+                                  backgroundColor: projecaoAtingeMeta ? "#10b981" : "#f59e0b",
+                                  opacity: 0.8,
+                                }}
+                              />
+                              <span
+                                className={`absolute top-3 text-[9px] font-semibold -translate-x-1/2 whitespace-nowrap ${
+                                  projecaoAtingeMeta ? "text-emerald-500" : "text-amber-500"
+                                }`}
+                                style={{ left: `${Math.min(pctProjecao, 100)}%` }}
+                              >
+                                {projecaoAtingeMeta ? "↑" : "↓"} {fmt(projecao)}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -1368,6 +1396,12 @@ export default function Home() {
                     <div className="w-px h-3 bg-muted-foreground/40" />
                     <span>Meta esperada até hoje</span>
                   </div>
+                  {statsPorEmpresa.some((s) => s.projecaoFinal > 0 && s.totalRealizado < s.metaMensal) && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-0.5 h-3 rounded-full bg-emerald-500/60" />
+                      <span>Projeção de fechamento</span>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
