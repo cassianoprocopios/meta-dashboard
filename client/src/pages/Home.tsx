@@ -273,6 +273,8 @@ export default function Home() {
   }, [empresasVisiveis, faturamentosData, metasData]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
+  const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
+  const totalGeralPrevisto = statsPorEmpresa.reduce((s, e) => s + e.totalPrevisto, 0);
   const metaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.metaMensal, 0);
   const metaQuinzenalTotal = statsPorEmpresa.reduce((s, e) => s + e.metaQuinzenal, 0);
 
@@ -664,8 +666,24 @@ export default function Home() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                 <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Faturado no Mês</p>
-                <p className="text-2xl font-bold mt-1">{fmt(totalGeral)}</p>
-                {comparativoMesAnterior.variacaoTotal !== null && (
+
+                {/* Valor realizado em destaque */}
+                <p className="text-2xl font-bold mt-1">{fmt(totalGeralRealizado)}</p>
+                <p className="text-xs opacity-70 mt-0.5">realizado</p>
+
+                {/* Soma realizado + previsto (só aparece quando há previstos) */}
+                {totalGeralPrevisto > 0 && (
+                  <div className="mt-2 pt-2 border-t border-white/20">
+                    <p className="text-xs opacity-70">Com previstos</p>
+                    <p className="text-lg font-bold text-amber-200">{fmt(totalGeral)}</p>
+                    <p className="text-xs text-amber-300/80">
+                      +{fmt(totalGeralPrevisto)} em {statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0)} dia{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""} previsto{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                )}
+
+                {/* Comparativo com mês anterior (baseado em realizados) */}
+                {comparativoMesAnterior.variacaoTotal !== null && totalGeralPrevisto === 0 && (
                   <p className={`text-xs mt-1 flex items-center gap-1 ${
                     comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
                   }`}>
@@ -673,7 +691,15 @@ export default function Home() {
                     {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})
                   </p>
                 )}
-                {comparativoMesAnterior.variacaoTotal === null && (
+                {comparativoMesAnterior.variacaoTotal !== null && totalGeralPrevisto > 0 && (
+                  <p className={`text-xs mt-1 flex items-center gap-1 ${
+                    comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
+                  }`}>
+                    {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
+                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                  </p>
+                )}
+                {comparativoMesAnterior.variacaoTotal === null && totalGeralPrevisto === 0 && (
                   <p className="text-xs opacity-70 mt-1">{faturamentosData.length} dias lançados</p>
                 )}
               </Card>
