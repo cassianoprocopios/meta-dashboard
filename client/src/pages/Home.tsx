@@ -11,7 +11,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  Crosshair, ChevronDown, ChevronUp, Sun, Moon,
+  Crosshair, ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -67,6 +67,13 @@ export default function Home() {
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano] = useState(hoje.getFullYear());
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  // Filtro de período: mensal ou semanal
+  const [periodoFiltro, setPeriodoFiltro] = useState<"mensal" | "semanal">("mensal");
+  const [semanaIdx, setSemanaIdx] = useState<number>(() => {
+    // Inicializa na semana atual
+    const diaHojeInit = new Date().getDate();
+    return Math.floor((diaHojeInit - 1) / 7);
+  });
   const [showFaturamentoForm, setShowFaturamentoForm] = useState(false);
   const [editingFaturamento, setEditingFaturamento] = useState<any>(null);
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
@@ -141,6 +148,44 @@ export default function Home() {
     return empresasData;
   }, [empresasData, empresaVinculada, userEmpresasSlugs, isAdmin]);
 
+  // Calcular semanas do mês selecionado
+  const semanasMes = useMemo(() => {
+    const totalDias = new Date(ano, mes, 0).getDate();
+    const semanas: { label: string; inicio: number; fim: number }[] = [];
+    let dia = 1;
+    while (dia <= totalDias) {
+      const inicio = dia;
+      const fim = Math.min(dia + 6, totalDias);
+      semanas.push({
+        label: `Sem. ${semanas.length + 1} (${inicio}–${fim})`,
+        inicio,
+        fim,
+      });
+      dia += 7;
+    }
+    return semanas;
+  }, [mes, ano]);
+
+  // Semana selecionada (clampada ao total de semanas disponíveis)
+  const semanaAtual = semanasMes[Math.min(semanaIdx, semanasMes.length - 1)];
+
+  // Dados filtrados pelo período (mensal = todos; semanal = apenas dias da semana)
+  const faturamentosFiltrados = useMemo(() => {
+    if (periodoFiltro === "mensal" || !semanaAtual) return faturamentosData;
+    return (faturamentosData as any[]).filter((f: any) => {
+      const dia = parseInt(f.data.split("-")[2]);
+      return dia >= semanaAtual.inicio && dia <= semanaAtual.fim;
+    });
+  }, [faturamentosData, periodoFiltro, semanaAtual]);
+
+  const faturamentosAnteriorFiltrados = useMemo(() => {
+    if (periodoFiltro === "mensal" || !semanaAtual) return faturamentosAnteriorData;
+    return (faturamentosAnteriorData as any[]).filter((f: any) => {
+      const dia = parseInt(f.data.split("-")[2]);
+      return dia >= semanaAtual.inicio && dia <= semanaAtual.fim;
+    });
+  }, [faturamentosAnteriorData, periodoFiltro, semanaAtual]);
+
   // Calcular totais por empresa
   const statsPorEmpresa = useMemo(() => {
     // Dia atual do mês (para calcular dias decorridos até hoje)
@@ -152,7 +197,7 @@ export default function Home() {
     const diaHojeQuinzenal = Math.min(diaHoje, 15); // cap em 15 para quinzenal
 
     return empresasVisiveis.map((emp) => {
-      const rows = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
+      const rows = faturamentosFiltrados.filter((f: any) => f.empresaSlug === emp.slug);
 
       // Separar lançamentos realizados (dia ≤ hoje) de previstos (dia > hoje)
       const rowsRealizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje);
@@ -273,7 +318,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosData, metasData]);
+  }, [empresasVisiveis, faturamentosFiltrados, metasData]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
@@ -286,7 +331,7 @@ export default function Home() {
     // Dias já lançados no mês atual (por empresa e global)
     const diasAtualPorEmpresa: Record<string, Set<number>> = {};
     const diasAtualGlobal = new Set<number>();
-    faturamentosData.forEach((f: any) => {
+    faturamentosFiltrados.forEach((f: any) => {
       const dia = parseInt(f.data.split("-")[2]);
       if (!diasAtualPorEmpresa[f.empresaSlug]) diasAtualPorEmpresa[f.empresaSlug] = new Set();
       diasAtualPorEmpresa[f.empresaSlug].add(dia);
@@ -304,10 +349,10 @@ export default function Home() {
     const porEmpresa: Record<string, { totalAtual: number; totalAnterior: number; diasAtual: number; diasAnterior: number }> = {};
     empresasVisiveis.forEach((emp) => {
       const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set<number>();
-      const rowsAtual = faturamentosData.filter((f: any) => f.empresaSlug === emp.slug);
+      const rowsAtual = faturamentosFiltrados.filter((f: any) => f.empresaSlug === emp.slug);
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
-      const rowsAnterior = faturamentosAnteriorData.filter((f: any) => {
+      const rowsAnterior = faturamentosAnteriorFiltrados.filter((f: any) => {
         if (f.empresaSlug !== emp.slug) return false;
         const dia = parseInt(f.data.split("-")[2]);
         return diasAtual.has(dia);
@@ -321,7 +366,7 @@ export default function Home() {
       ? ((totalGeral - totalAnteriorMesmosDias) / totalAnteriorMesmosDias) * 100
       : null;
     return { totalAnteriorMesmosDias, variacaoTotal, porEmpresa, periodoLabel, diaInicio, diaFim };
-  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, totalGeral]);
+  }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, totalGeral]);
 
   // ─── ACURÁCIA DAS PREVISÕES ────────────────────────────────────────────────
   // Para cada empresa, encontra dias que foram lançados como "previsto" (dia > hoje
@@ -451,8 +496,8 @@ export default function Home() {
 
     // Determinar todos os dias que aparecem em qualquer um dos dois meses
     const diasSet = new Set<number>();
-    faturamentosData.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
-    faturamentosAnteriorData.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
+    faturamentosFiltrados.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
+    faturamentosAnteriorFiltrados.forEach((f: any) => diasSet.add(parseInt(f.data.split("-")[2])));
     const dias = Array.from(diasSet).sort((a, b) => a - b);
 
     // Somar faturamento total (todas as empresas visíveis) por dia
@@ -468,8 +513,8 @@ export default function Home() {
       return mapa;
     };
 
-    const mapaAtual = somaPorDia(faturamentosData);
-    const mapaAnterior = somaPorDia(faturamentosAnteriorData);
+    const mapaAtual = somaPorDia(faturamentosFiltrados);
+    const mapaAnterior = somaPorDia(faturamentosAnteriorFiltrados);
 
     // Acumulado dia a dia — linha realizada e linha prevista separadas
     let acumRealizado = 0;
@@ -499,7 +544,7 @@ export default function Home() {
         acumAnterior: valorAnterior !== null ? acumAnterior : null,
       };
     });
-  }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, mes, ano]);
+  }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
 
   // Dados para gráfico de pizza (por empresa)
   const pieDataEmpresas = useMemo(() => {
@@ -580,13 +625,60 @@ export default function Home() {
             <div className="hidden md:flex items-center gap-2">
               <select
                 value={mes}
-                onChange={(e) => setMes(Number(e.target.value))}
+                onChange={(e) => { setMes(Number(e.target.value)); setSemanaIdx(0); }}
                 className="text-sm border border-border rounded-xl px-3 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {MESES.map((m, i) => (
                   <option key={i} value={i + 1}>{m} {ano}</option>
                 ))}
               </select>
+              {/* Filtro de período: Mensal / Semanal */}
+              {activeTab === "dashboard" && (
+                <div className="flex items-center rounded-xl border border-border overflow-hidden text-sm">
+                  <button
+                    onClick={() => setPeriodoFiltro("mensal")}
+                    className={`px-3 py-1.5 transition-colors ${
+                      periodoFiltro === "mensal"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    Mensal
+                  </button>
+                  <button
+                    onClick={() => setPeriodoFiltro("semanal")}
+                    className={`px-3 py-1.5 transition-colors ${
+                      periodoFiltro === "semanal"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    Semanal
+                  </button>
+                </div>
+              )}
+              {/* Navegação de semanas */}
+              {activeTab === "dashboard" && periodoFiltro === "semanal" && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSemanaIdx((i) => Math.max(0, i - 1))}
+                    disabled={semanaIdx === 0}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-xs font-medium text-foreground min-w-[110px] text-center">
+                    {semanaAtual?.label ?? ""}
+                  </span>
+                  <button
+                    onClick={() => setSemanaIdx((i) => Math.min(semanasMes.length - 1, i + 1))}
+                    disabled={semanaIdx >= semanasMes.length - 1}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               {isSuperAdmin && (
                 <>
                   <button onClick={() => setShowSuperAdmin(true)} className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium">
@@ -671,10 +763,10 @@ export default function Home() {
             <div className="md:hidden border-t border-border py-3 space-y-1">
               {/* Seletor de mês */}
               <div className="px-1 pb-2">
-                <label className="text-xs text-slate-500 font-medium mb-1 block">Mês de referência</label>
+                <label className="text-xs text-muted-foreground font-medium mb-1 block">Mês de referência</label>
                 <select
                   value={mes}
-                  onChange={(e) => { setMes(Number(e.target.value)); setMobileMenuOpen(false); }}
+                  onChange={(e) => { setMes(Number(e.target.value)); setSemanaIdx(0); setMobileMenuOpen(false); }}
                   className="w-full text-sm border border-border rounded-xl px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {MESES.map((m, i) => (
@@ -682,6 +774,53 @@ export default function Home() {
                   ))}
                 </select>
               </div>
+              {/* Filtro de período mobile */}
+              {activeTab === "dashboard" && (
+                <div className="px-1 pb-2">
+                  <label className="text-xs text-muted-foreground font-medium mb-1 block">Período</label>
+                  <div className="flex items-center rounded-xl border border-border overflow-hidden text-sm">
+                    <button
+                      onClick={() => setPeriodoFiltro("mensal")}
+                      className={`flex-1 py-2 transition-colors ${
+                        periodoFiltro === "mensal"
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "bg-background text-muted-foreground"
+                      }`}
+                    >
+                      Mensal
+                    </button>
+                    <button
+                      onClick={() => setPeriodoFiltro("semanal")}
+                      className={`flex-1 py-2 transition-colors ${
+                        periodoFiltro === "semanal"
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "bg-background text-muted-foreground"
+                      }`}
+                    >
+                      Semanal
+                    </button>
+                  </div>
+                  {periodoFiltro === "semanal" && (
+                    <div className="flex items-center justify-between mt-2">
+                      <button
+                        onClick={() => setSemanaIdx((i) => Math.max(0, i - 1))}
+                        disabled={semanaIdx === 0}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-medium text-foreground">{semanaAtual?.label ?? ""}</span>
+                      <button
+                        onClick={() => setSemanaIdx((i) => Math.min(semanasMes.length - 1, i + 1))}
+                        disabled={semanaIdx >= semanasMes.length - 1}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Info do usuário */}
               {user && (
                 <div className="px-1 py-2 border-b border-border mb-1">
@@ -787,7 +926,11 @@ export default function Home() {
             {/* KPIs Gerais */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Faturado no Mês</p>
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
+                  {periodoFiltro === "semanal" && semanaAtual
+                    ? `Faturado — ${semanaAtual.label}`
+                    : "Faturado no Mês"}
+                </p>
 
                 {/* Valor realizado em destaque */}
                 <p className="text-2xl font-bold mt-1">{fmt(totalGeralRealizado)}</p>
@@ -822,7 +965,7 @@ export default function Home() {
                   </p>
                 )}
                 {comparativoMesAnterior.variacaoTotal === null && totalGeralPrevisto === 0 && (
-                  <p className="text-xs opacity-70 mt-1">{faturamentosData.length} dias lançados</p>
+                  <p className="text-xs opacity-70 mt-1">{faturamentosFiltrados.length} dias lançados</p>
                 )}
               </Card>
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white">
