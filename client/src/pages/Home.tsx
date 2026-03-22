@@ -11,7 +11,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  Crosshair, ChevronDown, ChevronUp,
+  Crosshair, ChevronDown, ChevronUp, Sun, Moon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -24,6 +24,7 @@ import AnaliseIA from "@/pages/AnaliseIA";
 import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -61,6 +62,7 @@ function LogoutButton() {
 
 export default function Home() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano] = useState(hoje.getFullYear());
@@ -608,6 +610,16 @@ export default function Home() {
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
               )}
+              {/* Botão de alternância de tema */}
+              {toggleTheme && (
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              )}
               {user && (
                 <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border">
                   <div className="flex flex-col items-end">
@@ -635,11 +647,20 @@ export default function Home() {
                   <Plus className="w-4 h-4" />
                 </button>
               )}
-              <LogoutButton />
-            <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              {toggleTheme && (
+                <button
+                  onClick={toggleTheme}
                   className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
+                  title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
                 >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              )}
+              <LogoutButton />
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
+              >
                 {mobileMenuOpen ? <XIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
