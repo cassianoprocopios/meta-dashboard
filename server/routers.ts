@@ -1279,6 +1279,84 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return { analise: content };
       }),
   }),
+
+  // Sub-router de alertas de projeção
+  alertas: router({
+    /**
+     * Envia notificação ao owner quando a projeção de fechamento de uma ou mais empresas
+     * estiver abaixo de um limiar percentual da meta mensal.
+     */
+    notificarProjecaoBaixaMeta: protectedProcedure
+      .input(
+        z.object({
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020).max(2100),
+          nomeMes: z.string().min(1),
+          empresasEmRisco: z.array(
+            z.object({
+              nome: z.string(),
+              projecao: z.number(),
+              meta: z.number(),
+              percentualProjecao: z.number(),
+              totalRealizado: z.number(),
+              diasRealizados: z.number(),
+            })
+          ),
+          totalGeralRealizado: z.number(),
+          totalGeralMeta: z.number(),
+          limiarPercentual: z.number().min(0).max(100).default(80),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { mes, ano, nomeMes, empresasEmRisco, totalGeralRealizado, totalGeralMeta, limiarPercentual } = input;
+
+        if (empresasEmRisco.length === 0) {
+          return { success: false, message: "Nenhuma empresa em risco para notificar." };
+        }
+
+        const linhasEmpresas = empresasEmRisco
+          .map((e) => {
+            const pct = e.meta > 0 ? ((e.projecao / e.meta) * 100).toFixed(1) : "0.0";
+            const realPct = e.meta > 0 ? ((e.totalRealizado / e.meta) * 100).toFixed(1) : "0.0";
+            return [
+              `• ${e.nome}`,
+              `  Realizado: R$ ${e.totalRealizado.toFixed(2)} (${realPct}% da meta) em ${e.diasRealizados} dias`,
+              `  Projeção de fechamento: R$ ${e.projecao.toFixed(2)} (${pct}% da meta)`,
+              `  Meta mensal: R$ ${e.meta.toFixed(2)}`,
+            ].join("\n");
+          })
+          .join("\n\n");
+
+        const progressoGeral = totalGeralMeta > 0
+          ? ((totalGeralRealizado / totalGeralMeta) * 100).toFixed(1)
+          : "0.0";
+
+        const title = `⚠️ Alerta: ${empresasEmRisco.length} empresa${empresasEmRisco.length > 1 ? "s" : ""} com projeção abaixo de ${limiarPercentual}% da meta — ${nomeMes}/${ano}`;
+
+        const content = [
+          `Olá,`,
+          ``,
+          `O sistema identificou que ${empresasEmRisco.length === 1 ? "a seguinte empresa está" : "as seguintes empresas estão"} com projeção de fechamento abaixo de ${limiarPercentual}% da meta mensal em ${nomeMes}/${ano}:`,
+          ``,
+          linhasEmpresas,
+          ``,
+          `————————————————————`,
+          `Consolidado geral: R$ ${totalGeralRealizado.toFixed(2)} realizado de R$ ${totalGeralMeta.toFixed(2)} (${progressoGeral}% da meta)`,
+          ``,
+          `Acesse o Meta Dashboard para mais detalhes e tome as ações necessárias.`,
+        ].join("\n");
+
+        const { notifyOwner } = await import("./_core/notification");
+        const delivered = await notifyOwner({ title, content });
+
+        return {
+          success: delivered,
+          message: delivered
+            ? `Notificação enviada com sucesso para ${empresasEmRisco.length} empresa${empresasEmRisco.length > 1 ? "s" : ""} em risco.`
+            : "Não foi possível enviar a notificação no momento. Tente novamente.",
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

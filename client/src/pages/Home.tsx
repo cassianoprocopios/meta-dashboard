@@ -11,7 +11,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  Crosshair, ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight,
+  Crosshair, ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -135,6 +135,20 @@ export default function Home() {
   );
 
   const deletarFat = trpc.faturamento.excluir.useMutation();
+
+  // Mutation para notificar o gerente sobre projeção abaixo da meta
+  const notificarAlerta = trpc.alertas.notificarProjecaoBaixaMeta.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    },
+    onError: () => {
+      toast.error("Erro ao enviar notificação. Tente novamente.");
+    },
+  });
 
   // Empresas visíveis para este usuário
   const empresasVisiveis = useMemo(() => {
@@ -467,6 +481,26 @@ export default function Home() {
 
     return { porEmpresa, acuraciaGlobal, totalDias };
   }, [faturamentosData, faturamentosAnteriorData, empresasVisiveis, mes, ano]);
+
+  // Empresas em risco: projeção de fechamento abaixo de 80% da meta mensal
+  const LIMIAR_ALERTA = 80; // percentual
+  const empresasEmRisco = useMemo(() => {
+    return statsPorEmpresa
+      .filter((s) => {
+        if (s.metaMensal === 0 || s.projecaoFinal === 0) return false;
+        if (s.totalRealizado >= s.metaMensal) return false; // já atingiu
+        const pctProjecao = (s.projecaoFinal / s.metaMensal) * 100;
+        return pctProjecao < LIMIAR_ALERTA;
+      })
+      .map((s) => ({
+        nome: s.emp.nome,
+        projecao: s.projecaoFinal,
+        meta: s.metaMensal,
+        percentualProjecao: (s.projecaoFinal / s.metaMensal) * 100,
+        totalRealizado: s.totalRealizado,
+        diasRealizados: s.diasRealizados,
+      }));
+  }, [statsPorEmpresa]);
 
   // Dados para gráfico de barras
   const barData = useMemo(() => {
@@ -923,6 +957,57 @@ export default function Home() {
                 </div>
               </Card>
             )}
+            {/* Banner de alerta: projeção abaixo da meta */}
+            {isGerente && empresasEmRisco.length > 0 && periodoFiltro === "mensal" && (
+              <Card className="p-4 border-0 shadow-sm rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <BellRing className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-amber-500">
+                        {empresasEmRisco.length === 1
+                          ? `1 empresa com projeção abaixo de ${LIMIAR_ALERTA}% da meta`
+                          : `${empresasEmRisco.length} empresas com projeção abaixo de ${LIMIAR_ALERTA}% da meta`}
+                      </p>
+                      <div className="mt-1.5 space-y-1">
+                        {empresasEmRisco.map((e) => (
+                          <p key={e.nome} className="text-xs text-amber-400/80">
+                            <span className="font-medium">{e.nome}</span>: projeção {fmt(e.projecao)} ({e.percentualProjecao.toFixed(1)}% da meta de {fmt(e.meta)})
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-shrink-0 gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 rounded-xl text-xs"
+                    disabled={notificarAlerta.isPending}
+                    onClick={() => {
+                      notificarAlerta.mutate({
+                        mes,
+                        ano,
+                        nomeMes: MESES[mes - 1],
+                        empresasEmRisco,
+                        totalGeralRealizado,
+                        totalGeralMeta: statsPorEmpresa.reduce((s, e) => s + e.metaMensal, 0),
+                        limiarPercentual: LIMIAR_ALERTA,
+                      });
+                    }}
+                  >
+                    {notificarAlerta.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <BellRing className="w-3 h-3" />
+                    )}
+                    Notificar gerente
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             {/* KPIs Gerais */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
