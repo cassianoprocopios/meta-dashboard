@@ -366,9 +366,26 @@ export async function setUserEmpresas(userId: number, tenantId: number, slugs: s
 export async function getEmpresasByTenant(tenantId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(empresas)
+  const emps = await db.select().from(empresas)
     .where(and(eq(empresas.tenantId, tenantId), eq(empresas.ativo, 1)))
     .orderBy(asc(empresas.nome));
+  if (emps.length === 0) return [];
+  // Buscar categorias ativas de todas as empresas do tenant
+  const slugs = emps.map((e) => e.slug);
+  const cats = await db.select().from(categorias)
+    .where(and(
+      inArray(categorias.empresaSlug, slugs),
+      eq(categorias.tenantId, tenantId),
+      eq(categorias.ativo, 1)
+    ))
+    .orderBy(asc(categorias.ordem), asc(categorias.id));
+  // Montar mapa slug -> categorias
+  const catsMap: Record<string, typeof cats> = {};
+  for (const c of cats) {
+    if (!catsMap[c.empresaSlug]) catsMap[c.empresaSlug] = [];
+    catsMap[c.empresaSlug].push(c);
+  }
+  return emps.map((e) => ({ ...e, categorias: catsMap[e.slug] ?? [] }));
 }
 
 /** Retorna TODAS as empresas do tenant (ativas e inativas) — uso exclusivo do AdminPanel */
@@ -393,7 +410,29 @@ export async function createEmpresa(input: InsertEmpresa) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(empresas).values(input);
-  return { ...input, id: (result as any).insertId };
+  const empresaId = (result as any).insertId;
+  // Inicializar categorias padrão na tabela categorias
+  const CATS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
+  const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
+  // Usar cat1Nome..cat5Nome se fornecidos, senão usar padrão do tipo
+  const nomes = [
+    (input as any).cat1Nome ?? catNomes[0],
+    (input as any).cat2Nome ?? catNomes[1],
+    (input as any).cat3Nome ?? catNomes[2],
+    (input as any).cat4Nome ?? catNomes[3],
+    (input as any).cat5Nome ?? catNomes[4],
+  ];
+  await db.insert(categorias).values(
+    nomes.map((nome, i) => ({
+      tenantId: input.tenantId,
+      empresaSlug: input.slug,
+      nome,
+      ordem: i + 1,
+      ativo: 1,
+    }))
+  );
+  return { ...input, id: empresaId };
 }
 
 export async function deactivateEmpresa(id: number) {
@@ -642,6 +681,34 @@ export async function updateCategoriaNome(id: number, nome: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(categorias).set({ nome }).where(eq(categorias.id, id));
+}
+
+/** Reordena categorias: recebe array de IDs na nova ordem e atualiza o campo `ordem` */
+export async function reordenarCategorias(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  for (let i = 0; i < ids.length; i++) {
+    await db.update(categorias).set({ ordem: i + 1 }).where(eq(categorias.id, ids[i]));
+  }
+}
+
+/** Inicializa as categorias padrão de uma empresa caso não existam */
+export async function inicializarCategorias(
+  empresaSlug: string,
+  tenantId: number,
+  tipoCategorias: "padrao" | "seraphine"
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await db.select().from(categorias)
+    .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.tenantId, tenantId)));
+  if (existing.length > 0) return; // já tem categorias, não sobrescrever
+  const CATS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
+  const nomes = tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
+  await db.insert(categorias).values(
+    nomes.map((nome, i) => ({ tenantId, empresaSlug, nome, ordem: i + 1, ativo: 1 }))
+  );
 }
 
 // ─── ACCESS LOGS ─────────────────────────────────────────────────────────────

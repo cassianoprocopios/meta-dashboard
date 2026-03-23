@@ -530,9 +530,13 @@ export default function Home() {
     return empresasVisiveis.map((emp) => {
       const stats = statsPorEmpresa.find((s) => s.emp.slug === emp.slug)!;
       if (!stats) return null;
-      const labels = emp.tipoCategorias === "seraphine"
-        ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
-        : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+      // Usar categorias do banco; fallback para padrão se não houver
+      const cats = (emp as any).categorias as Array<{ id: number; nome: string; ordem: number }> | undefined;
+      const labels = cats && cats.length > 0
+        ? cats.map((c) => c.nome)
+        : emp.tipoCategorias === "seraphine"
+          ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+          : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
       return {
         empresa: emp.nome,
         cor: emp.cor,
@@ -603,18 +607,23 @@ export default function Home() {
     });
   }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
 
-  // Dados para gráfico de barras de categorias Seraphine
+  // Dados para gráfico de barras de categorias Seraphine (usa nomes do banco)
   const barDataCategoriasSeraphine = useMemo(() => {
-    const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"];
     const COLORS_CAT = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
     // Filtrar apenas empresas do tipo seraphine com dados
     const seraphineStats = statsPorEmpresa.filter(
       (s) => s.emp.tipoCategorias === "seraphine" && s.total > 0
     );
     if (seraphineStats.length === 0) return null;
+    // Usar categorias do banco da primeira empresa seraphine como referência de labels
+    const refEmp = seraphineStats[0].emp;
+    const refCats = (refEmp as any).categorias as Array<{ nome: string }> | undefined;
+    const LABELS = refCats && refCats.length > 0
+      ? refCats.map((c) => c.nome)
+      : ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
     // Montar dados no formato: cada barra = uma empresa, cada grupo = uma categoria
-    const data = LABELS_SERAPHINE.map((label, i) => {
-      const entry: Record<string, any> = { categoria: label, cor: COLORS_CAT[i] };
+    const data = LABELS.map((label, i) => {
+      const entry: Record<string, any> = { categoria: label, cor: COLORS_CAT[i % COLORS_CAT.length] };
       seraphineStats.forEach((s) => {
         entry[s.emp.nome] = s.catTotals[i] || 0;
       });
@@ -2061,9 +2070,13 @@ export default function Home() {
             {totalGeral > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {statsPorEmpresa.filter((s) => s.total > 0).map((s) => {
-                  const labels = s.emp.tipoCategorias === "seraphine"
-                    ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
-                    : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+                  // Usar categorias do banco; fallback para padrão
+                  const empCats = (s.emp as any).categorias as Array<{ nome: string }> | undefined;
+                  const labels = empCats && empCats.length > 0
+                    ? empCats.map((c) => c.nome)
+                    : s.emp.tipoCategorias === "seraphine"
+                      ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                      : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                   const pieData = labels
                     .map((l, i) => ({ name: l, value: s.catTotals[i] }))
                     .filter((d) => d.value > 0);
@@ -2207,9 +2220,13 @@ export default function Home() {
                   .filter((f: any) => f.empresaSlug === emp.slug)
                   .sort((a: any, b: any) => b.data.localeCompare(a.data));
                 if (rows.length === 0) return null;
-                const labels = emp.tipoCategorias === "seraphine"
-                  ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
-                  : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+                // Usar categorias do banco; fallback para padrão
+                const empCats = (emp as any).categorias as Array<{ nome: string }> | undefined;
+                const labels = empCats && empCats.length > 0
+                  ? empCats.map((c) => c.nome)
+                  : emp.tipoCategorias === "seraphine"
+                    ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
+                    : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">

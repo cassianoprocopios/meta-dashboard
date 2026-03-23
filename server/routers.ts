@@ -37,6 +37,8 @@ import {
   addCategoria,
   removeCategoria,
   updateCategoriaNome,
+  reordenarCategorias,
+  inicializarCategorias,
   getAllTenants,
   createTenant,
   updateTenantAtivo,
@@ -859,6 +861,30 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
         }
         await updateCategoriaNome(input.id, input.nome);
+        return { success: true };
+      }),
+
+    reordenar: protectedProcedure
+      .input(z.object({ ids: z.array(z.number().int().positive()) }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem gerir categorias." });
+        }
+        await reordenarCategorias(input.ids);
+        return { success: true };
+      }),
+
+    inicializar: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string().min(1),
+        tipoCategorias: z.enum(["padrao", "seraphine"]).default("padrao"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem inicializar categorias." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await inicializarCategorias(input.empresaSlug, tenantId, input.tipoCategorias);
         return { success: true };
       }),
   }),

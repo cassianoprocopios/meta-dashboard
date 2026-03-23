@@ -2,7 +2,10 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Plus, Trash2, AlertCircle, Loader2, Pencil, Save, X, Tag } from "lucide-react";
+import {
+  Building2, Plus, Trash2, AlertCircle, Loader2, Pencil, Save, X, Tag,
+  GripVertical, ChevronUp, ChevronDown, RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const CORES_SUGERIDAS = [
@@ -16,23 +19,35 @@ interface EditState {
   tipoCategorias: "padrao" | "seraphine";
 }
 
+interface CategoriaItem {
+  id: number;
+  nome: string;
+  ordem: number;
+  ativo: number;
+}
+
 interface CategoriasPanelProps {
   empresaSlug: string;
   empresaCor: string;
+  tipoCategorias: "padrao" | "seraphine";
   currentUser: { role: string; perfil: string } | null;
 }
 
-function CategoriasPanel({ empresaSlug, empresaCor, currentUser }: CategoriasPanelProps) {
+function CategoriasPanel({ empresaSlug, empresaCor, tipoCategorias, currentUser }: CategoriasPanelProps) {
   const [novaCategoria, setNovaCategoria] = useState("");
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [editNome, setEditNome] = useState("");
 
-  const { data: cats = [], refetch } = trpc.categorias.listar.useQuery({ empresaSlug });
+  const utils = trpc.useUtils();
+  const { data: cats = [], refetch, isLoading } = trpc.categorias.listar.useQuery({ empresaSlug });
   const adicionar = trpc.categorias.adicionar.useMutation();
   const remover = trpc.categorias.remover.useMutation();
   const editar = trpc.categorias.editar.useMutation();
+  const reordenar = trpc.categorias.reordenar.useMutation();
+  const inicializar = trpc.categorias.inicializar.useMutation();
 
   const canManage = currentUser?.role === "admin" || currentUser?.perfil === "gerente";
+  const isAdmin = currentUser?.role === "admin";
 
   const handleAdicionar = async () => {
     if (!novaCategoria.trim()) return;
@@ -69,66 +84,161 @@ function CategoriasPanel({ empresaSlug, empresaCor, currentUser }: CategoriasPan
     }
   };
 
+  const handleMover = async (index: number, direction: "up" | "down") => {
+    const newCats = [...cats];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newCats.length) return;
+    [newCats[index], newCats[targetIndex]] = [newCats[targetIndex], newCats[index]];
+    try {
+      await reordenar.mutateAsync({ ids: newCats.map((c) => c.id) });
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao reordenar.");
+    }
+  };
+
+  const handleInicializar = async () => {
+    try {
+      await inicializar.mutateAsync({ empresaSlug, tipoCategorias });
+      toast.success("Categorias inicializadas com o padrão!");
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao inicializar categorias.");
+    }
+  };
+
   return (
-    <div className="mt-4">
-      <div className="flex items-center gap-1.5 mb-2">
-        <Tag className="w-3.5 h-3.5" style={{ color: empresaCor }} />
-        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Categorias de Faturamento</span>
-      </div>
-
-      <div className="space-y-1.5">
-        {cats.map((cat) => (
-          <div key={cat.id} className="flex items-center gap-2 group">
-            {editandoId === cat.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editNome}
-                  onChange={(e) => setEditNome(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleEditar(cat.id)}
-                  className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  autoFocus
-                />
-                <button onClick={() => handleEditar(cat.id)} disabled={editar.isPending} className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
-                  {editar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                </button>
-                <button onClick={() => { setEditandoId(null); setEditNome(""); }} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </>
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <Tag className="w-3.5 h-3.5" style={{ color: empresaCor }} />
+          <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+            Composição do Faturamento
+          </span>
+        </div>
+        {isAdmin && cats.length === 0 && !isLoading && (
+          <button
+            onClick={handleInicializar}
+            disabled={inicializar.isPending}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+            title="Inicializar com categorias padrão"
+          >
+            {inicializar.isPending ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-              <>
-                <span className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-slate-50 text-slate-700 border border-slate-100">
-                  {cat.nome}
-                </span>
-                {canManage && (
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => { setEditandoId(cat.id); setEditNome(cat.nome); }}
-                      className="p-1 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"
-                      title="Editar"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleRemover(cat.id, cat.nome)}
-                      disabled={remover.isPending}
-                      className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
-                      title="Remover"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-              </>
+              <RefreshCw className="w-3 h-3" />
             )}
-          </div>
-        ))}
-
-        {cats.length === 0 && (
-          <p className="text-xs text-slate-400 italic py-1">Nenhuma categoria cadastrada.</p>
+            Inicializar padrão
+          </button>
         )}
       </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 py-2">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+          <span className="text-xs text-slate-400">Carregando...</span>
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          {cats.map((cat, index) => (
+            <div key={cat.id} className="flex items-center gap-2 group">
+              {/* Indicador de ordem */}
+              <span className="text-xs text-slate-300 w-4 text-right flex-shrink-0 font-mono">{index + 1}.</span>
+
+              {editandoId === cat.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleEditar(cat.id)}
+                    className="flex-1 px-2.5 py-1.5 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleEditar(cat.id)}
+                    disabled={editar.isPending}
+                    className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50"
+                    title="Salvar"
+                  >
+                    {editar.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => { setEditandoId(null); setEditNome(""); }}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-slate-100"
+                    title="Cancelar"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-700 border border-slate-100"
+                    style={{ backgroundColor: empresaCor + "08" }}
+                  >
+                    {cat.nome}
+                  </span>
+
+                  {canManage && (
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Reordenar */}
+                      <button
+                        onClick={() => handleMover(index, "up")}
+                        disabled={index === 0 || reordenar.isPending}
+                        className="p-1 rounded-lg text-slate-300 hover:text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        title="Mover para cima"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleMover(index, "down")}
+                        disabled={index === cats.length - 1 || reordenar.isPending}
+                        className="p-1 rounded-lg text-slate-300 hover:text-slate-500 hover:bg-slate-100 disabled:opacity-30"
+                        title="Mover para baixo"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                      {/* Editar */}
+                      <button
+                        onClick={() => { setEditandoId(cat.id); setEditNome(cat.nome); }}
+                        className="p-1 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"
+                        title="Editar nome"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      {/* Remover */}
+                      <button
+                        onClick={() => handleRemover(cat.id, cat.nome)}
+                        disabled={remover.isPending}
+                        className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
+                        title="Remover categoria"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+
+          {cats.length === 0 && (
+            <p className="text-xs text-slate-400 italic py-1">
+              Nenhuma categoria cadastrada.{" "}
+              {isAdmin && (
+                <button
+                  onClick={handleInicializar}
+                  disabled={inicializar.isPending}
+                  className="text-blue-500 hover:underline"
+                >
+                  Inicializar padrão
+                </button>
+              )}
+            </p>
+          )}
+        </div>
+      )}
 
       {canManage && (
         <div className="flex gap-2 mt-3">
@@ -151,6 +261,12 @@ function CategoriasPanel({ empresaSlug, empresaCor, currentUser }: CategoriasPan
             Adicionar
           </Button>
         </div>
+      )}
+
+      {cats.length > 0 && (
+        <p className="text-xs text-slate-400 mt-2">
+          Passe o mouse sobre uma categoria para editar, reordenar ou remover.
+        </p>
       )}
     </div>
   );
@@ -244,7 +360,7 @@ export default function Empresas({ currentUser }: EmpresasProps) {
           <h2 className="text-lg font-semibold text-slate-900">Gestão de Empresas</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {isAdmin
-              ? "Adicione, edite ou remova unidades e gerencie as categorias de faturamento."
+              ? "Adicione, edite ou remova unidades e gerencie a composição de faturamento de cada uma."
               : "Gerencie as categorias de faturamento das suas unidades."}
           </p>
         </div>
@@ -287,14 +403,14 @@ export default function Empresas({ currentUser }: EmpresasProps) {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Tipo de Categorias (padrão inicial)</label>
+              <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Composição de Faturamento (padrão inicial)</label>
               <select
                 value={form.tipoCategorias}
                 onChange={(e) => setForm((p) => ({ ...p, tipoCategorias: e.target.value as "padrao" | "seraphine" }))}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
-                <option value="padrao">Padrão (Avulso / Produtos / Serv. Extra / Lavatório / Recorrência)</option>
-                <option value="seraphine">Seraphine (Cabelo / Manicure e Pedicure / Outros Serviços / Pacote / Recorrência)</option>
+                <option value="padrao">Padrão — Avulso / Produtos / Serv. Extra / Lavatório / Recorrência</option>
+                <option value="seraphine">Seraphine — Cabelo / Produtos / Unha / Outros / Recorrência</option>
               </select>
               <p className="text-xs text-slate-400 mt-1">As categorias serão criadas automaticamente e podem ser editadas depois.</p>
             </div>
@@ -408,14 +524,13 @@ export default function Empresas({ currentUser }: EmpresasProps) {
                   </>
                 )}
 
-                {/* Painel de categorias dinâmicas — visível em ambos os modos */}
-                {!isEditing && (
-                  <CategoriasPanel
-                    empresaSlug={emp.slug}
-                    empresaCor={emp.cor}
-                    currentUser={currentUser}
-                  />
-                )}
+                {/* Painel de categorias — visível em ambos os modos */}
+                <CategoriasPanel
+                  empresaSlug={emp.slug}
+                  empresaCor={isEditing && es ? es.cor : emp.cor}
+                  tipoCategorias={emp.tipoCategorias}
+                  currentUser={currentUser}
+                />
               </Card>
             );
           })}
@@ -427,8 +542,8 @@ export default function Empresas({ currentUser }: EmpresasProps) {
         <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-700">
           {isAdmin
-            ? "Ao remover uma empresa, ela deixa de aparecer no sistema mas os dados históricos são preservados. Gerentes e administradores podem adicionar ou remover categorias de faturamento a qualquer momento."
-            : "Como gerente, pode adicionar ou remover categorias de faturamento das suas unidades. As alterações afetam apenas a exibição — os dados lançados são mantidos."}
+            ? "A composição de faturamento define quais campos aparecem no formulário de lançamento e nos gráficos do dashboard. Alterações refletem imediatamente para todos os usuários da unidade. Os dados históricos são preservados."
+            : "Como gerente, pode adicionar, renomear ou reordenar as categorias de faturamento das suas unidades. As alterações afetam a exibição no formulário de lançamento e nos gráficos."}
         </p>
       </div>
     </div>

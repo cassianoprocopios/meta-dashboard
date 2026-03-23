@@ -365,3 +365,15 @@
 - [x] Exibe: nome, email, empresa(s) vinculada(s), tenant, último acesso, perfil
 - [x] Estado vazio com mensagem informativa
 - [x] 29 testes passando, TypeScript sem erros
+
+## Composição de Faturamento por Unidade — Correção e Gestão pelo Admin
+
+- [x] Corrigir divergência: usar tabela `categorias` como fonte única de verdade para nomes de categorias
+- [x] Quando empresa criada, inicializar categorias na tabela `categorias` (não apenas nos campos cat1Nome..cat5Nome)
+- [x] Quando empresa já existe sem categorias no banco, inicializá-las a partir de cat1Nome..cat5Nome
+- [x] Endpoint `empresa.listarComCategorias` ou incluir categorias no retorno de `empresa.listar`
+- [x] Dashboard Home.tsx: substituir nomes hardcoded por nomes vindos das categorias do banco
+- [x] Gráficos de barras e pizza: usar nomes dinâmicos das categorias
+- [x] Tabela histórico: usar nomes dinâmicos das categorias
+- [x] Aba Empresas: melhorar painel de categorias (reordenar, inicializar com padrão)
+- [x] Testes: verificar que categorias são criadas corretamente ao criar empresa
