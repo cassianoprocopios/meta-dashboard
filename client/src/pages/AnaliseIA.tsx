@@ -9,7 +9,7 @@ const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 interface EmpresaStats {
-  emp: { slug: string; nome: string; cor: string; tipoCategorias?: string };
+  emp: { slug: string; nome: string; cor: string; tipoCategorias?: string; categorias?: Array<{ nome: string }> };
   total: number;
   mediaDiaria: number;
   diasLancados: number;
@@ -60,9 +60,13 @@ export default function AnaliseIA({
   const handleGerar = () => {
     const empresasPayload = statsPorEmpresa.map((s) => {
       const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
-      const catLabels = s.emp.tipoCategorias === "seraphine"
-        ? ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"]
-        : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+      // Usar categorias dinâmicas do banco se disponíveis
+      const LABELS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+      const LABELS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Pacotes"];
+      const fallback = s.emp.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
+      const catLabels = s.emp.categorias && s.emp.categorias.length > 0
+        ? s.emp.categorias.slice(0, 5).map((c) => c.nome)
+        : fallback;
       return {
         nome: s.emp.nome,
         slug: s.emp.slug,

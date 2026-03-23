@@ -12,6 +12,7 @@ interface EmpresaData {
   tipoCategorias: "padrao" | "seraphine";
   ativo: number;
   createdAt: Date;
+  categorias?: Array<{ nome: string }>;
 }
 
 interface Props {
@@ -176,10 +177,11 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                 <div>
                   <p className="font-semibold text-slate-900 text-sm">{emp.nome}</p>
                   <p className="text-xs text-slate-500">
-                    {categoriasData.length > 0
-                      ? categoriasData.slice(0, 5).map((c) => c.nome).join(" / ")
+                    {/* Cada empresa mostra suas próprias categorias do banco */}
+                    {emp.categorias && emp.categorias.length > 0
+                      ? emp.categorias.slice(0, 5).map((c) => c.nome).join(" / ")
                       : (emp.tipoCategorias === "seraphine"
-                        ? "Cabelo / Manicure e Pedicure / Outros Serviços / Pacote / Recorrência"
+                        ? "Cabelo / Produtos / Unha / Outros / Pacotes"
                         : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência")}
                   </p>
                 </div>
@@ -244,6 +246,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   step="0.01"
                   min="0"
                   placeholder="0,00"
+                  autoComplete="off"
                   value={cats[i]}
                   onChange={(e) => {
                     const newCats = [...cats] as [string, string, string, string, string];

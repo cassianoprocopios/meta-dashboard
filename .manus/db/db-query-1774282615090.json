@@ -1,0 +1,45 @@
+{
+  "query": "SELECT id, nome, HEX(nome) as nome_hex, ativo, ordem FROM categorias WHERE empresaSlug = 'SERAPHINE' ORDER BY ordem;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, HEX(nome) as nome_hex, ativo, ordem FROM categorias WHERE empresaSlug = 'SERAPHINE' ORDER BY ordem;",
+  "rows": [
+    {
+      "id": "12",
+      "nome": "Cabelo",
+      "nome_hex": "436162656C6F",
+      "ativo": "1",
+      "ordem": "1"
+    },
+    {
+      "id": "3",
+      "nome": "Produtos",
+      "nome_hex": "50726F6475746F73",
+      "ativo": "1",
+      "ordem": "2"
+    },
+    {
+      "id": "15",
+      "nome": "Unha",
+      "nome_hex": "556E6861",
+      "ativo": "1",
+      "ordem": "3"
+    },
+    {
+      "id": "9",
+      "nome": "Outros",
+      "nome_hex": "4F7574726F73",
+      "ativo": "1",
+      "ordem": "4"
+    },
+    {
+      "id": "6",
+      "nome": "Pacotes",
+      "nome_hex": "5061636F746573",
+      "ativo": "1",
+      "ordem": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tnome_hex\tativo\tordem\n12\tCabelo\t436162656C6F\t1\t1\n3\tProdutos\t50726F6475746F73\t1\t2\n15\tUnha\t556E6861\t1\t3\n9\tOutros\t4F7574726F73\t1\t4\n6\tPacotes\t5061636F746573\t1\t5\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

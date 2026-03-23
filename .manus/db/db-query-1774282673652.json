@@ -1,0 +1,186 @@
+{
+  "query": "SELECT id, empresaSlug, nome, HEX(nome) as hex, ativo, ordem FROM categorias ORDER BY empresaSlug, ordem;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, nome, HEX(nome) as hex, ativo, ordem FROM categorias ORDER BY empresaSlug, ordem;",
+  "rows": [
+    {
+      "id": "30001",
+      "empresaSlug": "DOM_",
+      "nome": "Avulso",
+      "hex": "4176756C736F",
+      "ativo": "1",
+      "ordem": "1"
+    },
+    {
+      "id": "30002",
+      "empresaSlug": "DOM_",
+      "nome": "Serviços extras",
+      "hex": "5365727669C3A76F7320657874726173",
+      "ativo": "1",
+      "ordem": "2"
+    },
+    {
+      "id": "30003",
+      "empresaSlug": "DOM_",
+      "nome": "Produto",
+      "hex": "50726F6475746F",
+      "ativo": "1",
+      "ordem": "3"
+    },
+    {
+      "id": "30004",
+      "empresaSlug": "DOM_",
+      "nome": "Assinaturas",
+      "hex": "417373696E617475726173",
+      "ativo": "1",
+      "ordem": "4"
+    },
+    {
+      "id": "30005",
+      "empresaSlug": "DOM_",
+      "nome": "Auxiliares",
+      "hex": "417578696C6961726573",
+      "ativo": "1",
+      "ordem": "5"
+    },
+    {
+      "id": "30006",
+      "empresaSlug": "DOM_",
+      "nome": "Manicure",
+      "hex": "4D616E6963757265",
+      "ativo": "1",
+      "ordem": "6"
+    },
+    {
+      "id": "30007",
+      "empresaSlug": "DOM_",
+      "nome": "Estética",
+      "hex": "457374C3A974696361",
+      "ativo": "1",
+      "ordem": "7"
+    },
+    {
+      "id": "11",
+      "empresaSlug": "MASCOTE",
+      "nome": "Avulso",
+      "hex": "4176756C736F",
+      "ativo": "1",
+      "ordem": "1"
+    },
+    {
+      "id": "2",
+      "empresaSlug": "MASCOTE",
+      "nome": "Produtos",
+      "hex": "50726F6475746F73",
+      "ativo": "1",
+      "ordem": "2"
+    },
+    {
+      "id": "14",
+      "empresaSlug": "MASCOTE",
+      "nome": "Serv. Extra",
+      "hex": "536572762E204578747261",
+      "ativo": "1",
+      "ordem": "3"
+    },
+    {
+      "id": "8",
+      "empresaSlug": "MASCOTE",
+      "nome": "Auxiliar / Lavatório",
+      "hex": "417578696C696172202F204C61766174C3B372696F",
+      "ativo": "1",
+      "ordem": "4"
+    },
+    {
+      "id": "5",
+      "empresaSlug": "MASCOTE",
+      "nome": "Recorrência",
+      "hex": "5265636F7272C3AA6E636961",
+      "ativo": "1",
+      "ordem": "5"
+    },
+    {
+      "id": "10",
+      "empresaSlug": "MORUMBI",
+      "nome": "Avulso",
+      "hex": "4176756C736F",
+      "ativo": "1",
+      "ordem": "1"
+    },
+    {
+      "id": "1",
+      "empresaSlug": "MORUMBI",
+      "nome": "Produtos",
+      "hex": "50726F6475746F73",
+      "ativo": "1",
+      "ordem": "2"
+    },
+    {
+      "id": "13",
+      "empresaSlug": "MORUMBI",
+      "nome": "Serv. Extra",
+      "hex": "536572762E204578747261",
+      "ativo": "1",
+      "ordem": "3"
+    },
+    {
+      "id": "7",
+      "empresaSlug": "MORUMBI",
+      "nome": "Lavatório",
+      "hex": "4C61766174C3B372696F",
+      "ativo": "1",
+      "ordem": "4"
+    },
+    {
+      "id": "4",
+      "empresaSlug": "MORUMBI",
+      "nome": "Recorrência",
+      "hex": "5265636F7272C3AA6E636961",
+      "ativo": "1",
+      "ordem": "5"
+    },
+    {
+      "id": "12",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Cabelo",
+      "hex": "436162656C6F",
+      "ativo": "1",
+      "ordem": "1"
+    },
+    {
+      "id": "3",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Produtos",
+      "hex": "50726F6475746F73",
+      "ativo": "1",
+      "ordem": "2"
+    },
+    {
+      "id": "15",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Unha",
+      "hex": "556E6861",
+      "ativo": "1",
+      "ordem": "3"
+    },
+    {
+      "id": "9",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Outros",
+      "hex": "4F7574726F73",
+      "ativo": "1",
+      "ordem": "4"
+    },
+    {
+      "id": "6",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Pacotes",
+      "hex": "5061636F746573",
+      "ativo": "1",
+      "ordem": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tnome\thex\tativo\tordem\n30001\tDOM_\tAvulso\t4176756C736F\t1\t1\n30002\tDOM_\tServiços extras\t5365727669C3A76F7320657874726173\t1\t2\n30003\tDOM_\tProduto\t50726F6475746F\t1\t3\n30004\tDOM_\tAssinaturas\t417373696E617475726173\t1\t4\n30005\tDOM_\tAuxiliares\t417578696C6961726573\t1\t5\n30006\tDOM_\tManicure\t4D616E6963757265\t1\t6\n30007\tDOM_\tEstética\t457374C3A974696361\t1\t7\n11\tMASCOTE\tAvulso\t4176756C736F\t1\t1\n2\tMASCOTE\tProdutos\t50726F6475746F73\t1\t2\n14\tMASCOTE\tServ. Extra\t536572762E204578747261\t1\t3\n8\tMASCOTE\tAuxiliar / Lavatório\t417578696C696172202F204C61766174C3B372696F\t1\t4\n5\tMASCOTE\tRecorrência\t5265636F7272C3AA6E636961\t1\t5\n10\tMORUMBI\tAvulso\t4176756C736F\t1\t1\n1\tMORUMBI\tProdutos\t50726F6475746F73\t1\t2\n13\tMORUMBI\tServ. Extra\t536572762E204578747261\t1\t3\n7\tMORUMBI\tLavatório\t4C61766174C3B372696F\t1\t4\n4\tMORUMBI\tRecorrência\t5265636F7272C3AA6E636961\t1\t5\n12\tSERAPHINE\tCabelo\t436162656C6F\t1\t1\n3\tSERAPHINE\tProdutos\t50726F6475746F73\t1\t2\n15\tSERAPHINE\tUnha\t556E6861\t1\t3\n9\tSERAPHINE\tOutros\t4F7574726F73\t1\t4\n6\tSERAPHINE\tPacotes\t5061636F746573\t1\t5\n",
+  "stderr": "",
+  "execution_time_ms": 85
+}

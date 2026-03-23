@@ -1,0 +1,20 @@
+{
+  "query": "SELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId IN ('510049', '540217');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT ue.userId, ue.empresaSlug, ue.tenantId FROM userEmpresas ue WHERE ue.userId IN ('510049', '540217');",
+  "rows": [
+    {
+      "userId": "510049",
+      "empresaSlug": "MORUMBI",
+      "tenantId": "1"
+    },
+    {
+      "userId": "510049",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "userId\tempresaSlug\ttenantId\n510049\tMORUMBI\t1\n510049\tSERAPHINE\t1\n",
+  "stderr": "",
+  "execution_time_ms": 206
+}

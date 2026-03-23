@@ -1,0 +1,24 @@
+{
+  "query": "SELECT id, name, email, perfil, role FROM users WHERE name LIKE '%Camila%' OR email LIKE '%camila%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, name, email, perfil, role FROM users WHERE name LIKE '%Camila%' OR email LIKE '%camila%';",
+  "rows": [
+    {
+      "id": "510049",
+      "name": "Camila ",
+      "email": "camila@barbiero.com",
+      "perfil": "gerente",
+      "role": "user"
+    },
+    {
+      "id": "540217",
+      "name": "camila",
+      "email": "camila@barbiero.com.br",
+      "perfil": "gerente",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tperfil\trole\n510049\tCamila \tcamila@barbiero.com\tgerente\tuser\n540217\tcamila\tcamila@barbiero.com.br\tgerente\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 87
+}

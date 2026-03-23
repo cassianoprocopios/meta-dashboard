@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, empresaSlug, nome, ativo, ordem FROM categorias WHERE nome LIKE '%Sem%' OR nome LIKE '%sem%' OR nome LIKE '%Pac%' OR LENGTH(nome) < 3 ORDER BY empresaSlug, ordem;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, nome, ativo, ordem FROM categorias WHERE nome LIKE '%Sem%' OR nome LIKE '%sem%' OR nome LIKE '%Pac%' OR LENGTH(nome) < 3 ORDER BY empresaSlug, ordem;",
+  "rows": [
+    {
+      "id": "6",
+      "empresaSlug": "SERAPHINE",
+      "nome": "Pacotes",
+      "ativo": "1",
+      "ordem": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tnome\tativo\tordem\n6\tSERAPHINE\tPacotes\t1\t5\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}
