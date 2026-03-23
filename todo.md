@@ -393,3 +393,7 @@
 ## Resumo de Previstos no Topo do Dashboard
 
 - [x] Card de resumo âmbar com total previsto, dias futuros lançados e breakdown por unidade
+
+## Remoção da Acurácia de Previsões
+
+-- [x] Remover bloco de acuácia de previsões do dashboard
