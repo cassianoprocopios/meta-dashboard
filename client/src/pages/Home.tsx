@@ -2165,10 +2165,33 @@ export default function Home() {
                             const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5].map((v: any) => parseFloat(v || "0"));
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
+                            // Detectar se o dia é futuro (previsto)
+                            const hojeRef = new Date();
+                            const diaHojeRef = mes === hojeRef.getMonth() + 1 && ano === hojeRef.getFullYear()
+                              ? hojeRef.getDate()
+                              : new Date(ano, mes, 0).getDate();
+                            const isFuturo = parseInt(dia) > diaHojeRef;
                             return (
-                              <tr key={row.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                                <td className="px-4 py-3 font-medium text-foreground">
-                                  {parseInt(dia)}/{mes.toString().padStart(2, "0")}
+                              <tr
+                                key={row.id}
+                                className={`border-t transition-colors ${
+                                  isFuturo
+                                    ? "border-amber-200/50 bg-amber-50/40 hover:bg-amber-50/70 dark:bg-amber-500/5 dark:border-amber-500/20 dark:hover:bg-amber-500/10"
+                                    : "border-border hover:bg-muted/30"
+                                }`}
+                              >
+                                <td className="px-4 py-3 font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <span className={isFuturo ? "text-amber-700 dark:text-amber-300" : "text-foreground"}>
+                                      {parseInt(dia)}/{mes.toString().padStart(2, "0")}
+                                    </span>
+                                    {isFuturo && (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wide">
+                                        <Clock className="w-2.5 h-2.5" />
+                                        Previsto
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 {cats.map((v: number, i: number) => (
                                   <td key={i} className="px-4 py-3 text-right text-foreground/80">

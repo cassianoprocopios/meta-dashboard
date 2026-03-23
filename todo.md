@@ -397,3 +397,7 @@
 ## Remoção da Acurácia de Previsões
 
 -- [x] Remover bloco de acuácia de previsões do dashboard
+
+## Indicador Previsto na Tabela de Histórico
+
+- [x] Ícone de relógio e badge "Previsto" nas linhas futuras da tabela de histórico de lançamentos
