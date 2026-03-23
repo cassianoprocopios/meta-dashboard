@@ -79,6 +79,7 @@ export default function Home() {
   const [showFaturamentoForm, setShowFaturamentoForm] = useState(false);
   const [editingFaturamento, setEditingFaturamento] = useState<any>(null);
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
+  const [expandirPrevistos, setExpandirPrevistos] = useState(false);
 
   const isAdmin = user?.role === "admin";
   const isGerente = user?.perfil === "gerente" || isAdmin;
@@ -1177,6 +1178,136 @@ export default function Home() {
                 })()}
               </Card>
             </div>
+
+            {/* Card Resumo de Previstos — aparece apenas quando há lançamentos futuros */}
+            {totalGeralPrevisto > 0 && (
+              <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+                {/* Cabeçalho clicável */}
+                <button
+                  onClick={() => setExpandirPrevistos((v) => !v)}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-amber-500/10 hover:bg-amber-500/15 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20">
+                      <Clock className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-bold uppercase tracking-wide">
+                          <Clock className="w-2.5 h-2.5" />
+                          Previsto
+                        </span>
+                        <span className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                          {fmt(totalGeralPrevisto)}
+                        </span>
+                        <span className="text-xs text-amber-700 dark:text-amber-400">
+                          em {statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0)} dia{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""} futuro{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""} lançado{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-600 dark:text-amber-500 mt-0.5">
+                        Não afeta média, máximo e mínimo diário — apenas a projeção final
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                      {expandirPrevistos ? "Ocultar" : "Ver detalhes"}
+                    </span>
+                    {expandirPrevistos
+                      ? <ChevronUp className="w-4 h-4 text-amber-500" />
+                      : <ChevronDown className="w-4 h-4 text-amber-500" />}
+                  </div>
+                </button>
+
+                {/* Detalhes expandidos por unidade */}
+                {expandirPrevistos && (
+                  <div className="px-5 py-4 bg-amber-500/5 border-t border-amber-200/40">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {statsPorEmpresa
+                        .filter((s) => s.totalPrevisto > 0)
+                        .map((s) => {
+                          // Usar rowsPrevistos já calculado no statsPorEmpresa
+                          const diasDatas = s.rowsPrevistos
+                            .map((f: any) => parseInt(f.data.split("-")[2]))
+                            .sort((a: number, b: number) => a - b);
+                          const projecaoAtingeMeta = s.projecaoFinal >= s.metaMensal && s.metaMensal > 0;
+                          return (
+                            <div
+                              key={s.emp.slug}
+                              className="flex flex-col gap-1.5 p-3 rounded-xl bg-white/60 dark:bg-white/5 border border-amber-200/50"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: s.emp.cor }}
+                                  />
+                                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                    {s.emp.nome}
+                                  </span>
+                                </div>
+                                <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                                  {fmt(s.totalPrevisto)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-slate-500">
+                                  {s.diasPrevistos} dia{s.diasPrevistos !== 1 ? "s" : ""}:{" "}
+                                  {diasDatas.map((d: number) => `dia ${d}`).join(", ")}
+                                </span>
+                                <span className={`text-[10px] font-semibold ${
+                                  projecaoAtingeMeta ? "text-emerald-500" : "text-amber-500"
+                                }`}>
+                                  Proj. {fmt(s.projecaoFinal)}
+                                </span>
+                              </div>
+                              {/* Mini barra de progresso da projeção */}
+                              {s.metaMensal > 0 && (
+                                <div className="h-1 bg-amber-100 dark:bg-amber-900/30 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all ${
+                                      projecaoAtingeMeta ? "bg-emerald-400" : "bg-amber-400"
+                                    }`}
+                                    style={{ width: `${Math.min((s.projecaoFinal / s.metaMensal) * 100, 100)}%` }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {/* Linha de totais consolidados */}
+                    <div className="mt-3 pt-3 border-t border-amber-200/40 flex flex-wrap items-center gap-4">
+                      <div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-wide font-semibold">Total Realizado</p>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{fmt(totalGeralRealizado)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-wide font-semibold">Total Previsto</p>
+                        <p className="text-sm font-bold text-amber-700 dark:text-amber-300">{fmt(totalGeralPrevisto)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-wide font-semibold">Realizado + Previsto</p>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{fmt(totalGeralRealizado + totalGeralPrevisto)}</p>
+                      </div>
+                      {metaTotalGeral > 0 && (
+                        <div>
+                          <p className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-wide font-semibold">Projeção Final</p>
+                          <p className={`text-sm font-bold ${
+                            statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0) >= metaTotalGeral
+                              ? "text-emerald-500"
+                              : "text-amber-700 dark:text-amber-300"
+                          }`}>
+                            {fmt(statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0))}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
 
             {/* Card Comparativo com Mês Anterior */}
             {comparativoMesAnterior.totalAnteriorMesmosDias > 0 && (

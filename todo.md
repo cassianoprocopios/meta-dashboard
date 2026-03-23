@@ -389,3 +389,7 @@
 ## Badge Previsto nos Dias Futuros
 
 - [x] Destaque visual âmbar com badge "Previsto" nos dias futuros do formulário de lançamento
+
+## Resumo de Previstos no Topo do Dashboard
+
+- [x] Card de resumo âmbar com total previsto, dias futuros lançados e breakdown por unidade
