@@ -292,10 +292,13 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Projeção: baseada apenas nos dias realizados
-      const projecaoFinal = diasRealizados > 0 && diasUteis > 0
-        ? (totalRealizado / diasRealizados) * diasUteis
-        : 0;
+      // Projeção: realizado + previsto já lançado + (média diária × dias úteis sem lançamento)
+      // Dias úteis sem nenhum lançamento (nem realizado nem previsto)
+      const diasComLancamento = new Set(rows.map((r: any) => r.data)).size;
+      const diasUteisRestantesSemLancamento = Math.max(0, diasUteis - diasComLancamento);
+      const projecaoFinal = diasRealizados > 0
+        ? totalRealizado + totalPrevisto + (mediaDiaria * diasUteisRestantesSemLancamento)
+        : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria
       const catTotals = [0, 0, 0, 0, 0];
@@ -1161,6 +1164,17 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {metaTotalGeral > 0 && totalGeralRealizado < metaTotalGeral ? "restante (realizado)" : ""}
                 </p>
+                {/* Projeção consolidada com previstos */}
+                {(() => {
+                  const projecaoTotal = statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0);
+                  if (projecaoTotal <= 0 || metaTotalGeral <= 0) return null;
+                  const atingeMeta = projecaoTotal >= metaTotalGeral;
+                  return (
+                    <p className={`text-xs font-semibold mt-1 ${atingeMeta ? "text-emerald-400" : "text-amber-400"}`}>
+                      Projeção: {fmt(projecaoTotal)} ({atingeMeta ? "✓ atinge meta" : `falta ${fmt(metaTotalGeral - projecaoTotal)}`})
+                    </p>
+                  );
+                })()}
               </Card>
             </div>
 
@@ -1800,6 +1814,12 @@ export default function Home() {
                       <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-400" : "text-foreground"}`}>
                         {s.projecaoFinal > 0 ? fmt(s.projecaoFinal) : "—"}
                       </p>
+                      {/* Legenda: mostra composição da projeção quando há previstos */}
+                      {s.totalPrevisto > 0 && s.projecaoFinal > 0 && (
+                        <p className="text-[10px] text-amber-400 mt-0.5">
+                          incl. {fmt(s.totalPrevisto)} previsto
+                        </p>
+                      )}
                     </div>
                   </div>
 

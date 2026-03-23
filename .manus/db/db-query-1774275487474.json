@@ -1,0 +1,40 @@
+{
+  "query": "\nSELECT id, nome, ordem, ativo FROM categorias WHERE empresaSlug = 'SERAPHINE' ORDER BY ordem;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, ordem, ativo FROM categorias WHERE empresaSlug = 'SERAPHINE' ORDER BY ordem;\n",
+  "rows": [
+    {
+      "id": "12",
+      "nome": "Cabelo",
+      "ordem": "1",
+      "ativo": "1"
+    },
+    {
+      "id": "3",
+      "nome": "Produtos",
+      "ordem": "2",
+      "ativo": "1"
+    },
+    {
+      "id": "15",
+      "nome": "Unha",
+      "ordem": "3",
+      "ativo": "1"
+    },
+    {
+      "id": "9",
+      "nome": "Outros",
+      "ordem": "4",
+      "ativo": "1"
+    },
+    {
+      "id": "6",
+      "nome": "Pacotes",
+      "ordem": "5",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tordem\tativo\n12\tCabelo\t1\t1\n3\tProdutos\t2\t1\n15\tUnha\t3\t1\n9\tOutros\t4\t1\n6\tPacotes\t5\t1\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

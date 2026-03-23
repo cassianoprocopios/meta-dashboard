@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT e.id, e.nome, e.slug, c.id as cat_id, c.nome as cat_nome, c.ordem, c.ativa\nFROM empresas e\nLEFT JOIN categorias c ON c.empresaSlug = e.slug\nWHERE e.nome LIKE '%eraphine%' OR e.slug LIKE '%eraphine%'\nORDER BY e.id, c.ordem;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT e.id, e.nome, e.slug, c.id as cat_id, c.nome as cat_nome, c.ordem, c.ativa\nFROM empresas e\nLEFT JOIN categorias c ON c.empresaSlug = e.slug\nWHERE e.nome LIKE '%eraphine%' OR e.slug LIKE '%eraphine%'\nORDER BY e.id, c.ordem;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'c.ativa' in 'field list'"
+  ]
+}

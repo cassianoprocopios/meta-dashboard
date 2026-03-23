@@ -377,3 +377,11 @@
 - [x] Tabela histórico: usar nomes dinâmicos das categorias
 - [x] Aba Empresas: melhorar painel de categorias (reordenar, inicializar com padrão)
 - [x] Testes: verificar que categorias são criadas corretamente ao criar empresa
+
+## Categoria Pacotes — Seraphine
+
+- [x] Adicionar categoria "Pacotes" na composição de faturamento da Seraphine
+
+## Correção da Projeção vs Previstos
+
+- [x] Corrigir projecaoFinal para incluir valores previstos (dias futuros já lançados) no cálculo
