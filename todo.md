@@ -405,3 +405,11 @@
 ## Rodapé com Subtotais na Tabela de Histórico
 
 - [x] tfoot com subtotais separados: Realizado e Previsto por categoria e total
+
+## Percentual de Meta e Super Meta
+
+- [x] Adicionar campo superMeta no schema (tabela metasMensais) e migrar banco
+- [x] Backend: incluir superMeta nos endpoints de meta (salvar/listar)
+- [x] MetaConfig: campo para editar superMeta e exibir percentual de atingimento
+- [x] Dashboard: exibir % de meta atingida e indicador de super meta nos cards de empresa
+- [x] Dashboard: barra de progresso dupla (meta / super meta) nos cards

@@ -602,6 +602,7 @@ export async function upsertMeta(input: InsertMeta) {
     await db.update(metas).set({
       metaMensal: input.metaMensal,
       metaQuinzenal: input.metaQuinzenal,
+      superMeta: input.superMeta ?? "0",
       diasUteis: input.diasUteis,
       diasUteisQuinzenal: input.diasUteisQuinzenal,
     }).where(eq(metas.id, existing.id));

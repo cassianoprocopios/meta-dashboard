@@ -258,6 +258,7 @@ export default function Home() {
       const meta = metasData.find((m: any) => m.empresaSlug === emp.slug);
       const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
       const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
+      const superMeta = parseFloat(String(meta?.superMeta || "0"));
       const diasUteis = meta?.diasUteis ?? 26;
       const diasUteisQuinzenal = meta?.diasUteisQuinzenal ?? 13;
 
@@ -326,6 +327,7 @@ export default function Home() {
         menorDia,
         metaMensal,
         metaQuinzenal,
+        superMeta,
         metaDiariaMensal,
         metaDiariaQuinzenal,
         metaDiariaDinamicaMensal,
@@ -354,6 +356,7 @@ export default function Home() {
   const totalGeralPrevisto = statsPorEmpresa.reduce((s, e) => s + e.totalPrevisto, 0);
   const metaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.metaMensal, 0);
   const metaQuinzenalTotal = statsPorEmpresa.reduce((s, e) => s + e.metaQuinzenal, 0);
+  const superMetaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.superMeta, 0);
 
   // Comparativo com mês anterior: usar apenas os mesmos dias já apurados no mês atual
   const comparativoMesAnterior = useMemo(() => {
@@ -1515,6 +1518,9 @@ export default function Home() {
                                 {atingiu && (
                                   <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">✓ Meta!</span>
                                 )}
+                                {s.superMeta > 0 && s.totalRealizado >= s.superMeta && (
+                                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">★ Super!</span>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 <span className="text-xs text-muted-foreground">{fmt(s.totalRealizado)}</span>
@@ -1634,6 +1640,31 @@ export default function Home() {
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {s.diasUteisDecorridos} de {s.diasUteis} dias úteis decorridos
                       </p>
+                    </div>
+                  )}
+
+                  {/* Super Meta */}
+                  {s.superMeta > 0 && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-amber-500 font-medium flex items-center gap-1">
+                          ★ Super Meta: {fmt(s.superMeta)}
+                        </span>
+                        <span className={`font-bold ${s.totalRealizado >= s.superMeta ? "text-amber-400" : "text-amber-600"}`}>
+                          {s.superMeta > 0 ? ((s.totalRealizado / s.superMeta) * 100).toFixed(0) : 0}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-amber-500/20 rounded-full overflow-hidden border border-amber-500/30">
+                        <div
+                          className={`h-full rounded-full transition-all ${s.totalRealizado >= s.superMeta ? "bg-amber-400" : "bg-amber-300"}`}
+                          style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%` }}
+                        />
+                      </div>
+                      {s.totalRealizado >= s.superMeta ? (
+                        <p className="text-xs text-amber-400 mt-0.5 font-semibold">★ Super meta atingida! Parabéns!</p>
+                      ) : (
+                        <p className="text-xs text-amber-500/70 mt-0.5">Falta {fmt(s.superMeta - s.totalRealizado)} para a super meta</p>
+                      )}
                     </div>
                   )}
 
@@ -2307,6 +2338,7 @@ export default function Home() {
             onSaved={refetchMetas}
             empresaVinculada={empresaVinculada}
             isGerente={isGerente}
+            totaisRealizados={Object.fromEntries(statsPorEmpresa.map((s) => [s.emp.slug, s.totalRealizado]))}
           />
         )}
 

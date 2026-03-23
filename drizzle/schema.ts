@@ -132,6 +132,8 @@ export const metas = mysqlTable("metas", {
   ano: int("ano").notNull(),
   metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }).notNull().default("0"),
   metaQuinzenal: decimal("metaQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Super Meta: objetivo ambicioso acima da meta mensal (bônus extra) */
+  superMeta: decimal("superMeta", { precision: 12, scale: 2 }).notNull().default("0"),
   diasUteis: int("diasUteis").notNull().default(26),
   diasUteisQuinzenal: int("diasUteisQuinzenal").notNull().default(13),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

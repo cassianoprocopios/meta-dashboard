@@ -449,6 +449,7 @@ export const appRouter = router({
         ano: z.number().min(2020),
         metaMensal: z.string(),
         metaQuinzenal: z.string(),
+        superMeta: z.string().optional().default("0"),
         diasUteis: z.number().min(0).max(31),
         diasUteisQuinzenal: z.number().min(0).max(15),
       }))

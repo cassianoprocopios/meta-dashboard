@@ -1,0 +1,106 @@
+{
+  "query": "SHOW COLUMNS FROM metas;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW COLUMNS FROM metas;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "empresa",
+      "Type": "enum('MORUMBI','MASCOTE','SERAPHINE')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "mes",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "ano",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "metaMensal",
+      "Type": "decimal(12,2)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "metaQuinzenal",
+      "Type": "decimal(12,2)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "Field": "diasUteis",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "26",
+      "Extra": ""
+    },
+    {
+      "Field": "diasUteisQuinzenal",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "13",
+      "Extra": ""
+    },
+    {
+      "Field": "empresaSlug",
+      "Type": "varchar(64)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "tenantId",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "1",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nempresa\tenum('MORUMBI','MASCOTE','SERAPHINE')\tNO\t\tNULL\t\nmes\tint\tNO\t\tNULL\t\nano\tint\tNO\t\tNULL\t\nmetaMensal\tdecimal(12,2)\tNO\t\t0\t\nmetaQuinzenal\tdecimal(12,2)\tNO\t\t0\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\ndiasUteis\tint\tNO\t\t26\t\ndiasUteisQuinzenal\tint\tNO\t\t13\t\nempresaSlug\tvarchar(64)\tYES\t\tNULL\t\ntenantId\tint\tNO\t\t1\t\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}
