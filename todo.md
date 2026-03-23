@@ -401,3 +401,7 @@
 ## Indicador Previsto na Tabela de Histórico
 
 - [x] Ícone de relógio e badge "Previsto" nas linhas futuras da tabela de histórico de lançamentos
+
+## Rodapé com Subtotais na Tabela de Histórico
+
+- [x] tfoot com subtotais separados: Realizado e Previsto por categoria e total

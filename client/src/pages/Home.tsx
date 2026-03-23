@@ -2221,6 +2221,72 @@ export default function Home() {
                             );
                           })}
                         </tbody>
+                        {/* Rodapé com subtotais realizados e previstos */}
+                        {(() => {
+                          const hoje2 = new Date();
+                          const diaHoje2 = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear()
+                            ? hoje2.getDate()
+                            : new Date(ano, mes, 0).getDate();
+                          const realizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje2);
+                          const previstos  = rows.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
+                          const sumCats = (list: any[]) =>
+                            [0,1,2,3,4].map((i) =>
+                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5][i] || "0"), 0)
+                            );
+                          const catsReal = sumCats(realizados);
+                          const catsPrev = sumCats(previstos);
+                          const totalReal = catsReal.reduce((a, b) => a + b, 0);
+                          const totalPrev = catsPrev.reduce((a, b) => a + b, 0);
+                          const hasPrev = previstos.length > 0;
+                          return (
+                            <tfoot>
+                              {/* Linha Realizado */}
+                              <tr className="border-t-2 border-border bg-muted/30">
+                                <td className="px-4 py-2.5 text-xs font-semibold text-foreground/70 uppercase tracking-wide">
+                                  Realizado
+                                </td>
+                                {catsReal.map((v, i) => (
+                                  <td key={i} className="px-4 py-2.5 text-right text-xs font-semibold text-foreground/80">
+                                    {v > 0 ? fmt(v) : <span className="text-muted-foreground/30">—</span>}
+                                  </td>
+                                ))}
+                                <td className="px-4 py-2.5 text-right text-sm font-bold text-foreground">{fmt(totalReal)}</td>
+                                {isGerente && !isRecepcionista && <td />}
+                              </tr>
+                              {/* Linha Previsto — só aparece se houver lançamentos futuros */}
+                              {hasPrev && (
+                                <tr className="border-t border-amber-200/60 bg-amber-50/50 dark:bg-amber-500/5 dark:border-amber-500/20">
+                                  <td className="px-4 py-2.5">
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                                      <Clock className="w-3 h-3" />
+                                      Previsto
+                                    </span>
+                                  </td>
+                                  {catsPrev.map((v, i) => (
+                                    <td key={i} className="px-4 py-2.5 text-right text-xs font-semibold text-amber-700/80 dark:text-amber-400/80">
+                                      {v > 0 ? fmt(v) : <span className="text-amber-400/30">—</span>}
+                                    </td>
+                                  ))}
+                                  <td className="px-4 py-2.5 text-right text-sm font-bold text-amber-700 dark:text-amber-400">{fmt(totalPrev)}</td>
+                                  {isGerente && !isRecepcionista && <td />}
+                                </tr>
+                              )}
+                              {/* Linha Total Geral */}
+                              <tr className="border-t border-border bg-muted/50">
+                                <td className="px-4 py-2.5 text-xs font-bold text-foreground uppercase tracking-wide">
+                                  Total Geral
+                                </td>
+                                {catsReal.map((v, i) => (
+                                  <td key={i} className="px-4 py-2.5 text-right text-xs font-bold text-foreground">
+                                    {(v + catsPrev[i]) > 0 ? fmt(v + catsPrev[i]) : <span className="text-muted-foreground/30">—</span>}
+                                  </td>
+                                ))}
+                                <td className="px-4 py-2.5 text-right text-sm font-bold text-foreground">{fmt(totalReal + totalPrev)}</td>
+                                {isGerente && !isRecepcionista && <td />}
+                              </tr>
+                            </tfoot>
+                          );
+                        })()}
                       </table>
                     </div>
                   </Card>
