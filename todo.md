@@ -385,3 +385,7 @@
 ## Correção da Projeção vs Previstos
 
 - [x] Corrigir projecaoFinal para incluir valores previstos (dias futuros já lançados) no cálculo
+
+## Badge Previsto nos Dias Futuros
+
+- [x] Destaque visual âmbar com badge "Previsto" nos dias futuros do formulário de lançamento

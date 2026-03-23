@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Save, Building2, CalendarClock } from "lucide-react";
+import { Save, Building2, CalendarClock, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 interface EmpresaData {
@@ -62,6 +62,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   const salvar = trpc.faturamento.salvar.useMutation();
 
   const empresaAtual = empresas.find((e) => e.slug === empresaSlug);
+  const futuro = isDataFutura(data);
 
   // Buscar categorias dinâmicas do banco
   const { data: categoriasData = [] } = trpc.categorias.listar.useQuery(
@@ -110,7 +111,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         cat5: parseValStr(cats[4]),
         observacao: observacao || undefined,
       });
-      toast.success("Lançamento salvo com sucesso!");
+      toast.success(futuro ? "Lançamento previsto salvo!" : "Lançamento salvo com sucesso!");
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao salvar lançamento.");
@@ -122,6 +123,30 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
 
   return (
     <div className="space-y-5">
+
+      {/* Banner de modo Previsto — aparece quando a data é futura */}
+      {futuro && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-400/40">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 flex-shrink-0">
+            <Clock className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-bold uppercase tracking-wide">
+                <Clock className="w-2.5 h-2.5" />
+                Previsto
+              </span>
+              <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                Lançamento para data futura
+              </span>
+            </div>
+            <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+              Valores previstos não afetam média, máximo e mínimo diário — apenas a projeção final.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Empresa */}
       <div>
         <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">
@@ -152,8 +177,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   <p className="font-semibold text-slate-900 text-sm">{emp.nome}</p>
                   <p className="text-xs text-slate-500">
                     {categoriasData.length > 0
-                    ? categoriasData.slice(0, 5).map((c) => c.nome).join(" / ")
-                    : (emp.tipoCategorias === "seraphine" ? "Cabelo / Manicure e Pedicure / Outros Serviços / Pacote / Recorrência" : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência")}
+                      ? categoriasData.slice(0, 5).map((c) => c.nome).join(" / ")
+                      : (emp.tipoCategorias === "seraphine"
+                        ? "Cabelo / Manicure e Pedicure / Outros Serviços / Pacote / Recorrência"
+                        : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência")}
                   </p>
                 </div>
               </button>
@@ -167,47 +194,51 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">
           Data
         </label>
-        <input
-          type="date"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-          min={toDateStr(ano, mes, 1)}
-          max={toDateStr(ano, mes, new Date(ano, mes, 0).getDate())}
-          className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
-            isDataFutura(data)
-              ? "border-amber-400 bg-amber-50 focus:ring-amber-400 text-amber-900"
-              : "border-slate-200 focus:ring-blue-500"
-          }`}
-        />
-
-        {/* Aviso de data futura */}
-        {isDataFutura(data) && (
-          <div className="mt-2 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-amber-800">Data futura — lançamento previsto</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Este lançamento será salvo como <strong>previsto</strong> e não afetará os cálculos
-                de média diária, maior e menor dia até que a data seja atingida.
-              </p>
-            </div>
-          </div>
-        )}
+        <div className="relative">
+          <input
+            type="date"
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            min={toDateStr(ano, mes, 1)}
+            max={toDateStr(ano, mes, new Date(ano, mes, 0).getDate())}
+            className={`w-full px-4 py-2.5 border-2 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
+              futuro
+                ? "border-amber-400 bg-amber-50 focus:ring-amber-400 text-amber-900 pr-24"
+                : "border-slate-200 focus:ring-blue-500"
+            }`}
+          />
+          {/* Badge inline na data */}
+          {futuro && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wide pointer-events-none">
+              <Clock className="w-2.5 h-2.5" />
+              Previsto
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Categorias */}
       <div>
-        <label className="text-xs font-semibold text-slate-600 mb-2 block uppercase tracking-wide">
-          Valores por Categoria
-        </label>
-        <div className="space-y-2.5">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+            Valores por Categoria
+          </label>
+          {futuro && (
+            <span className="text-[10px] text-amber-600 font-semibold uppercase tracking-wide">
+              — valores previstos
+            </span>
+          )}
+        </div>
+        <div className={`space-y-2.5 rounded-xl transition-all ${futuro ? "p-3 bg-amber-50/60 border border-amber-200/60" : ""}`}>
           {labels.map((label, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-28 flex-shrink-0">
                 <span className="text-sm text-slate-700 font-medium">{label}</span>
               </div>
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+                <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium ${futuro ? "text-amber-400" : "text-slate-400"}`}>
+                  R$
+                </span>
                 <input
                   type="number"
                   step="0.01"
@@ -219,7 +250,11 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                     newCats[i] = e.target.value;
                     setCats(newCats);
                   }}
-                  className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className={`w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 font-medium transition-all ${
+                    futuro
+                      ? "border-amber-300 bg-amber-50 focus:ring-amber-400 text-amber-900 placeholder:text-amber-300"
+                      : "border-slate-200 focus:ring-blue-500"
+                  }`}
                 />
               </div>
             </div>
@@ -230,11 +265,26 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
       {/* Total */}
       {total > 0 && (
         <div
-          className="flex items-center justify-between p-3 rounded-xl"
-          style={{ backgroundColor: (empresaAtual?.cor ?? "#3b82f6") + "10" }}
+          className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+            futuro
+              ? "bg-amber-500/10 border-amber-300/50"
+              : "border-transparent"
+          }`}
+          style={!futuro ? { backgroundColor: (empresaAtual?.cor ?? "#3b82f6") + "10" } : {}}
         >
-          <span className="text-sm font-semibold text-slate-700">Total do dia</span>
-          <span className="text-lg font-bold" style={{ color: empresaAtual?.cor ?? "#3b82f6" }}>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-700">Total do dia</span>
+            {futuro && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wide">
+                <Clock className="w-2.5 h-2.5" />
+                Previsto
+              </span>
+            )}
+          </div>
+          <span
+            className={`text-lg font-bold ${futuro ? "text-amber-600" : ""}`}
+            style={!futuro ? { color: empresaAtual?.cor ?? "#3b82f6" } : {}}
+          >
             {fmt(total)}
           </span>
         </div>
@@ -248,9 +298,13 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         <textarea
           value={observacao}
           onChange={(e) => setObservacao(e.target.value)}
-          placeholder="Alguma observação sobre este dia..."
+          placeholder={futuro ? "Observação sobre este lançamento previsto..." : "Alguma observação sobre este dia..."}
           rows={2}
-          className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 resize-none transition-all ${
+            futuro
+              ? "border-amber-300 bg-amber-50 focus:ring-amber-400 placeholder:text-amber-400"
+              : "border-slate-200 focus:ring-blue-500"
+          }`}
         />
       </div>
 
@@ -259,14 +313,18 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         <Button
           onClick={handleSave}
           disabled={salvar.isPending}
-          className={`flex-1 text-white rounded-xl gap-2 ${
-            isDataFutura(data)
-              ? "bg-amber-500 hover:bg-amber-600"
+          className={`flex-1 text-white rounded-xl gap-2 transition-all ${
+            futuro
+              ? "bg-amber-500 hover:bg-amber-600 shadow-amber-200 shadow-md"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {isDataFutura(data) ? <CalendarClock className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-          {salvar.isPending ? "Salvando..." : isDataFutura(data) ? "Salvar como Previsto" : "Salvar Lançamento"}
+          {futuro ? <CalendarClock className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {salvar.isPending
+            ? "Salvando..."
+            : futuro
+            ? "Salvar como Previsto"
+            : "Salvar Lançamento"}
         </Button>
         <Button variant="outline" onClick={onCancel} className="rounded-xl">
           Cancelar
