@@ -1,0 +1,65 @@
+{
+  "query": "SELECT e.id, e.nome, e.slug, e.cor, e.ativo, e.tenantId, t.nome as tenantNome, t.plano, t.ativo as tenantAtivo\nFROM empresas e\nLEFT JOIN tenants t ON e.tenantId = t.id\nWHERE e.ativo = 1\nORDER BY t.nome, e.nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT e.id, e.nome, e.slug, e.cor, e.ativo, e.tenantId, t.nome as tenantNome, t.plano, t.ativo as tenantAtivo\nFROM empresas e\nLEFT JOIN tenants t ON e.tenantId = t.id\nWHERE e.ativo = 1\nORDER BY t.nome, e.nome;",
+  "rows": [
+    {
+      "id": "2",
+      "nome": "Mascote",
+      "slug": "MASCOTE",
+      "cor": "#a855f7",
+      "ativo": "1",
+      "tenantId": "1",
+      "tenantNome": "Barbiero Grupo",
+      "plano": "pro",
+      "tenantAtivo": "1"
+    },
+    {
+      "id": "1",
+      "nome": "Morumbi",
+      "slug": "MORUMBI",
+      "cor": "#3b82f6",
+      "ativo": "1",
+      "tenantId": "1",
+      "tenantNome": "Barbiero Grupo",
+      "plano": "pro",
+      "tenantAtivo": "1"
+    },
+    {
+      "id": "3",
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "cor": "#a855f7",
+      "ativo": "1",
+      "tenantId": "1",
+      "tenantNome": "Barbiero Grupo",
+      "plano": "pro",
+      "tenantAtivo": "1"
+    },
+    {
+      "id": "90002",
+      "nome": "Mascote",
+      "slug": "MASCOTE",
+      "cor": "#a855f7",
+      "ativo": "1",
+      "tenantId": "60002",
+      "tenantNome": "Barbiero Mascote ",
+      "plano": "trial",
+      "tenantAtivo": "1"
+    },
+    {
+      "id": "60005",
+      "nome": "Dom Pablo",
+      "slug": "DOM_",
+      "cor": "#e29c22",
+      "ativo": "1",
+      "tenantId": "120006",
+      "tenantNome": "Dom Pablo Barbearia ",
+      "plano": "trial",
+      "tenantAtivo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tslug\tcor\tativo\ttenantId\ttenantNome\tplano\ttenantAtivo\n2\tMascote\tMASCOTE\t#a855f7\t1\t1\tBarbiero Grupo\tpro\t1\n1\tMorumbi\tMORUMBI\t#3b82f6\t1\t1\tBarbiero Grupo\tpro\t1\n3\tSeraphine\tSERAPHINE\t#a855f7\t1\t1\tBarbiero Grupo\tpro\t1\n90002\tMascote\tMASCOTE\t#a855f7\t1\t60002\tBarbiero Mascote \ttrial\t1\n60005\tDom Pablo\tDOM_\t#e29c22\t1\t120006\tDom Pablo Barbearia \ttrial\t1\n",
+  "stderr": "",
+  "execution_time_ms": 157
+}

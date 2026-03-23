@@ -1,0 +1,9 @@
+{
+  "query": "-- Excluir dados relacionados à empresa Mascote do tenant 60002\nDELETE FROM faturamentos WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM metas WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM bonificacoes WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM userEmpresas WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM empresas WHERE id = 90002 AND tenantId = 60002;\n\n-- Excluir usuário Cintia do tenant 60002\nDELETE FROM userEmpresas WHERE userId = 330001 AND tenantId = 60002;\nDELETE FROM users WHERE id = 330001 AND tenantId = 60002;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute -- Excluir dados relacionados à empresa Mascote do tenant 60002\nDELETE FROM faturamentos WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM metas WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM bonificacoes WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM userEmpresas WHERE empresaSlug = 'MASCOTE' AND tenantId = 60002;\nDELETE FROM empresas WHERE id = 90002 AND tenantId = 60002;\n\n-- Excluir usuário Cintia do tenant 60002\nDELETE FROM userEmpresas WHERE userId = 330001 AND tenantId = 60002;\nDELETE FROM users WHERE id = 330001 AND tenantId = 60002;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 142
+}

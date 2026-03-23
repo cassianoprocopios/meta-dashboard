@@ -352,3 +352,16 @@
 - [ ] Exibir no card o período comparado (ex: "dias 1-22 vs dias 1-22 do mês anterior")
 - [ ] Card consolidado de comparativo geral no topo do dashboard
 - [ ] Histórico de acurácia das previsões mês a mês (nova seção com gráfico de evolução e tabela)
+
+## Aba Usuários Online no SuperAdmin
+
+- [x] Endpoint backend `adminDashboard.usuariosOnline` com filtro por minutos de atividade
+- [x] Função `getAllUsersForAdmin` atualizada para incluir nomes de empresas vinculadas
+- [x] Aba "Usuários Online" adicionada ao painel SuperAdmin com navegação por abas
+- [x] Atualização automática a cada 30 segundos via `refetchInterval`
+- [x] Filtro de período: 5min, 15min, 30min, 1h, 4h, 24h
+- [x] Indicador visual de tempo online (verde pulsante ≤5min, verde ≤15min, âmbar >15min)
+- [x] Badge com contador de usuários ativos na aba
+- [x] Exibe: nome, email, empresa(s) vinculada(s), tenant, último acesso, perfil
+- [x] Estado vazio com mensagem informativa
+- [x] 29 testes passando, TypeScript sem erros

@@ -1,0 +1,142 @@
+{
+  "query": "SELECT u.id, u.name, u.email, u.role, u.perfil, u.ativo, u.tenantId, u.lastSignedIn,\n       t.nome as tenantNome,\n       GROUP_CONCAT(ue.empresaSlug ORDER BY ue.empresaSlug SEPARATOR ', ') as empresasVinculadas\nFROM users u\nLEFT JOIN tenants t ON u.tenantId = t.id\nLEFT JOIN userEmpresas ue ON ue.userId = u.id AND ue.tenantId = u.tenantId\nWHERE u.ativo = 1\nGROUP BY u.id, u.name, u.email, u.role, u.perfil, u.ativo, u.tenantId, u.lastSignedIn, t.nome\nORDER BY t.nome, u.name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT u.id, u.name, u.email, u.role, u.perfil, u.ativo, u.tenantId, u.lastSignedIn,\n       t.nome as tenantNome,\n       GROUP_CONCAT(ue.empresaSlug ORDER BY ue.empresaSlug SEPARATOR ', ') as empresasVinculadas\nFROM users u\nLEFT JOIN tenants t ON u.tenantId = t.id\nLEFT JOIN userEmpresas ue ON ue.userId = u.id AND ue.tenantId = u.tenantId\nWHERE u.ativo = 1\nGROUP BY u.id, u.name, u.email, u.role, u.perfil, u.ativo, u.tenantId, u.lastSignedIn, t.nome\nORDER BY t.nome, u.name;",
+  "rows": [
+    {
+      "id": "210035",
+      "name": "Marcelo",
+      "email": "barbierobarbearia@gmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "4",
+      "lastSignedIn": "2026-03-20 04:04:10",
+      "tenantNome": "Barber teste",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "540217",
+      "name": "camila",
+      "email": "camila@barbiero.com.br",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "120005",
+      "lastSignedIn": "2026-03-21 00:58:51",
+      "tenantNome": "barbiero ",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "510049",
+      "name": "Camila ",
+      "email": "camila@barbiero.com",
+      "role": "user",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "1",
+      "lastSignedIn": "2026-03-22 22:41:37",
+      "tenantNome": "Barbiero Grupo",
+      "empresasVinculadas": "MORUMBI, SERAPHINE"
+    },
+    {
+      "id": "1",
+      "name": "cassiano procopio",
+      "email": "cassiano@barbierogrupo.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "1",
+      "lastSignedIn": "2026-03-23 00:04:56",
+      "tenantNome": "Barbiero Grupo",
+      "empresasVinculadas": "MASCOTE, MORUMBI, SERAPHINE"
+    },
+    {
+      "id": "510010",
+      "name": "Cintia Mezanini Kawano",
+      "email": "cintia.mezanini@gmail.com",
+      "role": "user",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "1",
+      "lastSignedIn": "2026-03-21 14:21:52",
+      "tenantNome": "Barbiero Grupo",
+      "empresasVinculadas": "MASCOTE"
+    },
+    {
+      "id": "540261",
+      "name": "Dom Pablo Barbearia",
+      "email": "dompablobarber@gmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "1",
+      "lastSignedIn": "2026-03-21 22:48:53",
+      "tenantNome": "Barbiero Grupo",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "330001",
+      "name": "Cintia Mezanini Kawano",
+      "email": "cintia.mezanini@gmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "60002",
+      "lastSignedIn": "2026-03-21 17:14:01",
+      "tenantNome": "Barbiero Mascote ",
+      "empresasVinculadas": "MASCOTE"
+    },
+    {
+      "id": "540254",
+      "name": "Pablo Henrique Aguiar de Lima",
+      "email": "pablolima1505@gmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "120006",
+      "lastSignedIn": "2026-03-21 02:08:45",
+      "tenantNome": "Dom Pablo Barbearia ",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "300001",
+      "name": "Gustavo",
+      "email": "gustavo92souza@hotmail.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "30002",
+      "lastSignedIn": "2026-03-20 09:49:41",
+      "tenantNome": "Novva Barbearia",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "210004",
+      "name": "Maria Silva",
+      "email": "maria@salaoexemplo.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "3",
+      "lastSignedIn": "2026-03-20 03:37:44",
+      "tenantNome": "Salao Exemplo",
+      "empresasVinculadas": "NULL"
+    },
+    {
+      "id": "210003",
+      "name": "Admin Teste",
+      "email": "teste@studioteste.com",
+      "role": "admin",
+      "perfil": "gerente",
+      "ativo": "1",
+      "tenantId": "2",
+      "lastSignedIn": "2026-03-20 03:41:27",
+      "tenantNome": "Studio Teste",
+      "empresasVinculadas": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tperfil\tativo\ttenantId\tlastSignedIn\ttenantNome\tempresasVinculadas\n210035\tMarcelo\tbarbierobarbearia@gmail.com\tadmin\tgerente\t1\t4\t2026-03-20 04:04:10\tBarber teste\tNULL\n540217\tcamila\tcamila@barbiero.com.br\tadmin\tgerente\t1\t120005\t2026-03-21 00:58:51\tbarbiero \tNULL\n510049\tCamila \tcamila@barbiero.com\tuser\tgerente\t1\t1\t2026-03-22 22:41:37\tBarbiero Grupo\tMORUMBI, SERAPHINE\n1\tcassiano procopio\tcassiano@barbierogrupo.com\tadmin\tgerente\t1\t1\t2026-03-23 00:04:56\tBarbiero Grupo\tMASCOTE, MORUMBI, SERAPHINE\n510010\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tuser\tgerente\t1\t1\t2026-03-21 14:21:52\tBarbiero Grupo\tMASCOTE\n540261\tDom Pablo Barbearia\tdompablobarber@gmail.com\tadmin\tgerente\t1\t1\t2026-03-21 22:48:53\tBarbiero Grupo\tNULL\n330001\tCintia Mezanini Kawano\tcintia.mezanini@gmail.com\tadmin\tgerente\t1\t60002\t2026-03-21 17:14:01\tBarbiero Mascote \tMASCOTE\n540254\tPablo Henrique Aguiar de Lima\tpablolima1505@gmail.com\tadmin\tgerente\t1\t120006\t2026-03-21 02:08:45\tDom Pablo Barbearia \tNULL\n300001\tGustavo\tgustavo92souza@hotmail.com\tadmin\tgerente\t1\t30002\t2026-03-20 09:49:41\tNovva Barbearia\tNULL\n210004\tMaria Silva\tmaria@salaoexemplo.com\tadmin\tgerente\t1\t3\t2026-03-20 03:37:44\tSalao Exemplo\tNULL\n210003\tAdmin Teste\tteste@studioteste.com\tadmin\tgerente\t1\t2\t2026-03-20 03:41:27\tStudio Teste\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

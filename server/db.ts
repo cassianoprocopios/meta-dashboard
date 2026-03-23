@@ -267,11 +267,11 @@ export async function updateUserFull(
   await db.update(users).set(updateSet).where(eq(users.id, userId));
 }
 
-/** Retorna todos os utilizadores de todos os tenants (apenas super-admin) */
+/** Retorna todos os utilizadores de todos os tenants (apenas super-admin), com nomes de empresas vinculadas */
 export async function getAllUsersForAdmin() {
   const db = await getDb();
   if (!db) return [];
-  return db.select({
+  const allUsers = await db.select({
     id: users.id,
     tenantId: users.tenantId,
     name: users.name,
@@ -290,6 +290,36 @@ export async function getAllUsersForAdmin() {
   .from(users)
   .leftJoin(tenants, eq(users.tenantId, tenants.id))
   .orderBy(asc(users.tenantId), asc(users.name));
+
+  if (allUsers.length === 0) return [];
+
+  // Buscar vínculos N:N de empresas
+  const allVinculos = await db
+    .select({ userId: userEmpresas.userId, empresaSlug: userEmpresas.empresaSlug })
+    .from(userEmpresas)
+    .where(inArray(userEmpresas.userId, allUsers.map((u) => u.id)));
+
+  // Buscar nomes das empresas para os slugs encontrados
+  const slugsUnicos = Array.from(new Set(allVinculos.map((v) => v.empresaSlug)));
+  const nomesEmpresas: Record<string, string> = {};
+  if (slugsUnicos.length > 0) {
+    const empRows = await db
+      .select({ slug: empresas.slug, nome: empresas.nome })
+      .from(empresas)
+      .where(inArray(empresas.slug, slugsUnicos));
+    for (const e of empRows) nomesEmpresas[e.slug] = e.nome;
+  }
+
+  return allUsers.map((u) => {
+    const vinculosSlugs = allVinculos.filter((v) => v.userId === u.id).map((v) => v.empresaSlug);
+    // Fallback: se não há vínculos N:N mas há campo legado empresaVinculada
+    const empresasNomes = vinculosSlugs.length > 0
+      ? vinculosSlugs.map((s) => nomesEmpresas[s] ?? s)
+      : u.empresaVinculada
+      ? [nomesEmpresas[u.empresaVinculada] ?? u.empresaVinculada]
+      : [];
+    return { ...u, empresas: empresasNomes };
+  });
 }
 
 /** Retorna estatísticas de utilizadores para o admin dashboard */

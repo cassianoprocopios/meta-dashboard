@@ -1064,6 +1064,44 @@ export const appRouter = router({
         await updateUserAtivo(input.userId, input.ativo);
         return { success: true };
       }),
+
+    /** Lista usuários com sessão ativa recente (online) */
+    usuariosOnline: protectedProcedure
+      .input(z.object({
+        minutosAtivo: z.number().min(1).max(1440).default(30),
+      }).optional())
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito ao super-admin." });
+        }
+        const minutosAtivo = input?.minutosAtivo ?? 30;
+        const limiteMs = minutosAtivo * 60 * 1000;
+        const agora = Date.now();
+        const todos = await getAllUsersForAdmin();
+        return todos
+          .filter((u) => {
+            if (!u.lastSignedIn) return false;
+            const ultimo = new Date(u.lastSignedIn).getTime();
+            return agora - ultimo <= limiteMs;
+          })
+          .sort((a, b) => {
+            const ta = a.lastSignedIn ? new Date(a.lastSignedIn).getTime() : 0;
+            const tb = b.lastSignedIn ? new Date(b.lastSignedIn).getTime() : 0;
+            return tb - ta;
+          })
+          .map((u) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            perfil: u.perfil,
+            role: u.role,
+            tenantNome: u.tenantNome,
+            tenantId: u.tenantId,
+            lastSignedIn: u.lastSignedIn,
+            empresas: u.empresas,
+            minutosAtras: Math.floor((agora - new Date(u.lastSignedIn!).getTime()) / 60000),
+          }));
+      }),
   }),
 
   // ─── PAINEL DO DESENVOLVEDOR ─────────────────────────────────────────────────

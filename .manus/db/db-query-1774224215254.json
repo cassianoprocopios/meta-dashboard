@@ -1,0 +1,19 @@
+{
+  "query": "SELECT COUNT(*) as faturamentos FROM faturamentos WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nSELECT COUNT(*) as userEmpresas FROM userEmpresas WHERE empresaSlug = 'NOVA' AND tenantId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT COUNT(*) as faturamentos FROM faturamentos WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nSELECT COUNT(*) as userEmpresas FROM userEmpresas WHERE empresaSlug = 'NOVA' AND tenantId = 1;",
+  "rows": [
+    {
+      "faturamentos": "0"
+    },
+    {
+      "faturamentos": "userEmpresas"
+    },
+    {
+      "faturamentos": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "faturamentos\n0\nuserEmpresas\n0\n",
+  "stderr": "",
+  "execution_time_ms": 70
+}

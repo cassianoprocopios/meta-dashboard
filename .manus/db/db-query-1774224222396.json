@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM metas WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM categorias WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM bonificacoes WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM userEmpresas WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM empresas WHERE id = 30001 AND tenantId = 1;\nDELETE FROM userEmpresas WHERE userId = 1260556 AND tenantId = 1;\nDELETE FROM users WHERE id = 1260556 AND tenantId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute DELETE FROM metas WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM categorias WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM bonificacoes WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM userEmpresas WHERE empresaSlug = 'NOVA' AND tenantId = 1;\nDELETE FROM empresas WHERE id = 30001 AND tenantId = 1;\nDELETE FROM userEmpresas WHERE userId = 1260556 AND tenantId = 1;\nDELETE FROM users WHERE id = 1260556 AND tenantId = 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 136
+}

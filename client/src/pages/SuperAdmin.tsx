@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import {
   Building2, Users, BarChart2, Shield, Plus, CheckCircle2, XCircle,
-  Loader2, Eye, EyeOff, TrendingUp, Package, Crown, AlertTriangle,
-  ArrowLeft, RefreshCw,
+  Loader2, Eye, EyeOff, AlertTriangle,
+  ArrowLeft, RefreshCw, Wifi, Clock, UserCheck,
 } from "lucide-react";
 
 interface SuperAdminProps {
@@ -29,6 +29,8 @@ function fmtDate(d: Date | string) {
 export default function SuperAdmin({ onBack }: SuperAdminProps) {
   const [showCriar, setShowCriar] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState<"clientes" | "online">("clientes");
+  const [minutosAtivo, setMinutosAtivo] = useState(30);
 
   // Form de criar tenant
   const [nome, setNome] = useState("");
@@ -38,6 +40,15 @@ export default function SuperAdmin({ onBack }: SuperAdminProps) {
   const [plano, setPlano] = useState<"trial" | "basico" | "pro">("trial");
 
   const { data: tenants = [], isLoading, refetch } = trpc.superAdmin.listarTenants.useQuery();
+
+  const { data: usuariosOnline = [], isLoading: loadingOnline, refetch: refetchOnline } =
+    trpc.adminDashboard.usuariosOnline.useQuery(
+      { minutosAtivo },
+      { refetchInterval: 30_000 }
+    );
+
+  // Atualiza ao trocar o filtro de minutos
+  useEffect(() => { refetchOnline(); }, [minutosAtivo]);
 
   const criarMutation = trpc.superAdmin.criarTenant.useMutation({
     onSuccess: () => {
@@ -122,247 +133,414 @@ export default function SuperAdmin({ onBack }: SuperAdminProps) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 text-white">
-            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Total de Clientes</p>
-            <p className="text-3xl font-bold mt-1">{fmt(totalTenants)}</p>
-            <p className="text-xs opacity-70 mt-1">{tenantsAtivos} ativos</p>
-          </Card>
-          <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Utilizadores</p>
-            <p className="text-3xl font-bold mt-1">{fmt(totalUsers)}</p>
-            <p className="text-xs opacity-70 mt-1">em todos os tenants</p>
-          </Card>
-          <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lançamentos</p>
-            <p className="text-3xl font-bold mt-1 text-slate-900">{fmt(totalLancamentos)}</p>
-            <p className="text-xs text-slate-400 mt-1">registros no total</p>
-          </Card>
-          <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Inativos</p>
-            <p className="text-3xl font-bold mt-1 text-slate-900">{fmt(totalTenants - tenantsAtivos)}</p>
-            <p className="text-xs text-slate-400 mt-1">contas bloqueadas</p>
-          </Card>
+
+        {/* Abas de navegação */}
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setAbaAtiva("clientes")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              abaAtiva === "clientes"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <Building2 className="w-4 h-4" /> Clientes
+          </button>
+          <button
+            onClick={() => { setAbaAtiva("online"); refetchOnline(); }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              abaAtiva === "online"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <Wifi className="w-4 h-4" />
+            Usuários Online
+            {usuariosOnline.length > 0 && (
+              <span className="ml-1 bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {usuariosOnline.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Formulário de criar tenant */}
-        {showCriar && (
-          <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
-            <h3 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-purple-600" /> Criar Novo Cliente
-            </h3>
-            <form onSubmit={handleCriar} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Nome da Empresa *</label>
-                <input
-                  type="text"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Ex: Barbiero Grupo"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  disabled={criarMutation.isPending}
-                />
+        {/* ===== ABA: USUÁRIOS ONLINE ===== */}
+        {abaAtiva === "online" && (
+          <div className="space-y-4">
+            {/* Cabeçalho e filtro */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-semibold text-slate-700">
+                  {loadingOnline ? "Verificando..." : `${usuariosOnline.length} usuário(s) ativo(s)`}
+                </span>
+                <span className="text-xs text-slate-400">(atualiza a cada 30s)</span>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Plano</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-slate-500">Últimos</label>
                 <select
-                  value={plano}
-                  onChange={(e) => setPlano(e.target.value as "trial" | "basico" | "pro")}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                  disabled={criarMutation.isPending}
+                  value={minutosAtivo}
+                  onChange={(e) => setMinutosAtivo(Number(e.target.value))}
+                  className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="trial">Trial (14 dias)</option>
-                  <option value="basico">Básico</option>
-                  <option value="pro">Pro</option>
+                  <option value={5}>5 min</option>
+                  <option value={15}>15 min</option>
+                  <option value={30}>30 min</option>
+                  <option value={60}>1 hora</option>
+                  <option value={240}>4 horas</option>
+                  <option value={1440}>24 horas</option>
                 </select>
+                <button
+                  onClick={() => refetchOnline()}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Atualizar agora"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Nome do Admin *</label>
-                <input
-                  type="text"
-                  value={adminNome}
-                  onChange={(e) => setAdminNome(e.target.value)}
-                  placeholder="Nome completo"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  disabled={criarMutation.isPending}
-                />
+            </div>
+
+            {/* Conteúdo */}
+            {loadingOnline ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Email do Admin *</label>
-                <input
-                  type="email"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  placeholder="admin@empresa.com"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  disabled={criarMutation.isPending}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-slate-600 mb-1">Senha Inicial *</label>
-                <div className="relative">
-                  <input
-                    type={showSenha ? "text" : "password"}
-                    value={adminSenha}
-                    onChange={(e) => setAdminSenha(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    className="w-full px-3 py-2 pr-10 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    disabled={criarMutation.isPending}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSenha(!showSenha)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+            ) : usuariosOnline.length === 0 ? (
+              <Card className="p-12 border-0 shadow-sm rounded-2xl bg-white text-center">
+                <Wifi className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+                <p className="text-slate-500 text-sm font-medium">
+                  Nenhum usuário ativo nos últimos {minutosAtivo} minutos
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Usuários que fizeram login aparecem aqui
+                </p>
+              </Card>
+            ) : (
+              <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-green-500" />
+                  <h3 className="text-base font-semibold text-slate-900">Sessões Ativas</h3>
+                  <span className="ml-auto text-xs text-slate-400">Ordenado por último acesso</span>
                 </div>
-              </div>
-              <div className="md:col-span-2 flex gap-3">
-                <button
-                  type="submit"
-                  disabled={criarMutation.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
-                >
-                  {criarMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  Criar Cliente
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCriar(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </Card>
-        )}
-
-        {/* Lista de tenants */}
-        <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-slate-500" /> Clientes Cadastrados
-            </h3>
-            <span className="text-xs text-slate-500">{tenants.length} clientes</span>
-          </div>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
-            </div>
-          ) : tenants.length === 0 ? (
-            <div className="text-center py-12">
-              <Building2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">Nenhum cliente cadastrado ainda.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {tenants.map((tenant) => (
-                <div key={tenant.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      {/* Ícone de status */}
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        tenant.ativo === 1
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-500"
-                      }`}>
-                        {tenant.ativo === 1
-                          ? <CheckCircle2 className="w-5 h-5" />
-                          : <XCircle className="w-5 h-5" />}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold text-slate-900 text-sm">{tenant.nome}</h4>
-                          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${PLANOS[tenant.plano as keyof typeof PLANOS]?.color ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
-                            {PLANOS[tenant.plano as keyof typeof PLANOS]?.label ?? tenant.plano}
-                          </span>
-                          {tenant.ativo === 0 && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 font-medium">
-                              Bloqueado
+                <div className="divide-y divide-slate-50">
+                  {usuariosOnline.map((u) => (
+                    <div key={u.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          {/* Avatar */}
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-bold">
+                              {(u.name ?? u.email ?? "?")[0].toUpperCase()}
                             </span>
-                          )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-semibold text-slate-900">{u.name ?? "—"}</span>
+                              {u.role === "admin" && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 font-medium">
+                                  Admin
+                                </span>
+                              )}
+                              {/* Indicador de tempo online */}
+                              <span className="flex items-center gap-1">
+                                <span className={`w-2 h-2 rounded-full ${
+                                  u.minutosAtras <= 5
+                                    ? "bg-green-500 animate-pulse"
+                                    : u.minutosAtras <= 15
+                                    ? "bg-green-400"
+                                    : "bg-amber-400"
+                                }`} />
+                                <span className="text-xs text-slate-400">
+                                  {u.minutosAtras === 0 ? "agora" : `há ${u.minutosAtras}min`}
+                                </span>
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500">{u.email}</p>
+                            <div className="flex items-center gap-3 mt-1 flex-wrap">
+                              <span className="text-xs text-slate-400 flex items-center gap-1">
+                                <Building2 className="w-3 h-3" /> {u.tenantNome ?? "—"}
+                              </span>
+                              {u.empresas && u.empresas.length > 0 && (
+                                <span className="text-xs text-slate-400 flex items-center gap-1">
+                                  <BarChart2 className="w-3 h-3" />
+                                  {u.empresas.join(", ")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{tenant.adminEmail}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          Slug: <code className="bg-slate-100 px-1 rounded">{tenant.slug}</code>
-                          {" · "}Criado em {fmtDate(tenant.createdAt)}
-                        </p>
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
-                            <Users className="w-3 h-3" /> {tenant.stats?.totalUsers ?? 0} utilizadores
-                          </span>
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
-                            <Building2 className="w-3 h-3" /> {tenant.stats?.totalEmpresas ?? 0} unidades
-                          </span>
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
-                            <BarChart2 className="w-3 h-3" /> {fmt(tenant.stats?.totalLancamentos ?? 0)} lançamentos
-                          </span>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs text-slate-400 flex items-center gap-1 justify-end">
+                            <Clock className="w-3 h-3" />
+                            {u.lastSignedIn
+                              ? new Date(u.lastSignedIn).toLocaleString("pt-BR", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "—"}
+                          </p>
+                          <p className="text-xs text-slate-400 capitalize mt-0.5">{u.perfil ?? "—"}</p>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
 
-                    {/* Ações */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Alterar plano */}
-                      <select
-                        value={tenant.plano}
-                        onChange={(e) => alterarPlanoMutation.mutate({
-                          tenantId: tenant.id,
-                          plano: e.target.value as "trial" | "basico" | "pro",
-                        })}
-                        className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        disabled={alterarPlanoMutation.isPending}
-                      >
-                        <option value="trial">Trial</option>
-                        <option value="basico">Básico</option>
-                        <option value="pro">Pro</option>
-                      </select>
+        {/* ===== ABA: CLIENTES ===== */}
+        {abaAtiva === "clientes" && (
+          <div className="space-y-6">
+            {/* KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Total de Clientes</p>
+                <p className="text-3xl font-bold mt-1">{fmt(totalTenants)}</p>
+                <p className="text-xs opacity-70 mt-1">{tenantsAtivos} ativos</p>
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Utilizadores</p>
+                <p className="text-3xl font-bold mt-1">{fmt(totalUsers)}</p>
+                <p className="text-xs opacity-70 mt-1">em todos os tenants</p>
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lançamentos</p>
+                <p className="text-3xl font-bold mt-1 text-slate-900">{fmt(totalLancamentos)}</p>
+                <p className="text-xs text-slate-400 mt-1">registros no total</p>
+              </Card>
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Inativos</p>
+                <p className="text-3xl font-bold mt-1 text-slate-900">{fmt(totalTenants - tenantsAtivos)}</p>
+                <p className="text-xs text-slate-400 mt-1">contas bloqueadas</p>
+              </Card>
+            </div>
 
-                      {/* Toggle ativo */}
+            {/* Formulário de criar tenant */}
+            {showCriar && (
+              <Card className="p-6 border-0 shadow-sm rounded-2xl bg-white">
+                <h3 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-purple-600" /> Criar Novo Cliente
+                </h3>
+                <form onSubmit={handleCriar} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Nome da Empresa *</label>
+                    <input
+                      type="text"
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      placeholder="Ex: Barbiero Grupo"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      disabled={criarMutation.isPending}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Plano</label>
+                    <select
+                      value={plano}
+                      onChange={(e) => setPlano(e.target.value as "trial" | "basico" | "pro")}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                      disabled={criarMutation.isPending}
+                    >
+                      <option value="trial">Trial (14 dias)</option>
+                      <option value="basico">Básico</option>
+                      <option value="pro">Pro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Nome do Admin *</label>
+                    <input
+                      type="text"
+                      value={adminNome}
+                      onChange={(e) => setAdminNome(e.target.value)}
+                      placeholder="Nome completo"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      disabled={criarMutation.isPending}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Email do Admin *</label>
+                    <input
+                      type="email"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      placeholder="admin@empresa.com"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      disabled={criarMutation.isPending}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Senha Inicial *</label>
+                    <div className="relative">
+                      <input
+                        type={showSenha ? "text" : "password"}
+                        value={adminSenha}
+                        onChange={(e) => setAdminSenha(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                        className="w-full px-3 py-2 pr-10 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled={criarMutation.isPending}
+                      />
                       <button
-                        onClick={() => toggleAtivoMutation.mutate({
-                          tenantId: tenant.id,
-                          ativo: tenant.ativo === 1 ? 0 : 1,
-                        })}
-                        disabled={toggleAtivoMutation.isPending}
-                        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                          tenant.ativo === 1
-                            ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
-                            : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-200"
-                        }`}
+                        type="button"
+                        onClick={() => setShowSenha(!showSenha)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                       >
-                        {toggleAtivoMutation.isPending
-                          ? <Loader2 className="w-3 h-3 animate-spin" />
-                          : tenant.ativo === 1 ? "Bloquear" : "Ativar"}
+                        {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+                  <div className="md:col-span-2 flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={criarMutation.isPending}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+                    >
+                      {criarMutation.isPending
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Plus className="w-4 h-4" />}
+                      Criar Cliente
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowCriar(false)}
+                      className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </Card>
+            )}
 
-        {/* Aviso de isolamento */}
-        <Card className="p-4 border-0 shadow-sm rounded-2xl bg-amber-50 border border-amber-200">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">Isolamento de Dados</p>
-              <p className="text-xs text-amber-700 mt-1">
-                Cada cliente tem os seus dados completamente isolados. Um cliente nunca consegue aceder dados de outro.
-                O bloqueio de um tenant impede o login de todos os utilizadores desse tenant.
-              </p>
-            </div>
+            {/* Lista de tenants */}
+            <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-slate-500" /> Clientes Cadastrados
+                </h3>
+                <span className="text-xs text-slate-500">{tenants.length} clientes</span>
+              </div>
+
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+                </div>
+              ) : tenants.length === 0 ? (
+                <div className="text-center py-12">
+                  <Building2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-slate-500 text-sm">Nenhum cliente cadastrado ainda.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {tenants.map((tenant) => (
+                    <div key={tenant.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          {/* Ícone de status */}
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            tenant.ativo === 1
+                              ? "bg-green-100 text-green-600"
+                              : "bg-red-100 text-red-500"
+                          }`}>
+                            {tenant.ativo === 1
+                              ? <CheckCircle2 className="w-5 h-5" />
+                              : <XCircle className="w-5 h-5" />}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-semibold text-slate-900 text-sm">{tenant.nome}</h4>
+                              <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${PLANOS[tenant.plano as keyof typeof PLANOS]?.color ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                                {PLANOS[tenant.plano as keyof typeof PLANOS]?.label ?? tenant.plano}
+                              </span>
+                              {tenant.ativo === 0 && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 font-medium">
+                                  Bloqueado
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">{tenant.adminEmail}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              Slug: <code className="bg-slate-100 px-1 rounded">{tenant.slug}</code>
+                              {" · "}Criado em {fmtDate(tenant.createdAt)}
+                            </p>
+
+                            {/* Stats */}
+                            <div className="flex items-center gap-4 mt-2">
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <Users className="w-3 h-3" /> {tenant.stats?.totalUsers ?? 0} utilizadores
+                              </span>
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <Building2 className="w-3 h-3" /> {tenant.stats?.totalEmpresas ?? 0} unidades
+                              </span>
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <BarChart2 className="w-3 h-3" /> {fmt(tenant.stats?.totalLancamentos ?? 0)} lançamentos
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Ações */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* Alterar plano */}
+                          <select
+                            value={tenant.plano}
+                            onChange={(e) => alterarPlanoMutation.mutate({
+                              tenantId: tenant.id,
+                              plano: e.target.value as "trial" | "basico" | "pro",
+                            })}
+                            className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            disabled={alterarPlanoMutation.isPending}
+                          >
+                            <option value="trial">Trial</option>
+                            <option value="basico">Básico</option>
+                            <option value="pro">Pro</option>
+                          </select>
+
+                          {/* Toggle ativo */}
+                          <button
+                            onClick={() => toggleAtivoMutation.mutate({
+                              tenantId: tenant.id,
+                              ativo: tenant.ativo === 1 ? 0 : 1,
+                            })}
+                            disabled={toggleAtivoMutation.isPending}
+                            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                              tenant.ativo === 1
+                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-200"
+                            }`}
+                          >
+                            {toggleAtivoMutation.isPending
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : tenant.ativo === 1 ? "Bloquear" : "Ativar"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Aviso de isolamento */}
+            <Card className="p-4 border-0 shadow-sm rounded-2xl bg-amber-50 border border-amber-200">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Isolamento de Dados</p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Cada cliente tem os seus dados completamente isolados. Um cliente nunca consegue aceder dados de outro.
+                    O bloqueio de um tenant impede o login de todos os utilizadores desse tenant.
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
-        </Card>
+        )}
+
       </main>
     </div>
   );
