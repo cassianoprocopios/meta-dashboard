@@ -145,33 +145,53 @@ describe("sincronizarFaturamentoCashbarber - merge seletivo", () => {
     );
   });
 
-  it("quando todos os campos são mapeados, sobrescreve tudo", async () => {
-    // Mapeamento cobrindo todas as categorias
+  it("cat5 (Recorrência) NUNCA é sobrescrita, mesmo que esteja no mapeamento", async () => {
+    // Mapeamento cobrindo todas as categorias, incluindo cat5
     vi.mocked(listCashbarberMapeamento).mockResolvedValue([
       { tipo: "servico_categoria", cbId: "10", cbNome: "Serviços", metaCategoria: "cat1" },
       { tipo: "produto_categoria", cbId: "30", cbNome: "Produtos", metaCategoria: "cat2" },
       { tipo: "servico_categoria", cbId: "20", cbNome: "Extra", metaCategoria: "cat3" },
       { tipo: "servico_categoria", cbId: "40", cbNome: "Lavatorio", metaCategoria: "cat4" },
-      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat5" },
+      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat5" }, // mapeado
     ] as any);
 
     vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 6000, cat2: 1500, cat3: 200, cat4: 100, cat5: 3000,
+      cat1: 6000, cat2: 1500, cat3: 200, cat4: 100, cat5: 3000, // CashBarber retorna cat5=3000
       totalServicos: 9300, totalProdutos: 1500, totalGeral: 10800, detalhes: [],
     });
 
+    // Registro existente com Recorrência manual = 2500
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(registroExistenteMock as any);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
-    // Todos os campos são sobrescritos pelo CashBarber
+    // cat5 deve ser preservada do registro existente (2500), NUNCA o valor do CashBarber (3000)
     expect(upsertFaturamento).toHaveBeenCalledWith(
       expect.objectContaining({
         cat1: "6000",
         cat2: "1500",
         cat3: "200",
         cat4: "100",
-        cat5: "3000",  // ← sobrescrito pelo CashBarber (mapeado)
+        cat5: "2500",  // ← PRESERVADO do registro existente, não sobrescrito
+      })
+    );
+  });
+
+  it("cat5 usa '0' quando não há registro existente (novo dia, sem Recorrência ainda)", async () => {
+    vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
+      cat1: 4000, cat2: 800, cat3: 0, cat4: 0, cat5: 9999, // CashBarber retorna cat5=9999
+      totalServicos: 4000, totalProdutos: 800, totalGeral: 4800, detalhes: [],
+    });
+
+    // Sem registro existente
+    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
+
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
+
+    // cat5 deve ser '0' (sem registro existente), não o valor do CashBarber
+    expect(upsertFaturamento).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cat5: "0",  // ← '0' pois não há Recorrência lançada ainda
       })
     );
   });

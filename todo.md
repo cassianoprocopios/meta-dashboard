@@ -498,3 +498,8 @@
 - [x] Tooltip no badge: "Dados importados automaticamente do CashBarber"
 - [x] Legenda discreta abaixo da tabela (aparece apenas quando há dias sincronizados)
 - [x] 57 testes passando (sem novos testes necessários, lógica coberta pelos testes existentes do sincronizador)
+
+## Proteção da Recorrência na Sync CashBarber (Mar 2026)
+
+- [x] Blindar cat5 (Recorrência) no cashbarberSincronizador.ts: nunca sobrescrever, mesmo que cat5 esteja no mapeamento
+- [x] Testes atualizados: 2 novos testes cobrindo proteção incondicional de cat5 (58 testes no total)

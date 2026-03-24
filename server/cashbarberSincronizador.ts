@@ -4,8 +4,10 @@
  * Contém a lógica de sincronização reutilizável tanto pelo job automático
  * quanto pela procedure manual (trpc.cashbarber.sincronizar).
  *
- * IMPORTANTE: O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
- * Os campos não mapeados (ex: cat5 = Recorrência) são preservados do lançamento manual.
+ * IMPORTANTE:
+ * - O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
+ * - cat5 (Recorrência) é SEMPRE preservada do lançamento manual, NUNCA sobrescrita,
+ *   pois a Recorrência faz parte do faturamento mas não é especificada no CashBarber.
  */
 
 import {
@@ -152,9 +154,10 @@ export async function sincronizarFaturamentoCashbarber(
       const cat4 = categoriasMapeadas.has("cat4")
         ? String(faturamentoCB.cat4)
         : existente?.cat4 ?? "0";
-      const cat5 = categoriasMapeadas.has("cat5")
-        ? String(faturamentoCB.cat5)
-        : existente?.cat5 ?? "0";
+      // cat5 (Recorrência) é SEMPRE preservada do lançamento manual.
+      // O CashBarber não especifica Recorrência, então nunca a sobrescrevemos,
+      // independente do mapeamento configurado.
+      const cat5 = existente?.cat5 ?? "0";
 
       // Salvar no banco (upsert com merge seletivo)
       // sincronizadoCB=1 marca que este dia foi importado pelo CashBarber
