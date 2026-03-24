@@ -67,6 +67,8 @@ import {
   insertCashbarberSyncLog,
   listCashbarberSyncLogs,
   updateCashbarberAgendamento,
+  getDpoteHistoricoId,
+  saveDpoteHistoricoId,
 } from "./db";
 import {
   cashbarberLogin,
@@ -76,6 +78,8 @@ import {
   cashbarberListarProdutos,
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
+  cashbarberCriarHistoricoDpote,
+  cashbarberBuscarHistoricoDpote,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
@@ -1764,6 +1768,61 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           return { categorias, servicos, produtos };
         } catch (err: any) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message });
+        }
+      }),
+
+    /** Lista as filiais disponíveis no módulo Dpote do CashBarber para uma empresa */
+    listarFiliaisDpote: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Configuração CashBarber não encontrada" });
+        try {
+          const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+
+          // Reutilizar histórico Dpote do mês atual (ou criar novo)
+          const now = new Date();
+          const mes = now.getMonth() + 1;
+          const ano = now.getFullYear();
+          const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
+
+          let historicoId = await getDpoteHistoricoId(tenantId, input.empresaSlug, mesSigla);
+          if (!historicoId) {
+            historicoId = await cashbarberCriarHistoricoDpote(token);
+            await saveDpoteHistoricoId(tenantId, input.empresaSlug, historicoId, mesSigla);
+          }
+
+          const historico = await cashbarberBuscarHistoricoDpote(token, historicoId);
+
+          // Calcular total de fichas para exibir proporção
+          const totalFichas = historico.filiais_servicos.reduce(
+            (acc, f) => acc + f.servicos.reduce((s, sv) => s + (sv.fichas || 0), 0),
+            0
+          );
+
+          const filiais = historico.filiais_servicos.map((f) => {
+            const fichas = f.servicos.reduce((acc, sv) => acc + (sv.fichas || 0), 0);
+            return {
+              id: f.filial.id,
+              nome: f.filial.fil_bairro,
+              fichas,
+              percentual: totalFichas > 0 ? Math.round((fichas / totalFichas) * 100) : 0,
+            };
+          });
+
+          // Ordenar por fichas (maior primeiro)
+          filiais.sort((a, b) => b.fichas - a.fichas);
+
+          return {
+            filiais,
+            totalFichas,
+            mesSigla,
+            valorAssinaturas: historico.faturamento.valor_ganho_assinaturas,
+            porcentagemBarbearias: historico.faturamento.porcentagem_comissao_barbearias,
+          };
+        } catch (err: any) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message || "Falha ao buscar filiais Dpote" });
         }
       }),
 

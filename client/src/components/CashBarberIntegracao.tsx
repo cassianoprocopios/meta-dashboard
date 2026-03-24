@@ -49,7 +49,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [cbFilialNome, setCbFilialNome] = useState("");
   const [dpoteFilialId, setDpoteFilialId] = useState<number | "">("");
   const [dpoteFilialNome, setDpoteFilialNome] = useState("");
-  const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]);
+  const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]); 
+  const [mostrarFiliaisDpote, setMostrarFiliaisDpote] = useState(false);
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
 
@@ -89,6 +90,17 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const { data: mapeamentoExistente = [] } = trpc.cashbarber.listarMapeamento.useQuery(
     { empresaSlug: empresa.slug },
     { enabled: expandido && abaAtiva === "mapeamento" }
+  );
+
+  // Buscar filiais Dpote (lazy, acionado pelo botão)
+  const {
+    data: filiaisDpote,
+    isLoading: loadingFiliaisDpote,
+    refetch: refetchFiliaisDpote,
+    error: erroFiliaisDpote,
+  } = trpc.cashbarber.listarFiliaisDpote.useQuery(
+    { empresaSlug: empresa.slug },
+    { enabled: false }
   );
 
   // Buscar catálogo do CashBarber (apenas quando na aba de mapeamento)
@@ -448,13 +460,34 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
 
                   {/* Campo Nome da Filial Dpote */}
                   <div className="p-3 rounded-lg bg-violet-50 border border-violet-100">
-                    <div className="flex items-start gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs font-semibold text-violet-800">Nome da Filial no Dpote (Recorrência)</p>
-                        <p className="text-xs text-violet-600 mt-0.5">Nome da filial como aparece no módulo Assinaturas → Dpote do CashBarber. Usado para calcular automaticamente a Recorrência (cat5). Busca parcial, sem diferenciar maiúsculas/minúsculas.</p>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-start gap-2">
+                        <Zap className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-semibold text-violet-800">Nome da Filial no Dpote (Recorrência)</p>
+                          <p className="text-xs text-violet-600 mt-0.5">Nome da filial como aparece no módulo Assinaturas → Dpote. Busca parcial, sem diferenciar maiúsculas/minúsculas.</p>
+                        </div>
                       </div>
+                      {configExistente && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setMostrarFiliaisDpote(true);
+                            await refetchFiliaisDpote();
+                          }}
+                          disabled={loadingFiliaisDpote}
+                          className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-100 hover:bg-violet-200 text-violet-700 text-xs font-medium transition-colors disabled:opacity-50"
+                        >
+                          {loadingFiliaisDpote ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Building2 className="w-3 h-3" />
+                          )}
+                          Ver filiais
+                        </button>
+                      )}
                     </div>
+
                     <input
                       type="text"
                       value={dpoteFilialNome}
@@ -462,6 +495,81 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       placeholder="Ex: Morumbi, Mascote, Vila Olímpia..."
                       className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
                     />
+
+                    {/* Lista de filiais disponíveis no Dpote */}
+                    {mostrarFiliaisDpote && (
+                      <div className="mt-2 rounded-lg border border-violet-200 bg-white overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 bg-violet-100 border-b border-violet-200">
+                          <span className="text-xs font-semibold text-violet-800">
+                            {filiaisDpote ? `Filiais no Dpote — ${filiaisDpote.mesSigla} (${filiaisDpote.totalFichas} fichas no total)` : "Carregando filiais..."}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setMostrarFiliaisDpote(false)}
+                            className="text-violet-500 hover:text-violet-700 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        {loadingFiliaisDpote && (
+                          <div className="flex items-center justify-center gap-2 py-4 text-xs text-violet-500">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Buscando filiais no CashBarber...
+                          </div>
+                        )}
+
+                        {erroFiliaisDpote && (
+                          <div className="px-3 py-3 text-xs text-red-600">
+                            Erro ao buscar filiais: {erroFiliaisDpote.message}
+                          </div>
+                        )}
+
+                        {filiaisDpote && !loadingFiliaisDpote && (
+                          <>
+                            <div className="divide-y divide-violet-50">
+                              {filiaisDpote.filiais.map((f) => (
+                                <button
+                                  key={f.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setDpoteFilialNome(f.nome);
+                                    setMostrarFiliaisDpote(false);
+                                  }}
+                                  className={`w-full flex items-center justify-between px-3 py-2.5 hover:bg-violet-50 transition-colors text-left group ${
+                                    dpoteFilialNome.toLowerCase() === f.nome.toLowerCase()
+                                      ? "bg-violet-50 border-l-2 border-violet-500"
+                                      : ""
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                                    <span className="text-sm font-medium text-slate-800">{f.nome}</span>
+                                    {dpoteFilialNome.toLowerCase() === f.nome.toLowerCase() && (
+                                      <span className="text-xs text-violet-600 font-medium">(selecionada)</span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                      <span className="text-xs text-slate-500">{f.fichas} fichas</span>
+                                      <span className="ml-1.5 text-xs font-semibold text-violet-700">{f.percentual}%</span>
+                                    </div>
+                                    <span className="text-xs text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity">Selecionar →</span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                            <div className="px-3 py-2 bg-violet-50 border-t border-violet-100">
+                              <p className="text-xs text-violet-600">
+                                Valor total de assinaturas: <strong>R$ {filiaisDpote.valorAssinaturas.toLocaleString("pt-BR")}</strong>
+                                {" "}· Comissão barbearias: <strong>{filiaisDpote.porcentagemBarbearias}%</strong>
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     {dpoteFilialNome && (
                       <p className="text-xs text-violet-600 mt-1">✓ Recorrência será calculada automaticamente a cada sync usando a filial "{dpoteFilialNome}"</p>
                     )}

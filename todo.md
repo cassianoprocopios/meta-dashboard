@@ -549,3 +549,10 @@
 - [x] `listarConfig` já retorna todos os campos da tabela (incluindo dpoteFilialNome)
 - [x] Atualizar formulário CashBarberIntegracao: substituir campo numérico por campo de texto para nome da filial
 - [x] Testes: 6 novos testes para calcularComissaoBrutaFilialPorNome (70 testes no total, todos passando)
+
+## Botão "Ver filiais disponíveis" no Dpote (Mar 2026)
+
+- [x] Procedure tRPC `cashbarber.listarFiliaisDpote`: faz login, cria/busca histórico Dpote e retorna lista de filiais com nome, fichas e percentual
+- [x] Botão "Ver filiais" no cabeçalho do campo Dpote: chama a procedure e exibe painel expansivo
+- [x] Clique em uma filial da lista preenche automaticamente o campo `dpoteFilialNome` e fecha o painel
+- [x] Exibir fichas e percentual de cada filial, valor total de assinaturas e % comissão barbearias no rodapé
