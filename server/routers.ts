@@ -10,6 +10,8 @@ import {
   upsertFaturamento,
   deleteFaturamento,
   getMetasByMesAndTenant,
+  getMetasAnoByTenant,
+  getFaturamentosAnoByTenant,
   upsertMeta,
   getAllUsersByTenant,
   getAllUsersByTenantWithEmpresas,
@@ -440,6 +442,17 @@ export const appRouter = router({
       .query(async ({ input, ctx }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
         return getMetasByMesAndTenant(tenantId, input.mes, input.ano);
+      }),
+
+    historicoAnual: publicProcedure
+      .input(z.object({ ano: z.number().min(2020) }))
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const [metasAno, fatAno] = await Promise.all([
+          getMetasAnoByTenant(tenantId, input.ano),
+          getFaturamentosAnoByTenant(tenantId, input.ano),
+        ]);
+        return { metas: metasAno, faturamentos: fatAno };
       }),
 
     salvar: protectedProcedure

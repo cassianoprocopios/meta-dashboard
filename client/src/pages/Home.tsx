@@ -22,6 +22,7 @@ import AdminUsers from "@/pages/AdminUsers";
 import Empresas from "@/pages/Empresas";
 import Auditoria from "@/pages/Auditoria";
 import AnaliseIA from "@/pages/AnaliseIA";
+import HistoricoAnual from "@/pages/HistoricoAnual";
 import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
@@ -43,7 +44,7 @@ function pct(v: number, total: number) {
   return Math.round((v / total) * 100);
 }
 
-type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "usuarios" | "empresas" | "auditoria" | "ia";
+type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "historico" | "usuarios" | "empresas" | "auditoria" | "ia";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logoutApp.useMutation({
@@ -114,6 +115,7 @@ export default function Home() {
         "lancamentos",
         ...(isGerente ? ["metas"] as Tab[] : []),
         ...(isGerente ? ["bonificacao"] as Tab[] : []),
+        ...(isGerente ? ["historico"] as Tab[] : []),
         ...(isGerente ? ["ia"] as Tab[] : []),
       ];
 
@@ -846,6 +848,7 @@ export default function Home() {
                 lancamentos: "Lançamentos",
                 metas: "Metas",
                 bonificacao: "Bonificação",
+                historico: "Histórico",
                 usuarios: "Usuários",
                 empresas: "Empresas",
                 auditoria: "Auditoria",
@@ -856,6 +859,7 @@ export default function Home() {
                 lancamentos: <Calendar className="w-4 h-4" />,
                 metas: <Target className="w-4 h-4" />,
                 bonificacao: <CheckCircle2 className="w-4 h-4" />,
+                historico: <Trophy className="w-4 h-4" />,
                 usuarios: <Users className="w-4 h-4" />,
                 empresas: <Building2 className="w-4 h-4" />,
                 auditoria: <Shield className="w-4 h-4" />,
@@ -2366,7 +2370,17 @@ export default function Home() {
         {/* ─── AUDITORIA ─────────────────────────────────────────────────────── */}
         {activeTab === "auditoria" && isAdmin && <Auditoria />}
 
-        {/* ─── ANÁLISE IA ───────────────────────────────────────────────────── */}
+        {/* ─── HISTÓRICO ANUAL ────────────────────────────────────────────────── */}
+        {activeTab === "historico" && isGerente && (
+          <HistoricoAnual
+            empresasData={empresasVisiveis}
+            empresaVinculada={empresaVinculada}
+            isGerente={isGerente}
+            isAdmin={isAdmin}
+          />
+        )}
+
+        {/* ─── ANÁLISE IA ──────────────────────────────────────────────────────── */}
         {activeTab === "ia" && isGerente && (
           <AnaliseIA
             mes={mes}

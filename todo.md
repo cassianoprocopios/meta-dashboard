@@ -413,3 +413,10 @@
 - [x] MetaConfig: campo para editar superMeta e exibir percentual de atingimento
 - [x] Dashboard: exibir % de meta atingida e indicador de super meta nos cards de empresa
 - [x] Dashboard: barra de progresso dupla (meta / super meta) nos cards
+
+## Histórico Anual de Metas e Super Metas
+
+- [x] Endpoint backend: buscar faturamentos e metas de todos os meses do ano por empresa
+- [x] Componente HistoricoAnual.tsx: gráfico de barras mensal + tabela de evolução
+- [x] Indicadores visuais: ✓ meta atingida, ★ super meta atingida por mês/empresa
+- [x] Nova aba "Histórico" registrada no dashboard

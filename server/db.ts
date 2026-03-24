@@ -573,6 +573,27 @@ export async function getMetasByMesAndTenant(tenantId: number, mes: number, ano:
     .where(and(eq(metas.tenantId, tenantId), eq(metas.mes, mes), eq(metas.ano, ano)));
 }
 
+export async function getMetasAnoByTenant(tenantId: number, ano: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(metas)
+    .where(and(eq(metas.tenantId, tenantId), eq(metas.ano, ano)));
+}
+
+export async function getFaturamentosAnoByTenant(tenantId: number, ano: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const allRows = await db
+    .select()
+    .from(faturamentos)
+    .where(eq(faturamentos.tenantId, tenantId))
+    .orderBy(asc(faturamentos.data), asc(faturamentos.empresaSlug));
+  return allRows.filter((row) => {
+    const [rowAno] = row.data.split('-').map(Number);
+    return rowAno === ano;
+  });
+}
+
 export async function getMetaByEmpresaMesTenant(empresaSlug: string, mes: number, ano: number, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
