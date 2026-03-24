@@ -3,6 +3,9 @@
  *
  * Contém a lógica de sincronização reutilizável tanto pelo job automático
  * quanto pela procedure manual (trpc.cashbarber.sincronizar).
+ *
+ * IMPORTANTE: O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
+ * Os campos não mapeados (ex: cat5 = Recorrência) são preservados do lançamento manual.
  */
 
 import {
@@ -11,6 +14,7 @@ import {
   upsertFaturamento,
   updateCashbarberSyncStatus,
   insertCashbarberSyncLog,
+  getFaturamentoByDataEmpresaTenant,
 } from "./db";
 import {
   cashbarberLogin,
@@ -36,8 +40,28 @@ export interface ResultadoSincronizacao {
 }
 
 /**
+ * Determina quais categorias (cat1–cat5) são alimentadas pelo CashBarber
+ * com base no mapeamento configurado.
+ *
+ * Retorna um Set com as chaves que devem ser sobrescritas (ex: {"cat1", "cat2"}).
+ */
+function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Set<string> {
+  const cats = new Set<string>();
+  for (const m of mapeamento) {
+    if (m.metaCategoria && m.metaCategoria.match(/^cat[1-5]$/)) {
+      cats.add(m.metaCategoria);
+    }
+  }
+  return cats;
+}
+
+/**
  * Sincroniza os dados de faturamento do CashBarber para uma empresa no mês/ano especificado.
  * Registra o resultado no log de sincronizações.
+ *
+ * Comportamento de merge:
+ * - Apenas as categorias presentes no mapeamento CashBarber são sobrescritas.
+ * - Categorias não mapeadas (ex: Recorrência = cat5) são preservadas do valor manual.
  *
  * @param tenantId - ID do tenant (empresa no Meta Dashboard)
  * @param empresaSlug - Slug da empresa no Meta Dashboard
@@ -63,6 +87,9 @@ export async function sincronizarFaturamentoCashbarber(
   if (mapeamento.length === 0) {
     throw new Error(`Nenhum mapeamento de categorias configurado para ${empresaSlug}`);
   }
+
+  // Determinar quais categorias o CashBarber alimenta (ex: {"cat1", "cat2"})
+  const categoriasMapeadas = getCategoriasMapeadas(mapeamento);
 
   // 3. Fazer login no CashBarber
   const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
@@ -91,7 +118,7 @@ export async function sincronizarFaturamentoCashbarber(
     const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
     try {
-      // Buscar relatório do dia
+      // Buscar relatório do dia no CashBarber
       const relatorio = await cashbarberRelatorio15(
         token,
         dataStr,
@@ -99,32 +126,56 @@ export async function sincronizarFaturamentoCashbarber(
         config.cbFilialId || null
       );
 
-      // Calcular faturamento por categoria
-      const faturamento = calcularFaturamentoPorCategoriaComCatalogo(
+      // Calcular faturamento por categoria (apenas as mapeadas terão valor > 0)
+      const faturamentoCB = calcularFaturamentoPorCategoriaComCatalogo(
         relatorio,
         mapeamento,
         catalogoServicos,
         catalogoProdutos
       );
 
-      // Salvar no banco (upsert)
-      // Os campos cat1-cat5 são decimal no schema, precisam ser string
+      // Buscar registro existente para preservar campos manuais
+      const existente = await getFaturamentoByDataEmpresaTenant(dataStr, empresaSlug, tenantId);
+
+      // Montar o objeto de upsert:
+      // - Para categorias mapeadas pelo CashBarber: usar valor do CashBarber
+      // - Para categorias NÃO mapeadas: preservar valor existente (ou "0" se novo registro)
+      const cat1 = categoriasMapeadas.has("cat1")
+        ? String(faturamentoCB.cat1)
+        : existente?.cat1 ?? "0";
+      const cat2 = categoriasMapeadas.has("cat2")
+        ? String(faturamentoCB.cat2)
+        : existente?.cat2 ?? "0";
+      const cat3 = categoriasMapeadas.has("cat3")
+        ? String(faturamentoCB.cat3)
+        : existente?.cat3 ?? "0";
+      const cat4 = categoriasMapeadas.has("cat4")
+        ? String(faturamentoCB.cat4)
+        : existente?.cat4 ?? "0";
+      const cat5 = categoriasMapeadas.has("cat5")
+        ? String(faturamentoCB.cat5)
+        : existente?.cat5 ?? "0";
+
+      // Salvar no banco (upsert com merge seletivo)
       await upsertFaturamento({
         tenantId,
         empresaSlug,
         data: dataStr,
-        cat1: String(faturamento.cat1),
-        cat2: String(faturamento.cat2),
-        cat3: String(faturamento.cat3),
-        cat4: String(faturamento.cat4),
-        cat5: String(faturamento.cat5),
+        cat1,
+        cat2,
+        cat3,
+        cat4,
+        cat5,
+        // Preservar observacao e lancadoPor do registro existente
+        observacao: existente?.observacao ?? undefined,
+        lancadoPor: existente?.lancadoPor ?? undefined,
       });
 
       diasSincronizados++;
       detalhes.push({
         data: dataStr,
         status: "sincronizado",
-        totalGeral: faturamento.totalGeral,
+        totalGeral: faturamentoCB.totalGeral,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

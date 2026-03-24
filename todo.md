@@ -482,3 +482,9 @@
 - [x] Remover seletor de horário da interface (substituído por informação fixa "a cada hora")
 - [x] Atualizar aba Agendamento: exibir "Sincroniza a cada 1 hora" como informação fixa
 - [x] Atualizar testes para refletir o novo intervalo horário (49 testes passando)
+
+## Correção: CashBarber preserva campos manuais (Mar 2026)
+
+- [x] Corrigir cashbarberSincronizador.ts: ao fazer upsert, preservar os campos não mapeados pelo CashBarber (ex: Recorrência) que foram lançados manualmente
+- [x] Lógica: buscar o registro existente do dia antes do upsert; mesclar apenas os campos que o CashBarber alimenta; manter os demais intactos
+- [x] Testes de merge seletivo: 8 novos testes, 57 no total (todos passando)
