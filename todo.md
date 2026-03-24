@@ -439,3 +439,21 @@
 ## Melhoria do Filtro de Ano no Histórico
 
 - [x] Seletor de ano mais visível: dropdown com range dinâmico de anos disponíveis no banco
+
+## Integração CashBarber (Mar 2026)
+
+- [x] Tabela `cashbarberConfig` no banco: credenciais por tenant (email, senha, filialId, mapeamento de categorias)
+- [x] Tabela `cashbarberMapeamento` no banco: mapeamento de categorias CashBarber → categorias Meta Dashboard
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Procedure `cashbarber.salvarConfig`: salvar credenciais e filialId por empresa
+- [x] Procedure `cashbarber.testarConexao`: validar credenciais via login na API CashBarber
+- [x] Procedure `cashbarber.sincronizar`: buscar dados do relatório 15 e popular faturamentos do mês
+- [x] Procedure `cashbarber.listarConfig`: retornar configuração atual por empresa
+- [x] Procedure `cashbarber.salvarMapeamento`: salvar mapeamento de categorias CashBarber → Meta
+- [x] Aba "CashBarber" no AdminPanel (apenas admin)
+- [x] Formulário de configuração: email, senha, filial (Morumbi/Mascote), empresa Meta Dashboard
+- [x] Botão "Testar Conexão" com feedback visual
+- [x] Botão "Sincronizar Agora" com seletor de mês/ano
+- [x] Tabela de mapeamento de categorias CashBarber → categorias do Meta Dashboard
+- [x] Indicador de última sincronização por empresa
+- [x] Testes das procedures de integração CashBarber (7 testes passando, 36 no total)

@@ -58,7 +58,22 @@ import {
   eventoJaNotificado,
   registrarEventoNotificado,
   getEventosNotificados,
+  getCashbarberConfig,
+  listCashbarberConfigs,
+  upsertCashbarberConfig,
+  updateCashbarberSyncStatus,
+  listCashbarberMapeamento,
+  saveCashbarberMapeamento,
 } from "./db";
+import {
+  cashbarberLogin,
+  cashbarberListarFiliais,
+  cashbarberListarCategorias,
+  cashbarberListarServicos,
+  cashbarberListarProdutos,
+  cashbarberRelatorio15,
+  calcularFaturamentoPorCategoriaComCatalogo,
+} from "./cashbarber";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
@@ -1637,6 +1652,244 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const tenantId = ctx.user.tenantId;
         if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
         return getEventosNotificados(tenantId, input.limit ?? 20);
+      }),
+  }),
+
+  // ─── CASHBARBER ───────────────────────────────────────────────────────────
+  cashbarber: router({
+    /** Busca a configuração CashBarber de uma empresa */
+    listarConfig: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        if (!config) return null;
+        // Ocultar a senha na resposta
+        return { ...config, cbSenha: "***" };
+      }),
+
+    /** Lista todas as configurações CashBarber do tenant */
+    listarTodas: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const configs = await listCashbarberConfigs(tenantId);
+      return configs.map((c) => ({ ...c, cbSenha: "***" }));
+    }),
+
+    /** Salva a configuração CashBarber de uma empresa */
+    salvarConfig: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string(),
+          cbEmail: z.string().email(),
+          cbSenha: z.string().min(1),
+          cbFilialId: z.number().int().positive(),
+          cbFilialNome: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const user = await getUserById(ctx.user?.id || 0);
+        if (!user || (user.role !== "admin" && user.tenantId !== null)) {
+          // Verificar se é admin do tenant
+          const isAdmin = user?.role === "admin";
+          if (!isAdmin) throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem configurar a integração CashBarber" });
+        }
+        await upsertCashbarberConfig({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          cbEmail: input.cbEmail,
+          cbSenha: input.cbSenha,
+          cbFilialId: input.cbFilialId,
+          cbFilialNome: input.cbFilialNome,
+        });
+        return { ok: true };
+      }),
+
+    /** Testa a conexão com o CashBarber */
+    testarConexao: protectedProcedure
+      .input(
+        z.object({
+          cbEmail: z.string().email(),
+          cbSenha: z.string().min(1),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const token = await cashbarberLogin(input.cbEmail, input.cbSenha);
+          const filiais = await cashbarberListarFiliais(token);
+          return {
+            ok: true,
+            filiais: filiais.map((f) => ({
+              id: f.id,
+              nome: `${f.fil_bairro} - ${f.fil_logradouro}, ${f.fil_numero}`,
+              email: f.fil_email,
+            })),
+          };
+        } catch (err: any) {
+          return { ok: false, erro: err.message || "Falha na conexão" };
+        }
+      }),
+
+    /** Busca as categorias e serviços do CashBarber para configurar o mapeamento */
+    buscarCatalogo: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Configuração CashBarber não encontrada" });
+        try {
+          const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+          const [categorias, servicos, produtos] = await Promise.all([
+            cashbarberListarCategorias(token),
+            cashbarberListarServicos(token),
+            cashbarberListarProdutos(token),
+          ]);
+          return { categorias, servicos, produtos };
+        } catch (err: any) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message });
+        }
+      }),
+
+    /** Busca o mapeamento de categorias CashBarber de uma empresa */
+    listarMapeamento: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return listCashbarberMapeamento(tenantId, input.empresaSlug);
+      }),
+
+    /** Salva o mapeamento de categorias CashBarber */
+    salvarMapeamento: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string(),
+          mapeamento: z.array(
+            z.object({
+              tipo: z.enum(["servico_categoria", "produto_categoria", "servico_id", "produto_id"]),
+              cbId: z.string(),
+              cbNome: z.string(),
+              metaCategoria: z.string(),
+            })
+          ),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await saveCashbarberMapeamento(tenantId, input.empresaSlug, input.mapeamento);
+        return { ok: true };
+      }),
+
+    /** Sincroniza dados do CashBarber para um mês específico */
+    sincronizar: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string(),
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020).max(2030),
+          sobreescrever: z.boolean().optional().default(false),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Configuração CashBarber não encontrada" });
+
+        const mapeamento = await listCashbarberMapeamento(tenantId, input.empresaSlug);
+        if (mapeamento.length === 0) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Configure o mapeamento de categorias antes de sincronizar" });
+
+        try {
+          // Login no CashBarber
+          const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+
+          // Buscar catálogos para resolução de categorias
+          const [catalogoServicos, catalogoProdutos, categoriasCB] = await Promise.all([
+            cashbarberListarServicos(token),
+            cashbarberListarProdutos(token),
+            cashbarberListarCategorias(token),
+          ]);
+
+          // Calcular período do mês
+          const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+          const ultimoDia = new Date(input.ano, input.mes, 0).getDate();
+          const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+          // Buscar dados dia a dia para popular faturamentos diários
+          const diasNoMes = ultimoDia;
+          const hoje = new Date();
+          const diasSincronizados: string[] = [];
+          const diasIgnorados: string[] = [];
+          const erros: string[] = [];
+
+          for (let dia = 1; dia <= diasNoMes; dia++) {
+            const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+            const dataObj = new Date(dataStr + "T12:00:00");
+
+            // Não sincronizar dias futuros
+            if (dataObj > hoje) {
+              diasIgnorados.push(dataStr);
+              continue;
+            }
+
+            try {
+              // Buscar dados do dia no CashBarber
+              const relatorio = await cashbarberRelatorio15(token, dataStr, dataStr, config.cbFilialId);
+
+              // Calcular faturamento por categoria
+              const fat = calcularFaturamentoPorCategoriaComCatalogo(
+                relatorio,
+                mapeamento,
+                catalogoServicos,
+                catalogoProdutos
+              );
+
+              // Verificar se já existe faturamento para este dia
+              const faturamentosExistentes = await getAllFaturamentosByTenant(tenantId, input.mes, input.ano, input.empresaSlug);
+              const existente = faturamentosExistentes.find(
+                (f) => f.data === dataStr
+              );
+
+              if (existente && !input.sobreescrever) {
+                diasIgnorados.push(dataStr);
+                continue;
+              }
+
+              // Salvar faturamento
+              await upsertFaturamento({
+                tenantId,
+                empresaSlug: input.empresaSlug,
+                data: dataStr,
+                cat1: String(fat.cat1),
+                cat2: String(fat.cat2),
+                cat3: String(fat.cat3),
+                cat4: String(fat.cat4),
+                cat5: String(fat.cat5),
+                lancadoPor: "CashBarber (sync)",
+              });
+
+              diasSincronizados.push(dataStr);
+            } catch (err: any) {
+              erros.push(`${dataStr}: ${err.message}`);
+            }
+          }
+
+          // Atualizar status da sincronização
+          await updateCashbarberSyncStatus(tenantId, input.empresaSlug, "ok");
+
+          return {
+            ok: true,
+            diasSincronizados: diasSincronizados.length,
+            diasIgnorados: diasIgnorados.length,
+            erros,
+            periodo: `${dataInicial} a ${dataFinal}`,
+          };
+        } catch (err: any) {
+          await updateCashbarberSyncStatus(tenantId, input.empresaSlug, "erro");
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message });
+        }
       }),
   }),
 });

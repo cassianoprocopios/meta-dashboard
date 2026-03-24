@@ -6,10 +6,11 @@ import {
   Building2, Users, Plus, Power, LogOut, Loader2,
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
   AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save, Trash2,
-  Clock, History, Filter, Link2
+  Clock, History, Filter, Link2, Zap
 } from "lucide-react";
 import Onboarding from "@/components/Onboarding";
 import VinculosPanel from "@/components/VinculosPanel";
+import CashBarberIntegracao from "@/components/CashBarberIntegracao";
 
 type Perfil = "gerente" | "recepcionista" | "operador";
 
@@ -707,7 +708,7 @@ function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user, logout } = useAuth();
-  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico">("empresas");
+  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico" | "cashbarber">("empresas");
   const [filtroHistorico, setFiltroHistorico] = useState<"todos" | "empresa_criada" | "usuario_criado" | "acesso">("todos");
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
@@ -865,6 +866,17 @@ export default function AdminPanel() {
               >
                 <History className="w-4 h-4" />
                 Histórico
+              </button>
+              <button
+                onClick={() => setAba("cashbarber")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                  aba === "cashbarber"
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <Zap className="w-4 h-4" />
+                CashBarber
               </button>
             </div>
 
@@ -1069,6 +1081,11 @@ export default function AdminPanel() {
             <div className="p-4 sm:p-6">
               <VinculosPanel />
             </div>
+          )}
+
+          {/* Aba CashBarber */}
+          {aba === "cashbarber" && (
+            <CashBarberIntegracao empresas={empresas as Array<{ id: number; nome: string; slug: string; ativo: number }>} />
           )}
 
           {/* Aba Histórico */}

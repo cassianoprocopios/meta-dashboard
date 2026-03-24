@@ -3,11 +3,17 @@ import { drizzle } from "drizzle-orm/mysql2";
 import {
   accessLogs,
   bonificacoes,
+  cashbarberConfig,
+  cashbarberMapeamento,
+  CashbarberConfig,
+  CashbarberMapeamento,
   categorias,
   empresas,
   faturamentos,
   InsertAccessLog,
   InsertBonificacao,
+  InsertCashbarberConfig,
+  InsertCashbarberMapeamento,
   InsertEmpresa,
   InsertFaturamento,
   InsertMeta,
@@ -1004,4 +1010,109 @@ export async function getEventosNotificados(tenantId: number, limit = 20) {
     .where(eq(notificacaoEventos.tenantId, tenantId))
     .orderBy(desc(notificacaoEventos.createdAt))
     .limit(limit);
+}
+
+// ─── CASHBARBER CONFIG ────────────────────────────────────────────────────────
+
+/** Busca a configuração CashBarber de uma empresa */
+export async function getCashbarberConfig(tenantId: number, empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(cashbarberConfig)
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)))
+    .limit(1);
+  return result[0];
+}
+
+/** Lista todas as configurações CashBarber de um tenant */
+export async function listCashbarberConfigs(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(cashbarberConfig)
+    .where(eq(cashbarberConfig.tenantId, tenantId))
+    .orderBy(asc(cashbarberConfig.empresaSlug));
+}
+
+/** Salva (upsert) a configuração CashBarber de uma empresa */
+export async function upsertCashbarberConfig(data: InsertCashbarberConfig) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getCashbarberConfig(data.tenantId, data.empresaSlug);
+  if (existing) {
+    await db
+      .update(cashbarberConfig)
+      .set({
+        cbEmail: data.cbEmail,
+        cbSenha: data.cbSenha,
+        cbFilialId: data.cbFilialId,
+        cbFilialNome: data.cbFilialNome,
+        ativo: data.ativo ?? 1,
+      })
+      .where(and(eq(cashbarberConfig.tenantId, data.tenantId), eq(cashbarberConfig.empresaSlug, data.empresaSlug)));
+    return existing.id;
+  } else {
+    const result = await db.insert(cashbarberConfig).values(data);
+    return (result as any)[0]?.insertId ?? 0;
+  }
+}
+
+/** Atualiza o status da última sincronização */
+export async function updateCashbarberSyncStatus(
+  tenantId: number,
+  empresaSlug: string,
+  status: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(cashbarberConfig)
+    .set({
+      ultimaSincronizacao: new Date(),
+      statusUltimaSinc: status,
+    })
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+}
+
+// ─── CASHBARBER MAPEAMENTO ────────────────────────────────────────────────────
+
+/** Lista o mapeamento de categorias CashBarber de uma empresa */
+export async function listCashbarberMapeamento(tenantId: number, empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(cashbarberMapeamento)
+    .where(and(eq(cashbarberMapeamento.tenantId, tenantId), eq(cashbarberMapeamento.empresaSlug, empresaSlug)))
+    .orderBy(asc(cashbarberMapeamento.tipo), asc(cashbarberMapeamento.cbNome));
+}
+
+/** Salva o mapeamento completo de categorias CashBarber (substitui tudo) */
+export async function saveCashbarberMapeamento(
+  tenantId: number,
+  empresaSlug: string,
+  items: Array<{ tipo: "servico_categoria" | "produto_categoria" | "servico_id" | "produto_id"; cbId: string; cbNome: string; metaCategoria: string }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Deletar mapeamento existente
+  await db
+    .delete(cashbarberMapeamento)
+    .where(and(eq(cashbarberMapeamento.tenantId, tenantId), eq(cashbarberMapeamento.empresaSlug, empresaSlug)));
+  // Inserir novo mapeamento
+  if (items.length > 0) {
+    await db.insert(cashbarberMapeamento).values(
+      items.map((item) => ({
+        tenantId,
+        empresaSlug,
+        tipo: item.tipo,
+        cbId: item.cbId,
+        cbNome: item.cbNome,
+        metaCategoria: item.metaCategoria,
+      }))
+    );
+  }
 }

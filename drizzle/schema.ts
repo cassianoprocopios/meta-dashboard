@@ -182,3 +182,50 @@ export const notificacaoEventos = mysqlTable("notificacaoEventos", {
 
 export type NotificacaoEvento = typeof notificacaoEventos.$inferSelect;
 export type InsertNotificacaoEvento = typeof notificacaoEventos.$inferInsert;
+
+// ─── CONFIGURAÇÃO CASHBARBER ──────────────────────────────────────────────────
+// Credenciais e configuração de integração com o CashBarber por empresa
+export const cashbarberConfig = mysqlTable("cashbarberConfig", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** Email de login no CashBarber */
+  cbEmail: varchar("cbEmail", { length: 320 }).notNull(),
+  /** Senha de login no CashBarber (armazenada em texto simples, pois é credencial de terceiro) */
+  cbSenha: varchar("cbSenha", { length: 256 }).notNull(),
+  /** ID da filial no CashBarber (ex: 144 para Morumbi, 3520 para Mascote) */
+  cbFilialId: int("cbFilialId").notNull(),
+  /** Nome da filial no CashBarber para exibição */
+  cbFilialNome: varchar("cbFilialNome", { length: 128 }),
+  /** Data/hora da última sincronização bem-sucedida */
+  ultimaSincronizacao: timestamp("ultimaSincronizacao"),
+  /** Status da última sincronização */
+  statusUltimaSinc: varchar("statusUltimaSinc", { length: 32 }),
+  ativo: int("ativo").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CashbarberConfig = typeof cashbarberConfig.$inferSelect;
+export type InsertCashbarberConfig = typeof cashbarberConfig.$inferInsert;
+
+// ─── MAPEAMENTO DE CATEGORIAS CASHBARBER ─────────────────────────────────────
+// Mapeia categorias/serviços/produtos do CashBarber para categorias do Meta Dashboard
+export const cashbarberMapeamento = mysqlTable("cashbarberMapeamento", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** Tipo: 'servico_categoria' | 'produto_categoria' | 'servico_id' | 'produto_id' */
+  tipo: mysqlEnum("tipo", ["servico_categoria", "produto_categoria", "servico_id", "produto_id"]).notNull(),
+  /** ID ou nome da categoria/serviço/produto no CashBarber */
+  cbId: varchar("cbId", { length: 64 }).notNull(),
+  /** Nome para exibição (ex: 'AVULSO/CLUBE', 'Bar', 'Barbiero') */
+  cbNome: varchar("cbNome", { length: 128 }).notNull(),
+  /** Coluna de destino no faturamento: 'cat1' | 'cat2' | 'cat3' | 'cat4' | 'cat5' | 'ignorar' */
+  metaCategoria: varchar("metaCategoria", { length: 16 }).notNull().default("cat1"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CashbarberMapeamento = typeof cashbarberMapeamento.$inferSelect;
+export type InsertCashbarberMapeamento = typeof cashbarberMapeamento.$inferInsert;
