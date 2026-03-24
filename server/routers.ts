@@ -448,11 +448,12 @@ export const appRouter = router({
       .input(z.object({ ano: z.number().min(2020) }))
       .query(async ({ input, ctx }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
-        const [metasAno, fatAno] = await Promise.all([
+        const [metasAno, fatAno, bonificacoesConfig] = await Promise.all([
           getMetasAnoByTenant(tenantId, input.ano),
           getFaturamentosAnoByTenant(tenantId, input.ano),
+          getAllBonificacoesByTenant(tenantId),
         ]);
-        return { metas: metasAno, faturamentos: fatAno };
+        return { metas: metasAno, faturamentos: fatAno, bonificacoes: bonificacoesConfig };
       }),
 
     salvar: protectedProcedure

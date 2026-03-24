@@ -13,7 +13,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { Trophy, Star, CheckCircle2, TrendingUp, TrendingDown, Minus, Calendar } from "lucide-react";
+import { Trophy, Star, CheckCircle2, TrendingUp, TrendingDown, Minus, Calendar, Award } from "lucide-react";
 
 const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -53,6 +53,67 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
     if (empresaVinculada) return empresasData.filter((e: any) => e.slug === empresaVinculada);
     return empresasData;
   }, [empresasData, empresaVinculada, isAdmin]);
+
+  // Calcular bonificações mensais por empresa
+  const bonificacoesCalculadas = useMemo(() => {
+    if (!data) return [];
+
+    return empresasVisiveis.map((emp: any) => {
+      const bon = (data.bonificacoes ?? []).find((b: any) => b.empresaSlug === emp.slug);
+      const pctQuinzenalSemMeta = parseFloat(String(bon?.pctQuinzenalSemMeta ?? 0));
+      const pctQuinzenalComMeta = parseFloat(String(bon?.pctQuinzenalComMeta ?? 0));
+      const pctMensalSemMeta = parseFloat(String(bon?.pctMensalSemMeta ?? 0));
+      const pctMensalComMeta = parseFloat(String(bon?.pctMensalComMeta ?? 0));
+      const pctSuperMeta = parseFloat(String(bon?.pctSuperMeta ?? 0));
+
+      const hoje = new Date();
+
+      const mesesBon = MESES.map((_, idx) => {
+        const mesNum = idx + 1;
+        const meta = data.metas.find((m: any) => m.empresaSlug === emp.slug && m.mes === mesNum);
+        const fatsMes = data.faturamentos.filter((f: any) => {
+          const [fAno, fMes] = f.data.split("-").map(Number);
+          return f.empresaSlug === emp.slug && fMes === mesNum && fAno === ano;
+        });
+
+        const fatsRealizados = fatsMes.filter((f: any) => {
+          const [fAno, fMes, fDia] = f.data.split("-").map(Number);
+          return new Date(fAno, fMes - 1, fDia) <= hoje;
+        });
+
+        const totalMensal = fatsRealizados.reduce((s: number, f: any) =>
+          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+
+        const fatsQ = fatsRealizados.filter((f: any) => parseInt(f.data.split("-")[2]) <= 15);
+        const totalQuinzenal = fatsQ.reduce((s: number, f: any) =>
+          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+
+        const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
+        const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
+        const superMeta = parseFloat(String(meta?.superMeta || "0"));
+
+        const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;
+        const atingiuQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
+        const atingiuSuperMeta = superMeta > 0 && totalMensal >= superMeta;
+
+        const pctQ = atingiuQuinzenal ? pctQuinzenalComMeta : pctQuinzenalSemMeta;
+        const pctM = atingiuMensal ? pctMensalComMeta : pctMensalSemMeta;
+
+        const bonQuinzenal = metaQuinzenal > 0 ? (totalQuinzenal * pctQ) / 100 : 0;
+        const bonMensal = metaMensal > 0 ? (totalMensal * pctM) / 100 : 0;
+        const bonSuperMeta = atingiuSuperMeta && pctSuperMeta > 0 ? (totalMensal * pctSuperMeta) / 100 : 0;
+        const bonTotal = bonQuinzenal + bonMensal + bonSuperMeta;
+
+        const temDados = fatsRealizados.length > 0;
+        return { mesNum, mesLabel: MESES[idx], bonTotal, bonQuinzenal, bonMensal, bonSuperMeta, temDados, atingiuSuperMeta };
+      });
+
+      const totalBonAnual = mesesBon.reduce((s, m) => s + m.bonTotal, 0);
+      return { emp, mesesBon, totalBonAnual };
+    });
+  }, [data, empresasVisiveis, ano]);
 
   // Calcular totais realizados por empresa por mês
   const historicoCalculado = useMemo(() => {
@@ -114,6 +175,34 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
       return { emp, mesesData, mesesAtingidos, mesesSuperAtingidos, totalAnual, metaAnual, mesesComMeta: mesesComMeta.length };
     });
   }, [data, empresasVisiveis, ano]);
+
+  // Dados para o gráfico de bonificações
+  const chartDataBon = useMemo(() => {
+    if (!bonificacoesCalculadas.length) return [];
+
+    const empsFiltBon = empresaSelecionada === "todas"
+      ? bonificacoesCalculadas
+      : bonificacoesCalculadas.filter(h => h.emp.slug === empresaSelecionada);
+
+    return MESES.map((mesLabel, idx) => {
+      const entry: any = { mes: mesLabel };
+      let totalBon = 0;
+      let totalBonSuper = 0;
+
+      empsFiltBon.forEach(h => {
+        const m = h.mesesBon[idx];
+        entry[`bon_${h.emp.slug}`] = m.temDados ? m.bonTotal : null;
+        entry[`bonSuper_${h.emp.slug}`] = m.atingiuSuperMeta ? m.bonSuperMeta : null;
+        totalBon += m.temDados ? m.bonTotal : 0;
+        totalBonSuper += m.atingiuSuperMeta ? m.bonSuperMeta : 0;
+      });
+
+      entry.totalBon = totalBon;
+      entry.totalBonSuper = totalBonSuper;
+      entry.mesNum = idx + 1;
+      return entry;
+    });
+  }, [bonificacoesCalculadas, empresaSelecionada]);
 
   // Dados para o gráfico consolidado ou por empresa
   const chartData = useMemo(() => {
@@ -328,6 +417,107 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-blue-400 inline-block" /> Em andamento</span>
         </div>
       </Card>
+
+      {/* Gráfico de barras de bonificações */}
+      {chartDataBon.some(e => e.totalBon > 0) && (
+        <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500" />
+              Bonificações Mensais {ano}
+            </h3>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Total anual</p>
+              <p className="text-base font-bold text-amber-500">
+                {fmt(bonificacoesCalculadas
+                  .filter(h => empresaSelecionada === "todas" || h.emp.slug === empresaSelecionada)
+                  .reduce((s, h) => s + h.totalBonAnual, 0)
+                )}
+              </p>
+            </div>
+          </div>
+
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={chartDataBon} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="mes"
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}
+                width={50}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                  fontSize: "12px",
+                }}
+                formatter={(value: any, name: string) => {
+                  const label = name.startsWith("bon_")
+                    ? (bonificacoesCalculadas.find(h => h.emp.slug === name.replace("bon_", ""))?.emp.nome ?? name)
+                    : name;
+                  return [fmt(value), label];
+                }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                formatter={(value) => {
+                  const slug = value.replace("bon_", "");
+                  const emp = bonificacoesCalculadas.find(h => h.emp.slug === slug)?.emp;
+                  return <span style={{ color: emp?.cor ?? "hsl(var(--muted-foreground))" }}>{emp?.nome ?? value}</span>;
+                }}
+              />
+              {(empresaSelecionada === "todas" ? bonificacoesCalculadas : bonificacoesCalculadas.filter(h => h.emp.slug === empresaSelecionada)).map((h, i) => (
+                <Bar
+                  key={h.emp.slug}
+                  dataKey={`bon_${h.emp.slug}`}
+                  name={`bon_${h.emp.slug}`}
+                  fill={h.emp.cor}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={36}
+                  stackId={empresaSelecionada === "todas" ? undefined : "a"}
+                >
+                  {chartDataBon.map((entry, idx) => (
+                    <Cell
+                      key={idx}
+                      fill={h.emp.cor}
+                      fillOpacity={entry[`bon_${h.emp.slug}`] > 0 ? (entry.mesNum > mesAtual && ano === anoAtualCheck ? 0.3 : 0.85) : 0.2}
+                    />
+                  ))}
+                </Bar>
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+
+          {/* Resumo por empresa */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {bonificacoesCalculadas
+              .filter(h => empresaSelecionada === "todas" || h.emp.slug === empresaSelecionada)
+              .map(h => (
+                <div key={h.emp.slug} className="bg-muted/40 rounded-xl p-3 text-center">
+                  <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ backgroundColor: h.emp.cor }} />
+                  <p className="text-xs text-muted-foreground font-medium">{h.emp.nome}</p>
+                  <p className="text-sm font-bold text-foreground mt-0.5">{fmt(h.totalBonAnual)}</p>
+                  {h.mesesBon.some(m => m.atingiuSuperMeta && m.bonSuperMeta > 0) && (
+                    <p className="text-xs text-amber-400 flex items-center gap-0.5 justify-center mt-0.5">
+                      <Star className="w-2.5 h-2.5" />
+                      {fmt(h.mesesBon.reduce((s, m) => s + m.bonSuperMeta, 0))}
+                    </p>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+        </Card>
+      )}
 
       {/* Tabela de evolução mensal por empresa */}
       {empsFiltradas.map(h => (

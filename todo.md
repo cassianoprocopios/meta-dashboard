@@ -427,3 +427,7 @@
 - [x] Backend: incluir pctSuperMeta nos endpoints de bonificação (salvar/listar/calcular)
 - [x] Frontend Bonificacao.tsx: campo para editar pctSuperMeta e exibir valor calculado
 - [x] Cálculo: bonificação super meta = totalRealizado * pctSuperMeta quando superMeta atingida
+
+## Gráfico de Bonificações no Histórico
+
+- [x] Gráfico de barras mensais de bonificações na aba Histórico (por unidade e total)
