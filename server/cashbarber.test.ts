@@ -182,3 +182,88 @@ describe("calcularFaturamentoPorCategoriaComCatalogo", () => {
     expect(resultado.totalGeral).toBe(12300);
   });
 });
+
+// ─── Testes: calcularComissaoBrutaFilial ─────────────────────────────────────
+
+import { calcularComissaoBrutaFilial } from "./cashbarber";
+import type { CashbarberDpoteHistorico } from "./cashbarber";
+
+describe("calcularComissaoBrutaFilial", () => {
+  const historicoBase: CashbarberDpoteHistorico = {
+    faturamento: {
+      valor_ganho_assinaturas: 63035,
+      porcentagem_comissao_barbearias: 65,
+      porcentagem_comissao_barbeiros: 35,
+    },
+    filiais_servicos: [
+      {
+        filial: { id: 144, fil_bairro: "Morumbi" },
+        servicos: [
+          { fichas: 70 },
+          { fichas: 30 },
+        ],
+      },
+      {
+        filial: { id: 3520, fil_bairro: "Mascote" },
+        servicos: [
+          { fichas: 40 },
+          { fichas: 10 },
+        ],
+      },
+    ],
+  };
+
+  it("deve calcular corretamente a comissão bruta da filial Morumbi (70% das fichas)", () => {
+    // Total fichas: 70+30 (Morumbi) + 40+10 (Mascote) = 150
+    // Fichas Morumbi: 100 → 100/150 = 66.67%
+    // Comissão bruta total: 63035 × 65% = 40972.75
+    // Comissão Morumbi: 40972.75 × 66.67% ≈ 27316
+    const resultado = calcularComissaoBrutaFilial(historicoBase, 144);
+    expect(resultado).toBeGreaterThan(27000);
+    expect(resultado).toBeLessThan(28000);
+  });
+
+  it("deve calcular corretamente a comissão bruta da filial Mascote (33% das fichas)", () => {
+    // Fichas Mascote: 50 → 50/150 = 33.33%
+    // Comissão Mascote: 40972.75 × 33.33% ≈ 13657
+    const resultado = calcularComissaoBrutaFilial(historicoBase, 3520);
+    expect(resultado).toBeGreaterThan(13000);
+    expect(resultado).toBeLessThan(14000);
+  });
+
+  it("deve retornar 0 se a filial não tiver fichas", () => {
+    const resultado = calcularComissaoBrutaFilial(historicoBase, 9999);
+    expect(resultado).toBe(0);
+  });
+
+  it("deve retornar 0 se o total de fichas for 0", () => {
+    const historicoSemFichas: CashbarberDpoteHistorico = {
+      faturamento: {
+        valor_ganho_assinaturas: 50000,
+        porcentagem_comissao_barbearias: 65,
+        porcentagem_comissao_barbeiros: 35,
+      },
+      filiais_servicos: [
+        {
+          filial: { id: 144, fil_bairro: "Morumbi" },
+          servicos: [{ fichas: 0 }],
+        },
+      ],
+    };
+    const resultado = calcularComissaoBrutaFilial(historicoSemFichas, 144);
+    expect(resultado).toBe(0);
+  });
+
+  it("deve retornar inteiro (arredondado)", () => {
+    const resultado = calcularComissaoBrutaFilial(historicoBase, 144);
+    expect(Number.isInteger(resultado)).toBe(true);
+  });
+
+  it("a soma das comissões de todas as filiais deve ser igual à comissão bruta total", () => {
+    const morumbi = calcularComissaoBrutaFilial(historicoBase, 144);
+    const mascote = calcularComissaoBrutaFilial(historicoBase, 3520);
+    const comissaoBrutaTotal = Math.round(63035 * 0.65);
+    // A soma pode diferir em 1 real por arredondamento
+    expect(Math.abs(morumbi + mascote - comissaoBrutaTotal)).toBeLessThanOrEqual(1);
+  });
+});

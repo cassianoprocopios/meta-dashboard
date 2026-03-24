@@ -208,6 +208,10 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   sincAutoAtiva: int("sincAutoAtiva").notNull().default(0),
   /** Horário de execução do job (formato HH:MM, ex: '23:00') */
   horarioSinc: varchar("horarioSinc", { length: 5 }).default("23:00"),
+  /** ID do histórico Dpote criado para o mês atual (evita criar duplicatas a cada sync) */
+  dpoteHistoricoId: int("dpoteHistoricoId"),
+  /** Mês/ano do histórico Dpote armazenado (formato YYYY-MM, ex: '2026-03') */
+  dpoteHistoricoMes: varchar("dpoteHistoricoMes", { length: 7 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

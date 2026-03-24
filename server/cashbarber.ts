@@ -59,7 +59,8 @@ interface CashbarberProdutoCatalogo {
 }
 
 /**
- * Faz login na API do CashBarber e retorna o token JWT
+ * Faz login na API do CashBarber e retorna o token JWT.
+ * Trata 409 Conflict (sessão já ativa) fazendo logout forçado e re-login.
  */
 export async function cashbarberLogin(email: string, senha: string): Promise<string> {
   const resp = await fetch("https://api.cashbarber.com.br/api/auth/login", {
@@ -67,6 +68,38 @@ export async function cashbarberLogin(email: string, senha: string): Promise<str
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password: senha, ctx: "painel" }),
   });
+
+  // 409 Conflict = sessão já ativa em outro dispositivo
+  // Tentar extrair token do cookie da resposta 409; se não vier, forçar logout e re-login
+  if (resp.status === 409) {
+    const setCookieHeader409 = resp.headers.get("set-cookie") || "";
+    const tokenMatch409 = setCookieHeader409.match(/access_token_painel=([^;]+)/);
+    if (tokenMatch409) return tokenMatch409[1];
+
+    // Forçar logout da sessão ativa
+    await fetch("https://api.cashbarber.com.br/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, ctx: "painel" }),
+    }).catch(() => {}); // ignorar erro do logout
+
+    // Aguardar 1 segundo e tentar novamente
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const resp2 = await fetch("https://api.cashbarber.com.br/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: senha, ctx: "painel" }),
+    });
+    if (!resp2.ok) {
+      throw new Error(`CashBarber re-login falhou após logout: ${resp2.status} ${resp2.statusText}`);
+    }
+    const setCookieHeader2 = resp2.headers.get("set-cookie") || "";
+    const tokenMatch2 = setCookieHeader2.match(/access_token_painel=([^;]+)/);
+    if (!tokenMatch2) {
+      throw new Error("CashBarber: token não encontrado após re-login");
+    }
+    return tokenMatch2[1];
+  }
 
   if (!resp.ok) {
     throw new Error(`CashBarber login falhou: ${resp.status} ${resp.statusText}`);
@@ -363,4 +396,96 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
     totalGeral: totalServicos + totalProdutos,
     detalhes,
   };
+}
+
+// ─── DPOTE / ASSINATURAS ──────────────────────────────────────────────────────
+
+export interface CashbarberDpoteFilialServico {
+  filial: {
+    id: number;
+    fil_bairro: string;
+  };
+  servicos: Array<{ fichas: number; [key: string]: unknown }>;
+}
+
+export interface CashbarberDpoteHistorico {
+  faturamento: {
+    valor_ganho_assinaturas: number;
+    porcentagem_comissao_barbearias: number;
+    porcentagem_comissao_barbeiros: number;
+  };
+  filiais_servicos: CashbarberDpoteFilialServico[];
+}
+
+/**
+ * Cria um novo histórico Dpote no CashBarber para o mês/ano atual.
+ * Retorna o ID do histórico criado.
+ */
+export async function cashbarberCriarHistoricoDpote(token: string): Promise<number> {
+  const resp = await fetch("https://api.cashbarber.com.br/api/painel/dpote/historico", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!resp.ok) {
+    throw new Error(`CashBarber criarHistoricoDpote falhou: ${resp.status} ${resp.statusText}`);
+  }
+  const id = await resp.json();
+  if (typeof id !== "number") {
+    throw new Error(`CashBarber criarHistoricoDpote: resposta inesperada: ${JSON.stringify(id)}`);
+  }
+  return id;
+}
+
+/**
+ * Busca os dados de um histórico Dpote pelo ID.
+ */
+export async function cashbarberBuscarHistoricoDpote(
+  token: string,
+  historicoId: number
+): Promise<CashbarberDpoteHistorico> {
+  const resp = await fetch(
+    `https://api.cashbarber.com.br/api/painel/dpote/historico/${historicoId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!resp.ok) {
+    throw new Error(`CashBarber buscarHistoricoDpote falhou: ${resp.status} ${resp.statusText}`);
+  }
+  return resp.json();
+}
+
+/**
+ * Calcula a Comissão Bruta de uma filial específica a partir dos dados do histórico Dpote.
+ *
+ * Fórmula: valor_total × porcentagem_barbearia% × (fichas_filial / fichas_total)
+ *
+ * @param historico - Dados do histórico Dpote
+ * @param filialId - ID da filial no CashBarber
+ * @returns Valor da comissão bruta da filial em reais (inteiro)
+ */
+export function calcularComissaoBrutaFilial(
+  historico: CashbarberDpoteHistorico,
+  filialId: number
+): number {
+  const { valor_ganho_assinaturas, porcentagem_comissao_barbearias } = historico.faturamento;
+
+  // Calcular total de fichas de todas as filiais
+  let totalFichas = 0;
+  let fichasFilial = 0;
+  for (const f of historico.filiais_servicos) {
+    const fichas = f.servicos.reduce((acc, s) => acc + (s.fichas || 0), 0);
+    totalFichas += fichas;
+    if (f.filial.id === filialId) {
+      fichasFilial = fichas;
+    }
+  }
+
+  if (totalFichas === 0 || fichasFilial === 0) return 0;
+
+  // Comissão bruta total × proporção da filial
+  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
+  const comissaoFilial = comissaoBrutaTotal * (fichasFilial / totalFichas);
+
+  // Arredondar para inteiro (valores em reais)
+  return Math.round(comissaoFilial);
 }

@@ -6,8 +6,12 @@
  *
  * IMPORTANTE:
  * - O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
- * - cat5 (Recorrência) é SEMPRE preservada do lançamento manual, NUNCA sobrescrita,
- *   pois a Recorrência faz parte do faturamento mas não é especificada no CashBarber.
+ * - cat5 (Recorrência) é calculada automaticamente via Dpote (Assinaturas):
+ *   Comissão Bruta da filial = valor_total × porcentagem_barbearia% × (fichas_filial / fichas_total)
+ * - O valor de cat5 é único para o mês inteiro, mas atualizado a cada sync
+ *   (pois as assinaturas entram no banco ao longo do mês).
+ * - Um único histórico Dpote é criado por mês e reutilizado nas syncs seguintes
+ *   (o ID é armazenado em cashbarberConfig.dpoteHistoricoId).
  */
 
 import {
@@ -17,6 +21,8 @@ import {
   updateCashbarberSyncStatus,
   insertCashbarberSyncLog,
   getFaturamentoByDataEmpresaTenant,
+  saveDpoteHistoricoId,
+  getDpoteHistoricoId,
 } from "./db";
 import {
   cashbarberLogin,
@@ -24,6 +30,9 @@ import {
   cashbarberListarProdutos,
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
+  cashbarberCriarHistoricoDpote,
+  cashbarberBuscarHistoricoDpote,
+  calcularComissaoBrutaFilial,
 } from "./cashbarber";
 
 /**
@@ -33,6 +42,8 @@ export interface ResultadoSincronizacao {
   diasSincronizados: number;
   diasIgnorados: number;
   erros?: string;
+  recorrenciaAtualizada?: boolean;
+  recorrenciaValor?: number;
   detalhes: Array<{
     data: string;
     status: "sincronizado" | "ignorado" | "erro";
@@ -58,12 +69,47 @@ function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Se
 }
 
 /**
+ * Busca ou cria o histórico Dpote para o mês/ano atual.
+ * Reutiliza o ID salvo no banco para evitar criar duplicatas a cada sync.
+ *
+ * @returns ID do histórico Dpote e o valor de Comissão Bruta da filial (em reais)
+ */
+async function buscarRecorrenciaDpote(
+  token: string,
+  tenantId: number,
+  empresaSlug: string,
+  cbFilialId: number,
+  mes: number,
+  ano: number
+): Promise<{ historicoId: number; recorrenciaValor: number }> {
+  const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
+
+  // Verificar se já existe um histórico salvo para este mês
+  let historicoId = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
+
+  if (!historicoId) {
+    // Criar novo histórico Dpote no CashBarber
+    historicoId = await cashbarberCriarHistoricoDpote(token);
+    // Salvar o ID no banco para reutilizar nas próximas syncs do mês
+    await saveDpoteHistoricoId(tenantId, empresaSlug, historicoId, mesSigla);
+  }
+
+  // Buscar os dados do histórico (atualizado a cada sync)
+  const historico = await cashbarberBuscarHistoricoDpote(token, historicoId);
+
+  // Calcular a Comissão Bruta da filial específica
+  const recorrenciaValor = calcularComissaoBrutaFilial(historico, cbFilialId);
+
+  return { historicoId, recorrenciaValor };
+}
+
+/**
  * Sincroniza os dados de faturamento do CashBarber para uma empresa no mês/ano especificado.
  * Registra o resultado no log de sincronizações.
  *
  * Comportamento de merge:
- * - Apenas as categorias presentes no mapeamento CashBarber são sobrescritas.
- * - Categorias não mapeadas (ex: Recorrência = cat5) são preservadas do valor manual.
+ * - As categorias presentes no mapeamento CashBarber são sobrescritas com dados do relatório 15.
+ * - cat5 (Recorrência) é calculada via Dpote (Comissão Bruta da filial) e atualizada em TODOS os dias do mês.
  *
  * @param tenantId - ID do tenant (empresa no Meta Dashboard)
  * @param empresaSlug - Slug da empresa no Meta Dashboard
@@ -102,7 +148,27 @@ export async function sincronizarFaturamentoCashbarber(
     cashbarberListarProdutos(token),
   ]);
 
-  // 5. Determinar o período: do dia 1 ao último dia do mês
+  // 5. Buscar Recorrência via Dpote (Comissão Bruta da filial para o mês)
+  //    Este valor é único para o mês inteiro, mas atualizado a cada sync.
+  let recorrenciaValor = 0;
+  let recorrenciaAtualizada = false;
+  try {
+    const dpote = await buscarRecorrenciaDpote(
+      token,
+      tenantId,
+      empresaSlug,
+      config.cbFilialId,
+      mes,
+      ano
+    );
+    recorrenciaValor = dpote.recorrenciaValor;
+    recorrenciaAtualizada = true;
+  } catch (err) {
+    // Falha no Dpote não deve interromper a sync do faturamento diário
+    console.warn(`[CashBarber] Falha ao buscar Recorrência via Dpote para ${empresaSlug}:`, err);
+  }
+
+  // 6. Determinar o período: do dia 1 ao último dia do mês
   //    Se for o mês atual, vai até hoje; se for mês passado, vai até o último dia
   const hoje = new Date();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
@@ -115,7 +181,7 @@ export async function sincronizarFaturamentoCashbarber(
   let diasIgnorados = 0;
   const errosMsgs: string[] = [];
 
-  // 6. Sincronizar dia a dia
+  // 7. Sincronizar dia a dia
   for (let dia = 1; dia <= ultimoDia; dia++) {
     const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
@@ -154,10 +220,13 @@ export async function sincronizarFaturamentoCashbarber(
       const cat4 = categoriasMapeadas.has("cat4")
         ? String(faturamentoCB.cat4)
         : existente?.cat4 ?? "0";
-      // cat5 (Recorrência) é SEMPRE preservada do lançamento manual.
-      // O CashBarber não especifica Recorrência, então nunca a sobrescrevemos,
-      // independente do mapeamento configurado.
-      const cat5 = existente?.cat5 ?? "0";
+
+      // cat5 (Recorrência):
+      // - Se o Dpote retornou um valor, usar esse valor (atualizado a cada sync)
+      // - Se o Dpote falhou, preservar o valor existente (ou "0" se novo registro)
+      const cat5 = recorrenciaAtualizada
+        ? String(recorrenciaValor)
+        : existente?.cat5 ?? "0";
 
       // Salvar no banco (upsert com merge seletivo)
       // sincronizadoCB=1 marca que este dia foi importado pelo CashBarber
@@ -194,11 +263,11 @@ export async function sincronizarFaturamentoCashbarber(
     }
   }
 
-  // 7. Atualizar status de última sincronização na config
+  // 8. Atualizar status de última sincronização na config
   const statusFinal = errosMsgs.length === 0 ? "ok" : diasSincronizados > 0 ? "parcial" : "erro";
   await updateCashbarberSyncStatus(tenantId, empresaSlug, statusFinal);
 
-  // 8. Registrar no log
+  // 9. Registrar no log
   await insertCashbarberSyncLog({
     tenantId,
     empresaSlug,
@@ -215,6 +284,8 @@ export async function sincronizarFaturamentoCashbarber(
     diasSincronizados,
     diasIgnorados,
     erros: errosMsgs.length > 0 ? errosMsgs.slice(0, 10).join("; ") : undefined,
+    recorrenciaAtualizada,
+    recorrenciaValor,
     detalhes,
   };
 }

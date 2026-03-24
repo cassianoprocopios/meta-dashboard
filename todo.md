@@ -503,3 +503,17 @@
 
 - [x] Blindar cat5 (Recorrência) no cashbarberSincronizador.ts: nunca sobrescrever, mesmo que cat5 esteja no mapeamento
 - [x] Testes atualizados: 2 novos testes cobrindo proteção incondicional de cat5 (58 testes no total)
+
+## Recorrência Automática via Dpote (Mar 2026)
+
+- [x] Endpoint descoberto: `GET /api/painel/dpote/historico/{id}` retorna valor_ganho_assinaturas, porcentagem_comissao_barbearias e fichas por filial
+- [x] Lógica: Comissão Bruta filial = valor_total × 65% × (fichas_filial / fichas_total)
+- [x] Campo `dpoteHistoricoId` e `dpoteHistoricoMes` na tabela `cashbarberConfig`: armazenar ID do histórico criado por mês
+- [x] Migrar banco com as novas colunas (ALTER TABLE via SQL)
+- [x] Função `cashbarberCriarHistoricoDpote`: cria histórico Dpote no CashBarber
+- [x] Função `cashbarberBuscarHistoricoDpote`: busca dados do histórico pelo ID
+- [x] Função `calcularComissaoBrutaFilial`: calcula comissão bruta proporcional pelas fichas
+- [x] Função `buscarRecorrenciaDpote` no sincronizador: busca/cria histórico e retorna o valor de cat5
+- [x] Atualizar `cashbarberSincronizador.ts`: busca Dpote a cada sync e atualiza cat5 em todos os dias do mês
+- [x] cat5 é atualizado a cada sync horária (valor muda conforme assinaturas entram no banco)
+- [x] Testes de `calcularComissaoBrutaFilial`: 6 testes, 64 no total (todos passando)

@@ -1175,3 +1175,39 @@ export async function updateCashbarberAgendamento(
     .set({ sincAutoAtiva: sincAutoAtiva ? 1 : 0, horarioSinc })
     .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
 }
+
+/** Salva o ID do histórico Dpote criado para o mês atual, evitando duplicatas */
+export async function saveDpoteHistoricoId(
+  tenantId: number,
+  empresaSlug: string,
+  historicoId: number,
+  mesSigla: string // formato YYYY-MM
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(cashbarberConfig)
+    .set({ dpoteHistoricoId: historicoId, dpoteHistoricoMes: mesSigla })
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+}
+
+/** Retorna o ID do histórico Dpote salvo para o mês atual (ou null se não existir / for de outro mês) */
+export async function getDpoteHistoricoId(
+  tenantId: number,
+  empresaSlug: string,
+  mesSigla: string // formato YYYY-MM
+): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select({ dpoteHistoricoId: cashbarberConfig.dpoteHistoricoId, dpoteHistoricoMes: cashbarberConfig.dpoteHistoricoMes })
+    .from(cashbarberConfig)
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)))
+    .limit(1);
+  if (!rows.length) return null;
+  const row = rows[0];
+  if (row.dpoteHistoricoMes === mesSigla && row.dpoteHistoricoId) {
+    return row.dpoteHistoricoId;
+  }
+  return null;
+}
