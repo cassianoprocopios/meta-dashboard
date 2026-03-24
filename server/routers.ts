@@ -64,6 +64,9 @@ import {
   updateCashbarberSyncStatus,
   listCashbarberMapeamento,
   saveCashbarberMapeamento,
+  insertCashbarberSyncLog,
+  listCashbarberSyncLogs,
+  updateCashbarberAgendamento,
 } from "./db";
 import {
   cashbarberLogin,
@@ -74,6 +77,8 @@ import {
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
 } from "./cashbarber";
+import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
+import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
@@ -1878,7 +1883,18 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
           // Atualizar status da sincronização
           await updateCashbarberSyncStatus(tenantId, input.empresaSlug, "ok");
-
+          // Registrar no log
+          await insertCashbarberSyncLog({
+            tenantId,
+            empresaSlug: input.empresaSlug,
+            origem: "manual",
+            status: erros.length === 0 ? "ok" : diasSincronizados.length > 0 ? "parcial" : "erro",
+            mes: input.mes,
+            ano: input.ano,
+            diasSincronizados: diasSincronizados.length,
+            diasIgnorados: diasIgnorados.length,
+            erros: erros.length > 0 ? erros.slice(0, 10).join("; ") : undefined,
+          });
           return {
             ok: true,
             diasSincronizados: diasSincronizados.length,
@@ -1891,6 +1907,56 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message });
         }
       }),
+
+    /** Configura o agendamento automático de sincronização */
+    configurarAgendamento: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string(),
+          sincAutoAtiva: z.boolean(),
+          horarioSinc: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Formato HH:MM inválido"),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const tenantId = ctx.user.tenantId ?? 0;
+        await updateCashbarberAgendamento(
+          tenantId,
+          input.empresaSlug,
+          input.sincAutoAtiva,
+          input.horarioSinc
+        );
+        // Notificar o gerenciador de jobs
+        await notificarMudancaConfigCashbarber(
+          tenantId,
+          input.empresaSlug,
+          input.sincAutoAtiva,
+          input.horarioSinc
+        );
+        return { ok: true };
+      }),
+
+    /** Lista os logs de sincronização de uma empresa */
+    listarLogs: protectedProcedure
+      .input(z.object({ empresaSlug: z.string(), limit: z.number().min(1).max(100).default(30) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const tenantId = ctx.user.tenantId ?? 0;
+        return listCashbarberSyncLogs(tenantId, input.empresaSlug, input.limit);
+      }),
+
+    /** Retorna o status dos jobs de sincronização ativos */
+    statusJobs: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      return getStatusJobsCashbarber();
+    }),
+
+    /** Recarrega os jobs (útil após mudanças de configuração) */
+    recarregarJobs: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      await recarregarJobsCashbarber();
+      return { ok: true, jobs: getStatusJobsCashbarber() };
+    }),
   }),
-});
+});;
 export type AppRouter = typeof appRouter;

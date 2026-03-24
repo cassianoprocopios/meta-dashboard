@@ -457,3 +457,21 @@
 - [x] Tabela de mapeamento de categorias CashBarber → categorias do Meta Dashboard
 - [x] Indicador de última sincronização por empresa
 - [x] Testes das procedures de integração CashBarber (7 testes passando, 36 no total)
+
+## Sincronização Automática CashBarber (Mar 2026)
+
+- [x] Tabela `cashbarberSyncLog` no banco: histórico de execuções do job (tenantId, empresaSlug, status, diasSincronizados, erros, executadoEm)
+- [x] Migrar banco com as novas tabelas
+- [x] Campo `sincAutoAtiva` e `horarioSinc` na tabela `cashbarberConfig` (ativar/desativar por empresa, horário configurável)
+- [x] Módulo `cashbarberSincronizador.ts`: lógica reutilizável de sincronização (usado pelo job e pela procedure manual)
+- [x] Módulo `cashbarberJob.ts`: job cron com node-cron, agendamento dinâmico por empresa
+- [x] Agendamento via `node-cron` no servidor: executa o job diariamente no horário configurado
+- [x] Job mestre: verifica a cada hora se há novas configurações (cobre reinicializações do servidor)
+- [x] Procedure `cashbarber.configurarAgendamento`: ativar/desativar sync automático por empresa e definir horário
+- [x] Procedure `cashbarber.listarLogs`: retornar histórico de sincronizações por empresa
+- [x] Procedure `cashbarber.statusJobs`: retornar jobs ativos no servidor
+- [x] Procedure `cashbarber.recarregarJobs`: forçar recarga dos jobs
+- [x] Aba "Agendamento" no componente CashBarberIntegracao
+- [x] Toggle de ativação com seletor de horário (input type=time)
+- [x] Tabela de histórico de sincronizações com status, origem (auto/manual), dias e erros
+- [x] Testes do job de sincronização automática (12 testes, 48 no total)

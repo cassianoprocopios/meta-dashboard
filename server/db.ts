@@ -5,6 +5,7 @@ import {
   bonificacoes,
   cashbarberConfig,
   cashbarberMapeamento,
+  cashbarberSyncLog,
   CashbarberConfig,
   CashbarberMapeamento,
   categorias,
@@ -1115,4 +1116,60 @@ export async function saveCashbarberMapeamento(
       }))
     );
   }
+}
+
+// ─── CASHBARBER SYNC LOG ──────────────────────────────────────────────────────
+
+/** Insere um registro de log de sincronização */
+export async function insertCashbarberSyncLog(data: {
+  tenantId: number;
+  empresaSlug: string;
+  origem: "auto" | "manual";
+  status: "ok" | "erro" | "parcial";
+  mes: number;
+  ano: number;
+  diasSincronizados: number;
+  diasIgnorados: number;
+  erros?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(cashbarberSyncLog).values({
+    tenantId: data.tenantId,
+    empresaSlug: data.empresaSlug,
+    origem: data.origem,
+    status: data.status,
+    mes: data.mes,
+    ano: data.ano,
+    diasSincronizados: data.diasSincronizados,
+    diasIgnorados: data.diasIgnorados,
+    erros: data.erros,
+  });
+}
+
+/** Lista os logs de sincronização de uma empresa */
+export async function listCashbarberSyncLogs(tenantId: number, empresaSlug: string, limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(cashbarberSyncLog)
+    .where(and(eq(cashbarberSyncLog.tenantId, tenantId), eq(cashbarberSyncLog.empresaSlug, empresaSlug)))
+    .orderBy(desc(cashbarberSyncLog.executadoEm))
+    .limit(limit);
+}
+
+/** Atualiza configurações de agendamento automático */
+export async function updateCashbarberAgendamento(
+  tenantId: number,
+  empresaSlug: string,
+  sincAutoAtiva: boolean,
+  horarioSinc: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(cashbarberConfig)
+    .set({ sincAutoAtiva: sincAutoAtiva ? 1 : 0, horarioSinc })
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
 }

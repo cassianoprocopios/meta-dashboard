@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   Loader2, CheckCircle, XCircle, RefreshCw, Settings,
   Zap, Map, Calendar, ChevronDown, ChevronRight,
-  Building2, AlertTriangle, Info, Save, Play
+  Building2, AlertTriangle, Info, Save, Play, Clock, History
 } from "lucide-react";
 
 type Empresa = { id: number; nome: string; slug: string; ativo: number };
@@ -40,7 +40,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   categoriasMeta: Array<{ numero: number; nome: string }>;
 }) {
   const [expandido, setExpandido] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState<"config" | "mapeamento" | "sincronizar">("config");
+  const [abaAtiva, setAbaAtiva] = useState<"config" | "mapeamento" | "sincronizar" | "agendamento">("config");
 
   // Formulário de configuração
   const [cbEmail, setCbEmail] = useState("");
@@ -56,6 +56,10 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [anoSinc, setAnoSinc] = useState(new Date().getFullYear());
   const [sobreescrever, setSobreescrever] = useState(false);
 
+  // Agendamento
+  const [sincAutoAtiva, setSincAutoAtiva] = useState(false);
+  const [horarioSinc, setHorarioSinc] = useState("23:00");
+
   // Mapeamento de categorias
   const [mapeamento, setMapeamento] = useState<Array<{
     tipo: "servico_categoria" | "produto_categoria" | "servico_id" | "produto_id";
@@ -66,6 +70,12 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [catalogoCarregado, setCatalogoCarregado] = useState(false);
 
   const utils = trpc.useUtils();
+
+  // Carregar logs de sincronização
+  const { data: logs = [], isLoading: loadingLogs, refetch: refetchLogs } = trpc.cashbarber.listarLogs.useQuery(
+    { empresaSlug: empresa.slug, limit: 20 },
+    { enabled: expandido && abaAtiva === "agendamento" }
+  );
 
   // Carregar configuração existente
   const { data: configExistente, isLoading: loadingConfig } = trpc.cashbarber.listarConfig.useQuery(
@@ -92,6 +102,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setCbSenha(""); // Não preencher senha por segurança
       setCbFilialId(configExistente.cbFilialId || "");
       setCbFilialNome(configExistente.cbFilialNome || "");
+      setSincAutoAtiva(!!(configExistente as any).sincAutoAtiva);
+      setHorarioSinc((configExistente as any).horarioSinc || "23:00");
     }
   }, [configExistente]);
 
@@ -184,6 +196,15 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       if (data.erros.length > 0) {
         toast.warning(`${data.erros.length} erro(s) durante a sincronização.`);
       }
+      utils.cashbarber.listarLogs.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const configurarAgendamento = trpc.cashbarber.configurarAgendamento.useMutation({
+    onSuccess: () => {
+      toast.success(sincAutoAtiva ? `Sincronização automática ativada para as ${horarioSinc}!` : "Sincronização automática desativada.");
+      utils.cashbarber.listarConfig.invalidate({ empresaSlug: empresa.slug });
     },
     onError: (err) => toast.error(err.message),
   });
@@ -291,11 +312,12 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
           ) : (
             <>
               {/* Sub-abas */}
-              <div className="flex border-b border-slate-100 bg-slate-50">
+              <div className="flex border-b border-slate-100 bg-slate-50 overflow-x-auto">
                 {[
                   { id: "config" as const, label: "Credenciais", icon: Settings },
                   { id: "mapeamento" as const, label: "Mapeamento", icon: Map },
                   { id: "sincronizar" as const, label: "Sincronizar", icon: RefreshCw },
+                  { id: "agendamento" as const, label: "Agendamento", icon: Clock },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -547,6 +569,162 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                           </button>
                         </div>
                       )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Aba Agendamento */}
+              {abaAtiva === "agendamento" && (
+                <div className="p-5 space-y-5">
+                  {!temConfig ? (
+                    <div className="flex items-start gap-2 p-4 bg-amber-50 rounded-lg text-sm text-amber-700 border border-amber-100">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>Configure as credenciais CashBarber antes de ativar o agendamento.</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Toggle de sincronização automática */}
+                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">Sincronização Automática</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Importa os dados do mês corrente diariamente no horário configurado</p>
+                        </div>
+                        <button
+                          onClick={() => setSincAutoAtiva(!sincAutoAtiva)}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${
+                            sincAutoAtiva ? "bg-emerald-500" : "bg-slate-300"
+                          }`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                            sincAutoAtiva ? "translate-x-6" : "translate-x-0"
+                          }`} />
+                        </button>
+                      </div>
+
+                      {/* Seletor de horário */}
+                      {sincAutoAtiva && (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                              <Clock className="w-3.5 h-3.5 inline mr-1" />
+                              Horário de Execução
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="time"
+                                value={horarioSinc}
+                                onChange={(e) => setHorarioSinc(e.target.value)}
+                                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                              <span className="text-xs text-slate-500">Fuso horário do servidor (UTC-3)</span>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2 p-3 bg-emerald-50 rounded-lg text-xs text-emerald-700 border border-emerald-100">
+                            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>
+                              O job será executado diariamente às <strong>{horarioSinc}</strong>, sincronizando todos os dias do mês corrente.
+                              Dias futuros são ignorados automaticamente.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => configurarAgendamento.mutate({ empresaSlug: empresa.slug, sincAutoAtiva, horarioSinc })}
+                          disabled={configurarAgendamento.isPending}
+                          className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
+                        >
+                          {configurarAgendamento.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                          Salvar Agendamento
+                        </button>
+                      </div>
+
+                      {/* Histórico de sincronizações */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                            <History className="w-4 h-4" />
+                            Histórico de Sincronizações
+                          </p>
+                          <button
+                            onClick={() => refetchLogs()}
+                            disabled={loadingLogs}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium transition-colors"
+                          >
+                            {loadingLogs ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                            Atualizar
+                          </button>
+                        </div>
+
+                        {loadingLogs ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                          </div>
+                        ) : logs.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <History className="w-8 h-8 text-slate-300 mb-2" />
+                            <p className="text-sm text-slate-500">Nenhuma sincronização registrada ainda</p>
+                            <p className="text-xs text-slate-400 mt-1">Execute uma sincronização manual ou ative o agendamento automático</p>
+                          </div>
+                        ) : (
+                          <div className="border border-slate-200 rounded-xl overflow-hidden">
+                            <table className="w-full text-xs">
+                              <thead className="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                  <th className="text-left px-3 py-2.5 font-semibold text-slate-600">Data/Hora</th>
+                                  <th className="text-left px-3 py-2.5 font-semibold text-slate-600">Período</th>
+                                  <th className="text-left px-3 py-2.5 font-semibold text-slate-600">Origem</th>
+                                  <th className="text-left px-3 py-2.5 font-semibold text-slate-600">Dias</th>
+                                  <th className="text-left px-3 py-2.5 font-semibold text-slate-600">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {logs.map((log: any) => (
+                                  <tr key={log.id} className="hover:bg-slate-50">
+                                    <td className="px-3 py-2.5 text-slate-600">
+                                      {new Date(log.executadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                                    </td>
+                                    <td className="px-3 py-2.5 text-slate-700 font-medium">
+                                      {String(log.mes).padStart(2, "0")}/{log.ano}
+                                    </td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${
+                                        log.origem === "auto"
+                                          ? "bg-purple-50 text-purple-700 border border-purple-100"
+                                          : "bg-blue-50 text-blue-700 border border-blue-100"
+                                      }`}>
+                                        {log.origem === "auto" ? <Clock className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
+                                        {log.origem === "auto" ? "Automático" : "Manual"}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-slate-700">
+                                      <span className="text-emerald-600 font-semibold">{log.diasSincronizados}</span>
+                                      {log.diasIgnorados > 0 && <span className="text-slate-400 ml-1">(+{log.diasIgnorados} ign.)</span>}
+                                    </td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${
+                                        log.status === "ok"
+                                          ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                          : log.status === "parcial"
+                                          ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                          : "bg-red-50 text-red-700 border border-red-100"
+                                      }`}>
+                                        {log.status === "ok" ? <CheckCircle className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+                                        {log.status === "ok" ? "OK" : log.status === "parcial" ? "Parcial" : "Erro"}
+                                      </span>
+                                      {log.erros && (
+                                        <p className="text-red-500 mt-0.5 text-xs max-w-xs truncate" title={log.erros}>{log.erros}</p>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>

@@ -202,12 +202,35 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   /** Status da última sincronização */
   statusUltimaSinc: varchar("statusUltimaSinc", { length: 32 }),
   ativo: int("ativo").notNull().default(1),
+  /** Sincronização automática ativa */
+  sincAutoAtiva: int("sincAutoAtiva").notNull().default(0),
+  /** Horário de execução do job (formato HH:MM, ex: '23:00') */
+  horarioSinc: varchar("horarioSinc", { length: 5 }).default("23:00"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type CashbarberConfig = typeof cashbarberConfig.$inferSelect;
 export type InsertCashbarberConfig = typeof cashbarberConfig.$inferInsert;
+
+// ─── LOG DE SINCRONIZAÇÃO CASHBARBER ─────────────────────────────────────────────────
+export const cashbarberSyncLog = mysqlTable("cashbarberSyncLog", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** 'auto' = agendado, 'manual' = disparado pelo usuário */
+  origem: varchar("origem", { length: 16 }).notNull().default("manual"),
+  status: varchar("status", { length: 16 }).notNull().default("ok"),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  diasSincronizados: int("diasSincronizados").notNull().default(0),
+  diasIgnorados: int("diasIgnorados").notNull().default(0),
+  erros: text("erros"),
+  executadoEm: timestamp("executadoEm").defaultNow().notNull(),
+});
+
+export type CashbarberSyncLog = typeof cashbarberSyncLog.$inferSelect;
+export type InsertCashbarberSyncLog = typeof cashbarberSyncLog.$inferInsert;
 
 // ─── MAPEAMENTO DE CATEGORIAS CASHBARBER ─────────────────────────────────────
 // Mapeia categorias/serviços/produtos do CashBarber para categorias do Meta Dashboard
