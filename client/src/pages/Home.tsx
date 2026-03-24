@@ -108,6 +108,30 @@ export default function Home() {
     },
   });
 
+  const [syncingDpote, setSyncingDpote] = useState(false);
+  const sincronizarDpoteMutation = trpc.cashbarber.sincronizarDpote.useMutation({
+    onSuccess: (data) => {
+      const atualizadas = data.resultados.filter((r) => r.recorrenciaAtualizada);
+      const erros = data.resultados.filter((r) => r.erros.length > 0);
+      if (erros.length > 0) {
+        toast.warning(`Dpote sincronizado com avisos. Erros em: ${erros.map((e) => e.empresa).join(", ")}`);
+      } else if (atualizadas.length > 0) {
+        const resumo = atualizadas
+          .map((r) => `${r.empresa}: R$ ${r.recorrenciaValor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
+          .join(", ");
+        toast.success(`↻ Recorrência atualizada! ${resumo}`);
+      } else {
+        toast.info("Dpote sincronizado. Nenhuma alteração no valor de Recorrência.");
+      }
+      setSyncingDpote(false);
+      refetchFat();
+    },
+    onError: (err) => {
+      toast.error(`Erro ao sincronizar Dpote: ${err.message}`);
+      setSyncingDpote(false);
+    },
+  });
+
   // Verificar status do tenant (bloqueado/expirado)
   const { data: tenantStatus } = trpc.auth.tenantStatus.useQuery(
     undefined,
@@ -725,6 +749,22 @@ export default function Home() {
                   {syncingCashbarber ? "Sincronizando..." : "Sync CB"}
                 </button>
               )}
+              {isGerente && (
+                <button
+                  onClick={() => {
+                    setSyncingDpote(true);
+                    sincronizarDpoteMutation.mutate();
+                  }}
+                  disabled={syncingDpote}
+                  title="Atualizar Recorrência (Dpote) agora"
+                  className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 px-3 py-1.5 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingDpote
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Repeat2 className="w-4 h-4" />}
+                  {syncingDpote ? "Atualizando..." : "Sync Dpote"}
+                </button>
+              )}
               {podeLancarFaturamento && (
                 <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
                   <Plus className="w-4 h-4" /> Novo Lançamento
@@ -888,6 +928,22 @@ export default function Home() {
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : <RefreshCw className="w-4 h-4" />}
                   {syncingCashbarber ? "Sincronizando CashBarber..." : "Sincronizar CashBarber"}
+                </button>
+              )}
+              {isGerente && (
+                <button
+                  onClick={() => {
+                    setSyncingDpote(true);
+                    sincronizarDpoteMutation.mutate();
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={syncingDpote}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors font-medium disabled:opacity-50"
+                >
+                  {syncingDpote
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Repeat2 className="w-4 h-4" />}
+                  {syncingDpote ? "Atualizando Dpote..." : "Sincronizar Dpote"}
                 </button>
               )}
             </div>

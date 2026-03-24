@@ -576,3 +576,10 @@
 - [x] Calcular recorrenciaMes (soma de cat5 de todos os dias da empresa no mês) em statsPorEmpresa
 - [x] Exibir linha "Recorrência (Dpote)" no card de unidade com fundo violeta e ícone Repeat2
 - [x] Linha só aparece quando recorrenciaMes > 0 (sem poluir cards sem Dpote configurado)
+
+## Botão de Sincronização Manual do Dpote na Tela Principal (Mar 2026)
+
+- [x] Procedure tRPC `cashbarber.sincronizarDpote`: executa sync do Dpote para o mês atual, disponível para gerentes (não requer admin)
+- [x] Botão "Sync Dpote" no header desktop (violeta, com ícone Repeat2) e no menu mobile
+- [x] Feedback visual: spinner durante execução, toast de sucesso/aviso/erro ao finalizar
+- [x] Após sync bem-sucedida: refetchFat() atualiza os cards automaticamente

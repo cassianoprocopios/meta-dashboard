@@ -2025,6 +2025,55 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       return { ok: true, jobs: getStatusJobsCashbarber() };
     }),
     /** Sincroniza todas as empresas configuradas do tenant para o mês/ano atual */
+    /**
+     * Sincroniza apenas o Dpote (Recorrência/cat5) do mês atual para todas as
+     * empresas do tenant que possuem integração CashBarber ativa.
+     * Disponível para gerentes (não requer role admin).
+     */
+    sincronizarDpote: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+        const configsAtivas = configs.filter((c) => c.ativo === 1);
+        if (configsAtivas.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
+        }
+        const now = new Date();
+        const mes = now.getMonth() + 1;
+        const ano = now.getFullYear();
+        const resultados: Array<{
+          empresa: string;
+          recorrenciaAtualizada: boolean;
+          recorrenciaValor: number;
+          erros: string[];
+        }> = [];
+        for (const config of configsAtivas) {
+          try {
+            const resultado = await sincronizarFaturamentoCashbarber(
+              tenantId,
+              config.empresaSlug,
+              mes,
+              ano,
+              "manual"
+            );
+            resultados.push({
+              empresa: config.empresaSlug,
+              recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
+              recorrenciaValor: resultado.recorrenciaValor ?? 0,
+              erros: resultado.erros ? [resultado.erros] : [],
+            });
+          } catch (e) {
+            resultados.push({
+              empresa: config.empresaSlug,
+              recorrenciaAtualizada: false,
+              recorrenciaValor: 0,
+              erros: [e instanceof Error ? e.message : String(e)],
+            });
+          }
+        }
+        return { resultados, mes, ano };
+      }),
+
     sincronizarTodas: protectedProcedure
       .input(
         z.object({
