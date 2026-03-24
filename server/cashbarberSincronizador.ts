@@ -157,6 +157,7 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat5 ?? "0";
 
       // Salvar no banco (upsert com merge seletivo)
+      // sincronizadoCB=1 marca que este dia foi importado pelo CashBarber
       await upsertFaturamento({
         tenantId,
         empresaSlug,
@@ -166,6 +167,7 @@ export async function sincronizarFaturamentoCashbarber(
         cat3,
         cat4,
         cat5,
+        sincronizadoCB: 1,
         // Preservar observacao e lancadoPor do registro existente
         observacao: existente?.observacao ?? undefined,
         lancadoPor: existente?.lancadoPor ?? undefined,

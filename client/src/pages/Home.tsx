@@ -12,7 +12,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy,
+  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -2226,6 +2226,15 @@ export default function Home() {
                                         Previsto
                                       </span>
                                     )}
+                                    {row.sincronizadoCB === 1 && (
+                                      <span
+                                        title="Dados importados automaticamente do CashBarber"
+                                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-semibold border border-blue-500/20"
+                                      >
+                                        <Zap className="w-2.5 h-2.5" />
+                                        CB
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 {cats.map((v: number, i: number) => (
@@ -2328,10 +2337,21 @@ export default function Home() {
                 );
               })
             )}
+            {/* Legenda dos indicadores */}
+            {faturamentosData.some((f: any) => f.sincronizadoCB === 1) && (
+              <div className="flex items-center gap-4 px-1 pt-1 pb-2">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-semibold border border-blue-500/20">
+                    <Zap className="w-2.5 h-2.5" />
+                    CB
+                  </span>
+                  <span>Dados importados automaticamente do CashBarber</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
-
-        {/* ─── METAS ─────────────────────────────────────────────────────────── */}
+        {/* METAS */}
         {activeTab === "metas" && (
           <MetaConfig
             mes={mes}

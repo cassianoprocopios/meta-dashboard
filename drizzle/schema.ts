@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, tinyint, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 // ─── TENANTS (Empresas Clientes do SaaS) ─────────────────────────────────────
 // Cada tenant é uma empresa cliente que comprou acesso ao sistema
@@ -160,6 +160,8 @@ export const faturamentos = mysqlTable("faturamentos", {
   // Valor total registrado quando o lançamento era previsto (dia futuro).
   // Preenchido automaticamente ao criar; não atualizado nas edições posteriores.
   totalPrevisto: decimal("totalPrevisto", { precision: 12, scale: 2 }),
+  // Indica se este registro foi importado automaticamente pelo CashBarber (1 = sim, 0 = não)
+  sincronizadoCB: tinyint("sincronizadoCB").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

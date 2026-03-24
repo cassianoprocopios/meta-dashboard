@@ -488,3 +488,13 @@
 - [x] Corrigir cashbarberSincronizador.ts: ao fazer upsert, preservar os campos não mapeados pelo CashBarber (ex: Recorrência) que foram lançados manualmente
 - [x] Lógica: buscar o registro existente do dia antes do upsert; mesclar apenas os campos que o CashBarber alimenta; manter os demais intactos
 - [x] Testes de merge seletivo: 8 novos testes, 57 no total (todos passando)
+
+## Indicador Visual CashBarber no Dashboard (Mar 2026)
+
+- [x] Coluna `sincronizadoCB` (tinyint) adicionada na tabela `faturamentos`
+- [x] cashbarberSincronizador.ts marca `sincronizadoCB=1` ao salvar cada dia
+- [x] upsertFaturamento propaga sincronizadoCB no update e insert
+- [x] Badge ⚡ CB azul na célula de data dos dias sincronizados pelo CashBarber
+- [x] Tooltip no badge: "Dados importados automaticamente do CashBarber"
+- [x] Legenda discreta abaixo da tabela (aparece apenas quando há dias sincronizados)
+- [x] 57 testes passando (sem novos testes necessários, lógica coberta pelos testes existentes do sincronizador)

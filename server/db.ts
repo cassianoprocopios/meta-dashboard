@@ -536,6 +536,8 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat5: input.cat5,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
+      // Propaga sincronizadoCB se fornecido (1 = importado pelo CashBarber)
+      ...(input.sincronizadoCB !== undefined ? { sincronizadoCB: input.sincronizadoCB } : {}),
     };
     // Preenche totalPrevisto apenas se ainda não existia e o dia é futuro
     if (existing.totalPrevisto === null && isFuturo) {
