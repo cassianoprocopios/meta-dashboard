@@ -569,22 +569,32 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                                     setMostrarFiliaisDpote(false);
                                   }}
                                   className={`w-full flex items-center justify-between px-3 py-2.5 hover:bg-violet-50 transition-colors text-left group ${
-                                    dpoteFilialNome.toLowerCase() === f.nome.toLowerCase()
+                                    (f as any).isConfigurada
                                       ? "bg-violet-50 border-l-2 border-violet-500"
-                                      : ""
+                                      : dpoteFilialNome.toLowerCase() === f.nome.toLowerCase()
+                                        ? "bg-violet-50 border-l-2 border-violet-400"
+                                        : ""
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <Building2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                                    <Building2 className={`w-3.5 h-3.5 flex-shrink-0 ${
+                                      (f as any).isConfigurada ? "text-violet-600" : "text-violet-400"
+                                    }`} />
                                     <span className="text-sm font-medium text-slate-800">{f.nome}</span>
-                                    {dpoteFilialNome.toLowerCase() === f.nome.toLowerCase() && (
-                                      <span className="text-xs text-violet-600 font-medium">(selecionada)</span>
+                                    {(f as any).isConfigurada && (
+                                      <span className="text-xs bg-violet-100 text-violet-700 font-semibold px-1.5 py-0.5 rounded-full">configurada</span>
                                     )}
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <div className="text-right">
-                                      <span className="text-xs text-slate-500">{f.fichas} fichas</span>
-                                      <span className="ml-1.5 text-xs font-semibold text-violet-700">{f.percentual}%</span>
+                                      <div className="text-xs text-slate-500">{f.fichas} fichas · {f.percentual}%</div>
+                                      {(f as any).comissaoBruta > 0 ? (
+                                        <div className="text-sm font-bold text-emerald-700">
+                                          R$ {(f as any).comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
+                                        </div>
+                                      ) : (
+                                        <div className="text-xs text-slate-400">R$ 0</div>
+                                      )}
                                     </div>
                                     <span className="text-xs text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity">Selecionar →</span>
                                   </div>
@@ -599,10 +609,22 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                                 </div>
                               )}
                             </div>
-                            <div className="px-3 py-2 bg-violet-50 border-t border-violet-100">
-                              <p className="text-xs text-violet-600">
-                                Valor total de assinaturas: <strong>R$ {filiaisDpote.valorAssinaturas.toLocaleString("pt-BR")}</strong>
-                                {" "}· Comissão barbearias: <strong>{filiaisDpote.porcentagemBarbearias}%</strong>
+                            <div className="px-3 py-2.5 bg-violet-50 border-t border-violet-100 space-y-1">
+                              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                <p className="text-xs text-violet-600">
+                                  Assinaturas: <strong>R$ {filiaisDpote.valorAssinaturas.toLocaleString("pt-BR")}</strong>
+                                </p>
+                                <p className="text-xs text-violet-600">
+                                  Comissão barbearias: <strong>{filiaisDpote.porcentagemBarbearias}%</strong>
+                                </p>
+                                {(filiaisDpote as any).comissaoBrutaTotal > 0 && (
+                                  <p className="text-xs font-semibold text-emerald-700">
+                                    Total a distribuir: <strong>R$ {(filiaisDpote as any).comissaoBrutaTotal.toLocaleString("pt-BR")}</strong>
+                                  </p>
+                                )}
+                              </div>
+                              <p className="text-xs text-violet-400">
+                                Clique em uma filial para selecioná-la. O valor exibido é a Recorrência que será lançada no mês.
                               </p>
                             </div>
                           </>

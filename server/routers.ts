@@ -1801,13 +1801,29 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             0
           );
 
+          // Comissão bruta total = valor_assinaturas × porcentagem_barbearias%
+          const comissaoBrutaTotal = historico.faturamento.valor_ganho_assinaturas
+            * (historico.faturamento.porcentagem_comissao_barbearias / 100);
+
           const filiais = historico.filiais_servicos.map((f) => {
             const fichas = f.servicos.reduce((acc, sv) => acc + (sv.fichas || 0), 0);
+            const proporcao = totalFichas > 0 ? fichas / totalFichas : 0;
+            const comissaoBruta = Math.round(comissaoBrutaTotal * proporcao);
+            // Verificar se esta filial está configurada (por nome ou por ID)
+            const nomeConfig = config.dpoteFilialNome?.trim().toLowerCase() ?? "";
+            const isConfigurada = nomeConfig
+              ? f.filial.fil_bairro?.toLowerCase().includes(nomeConfig)
+              : config.dpoteFilialId
+                ? f.filial.id === config.dpoteFilialId
+                : f.filial.id === config.cbFilialId;
             return {
               id: f.filial.id,
               nome: f.filial.fil_bairro,
               fichas,
               percentual: totalFichas > 0 ? Math.round((fichas / totalFichas) * 100) : 0,
+              percentualExato: totalFichas > 0 ? (fichas / totalFichas) * 100 : 0,
+              comissaoBruta,
+              isConfigurada: !!isConfigurada,
             };
           });
 
@@ -1820,6 +1836,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             mesSigla,
             valorAssinaturas: historico.faturamento.valor_ganho_assinaturas,
             porcentagemBarbearias: historico.faturamento.porcentagem_comissao_barbearias,
+            comissaoBrutaTotal: Math.round(comissaoBrutaTotal),
+            filialConfiguradaNome: config.dpoteFilialNome ?? null,
           };
         } catch (err: any) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: err.message || "Falha ao buscar filiais Dpote" });

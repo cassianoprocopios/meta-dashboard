@@ -583,3 +583,11 @@
 - [x] Botão "Sync Dpote" no header desktop (violeta, com ícone Repeat2) e no menu mobile
 - [x] Feedback visual: spinner durante execução, toast de sucesso/aviso/erro ao finalizar
 - [x] Após sync bem-sucedida: refetchFat() atualiza os cards automaticamente
+
+## Exibir valor Dpote calculado por unidade (Mar 2026)
+
+- [x] Atualizar procedure `listarFiliaisDpote` para retornar `comissaoBruta`, `isConfigurada`, `comissaoBrutaTotal` e `filialConfiguradaNome`
+- [x] Exibir valor calculado (R$ em verde) no card de cada filial ao lado das fichas e percentual
+- [x] Destacar a filial configurada com badge "configurada" e borda violeta
+- [x] Exibir total a distribuir no rodapé do painel (R$ comissaoBrutaTotal)
+- [x] Toast do Sync Dpote já exibe o valor por empresa (recorrenciaValor)
