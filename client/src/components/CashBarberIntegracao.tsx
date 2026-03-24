@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   Loader2, CheckCircle, XCircle, RefreshCw, Settings,
   Zap, Map, Calendar, ChevronDown, ChevronRight,
-  Building2, AlertTriangle, Info, Save, Play, Clock, History
+  Building2, AlertTriangle, Info, Save, Play, Clock, History, Search
 } from "lucide-react";
 
 type Empresa = { id: number; nome: string; slug: string; ativo: number };
@@ -51,6 +51,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [dpoteFilialNome, setDpoteFilialNome] = useState("");
   const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]); 
   const [mostrarFiliaisDpote, setMostrarFiliaisDpote] = useState(false);
+  const [buscaFilial, setBuscaFilial] = useState("");
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
 
@@ -499,17 +500,43 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     {/* Lista de filiais disponíveis no Dpote */}
                     {mostrarFiliaisDpote && (
                       <div className="mt-2 rounded-lg border border-violet-200 bg-white overflow-hidden">
-                        <div className="flex items-center justify-between px-3 py-2 bg-violet-100 border-b border-violet-200">
-                          <span className="text-xs font-semibold text-violet-800">
-                            {filiaisDpote ? `Filiais no Dpote — ${filiaisDpote.mesSigla} (${filiaisDpote.totalFichas} fichas no total)` : "Carregando filiais..."}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setMostrarFiliaisDpote(false)}
-                            className="text-violet-500 hover:text-violet-700 text-xs"
-                          >
-                            ✕
-                          </button>
+                        {/* Cabeçalho do painel */}
+                        <div className="px-3 py-2 bg-violet-100 border-b border-violet-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-violet-800">
+                              {filiaisDpote
+                                ? `Filiais no Dpote — ${filiaisDpote.mesSigla} (${filiaisDpote.totalFichas} fichas no total)`
+                                : "Carregando filiais..."}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => { setMostrarFiliaisDpote(false); setBuscaFilial(""); }}
+                              className="text-violet-500 hover:text-violet-700 text-xs leading-none"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          {/* Barra de busca */}
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-violet-400 pointer-events-none" />
+                            <input
+                              type="text"
+                              value={buscaFilial}
+                              onChange={(e) => setBuscaFilial(e.target.value)}
+                              placeholder="Buscar filial por nome..."
+                              autoFocus
+                              className="w-full pl-8 pr-3 py-1.5 rounded-md border border-violet-200 bg-white text-xs text-slate-800 placeholder-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            />
+                            {buscaFilial && (
+                              <button
+                                type="button"
+                                onClick={() => setBuscaFilial("")}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-violet-400 hover:text-violet-600"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {loadingFiliaisDpote && (
@@ -528,7 +555,12 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                         {filiaisDpote && !loadingFiliaisDpote && (
                           <>
                             <div className="divide-y divide-violet-50">
-                              {filiaisDpote.filiais.map((f) => (
+                              {filiaisDpote.filiais
+                                .filter((f) =>
+                                  buscaFilial.trim() === "" ||
+                                  f.nome.toLowerCase().includes(buscaFilial.trim().toLowerCase())
+                                )
+                                .map((f) => (
                                 <button
                                   key={f.id}
                                   type="button"
@@ -558,6 +590,14 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                                   </div>
                                 </button>
                               ))}
+                              {filiaisDpote.filiais.filter((f) =>
+                                buscaFilial.trim() === "" ||
+                                f.nome.toLowerCase().includes(buscaFilial.trim().toLowerCase())
+                              ).length === 0 && (
+                                <div className="px-3 py-4 text-center text-xs text-violet-400">
+                                  Nenhuma filial encontrada para "{buscaFilial}"
+                                </div>
+                              )}
                             </div>
                             <div className="px-3 py-2 bg-violet-50 border-t border-violet-100">
                               <p className="text-xs text-violet-600">

@@ -556,3 +556,11 @@
 - [x] Botão "Ver filiais" no cabeçalho do campo Dpote: chama a procedure e exibe painel expansivo
 - [x] Clique em uma filial da lista preenche automaticamente o campo `dpoteFilialNome` e fecha o painel
 - [x] Exibir fichas e percentual de cada filial, valor total de assinaturas e % comissão barbearias no rodapé
+
+## Barra de busca no painel de filiais Dpote (Mar 2026)
+
+- [x] Adicionar estado `buscaFilial` no componente CashBarberIntegracao
+- [x] Renderizar input de busca no cabeçalho do painel (com ícone Search e botão limpar)
+- [x] Filtrar lista de filiais em tempo real (case-insensitive, busca parcial)
+- [x] Exibir mensagem "Nenhuma filial encontrada" quando busca não retorna resultados
+- [x] Limpar busca ao fechar o painel
