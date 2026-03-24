@@ -12,7 +12,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap,
+  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -89,6 +89,24 @@ export default function Home() {
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [syncingCashbarber, setSyncingCashbarber] = useState(false);
+
+  const sincronizarTodasMutation = trpc.cashbarber.sincronizarTodas.useMutation({
+    onSuccess: (data) => {
+      const total = data.resultados.reduce((acc, r) => acc + r.diasSincronizados, 0);
+      const erros = data.resultados.filter((r) => r.erros.length > 0);
+      if (erros.length > 0) {
+        toast.warning(`Sync concluída com avisos: ${total} dias importados. Erros em: ${erros.map((e) => e.empresa).join(", ")}`);
+      } else {
+        toast.success(`⚡ Sync CashBarber concluída! ${total} dias importados (${data.resultados.map((r) => `${r.empresa}: ${r.diasSincronizados}`).join(", ")})`);
+      }
+      setSyncingCashbarber(false);
+    },
+    onError: (err) => {
+      toast.error(`Erro na sync: ${err.message}`);
+      setSyncingCashbarber(false);
+    },
+  });
 
   // Verificar status do tenant (bloqueado/expirado)
   const { data: tenantStatus } = trpc.auth.tenantStatus.useQuery(
@@ -684,6 +702,22 @@ export default function Home() {
                   <Shield className="w-4 h-4" /> Painel Admin
                 </a>
               )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setSyncingCashbarber(true);
+                    sincronizarTodasMutation.mutate({ mes, ano });
+                  }}
+                  disabled={syncingCashbarber}
+                  title="Sincronizar dados do CashBarber agora"
+                  className="flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingCashbarber
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingCashbarber ? "Sincronizando..." : "Sync CB"}
+                </button>
+              )}
               {podeLancarFaturamento && (
                 <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
                   <Plus className="w-4 h-4" /> Novo Lançamento
@@ -832,6 +866,22 @@ export default function Home() {
                 <a href="/admin-panel" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
                   <Shield className="w-4 h-4" /> Painel Admin
                 </a>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setSyncingCashbarber(true);
+                    sincronizarTodasMutation.mutate({ mes, ano });
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={syncingCashbarber}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-emerald-600 hover:bg-emerald-50 transition-colors font-medium disabled:opacity-50"
+                >
+                  {syncingCashbarber
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingCashbarber ? "Sincronizando CashBarber..." : "Sincronizar CashBarber"}
+                </button>
               )}
             </div>
           )}

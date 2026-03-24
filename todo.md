@@ -528,3 +528,14 @@
 - [x] Mensagem explicativa: "Ex: 144 (Morumbi), 3520 (Mascote)" + feedback visual quando preenchido
 - [x] Usar `dpoteFilialId` no sincronizador para o cálculo de Recorrência
 - [x] 64 testes passando (sem novos testes necessários)
+
+## Botão de Sincronização Manual CashBarber (Mar 2026)
+
+- [x] Procedure `cashbarber.sincronizarTodas`: sincroniza todas as empresas ativas do tenant em uma chamada
+- [x] Botão "Sync CB" no header desktop (visível apenas para admins, cor verde esmeralda)
+- [x] Botão "Sincronizar CashBarber" no menu mobile (visível apenas para admins)
+- [x] Spinner animado durante a sincronização + texto "Sincronizando..."
+- [x] Toast de sucesso com resumo: total de dias + breakdown por empresa (ex: "morumbi: 24, mascote: 24")
+- [x] Toast de aviso quando há erros em alguma empresa
+- [x] Toast de erro com mensagem descritiva se a sync falhar completamente
+- [x] 64 testes passando (sem novos testes necessários)

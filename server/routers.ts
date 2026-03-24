@@ -1962,6 +1962,54 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       await recarregarJobsCashbarber();
       return { ok: true, jobs: getStatusJobsCashbarber() };
     }),
+    /** Sincroniza todas as empresas configuradas do tenant para o mês/ano atual */
+    sincronizarTodas: protectedProcedure
+      .input(
+        z.object({
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020).max(2030),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+        const configsAtivas = configs.filter((c) => c.ativo === 1);
+        if (configsAtivas.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
+        }
+        const resultados: Array<{
+          empresa: string;
+          diasSincronizados: number;
+          recorrenciaAtualizada: boolean;
+          erros: string[];
+        }> = [];
+        for (const config of configsAtivas) {
+          try {
+            const resultado = await sincronizarFaturamentoCashbarber(
+              tenantId,
+              config.empresaSlug,
+              input.mes,
+              input.ano,
+              "manual"
+            );
+            resultados.push({
+              empresa: config.empresaSlug,
+              diasSincronizados: resultado.diasSincronizados,
+              recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
+              erros: resultado.erros ? [resultado.erros] : [],
+            });
+          } catch (e) {
+            resultados.push({
+              empresa: config.empresaSlug,
+              diasSincronizados: 0,
+              recorrenciaAtualizada: false,
+              erros: [e instanceof Error ? e.message : String(e)],
+            });
+          }
+        }
+        return { resultados };
+      }),
   }),
 });;
 export type AppRouter = typeof appRouter;
