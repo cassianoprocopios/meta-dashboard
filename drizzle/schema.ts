@@ -208,6 +208,8 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   sincAutoAtiva: int("sincAutoAtiva").notNull().default(0),
   /** Horário de execução do job (formato HH:MM, ex: '23:00') */
   horarioSinc: varchar("horarioSinc", { length: 5 }).default("23:00"),
+  /** ID da filial no módulo Dpote do CashBarber (pode diferir do cbFilialId; ex: 144 = Morumbi, 3520 = Mascote) */
+  dpoteFilialId: int("dpoteFilialId"),
   /** ID do histórico Dpote criado para o mês atual (evita criar duplicatas a cada sync) */
   dpoteHistoricoId: int("dpoteHistoricoId"),
   /** Mês/ano do histórico Dpote armazenado (formato YYYY-MM, ex: '2026-03') */

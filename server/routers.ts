@@ -1689,6 +1689,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           cbSenha: z.string().min(1),
           cbFilialId: z.number().int().positive(),
           cbFilialNome: z.string().optional(),
+          /** ID da filial no módulo Dpote (pode diferir do cbFilialId) */
+          dpoteFilialId: z.number().int().positive().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -1706,7 +1708,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           cbSenha: input.cbSenha,
           cbFilialId: input.cbFilialId,
           cbFilialNome: input.cbFilialNome,
+          dpoteFilialId: input.dpoteFilialId ?? null,
         });
+        // Recarregar jobs após salvar a configuração
+        recarregarJobsCashbarber().catch(() => {});
         return { ok: true };
       }),
 

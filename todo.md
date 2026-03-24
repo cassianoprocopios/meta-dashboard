@@ -517,3 +517,14 @@
 - [x] Atualizar `cashbarberSincronizador.ts`: busca Dpote a cada sync e atualiza cat5 em todos os dias do mês
 - [x] cat5 é atualizado a cada sync horária (valor muda conforme assinaturas entram no banco)
 - [x] Testes de `calcularComissaoBrutaFilial`: 6 testes, 64 no total (todos passando)
+
+## Campo dpoteFilialId por Empresa (Mar 2026)
+
+- [x] Coluna `dpoteFilialId` (int, nullable) na tabela `cashbarberConfig` (ALTER TABLE via SQL)
+- [x] Migrar banco com a nova coluna
+- [x] Atualizar procedure `cashbarber.salvarConfig` para incluir `dpoteFilialId`
+- [x] Atualizar procedure `cashbarber.listarConfig` para retornar `dpoteFilialId`
+- [x] Campo numérico "ID da Filial Dpote" no formulário de configuração CashBarber (card violeta)
+- [x] Mensagem explicativa: "Ex: 144 (Morumbi), 3520 (Mascote)" + feedback visual quando preenchido
+- [x] Usar `dpoteFilialId` no sincronizador para o cálculo de Recorrência
+- [x] 64 testes passando (sem novos testes necessários)

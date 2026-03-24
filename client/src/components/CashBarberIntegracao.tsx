@@ -47,6 +47,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [cbSenha, setCbSenha] = useState("");
   const [cbFilialId, setCbFilialId] = useState<number | "">("");
   const [cbFilialNome, setCbFilialNome] = useState("");
+  const [dpoteFilialId, setDpoteFilialId] = useState<number | "">("");
   const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]);
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
@@ -102,6 +103,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setCbSenha(""); // Não preencher senha por segurança
       setCbFilialId(configExistente.cbFilialId || "");
       setCbFilialNome(configExistente.cbFilialNome || "");
+      setDpoteFilialId((configExistente as any).dpoteFilialId || "");
       setSincAutoAtiva(!!(configExistente as any).sincAutoAtiva);
       setHorarioSinc((configExistente as any).horarioSinc || "23:00");
     }
@@ -230,6 +232,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       cbSenha,
       cbFilialId: Number(cbFilialId),
       cbFilialNome: cbFilialNome || undefined,
+      dpoteFilialId: dpoteFilialId ? Number(dpoteFilialId) : undefined,
     });
   };
 
@@ -439,6 +442,30 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       </div>
                     </div>
                   )}
+
+                  {/* Campo ID da Filial Dpote */}
+                  <div className="p-3 rounded-lg bg-violet-50 border border-violet-100">
+                    <div className="flex items-start gap-2 mb-2">
+                      <Zap className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-violet-800">ID da Filial no Dpote (Recorrência)</p>
+                        <p className="text-xs text-violet-600 mt-0.5">Usado para calcular automaticamente a Recorrência (cat5) via Assinaturas → Dpote. Pode ser diferente do ID da filial principal.</p>
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      value={dpoteFilialId}
+                      onChange={(e) => setDpoteFilialId(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="Ex: 144 (Morumbi), 3520 (Mascote)"
+                      className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                    />
+                    {dpoteFilialId && (
+                      <p className="text-xs text-violet-600 mt-1">✓ Recorrência será calculada automaticamente a cada sync</p>
+                    )}
+                    {!dpoteFilialId && (
+                      <p className="text-xs text-violet-400 mt-1">Opcional — sem este campo a Recorrência não será importada automaticamente</p>
+                    )}
+                  </div>
 
                   {configExistente?.ultimaSincronizacao && (
                     <div className="flex items-center gap-2 text-xs text-slate-500">
