@@ -239,12 +239,19 @@ export async function sincronizarFaturamentoCashbarber(
         ? String(faturamentoCB.cat4)
         : existente?.cat4 ?? "0";
 
-      // cat5 (Recorrência):
-      // - Se o Dpote retornou um valor, usar esse valor (atualizado a cada sync)
-      // - Se o Dpote falhou, preservar o valor existente (ou "0" se novo registro)
-      const cat5 = recorrenciaAtualizada
-        ? String(recorrenciaValor)
-        : existente?.cat5 ?? "0";
+      // cat5 (Recorrência / Dpote):
+      // O valor Dpote é o total mensal da comissão da filial.
+      // Para evitar duplicação, ele é lançado APENAS no dia 1 do mês.
+      // Nos demais dias, cat5 é zerado (ou preservado se não vier do CashBarber).
+      let cat5: string;
+      if (recorrenciaAtualizada) {
+        // Dia 1: recebe o valor total da Recorrência
+        // Demais dias: cat5 = "0" (zerado pelo CashBarber)
+        cat5 = dia === 1 ? String(recorrenciaValor) : "0";
+      } else {
+        // Dpote falhou: preservar valor existente (ou "0" se novo registro)
+        cat5 = existente?.cat5 ?? "0";
+      }
 
       // Salvar no banco (upsert com merge seletivo)
       // sincronizadoCB=1 marca que este dia foi importado pelo CashBarber

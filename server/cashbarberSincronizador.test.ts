@@ -1,8 +1,11 @@
 /**
  * Testes para a lógica de merge seletivo do cashbarberSincronizador
  *
- * Garante que campos manuais (ex: Recorrência = cat5) são preservados
- * quando o CashBarber só mapeia cat1 e cat2.
+ * Regras testadas:
+ * 1. cat5 (Recorrência/Dpote) é salva APENAS no dia 1 do mês; demais dias recebem "0"
+ * 2. Campos manuais (cat3, cat4, observacao, lancadoPor) são preservados
+ * 3. Se o Dpote falhar, cat5 é preservada do registro existente
+ * 4. cat5 NUNCA é alimentada pelo mapeamento CashBarber (apenas pelo Dpote)
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -16,6 +19,8 @@ vi.mock("./db", () => ({
   updateCashbarberSyncStatus: vi.fn().mockResolvedValue(undefined),
   insertCashbarberSyncLog: vi.fn().mockResolvedValue(undefined),
   getFaturamentoByDataEmpresaTenant: vi.fn(),
+  getDpoteHistoricoId: vi.fn().mockResolvedValue(null),
+  saveDpoteHistoricoId: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("./cashbarber", () => ({
@@ -24,6 +29,13 @@ vi.mock("./cashbarber", () => ({
   cashbarberListarProdutos: vi.fn().mockResolvedValue([]),
   cashbarberRelatorio15: vi.fn().mockResolvedValue({ servicos: [], produtos: [] }),
   calcularFaturamentoPorCategoriaComCatalogo: vi.fn(),
+  cashbarberCriarHistoricoDpote: vi.fn().mockResolvedValue(999),
+  cashbarberBuscarHistoricoDpote: vi.fn().mockResolvedValue({
+    faturamento: { valor_ganho_assinaturas: 10000, porcentagem_comissao_barbearias: 50 },
+    filiais_servicos: [],
+  }),
+  calcularComissaoBrutaFilial: vi.fn().mockReturnValue(0),
+  calcularComissaoBrutaFilialPorNome: vi.fn().mockReturnValue(0),
 }));
 
 // ─── Importar após mocks ──────────────────────────────────────────────────────
@@ -35,7 +47,10 @@ import {
   upsertFaturamento,
   getFaturamentoByDataEmpresaTenant,
 } from "./db";
-import { calcularFaturamentoPorCategoriaComCatalogo } from "./cashbarber";
+import {
+  calcularFaturamentoPorCategoriaComCatalogo,
+  calcularComissaoBrutaFilialPorNome,
+} from "./cashbarber";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +61,8 @@ const configMock = {
   cbEmail: "test@test.com",
   cbSenha: "senha",
   cbFilialId: "144",
+  dpoteFilialNome: "Morumbi",
+  dpoteFilialId: null,
   ativo: 1,
   sincAutoAtiva: 1,
   horarioSinc: "00:00",
@@ -57,8 +74,8 @@ const mapeamentoCat1Cat2 = [
   { tipo: "produto_categoria", cbId: "30", cbNome: "Produtos", metaCategoria: "cat2" },
 ];
 
-/** Registro existente com Recorrência (cat5) preenchida manualmente */
-const registroExistenteMock = {
+/** Registro existente no dia 1 com Recorrência (cat5) preenchida manualmente */
+const registroExistenteDia1 = {
   id: 42,
   tenantId: 1,
   empresaSlug: "MORUMBI",
@@ -67,133 +84,161 @@ const registroExistenteMock = {
   cat2: "1200",
   cat3: "300",
   cat4: "150",
-  cat5: "2500", // ← Recorrência lançada manualmente
+  cat5: "2500", // ← Recorrência existente no dia 1
   observacao: "Lançamento manual",
   lancadoPor: "admin",
   totalPrevisto: null,
 };
 
+/** Registro existente em outro dia (não dia 1) */
+const registroExistenteDia5 = {
+  ...registroExistenteDia1,
+  id: 43,
+  data: "2025-03-05",
+  cat5: "0",
+};
+
 // ─── Testes ───────────────────────────────────────────────────────────────────
 
-describe("sincronizarFaturamentoCashbarber - merge seletivo", () => {
+describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getCashbarberConfig).mockResolvedValue(configMock as any);
     vi.mocked(listCashbarberMapeamento).mockResolvedValue(mapeamentoCat1Cat2 as any);
-  });
-
-  it("preserva cat5 (Recorrência) quando CashBarber só mapeia cat1 e cat2", async () => {
-    // CashBarber retorna: cat1=6000, cat2=1500, cat3=0, cat4=0, cat5=0
     vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
       cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0,
       totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
     });
+    // Dpote retorna R$ 5.000 de comissão para a filial
+    vi.mocked(calcularComissaoBrutaFilialPorNome).mockReturnValue(5000);
+    // Sem registros existentes por padrão
+    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
+  });
 
-    // Registro existente com cat5=2500 (Recorrência manual)
-    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(registroExistenteMock as any);
+  it("salva cat5 = recorrenciaValor APENAS no dia 1 do mês", async () => {
+    // Sincronizar março/2025 (mês passado, vai até dia 31)
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
+
+    // Capturar todas as chamadas ao upsertFaturamento
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+
+    // Dia 1: deve ter cat5 = "5000"
+    const chamadaDia1 = calls.find((c) => c[0].data === "2025-03-01");
+    expect(chamadaDia1).toBeDefined();
+    expect(chamadaDia1![0].cat5).toBe("5000");
+
+    // Dia 2: deve ter cat5 = "0"
+    const chamadaDia2 = calls.find((c) => c[0].data === "2025-03-02");
+    expect(chamadaDia2).toBeDefined();
+    expect(chamadaDia2![0].cat5).toBe("0");
+
+    // Dia 15: deve ter cat5 = "0"
+    const chamadaDia15 = calls.find((c) => c[0].data === "2025-03-15");
+    expect(chamadaDia15).toBeDefined();
+    expect(chamadaDia15![0].cat5).toBe("0");
+
+    // Dia 31: deve ter cat5 = "0"
+    const chamadaDia31 = calls.find((c) => c[0].data === "2025-03-31");
+    expect(chamadaDia31).toBeDefined();
+    expect(chamadaDia31![0].cat5).toBe("0");
+  });
+
+  it("total de cat5 no mês = recorrenciaValor (não multiplicado pelos dias)", async () => {
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
+
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+    const totalCat5 = calls.reduce((sum, c) => sum + parseFloat(c[0].cat5 ?? "0"), 0);
+
+    // Total de cat5 deve ser exatamente 5000 (não 5000 × 31 dias)
+    expect(totalCat5).toBe(5000);
+  });
+
+  it("quando Dpote falha, preserva cat5 existente no dia 1 e '0' nos demais", async () => {
+    // Dpote falha (lança erro)
+    vi.mocked(calcularComissaoBrutaFilialPorNome).mockImplementation(() => {
+      throw new Error("Dpote indisponível");
+    });
+
+    // Dia 1 tem registro existente com cat5=2500
+    vi.mocked(getFaturamentoByDataEmpresaTenant).mockImplementation(async (data) => {
+      if (data === "2025-03-01") return registroExistenteDia1 as any;
+      return undefined;
+    });
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
-    // Verificar que upsertFaturamento foi chamado preservando cat5
-    expect(upsertFaturamento).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cat1: "6000",    // ← atualizado pelo CashBarber
-        cat2: "1500",    // ← atualizado pelo CashBarber
-        cat3: "300",     // ← preservado do registro existente
-        cat4: "150",     // ← preservado do registro existente
-        cat5: "2500",    // ← preservado (Recorrência manual)
-      })
-    );
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+
+    // Dia 1: preserva cat5=2500 do registro existente
+    const chamadaDia1 = calls.find((c) => c[0].data === "2025-03-01");
+    expect(chamadaDia1![0].cat5).toBe("2500");
+
+    // Dia 5: sem registro existente → cat5 = "0"
+    const chamadaDia5 = calls.find((c) => c[0].data === "2025-03-05");
+    expect(chamadaDia5![0].cat5).toBe("0");
   });
 
-  it("preserva observacao e lancadoPor do registro existente", async () => {
-    vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0,
-      totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
+  it("preserva cat3, cat4, observacao e lancadoPor do registro existente", async () => {
+    vi.mocked(getFaturamentoByDataEmpresaTenant).mockImplementation(async (data) => {
+      if (data === "2025-03-01") return registroExistenteDia1 as any;
+      return undefined;
     });
-    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(registroExistenteMock as any);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
-    expect(upsertFaturamento).toHaveBeenCalledWith(
-      expect.objectContaining({
-        observacao: "Lançamento manual",
-        lancadoPor: "admin",
-      })
+    const chamadaDia1 = vi.mocked(upsertFaturamento).mock.calls.find(
+      (c) => c[0].data === "2025-03-01"
     );
+    expect(chamadaDia1).toBeDefined();
+    expect(chamadaDia1![0]).toMatchObject({
+      cat1: "6000",          // ← atualizado pelo CashBarber
+      cat2: "1500",          // ← atualizado pelo CashBarber
+      cat3: "300",           // ← preservado do registro existente
+      cat4: "150",           // ← preservado do registro existente
+      cat5: "5000",          // ← valor Dpote (dia 1)
+      observacao: "Lançamento manual",
+      lancadoPor: "admin",
+    });
   });
 
-  it("usa '0' para campos não mapeados quando não há registro existente", async () => {
-    vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 4000, cat2: 800, cat3: 0, cat4: 0, cat5: 0,
-      totalServicos: 4000, totalProdutos: 800, totalGeral: 4800, detalhes: [],
-    });
-
-    // Sem registro existente (novo dia)
+  it("usa '0' para cat3, cat4 quando não há registro existente", async () => {
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
-    expect(upsertFaturamento).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cat1: "4000",
-        cat2: "800",
-        cat3: "0",  // ← sem registro existente, usa "0"
-        cat4: "0",
-        cat5: "0",
-      })
+    const chamadaDia1 = vi.mocked(upsertFaturamento).mock.calls.find(
+      (c) => c[0].data === "2025-03-01"
     );
+    expect(chamadaDia1![0]).toMatchObject({
+      cat3: "0",
+      cat4: "0",
+    });
   });
 
-  it("cat5 (Recorrência) NUNCA é sobrescrita, mesmo que esteja no mapeamento", async () => {
-    // Mapeamento cobrindo todas as categorias, incluindo cat5
+  it("cat5 NUNCA é alimentada pelo mapeamento CashBarber (apenas pelo Dpote)", async () => {
+    // Mapeamento cobrindo cat5 também
     vi.mocked(listCashbarberMapeamento).mockResolvedValue([
       { tipo: "servico_categoria", cbId: "10", cbNome: "Serviços", metaCategoria: "cat1" },
       { tipo: "produto_categoria", cbId: "30", cbNome: "Produtos", metaCategoria: "cat2" },
-      { tipo: "servico_categoria", cbId: "20", cbNome: "Extra", metaCategoria: "cat3" },
-      { tipo: "servico_categoria", cbId: "40", cbNome: "Lavatorio", metaCategoria: "cat4" },
-      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat5" }, // mapeado
+      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat5" },
     ] as any);
 
+    // CashBarber retorna cat5=3000 pelo mapeamento — deve ser ignorado
     vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 6000, cat2: 1500, cat3: 200, cat4: 100, cat5: 3000, // CashBarber retorna cat5=3000
-      totalServicos: 9300, totalProdutos: 1500, totalGeral: 10800, detalhes: [],
+      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 3000,
+      totalServicos: 9000, totalProdutos: 1500, totalGeral: 10500, detalhes: [],
     });
 
-    // Registro existente com Recorrência manual = 2500
-    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(registroExistenteMock as any);
+    // Dpote retorna 5000 (este deve prevalecer)
+    vi.mocked(calcularComissaoBrutaFilialPorNome).mockReturnValue(5000);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
-    // cat5 deve ser preservada do registro existente (2500), NUNCA o valor do CashBarber (3000)
-    expect(upsertFaturamento).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cat1: "6000",
-        cat2: "1500",
-        cat3: "200",
-        cat4: "100",
-        cat5: "2500",  // ← PRESERVADO do registro existente, não sobrescrito
-      })
+    const chamadaDia1 = vi.mocked(upsertFaturamento).mock.calls.find(
+      (c) => c[0].data === "2025-03-01"
     );
-  });
-
-  it("cat5 usa '0' quando não há registro existente (novo dia, sem Recorrência ainda)", async () => {
-    vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 4000, cat2: 800, cat3: 0, cat4: 0, cat5: 9999, // CashBarber retorna cat5=9999
-      totalServicos: 4000, totalProdutos: 800, totalGeral: 4800, detalhes: [],
-    });
-
-    // Sem registro existente
-    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
-
-    await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
-
-    // cat5 deve ser '0' (sem registro existente), não o valor do CashBarber
-    expect(upsertFaturamento).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cat5: "0",  // ← '0' pois não há Recorrência lançada ainda
-      })
-    );
+    // cat5 deve ser 5000 (Dpote), não 3000 (mapeamento CashBarber)
+    expect(chamadaDia1![0].cat5).toBe("5000");
   });
 
   it("lança erro se configuração CashBarber não encontrada", async () => {
@@ -217,7 +262,6 @@ describe("sincronizarFaturamentoCashbarber - merge seletivo", () => {
 
 describe("getCategoriasMapeadas (lógica interna)", () => {
   it("extrai corretamente as categorias mapeadas", () => {
-    // Simular a lógica interna
     function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Set<string> {
       const cats = new Set<string>();
       for (const m of mapeamento) {

@@ -564,3 +564,9 @@
 - [x] Filtrar lista de filiais em tempo real (case-insensitive, busca parcial)
 - [x] Exibir mensagem "Nenhuma filial encontrada" quando busca não retorna resultados
 - [x] Limpar busca ao fechar o painel
+
+## Correção: valor Dpote salvo apenas no dia 1 do mês (Mar 2026)
+
+- [x] Alterar sincronizador: cat5 = recorrenciaValor apenas no dia 1, cat5 = "0" nos demais dias
+- [x] Quando Dpote falha, preservar cat5 existente (comportamento de fallback mantido)
+- [x] Reescrever testes do sincronizador: 10 testes cobrindo regra do dia 1, fallback e preservação de campos
