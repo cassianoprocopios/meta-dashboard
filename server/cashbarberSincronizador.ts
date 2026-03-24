@@ -33,6 +33,7 @@ import {
   cashbarberCriarHistoricoDpote,
   cashbarberBuscarHistoricoDpote,
   calcularComissaoBrutaFilial,
+  calcularComissaoBrutaFilialPorNome,
 } from "./cashbarber";
 
 /**
@@ -72,6 +73,9 @@ function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Se
  * Busca ou cria o histórico Dpote para o mês/ano atual.
  * Reutiliza o ID salvo no banco para evitar criar duplicatas a cada sync.
  *
+ * Identifica a filial por NOME (dpoteFilialNome) se disponível,
+ * ou por ID numérico (dpoteFilialId) como fallback.
+ *
  * @returns ID do histórico Dpote e o valor de Comissão Bruta da filial (em reais)
  */
 async function buscarRecorrenciaDpote(
@@ -80,7 +84,9 @@ async function buscarRecorrenciaDpote(
   empresaSlug: string,
   cbFilialId: number,
   mes: number,
-  ano: number
+  ano: number,
+  dpoteFilialNome?: string | null,
+  dpoteFilialId?: number | null
 ): Promise<{ historicoId: number; recorrenciaValor: number }> {
   const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
 
@@ -97,8 +103,18 @@ async function buscarRecorrenciaDpote(
   // Buscar os dados do histórico (atualizado a cada sync)
   const historico = await cashbarberBuscarHistoricoDpote(token, historicoId);
 
-  // Calcular a Comissão Bruta da filial específica
-  const recorrenciaValor = calcularComissaoBrutaFilial(historico, cbFilialId);
+  // Calcular a Comissão Bruta da filial:
+  // Prioridade 1: por nome (dpoteFilialNome) — busca parcial, case-insensitive
+  // Prioridade 2: por ID numérico (dpoteFilialId)
+  // Fallback: por cbFilialId (ID da filial principal)
+  let recorrenciaValor = 0;
+  if (dpoteFilialNome && dpoteFilialNome.trim()) {
+    recorrenciaValor = calcularComissaoBrutaFilialPorNome(historico, dpoteFilialNome);
+  } else if (dpoteFilialId) {
+    recorrenciaValor = calcularComissaoBrutaFilial(historico, dpoteFilialId);
+  } else {
+    recorrenciaValor = calcularComissaoBrutaFilial(historico, cbFilialId);
+  }
 
   return { historicoId, recorrenciaValor };
 }
@@ -159,7 +175,9 @@ export async function sincronizarFaturamentoCashbarber(
       empresaSlug,
       config.cbFilialId,
       mes,
-      ano
+      ano,
+      config.dpoteFilialNome ?? null,
+      config.dpoteFilialId ?? null
     );
     recorrenciaValor = dpote.recorrenciaValor;
     recorrenciaAtualizada = true;

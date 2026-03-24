@@ -489,3 +489,45 @@ export function calcularComissaoBrutaFilial(
   // Arredondar para inteiro (valores em reais)
   return Math.round(comissaoFilial);
 }
+
+/**
+ * Calcula a Comissão Bruta de uma filial identificada pelo NOME (busca parcial, case-insensitive).
+ *
+ * Busca a filial cujo campo `fil_bairro` contém o nome informado.
+ * Útil quando o ID numérico da filial não está disponível.
+ *
+ * @param historico - Dados do histórico Dpote
+ * @param filialNome - Nome (ou parte do nome) da filial, ex: 'Morumbi', 'Mascote'
+ * @returns Valor da comissão bruta da filial em reais (inteiro), ou 0 se não encontrada
+ */
+export function calcularComissaoBrutaFilialPorNome(
+  historico: CashbarberDpoteHistorico,
+  filialNome: string
+): number {
+  const nomeBusca = filialNome.trim().toLowerCase();
+  // Retornar 0 imediatamente se o nome for vazio após trim
+  if (!nomeBusca) return 0;
+
+  const { valor_ganho_assinaturas, porcentagem_comissao_barbearias } = historico.faturamento;
+
+  // Calcular total de fichas de todas as filiais
+  let totalFichas = 0;
+  let fichasFilial = 0;
+  for (const f of historico.filiais_servicos) {
+    const fichas = f.servicos.reduce((acc, s) => acc + (s.fichas || 0), 0);
+    totalFichas += fichas;
+    // Busca parcial, case-insensitive no campo fil_bairro
+    if (f.filial.fil_bairro && f.filial.fil_bairro.toLowerCase().includes(nomeBusca)) {
+      fichasFilial = fichas;
+    }
+  }
+
+  if (totalFichas === 0 || fichasFilial === 0) return 0;
+
+  // Comissão bruta total × proporção da filial
+  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
+  const comissaoFilial = comissaoBrutaTotal * (fichasFilial / totalFichas);
+
+  // Arredondar para inteiro (valores em reais)
+  return Math.round(comissaoFilial);
+}

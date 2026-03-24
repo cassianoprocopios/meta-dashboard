@@ -48,6 +48,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [cbFilialId, setCbFilialId] = useState<number | "">("");
   const [cbFilialNome, setCbFilialNome] = useState("");
   const [dpoteFilialId, setDpoteFilialId] = useState<number | "">("");
+  const [dpoteFilialNome, setDpoteFilialNome] = useState("");
   const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]);
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
@@ -104,6 +105,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setCbFilialId(configExistente.cbFilialId || "");
       setCbFilialNome(configExistente.cbFilialNome || "");
       setDpoteFilialId((configExistente as any).dpoteFilialId || "");
+      setDpoteFilialNome((configExistente as any).dpoteFilialNome || "");
       setSincAutoAtiva(!!(configExistente as any).sincAutoAtiva);
       setHorarioSinc((configExistente as any).horarioSinc || "23:00");
     }
@@ -233,6 +235,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       cbFilialId: Number(cbFilialId),
       cbFilialNome: cbFilialNome || undefined,
       dpoteFilialId: dpoteFilialId ? Number(dpoteFilialId) : undefined,
+      dpoteFilialNome: dpoteFilialNome || undefined,
     });
   };
 
@@ -443,26 +446,26 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     </div>
                   )}
 
-                  {/* Campo ID da Filial Dpote */}
+                  {/* Campo Nome da Filial Dpote */}
                   <div className="p-3 rounded-lg bg-violet-50 border border-violet-100">
                     <div className="flex items-start gap-2 mb-2">
                       <Zap className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs font-semibold text-violet-800">ID da Filial no Dpote (Recorrência)</p>
-                        <p className="text-xs text-violet-600 mt-0.5">Usado para calcular automaticamente a Recorrência (cat5) via Assinaturas → Dpote. Pode ser diferente do ID da filial principal.</p>
+                        <p className="text-xs font-semibold text-violet-800">Nome da Filial no Dpote (Recorrência)</p>
+                        <p className="text-xs text-violet-600 mt-0.5">Nome da filial como aparece no módulo Assinaturas → Dpote do CashBarber. Usado para calcular automaticamente a Recorrência (cat5). Busca parcial, sem diferenciar maiúsculas/minúsculas.</p>
                       </div>
                     </div>
                     <input
-                      type="number"
-                      value={dpoteFilialId}
-                      onChange={(e) => setDpoteFilialId(e.target.value ? Number(e.target.value) : "")}
-                      placeholder="Ex: 144 (Morumbi), 3520 (Mascote)"
+                      type="text"
+                      value={dpoteFilialNome}
+                      onChange={(e) => setDpoteFilialNome(e.target.value)}
+                      placeholder="Ex: Morumbi, Mascote, Vila Olímpia..."
                       className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
                     />
-                    {dpoteFilialId && (
-                      <p className="text-xs text-violet-600 mt-1">✓ Recorrência será calculada automaticamente a cada sync</p>
+                    {dpoteFilialNome && (
+                      <p className="text-xs text-violet-600 mt-1">✓ Recorrência será calculada automaticamente a cada sync usando a filial "{dpoteFilialNome}"</p>
                     )}
-                    {!dpoteFilialId && (
+                    {!dpoteFilialNome && (
                       <p className="text-xs text-violet-400 mt-1">Opcional — sem este campo a Recorrência não será importada automaticamente</p>
                     )}
                   </div>

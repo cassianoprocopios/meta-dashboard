@@ -185,7 +185,7 @@ describe("calcularFaturamentoPorCategoriaComCatalogo", () => {
 
 // ─── Testes: calcularComissaoBrutaFilial ─────────────────────────────────────
 
-import { calcularComissaoBrutaFilial } from "./cashbarber";
+import { calcularComissaoBrutaFilial, calcularComissaoBrutaFilialPorNome } from "./cashbarber";
 import type { CashbarberDpoteHistorico } from "./cashbarber";
 
 describe("calcularComissaoBrutaFilial", () => {
@@ -265,5 +265,68 @@ describe("calcularComissaoBrutaFilial", () => {
     const comissaoBrutaTotal = Math.round(63035 * 0.65);
     // A soma pode diferir em 1 real por arredondamento
     expect(Math.abs(morumbi + mascote - comissaoBrutaTotal)).toBeLessThanOrEqual(1);
+  });
+});
+
+// ─── Testes: calcularComissaoBrutaFilialPorNome ───────────────────────────────
+
+describe("calcularComissaoBrutaFilialPorNome", () => {
+  const historicoBase: CashbarberDpoteHistorico = {
+    faturamento: {
+      valor_ganho_assinaturas: 63035,
+      porcentagem_comissao_barbearias: 65,
+      porcentagem_comissao_barbeiros: 35,
+    },
+    filiais_servicos: [
+      {
+        filial: { id: 144, fil_bairro: "Morumbi" },
+        servicos: [
+          { fichas: 70 },
+          { fichas: 30 },
+        ],
+      },
+      {
+        filial: { id: 3520, fil_bairro: "Mascote" },
+        servicos: [
+          { fichas: 40 },
+          { fichas: 10 },
+        ],
+      },
+    ],
+  };
+
+  it("deve encontrar filial pelo nome exato", () => {
+    const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "Morumbi");
+    expect(resultado).toBeGreaterThan(27000);
+    expect(resultado).toBeLessThan(28000);
+  });
+
+  it("deve encontrar filial com busca case-insensitive", () => {
+    const resultadoMinusculo = calcularComissaoBrutaFilialPorNome(historicoBase, "morumbi");
+    const resultadoMaiusculo = calcularComissaoBrutaFilialPorNome(historicoBase, "MORUMBI");
+    expect(resultadoMinusculo).toBe(resultadoMaiusculo);
+    expect(resultadoMinusculo).toBeGreaterThan(27000);
+  });
+
+  it("deve encontrar filial com busca parcial", () => {
+    const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "Masc");
+    expect(resultado).toBeGreaterThan(13000);
+    expect(resultado).toBeLessThan(14000);
+  });
+
+  it("deve retornar 0 se o nome não for encontrado", () => {
+    const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "Inexistente");
+    expect(resultado).toBe(0);
+  });
+
+  it("deve retornar 0 se o nome for vazio", () => {
+    const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "  ");
+    expect(resultado).toBe(0);
+  });
+
+  it("deve retornar o mesmo valor que calcularComissaoBrutaFilial para Mascote", () => {
+    const porNome = calcularComissaoBrutaFilialPorNome(historicoBase, "Mascote");
+    const porId = calcularComissaoBrutaFilial(historicoBase, 3520);
+    expect(porNome).toBe(porId);
   });
 });

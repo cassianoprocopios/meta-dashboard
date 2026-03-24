@@ -1053,6 +1053,8 @@ export async function upsertCashbarberConfig(data: InsertCashbarberConfig) {
         cbSenha: data.cbSenha,
         cbFilialId: data.cbFilialId,
         cbFilialNome: data.cbFilialNome,
+        dpoteFilialId: data.dpoteFilialId ?? null,
+        dpoteFilialNome: data.dpoteFilialNome ?? null,
         ativo: data.ativo ?? 1,
       })
       .where(and(eq(cashbarberConfig.tenantId, data.tenantId), eq(cashbarberConfig.empresaSlug, data.empresaSlug)));

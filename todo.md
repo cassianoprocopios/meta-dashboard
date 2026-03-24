@@ -539,3 +539,13 @@
 - [x] Toast de aviso quando há erros em alguma empresa
 - [x] Toast de erro com mensagem descritiva se a sync falhar completamente
 - [x] 64 testes passando (sem novos testes necessários)
+
+## Identificação da Filial Dpote por Nome (Mar 2026)
+
+- [x] Adicionar coluna `dpoteFilialNome` (varchar) na tabela `cashbarberConfig` (mantendo dpoteFilialId como fallback)
+- [x] Função `calcularComissaoBrutaFilialPorNome`: busca filial pelo nome no campo `fil_bairro` (case-insensitive, busca parcial)
+- [x] Atualizar `cashbarberSincronizador.ts`: prioridade 1 = nome, prioridade 2 = dpoteFilialId, fallback = cbFilialId
+- [x] Atualizar procedure `cashbarber.salvarConfig` para incluir `dpoteFilialNome`
+- [x] `listarConfig` já retorna todos os campos da tabela (incluindo dpoteFilialNome)
+- [x] Atualizar formulário CashBarberIntegracao: substituir campo numérico por campo de texto para nome da filial
+- [x] Testes: 6 novos testes para calcularComissaoBrutaFilialPorNome (70 testes no total, todos passando)
