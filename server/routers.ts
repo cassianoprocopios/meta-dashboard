@@ -1908,30 +1908,30 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }),
 
-    /** Configura o agendamento automático de sincronização */
+    /** Configura o agendamento automático de sincronização (executa a cada hora) */
     configurarAgendamento: protectedProcedure
       .input(
         z.object({
           empresaSlug: z.string(),
           sincAutoAtiva: z.boolean(),
-          horarioSinc: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Formato HH:MM inválido"),
+          horarioSinc: z.string().optional(), // mantido por compatibilidade, ignorado
         })
       )
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
         const tenantId = ctx.user.tenantId ?? 0;
+        // horarioSinc fixado em "00:00" pois o job executa a cada hora
         await updateCashbarberAgendamento(
           tenantId,
           input.empresaSlug,
           input.sincAutoAtiva,
-          input.horarioSinc
+          "00:00"
         );
-        // Notificar o gerenciador de jobs
+        // Notificar o gerenciador de jobs (intervalo horário fixo)
         await notificarMudancaConfigCashbarber(
           tenantId,
           input.empresaSlug,
-          input.sincAutoAtiva,
-          input.horarioSinc
+          input.sincAutoAtiva
         );
         return { ok: true };
       }),

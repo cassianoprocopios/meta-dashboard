@@ -475,3 +475,10 @@
 - [x] Toggle de ativação com seletor de horário (input type=time)
 - [x] Tabela de histórico de sincronizações com status, origem (auto/manual), dias e erros
 - [x] Testes do job de sincronização automática (12 testes, 48 no total)
+
+## Sincronização Horária CashBarber (Mar 2026)
+
+- [x] Alterar job para executar a cada hora (cron `0 0 * * * *`) em vez de horário fixo por empresa
+- [x] Remover seletor de horário da interface (substituído por informação fixa "a cada hora")
+- [x] Atualizar aba Agendamento: exibir "Sincroniza a cada 1 hora" como informação fixa
+- [x] Atualizar testes para refletir o novo intervalo horário (49 testes passando)

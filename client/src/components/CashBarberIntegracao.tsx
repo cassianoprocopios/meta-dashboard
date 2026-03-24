@@ -203,7 +203,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
 
   const configurarAgendamento = trpc.cashbarber.configurarAgendamento.useMutation({
     onSuccess: () => {
-      toast.success(sincAutoAtiva ? `Sincronização automática ativada para as ${horarioSinc}!` : "Sincronização automática desativada.");
+      toast.success(sincAutoAtiva ? "Sincronização automática ativada! Dados serão importados a cada hora." : "Sincronização automática desativada.");
       utils.cashbarber.listarConfig.invalidate({ empresaSlug: empresa.slug });
     },
     onError: (err) => toast.error(err.message),
@@ -588,7 +588,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <div>
                           <p className="text-sm font-semibold text-slate-800">Sincronização Automática</p>
-                          <p className="text-xs text-slate-500 mt-0.5">Importa os dados do mês corrente diariamente no horário configurado</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Importa os dados do mês corrente a cada hora automaticamente</p>
                         </div>
                         <button
                           onClick={() => setSincAutoAtiva(!sincAutoAtiva)}
@@ -602,37 +602,20 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                         </button>
                       </div>
 
-                      {/* Seletor de horário */}
+                      {/* Informação do intervalo horário */}
                       {sincAutoAtiva && (
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                              <Clock className="w-3.5 h-3.5 inline mr-1" />
-                              Horário de Execução
-                            </label>
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="time"
-                                value={horarioSinc}
-                                onChange={(e) => setHorarioSinc(e.target.value)}
-                                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                              />
-                              <span className="text-xs text-slate-500">Fuso horário do servidor (UTC-3)</span>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2 p-3 bg-emerald-50 rounded-lg text-xs text-emerald-700 border border-emerald-100">
-                            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            <span>
-                              O job será executado diariamente às <strong>{horarioSinc}</strong>, sincronizando todos os dias do mês corrente.
-                              Dias futuros são ignorados automaticamente.
-                            </span>
-                          </div>
+                        <div className="flex items-start gap-2 p-3 bg-emerald-50 rounded-lg text-xs text-emerald-700 border border-emerald-100">
+                          <Clock className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                          <span>
+                            O job executa <strong>a cada hora</strong> (no minuto 0 de cada hora), sincronizando todos os dias do mês corrente.
+                            Dias futuros são ignorados automaticamente.
+                          </span>
                         </div>
                       )}
 
                       <div className="flex justify-end">
                         <button
-                          onClick={() => configurarAgendamento.mutate({ empresaSlug: empresa.slug, sincAutoAtiva, horarioSinc })}
+                          onClick={() => configurarAgendamento.mutate({ empresaSlug: empresa.slug, sincAutoAtiva, horarioSinc: "00:00" })}
                           disabled={configurarAgendamento.isPending}
                           className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
                         >

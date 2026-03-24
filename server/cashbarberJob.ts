@@ -1,33 +1,23 @@
 /**
  * Job de sincronização automática do CashBarber
  *
- * Executa diariamente para cada empresa com sincronização automática ativa.
- * O horário de execução é configurável por empresa (padrão: 23:00).
+ * Executa a cada hora para cada empresa com sincronização automática ativa.
  * Usa node-cron para agendar os jobs dinamicamente.
  */
 
 import * as cron from "node-cron";
-import {
-  listCashbarberConfigs,
-  listCashbarberMapeamento,
-  insertCashbarberSyncLog,
-  updateCashbarberSyncStatus,
-} from "./db";
-import {
-  cashbarberLogin,
-  cashbarberListarServicos,
-  cashbarberListarProdutos,
-  cashbarberRelatorio15,
-  calcularFaturamentoPorCategoriaComCatalogo,
-} from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
+
+// ─── Intervalo fixo: a cada hora ─────────────────────────────────────────────
+
+/** Expressão cron para execução a cada hora (no minuto 0 de cada hora) */
+const CRON_CADA_HORA = "0 0 * * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface JobStatus {
   empresaSlug: string;
   tenantId: number;
-  horario: string;
   task: ReturnType<typeof cron.schedule>;
   ultimaExecucao?: Date;
   proximaExecucao?: Date;
@@ -46,26 +36,11 @@ function jobKey(tenantId: number, empresaSlug: string): string {
 }
 
 /**
- * Converte horário "HH:MM" para expressão cron "0 MM HH * * *"
+ * Calcula a próxima execução (início da próxima hora cheia)
  */
-function horarioParaCron(horario: string): string {
-  const [hh, mm] = horario.split(":").map(Number);
-  const hora = isNaN(hh) ? 23 : Math.min(23, Math.max(0, hh));
-  const minuto = isNaN(mm) ? 0 : Math.min(59, Math.max(0, mm));
-  return `0 ${minuto} ${hora} * * *`;
-}
-
-/**
- * Calcula a próxima execução com base no horário configurado
- */
-function calcularProximaExecucao(horario: string): Date {
-  const [hh, mm] = horario.split(":").map(Number);
-  const agora = new Date();
+function calcularProximaExecucao(): Date {
   const proxima = new Date();
-  proxima.setHours(hh, mm, 0, 0);
-  if (proxima <= agora) {
-    proxima.setDate(proxima.getDate() + 1);
-  }
+  proxima.setHours(proxima.getHours() + 1, 0, 0, 0);
   return proxima;
 }
 
@@ -95,9 +70,9 @@ async function executarSincronizacaoEmpresa(
 }
 
 /**
- * Agenda ou re-agenda o job de uma empresa
+ * Agenda o job horário de uma empresa
  */
-function agendarJobEmpresa(tenantId: number, empresaSlug: string, horario: string): void {
+function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
   const key = jobKey(tenantId, empresaSlug);
 
   // Cancelar job anterior se existir
@@ -107,14 +82,11 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string, horario: strin
     jobsAtivos.delete(key);
   }
 
-  const expressaoCron = horarioParaCron(horario);
-  const proxima = calcularProximaExecucao(horario);
-
-  const task = cron.schedule(expressaoCron, async () => {
+  const task = cron.schedule(CRON_CADA_HORA, async () => {
     const status = jobsAtivos.get(key);
     if (status) {
       status.ultimaExecucao = new Date();
-      status.proximaExecucao = calcularProximaExecucao(horario);
+      status.proximaExecucao = calcularProximaExecucao();
     }
 
     try {
@@ -127,12 +99,11 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string, horario: strin
   jobsAtivos.set(key, {
     empresaSlug,
     tenantId,
-    horario,
     task,
-    proximaExecucao: proxima,
+    proximaExecucao: calcularProximaExecucao(),
   });
 
-  console.log(`[CashBarber Job] Agendado: ${empresaSlug} às ${horario} (cron: ${expressaoCron})`);
+  console.log(`[CashBarber Job] Agendado (a cada hora): ${empresaSlug}`);
 }
 
 /**
@@ -149,18 +120,16 @@ function cancelarJobEmpresa(tenantId: number, empresaSlug: string): void {
 }
 
 /**
- * Recarrega todos os jobs a partir do banco de dados
- * Chamado na inicialização do servidor e quando configurações mudam
+ * Recarrega todos os jobs a partir do banco de dados.
+ * Chamado na inicialização do servidor e periodicamente pelo job mestre.
  */
 export async function recarregarJobsCashbarber(): Promise<void> {
   console.log("[CashBarber Job] Recarregando jobs...");
 
   try {
-    // Buscar todas as configs de todos os tenants (tenantId=0 = busca global)
-    // Precisamos de uma função que busque todas as configs ativas
     const configs = await listAllActiveCashbarberConfigs();
 
-    // Cancelar jobs que não estão mais ativos
+    // Cancelar jobs de empresas que desativaram o sync
     for (const [key, job] of Array.from(jobsAtivos.entries())) {
       const configAtiva = configs.find(
         (c) => c.tenantId === job.tenantId && c.empresaSlug === job.empresaSlug
@@ -172,16 +141,12 @@ export async function recarregarJobsCashbarber(): Promise<void> {
       }
     }
 
-    // Agendar ou re-agendar jobs ativos
+    // Agendar jobs para empresas com sync ativo que ainda não têm job
     for (const config of configs) {
       if (!config.sincAutoAtiva) continue;
-      const horario = config.horarioSinc || "23:00";
       const key = jobKey(config.tenantId, config.empresaSlug);
-      const jobAtual = jobsAtivos.get(key);
-
-      // Re-agendar apenas se o horário mudou
-      if (!jobAtual || jobAtual.horario !== horario) {
-        agendarJobEmpresa(config.tenantId, config.empresaSlug, horario);
+      if (!jobsAtivos.has(key)) {
+        agendarJobEmpresa(config.tenantId, config.empresaSlug);
       }
     }
 
@@ -197,14 +162,12 @@ export async function recarregarJobsCashbarber(): Promise<void> {
 export function getStatusJobsCashbarber(): Array<{
   tenantId: number;
   empresaSlug: string;
-  horario: string;
   ultimaExecucao?: Date;
   proximaExecucao?: Date;
 }> {
   return Array.from(jobsAtivos.values() as Iterable<JobStatus>).map((j) => ({
     tenantId: j.tenantId,
     empresaSlug: j.empresaSlug,
-    horario: j.horario,
     ultimaExecucao: j.ultimaExecucao,
     proximaExecucao: j.proximaExecucao,
   }));
@@ -218,10 +181,10 @@ export async function notificarMudancaConfigCashbarber(
   tenantId: number,
   empresaSlug: string,
   sincAutoAtiva: boolean,
-  horario: string
+  _horario?: string // mantido por compatibilidade, ignorado
 ): Promise<void> {
   if (sincAutoAtiva) {
-    agendarJobEmpresa(tenantId, empresaSlug, horario);
+    agendarJobEmpresa(tenantId, empresaSlug);
   } else {
     cancelarJobEmpresa(tenantId, empresaSlug);
   }
@@ -234,13 +197,11 @@ export async function notificarMudancaConfigCashbarber(
  * Usada apenas internamente pelo job mestre
  */
 async function listAllActiveCashbarberConfigs() {
-  // Importação dinâmica para evitar dependência circular
   const { drizzle } = await import("drizzle-orm/mysql2");
   const mysql = await import("mysql2/promise");
   const { cashbarberConfig } = await import("../drizzle/schema");
   const { eq } = await import("drizzle-orm");
 
-  // Usar a conexão do banco diretamente
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) return [];
 
@@ -261,17 +222,16 @@ async function listAllActiveCashbarberConfigs() {
  * Deve ser chamado uma vez na inicialização do servidor.
  */
 export async function inicializarJobsCashbarber(): Promise<void> {
-  console.log("[CashBarber Job] Inicializando sistema de jobs...");
+  console.log("[CashBarber Job] Inicializando sistema de jobs (intervalo: 1 hora)...");
 
   // Aguardar 5 segundos para o servidor estar completamente inicializado
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   await recarregarJobsCashbarber();
 
-  // Job mestre: verifica a cada hora se há novas configurações
+  // Job mestre: verifica a cada 10 minutos se há novas configurações
   // (cobre casos onde o servidor reinicia e novos tenants foram adicionados)
-  jobMestre = cron.schedule("0 0 * * * *", async () => {
-    console.log("[CashBarber Job] Verificação horária de configurações...");
+  jobMestre = cron.schedule("0 */10 * * * *", async () => {
     await recarregarJobsCashbarber();
   });
 

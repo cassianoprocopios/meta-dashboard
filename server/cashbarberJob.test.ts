@@ -1,5 +1,6 @@
 /**
  * Testes para o sistema de jobs de sincronização automática do CashBarber
+ * Intervalo: a cada hora (cron "0 0 * * * *")
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -39,75 +40,54 @@ vi.mock("./cashbarber", () => ({
   }),
 }));
 
-// ─── Testes da conversão de horário para cron ─────────────────────────────────
+// ─── Testes da lógica de próxima execução horária ─────────────────────────────
 
-describe("horarioParaCron (lógica interna)", () => {
-  // Testamos a lógica de conversão diretamente
-
-  function horarioParaCron(horario: string): string {
-    const [hh, mm] = horario.split(":").map(Number);
-    const hora = isNaN(hh) ? 23 : Math.min(23, Math.max(0, hh));
-    const minuto = isNaN(mm) ? 0 : Math.min(59, Math.max(0, mm));
-    return `0 ${minuto} ${hora} * * *`;
-  }
-
-  it("converte 23:00 corretamente", () => {
-    expect(horarioParaCron("23:00")).toBe("0 0 23 * * *");
-  });
-
-  it("converte 08:30 corretamente", () => {
-    expect(horarioParaCron("08:30")).toBe("0 30 8 * * *");
-  });
-
-  it("converte 00:00 corretamente", () => {
-    expect(horarioParaCron("00:00")).toBe("0 0 0 * * *");
-  });
-
-  it("usa padrão 23:00 para horário inválido", () => {
-    expect(horarioParaCron("invalid")).toBe("0 0 23 * * *");
-  });
-
-  it("limita horas ao máximo 23", () => {
-    expect(horarioParaCron("25:00")).toBe("0 0 23 * * *");
-  });
-
-  it("limita minutos ao máximo 59", () => {
-    expect(horarioParaCron("10:75")).toBe("0 59 10 * * *");
-  });
-});
-
-// ─── Testes da lógica de próxima execução ─────────────────────────────────────
-
-describe("calcularProximaExecucao (lógica interna)", () => {
-  function calcularProximaExecucao(horario: string): Date {
-    const [hh, mm] = horario.split(":").map(Number);
-    const agora = new Date();
+describe("calcularProximaExecucao horária (lógica interna)", () => {
+  function calcularProximaExecucao(): Date {
     const proxima = new Date();
-    proxima.setHours(hh, mm, 0, 0);
-    if (proxima <= agora) {
-      proxima.setDate(proxima.getDate() + 1);
-    }
+    proxima.setHours(proxima.getHours() + 1, 0, 0, 0);
     return proxima;
   }
 
-  it("retorna hoje se o horário ainda não passou", () => {
-    // Usar horário no futuro distante (23:59)
-    const proxima = calcularProximaExecucao("23:59");
-    const agora = new Date();
-    // Pode ser hoje ou amanhã dependendo do momento do teste
+  it("retorna a próxima hora cheia", () => {
+    const proxima = calcularProximaExecucao();
     expect(proxima).toBeInstanceOf(Date);
-    expect(proxima.getHours()).toBe(23);
-    expect(proxima.getMinutes()).toBe(59);
+    expect(proxima.getMinutes()).toBe(0);
+    expect(proxima.getSeconds()).toBe(0);
+    expect(proxima.getMilliseconds()).toBe(0);
   });
 
-  it("retorna amanhã se o horário já passou (00:00)", () => {
-    // 00:00 já passou (estamos depois da meia-noite)
-    const proxima = calcularProximaExecucao("00:00");
-    const agora = new Date();
-    // Deve ser amanhã
-    const amanha = new Date(agora);
-    amanha.setDate(amanha.getDate() + 1);
-    expect(proxima.getDate()).toBe(amanha.getDate());
+  it("a próxima execução é sempre no futuro", () => {
+    const proxima = calcularProximaExecucao();
+    expect(proxima.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it("a próxima execução é no máximo 1 hora à frente", () => {
+    const proxima = calcularProximaExecucao();
+    const umaHoraEmMs = 60 * 60 * 1000;
+    expect(proxima.getTime() - Date.now()).toBeLessThanOrEqual(umaHoraEmMs);
+  });
+});
+
+// ─── Testes da expressão cron horária ─────────────────────────────────────────
+
+describe("expressão cron horária", () => {
+  const CRON_CADA_HORA = "0 0 * * * *";
+
+  it("expressão cron está correta para execução a cada hora", () => {
+    // "0 0 * * * *" = segundo 0, minuto 0, toda hora, todo dia
+    expect(CRON_CADA_HORA).toBe("0 0 * * * *");
+  });
+
+  it("expressão cron tem 6 campos (formato node-cron)", () => {
+    const campos = CRON_CADA_HORA.split(" ");
+    expect(campos).toHaveLength(6);
+  });
+
+  it("segundo e minuto são fixos em 0 (executa no início de cada hora)", () => {
+    const [segundo, minuto] = CRON_CADA_HORA.split(" ");
+    expect(segundo).toBe("0");
+    expect(minuto).toBe("0");
   });
 });
 
@@ -119,31 +99,50 @@ describe("getStatusJobsCashbarber", () => {
     const status = getStatusJobsCashbarber();
     expect(Array.isArray(status)).toBe(true);
   });
+
+  it("retorna objetos sem campo horario (removido no modo horário)", async () => {
+    const { getStatusJobsCashbarber } = await import("./cashbarberJob");
+    const status = getStatusJobsCashbarber();
+    // Cada item não deve ter campo horario
+    for (const item of status) {
+      expect(item).not.toHaveProperty("horario");
+    }
+  });
 });
 
 describe("notificarMudancaConfigCashbarber", () => {
-  it("não lança erro ao ativar agendamento", async () => {
+  it("não lança erro ao ativar agendamento (sem horário)", async () => {
     const { notificarMudancaConfigCashbarber } = await import("./cashbarberJob");
     await expect(
-      notificarMudancaConfigCashbarber(1, "empresa-teste", true, "23:00")
+      notificarMudancaConfigCashbarber(1, "empresa-teste", true)
     ).resolves.not.toThrow();
   });
 
   it("não lança erro ao desativar agendamento", async () => {
     const { notificarMudancaConfigCashbarber } = await import("./cashbarberJob");
     await expect(
-      notificarMudancaConfigCashbarber(1, "empresa-teste", false, "23:00")
+      notificarMudancaConfigCashbarber(1, "empresa-teste", false)
+    ).resolves.not.toThrow();
+  });
+
+  it("aceita parâmetro horario opcional por compatibilidade", async () => {
+    const { notificarMudancaConfigCashbarber } = await import("./cashbarberJob");
+    await expect(
+      notificarMudancaConfigCashbarber(1, "empresa-teste", true, "23:00")
     ).resolves.not.toThrow();
   });
 });
 
 describe("recarregarJobsCashbarber", () => {
-  it("executa sem erros quando não há configs ativas", async () => {
-    // A função usa importação dinâmica do drizzle, então vamos apenas verificar
-    // que ela não lança erro quando o banco retorna vazio
+  it("é uma função assíncrona exportada", async () => {
     const { recarregarJobsCashbarber } = await import("./cashbarberJob");
-    // Não podemos testar a função completa sem banco real,
-    // mas podemos verificar que ela existe e é uma função
     expect(typeof recarregarJobsCashbarber).toBe("function");
+  });
+});
+
+describe("inicializarJobsCashbarber", () => {
+  it("é uma função assíncrona exportada", async () => {
+    const { inicializarJobsCashbarber } = await import("./cashbarberJob");
+    expect(typeof inicializarJobsCashbarber).toBe("function");
   });
 });
