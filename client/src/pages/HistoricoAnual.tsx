@@ -519,6 +519,98 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
         </Card>
       )}
 
+      {/* Tabelas de bonificações mensais por empresa */}
+      {bonificacoesCalculadas
+        .filter(h => empresaSelecionada === "todas" || h.emp.slug === empresaSelecionada)
+        .filter(h => h.mesesBon.some(m => m.temDados))
+        .map(h => (
+          <Card key={`bon-table-${h.emp.slug}`} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
+            <div className="p-4 pb-0 flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500" />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: h.emp.cor }} />
+              <h3 className="font-semibold text-sm text-foreground">{h.emp.nome} — Bonificações {ano}</h3>
+              <span className="ml-auto text-sm font-bold text-amber-500">{fmt(h.totalBonAnual)}</span>
+            </div>
+
+            <div className="overflow-x-auto mt-3">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-4 py-2 text-muted-foreground font-medium">Mês</th>
+                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">Quinzenal</th>
+                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">Mensal</th>
+                    <th className="text-right px-3 py-2 text-muted-foreground font-medium">★ Super Meta</th>
+                    <th className="text-right px-4 py-2 text-muted-foreground font-medium">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {h.mesesBon.map((m) => {
+                    if (!m.temDados && m.bonTotal === 0) return null;
+                    const isMesAtual = m.mesNum === mesAtual && ano === anoAtualCheck;
+                    const rowBg = m.atingiuSuperMeta && m.bonSuperMeta > 0
+                      ? "bg-amber-500/5"
+                      : isMesAtual
+                      ? "bg-primary/5"
+                      : "";
+                    return (
+                      <tr key={m.mesNum} className={`border-b border-border/50 last:border-0 ${rowBg}`}>
+                        <td className="px-4 py-2.5 font-medium text-foreground">
+                          <span className="flex items-center gap-1">
+                            {MESES_FULL[m.mesNum - 1]}
+                            {isMesAtual && (
+                              <span className="text-[9px] bg-primary/20 text-primary px-1 py-0.5 rounded-md font-bold">ATUAL</span>
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-foreground">
+                          {m.bonQuinzenal > 0 ? fmt(m.bonQuinzenal) : <span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-foreground">
+                          {m.bonMensal > 0 ? fmt(m.bonMensal) : <span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          {m.bonSuperMeta > 0 ? (
+                            <span className="font-bold text-amber-400 flex items-center justify-end gap-0.5">
+                              <Star className="w-3 h-3" />
+                              {fmt(m.bonSuperMeta)}
+                            </span>
+                          ) : <span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-bold text-foreground">
+                          {m.bonTotal > 0 ? fmt(m.bonTotal) : <span className="text-muted-foreground">—</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-muted/30 border-t-2 border-border">
+                    <td className="px-4 py-2.5 font-bold text-foreground">Total {ano}</td>
+                    <td className="px-3 py-2.5 text-right font-semibold text-foreground">
+                      {fmt(h.mesesBon.reduce((s, m) => s + m.bonQuinzenal, 0))}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-semibold text-foreground">
+                      {fmt(h.mesesBon.reduce((s, m) => s + m.bonMensal, 0))}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-bold text-amber-400">
+                      {h.mesesBon.some(m => m.bonSuperMeta > 0) ? (
+                        <span className="flex items-center justify-end gap-0.5">
+                          <Star className="w-3 h-3" />
+                          {fmt(h.mesesBon.reduce((s, m) => s + m.bonSuperMeta, 0))}
+                        </span>
+                      ) : "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-bold text-amber-500">
+                      {fmt(h.totalBonAnual)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        ))
+      }
+
       {/* Tabela de evolução mensal por empresa */}
       {empsFiltradas.map(h => (
         <Card key={h.emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">

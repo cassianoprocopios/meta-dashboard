@@ -431,3 +431,7 @@
 ## Gráfico de Bonificações no Histórico
 
 - [x] Gráfico de barras mensais de bonificações na aba Histórico (por unidade e total)
+
+## Tabela Detalhada de Bonificações no Histórico
+
+- [x] Tabela por empresa: Mês, Quinzenal, Mensal, Super Meta, Total — com rodapé de totais anuais
