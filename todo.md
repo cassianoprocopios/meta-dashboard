@@ -420,3 +420,10 @@
 - [x] Componente HistoricoAnual.tsx: gráfico de barras mensal + tabela de evolução
 - [x] Indicadores visuais: ✓ meta atingida, ★ super meta atingida por mês/empresa
 - [x] Nova aba "Histórico" registrada no dashboard
+
+## Bonificação para Super Meta
+
+- [x] Adicionar campo pctSuperMeta na tabela bonificacoes e migrar banco
+- [x] Backend: incluir pctSuperMeta nos endpoints de bonificação (salvar/listar/calcular)
+- [x] Frontend Bonificacao.tsx: campo para editar pctSuperMeta e exibir valor calculado
+- [x] Cálculo: bonificação super meta = totalRealizado * pctSuperMeta quando superMeta atingida

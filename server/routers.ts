@@ -506,6 +506,7 @@ export const appRouter = router({
         pctQuinzenalComMeta: z.string(),
         pctMensalSemMeta: z.string(),
         pctMensalComMeta: z.string(),
+        pctSuperMeta: z.string().optional().default("0"),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin") {

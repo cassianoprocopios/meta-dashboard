@@ -664,6 +664,7 @@ export async function upsertBonificacao(data: InsertBonificacao) {
       pctQuinzenalComMeta: data.pctQuinzenalComMeta,
       pctMensalSemMeta: data.pctMensalSemMeta,
       pctMensalComMeta: data.pctMensalComMeta,
+      pctSuperMeta: data.pctSuperMeta ?? "0",
     }).where(eq(bonificacoes.id, existing.id));
   } else {
     await db.insert(bonificacoes).values(data);

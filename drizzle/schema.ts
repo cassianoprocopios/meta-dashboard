@@ -103,6 +103,7 @@ export const bonificacoes = mysqlTable("bonificacoes", {
   pctQuinzenalComMeta: decimal("pctQuinzenalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
   pctMensalSemMeta: decimal("pctMensalSemMeta", { precision: 6, scale: 2 }).notNull().default("0"),
   pctMensalComMeta: decimal("pctMensalComMeta", { precision: 6, scale: 2 }).notNull().default("0"),
+  pctSuperMeta: decimal("pctSuperMeta", { precision: 6, scale: 2 }).notNull().default("0"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
