@@ -12,7 +12,7 @@ import {
 import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
-  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw,
+  ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw, Repeat2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
@@ -332,6 +332,12 @@ export default function Home() {
         catTotals[4] += parseFloat(r.cat5 || "0");
       });
 
+      // Recorrência Dpote: soma de cat5 de todos os dias (está no dia 1, mas somamos todos por segurança)
+      const recorrenciaMes = rows.reduce(
+        (acc: number, r: any) => acc + parseFloat(r.cat5 || "0"),
+        0
+      );
+
       return {
         emp,
         total,
@@ -364,6 +370,7 @@ export default function Home() {
         progressoMensal: metaEsperadaAteHoje > 0 ? Math.min((totalRealizado / metaEsperadaAteHoje) * 100, 150) : (metaMensal > 0 ? Math.min((totalRealizado / metaMensal) * 100, 100) : 0),
         progressoQuinzenal: metaEsperadaQuinzenalAteHoje > 0 ? Math.min((totalQuinzenal / metaEsperadaQuinzenalAteHoje) * 100, 150) : (metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0),
         catTotals,
+        recorrenciaMes,
         rows,
         rowsRealizados,
         rowsPrevistos,
@@ -1801,6 +1808,17 @@ export default function Home() {
                       )}
                     </div>
                   </div>
+
+                  {/* Linha de Recorrência Dpote — exibida apenas quando há valor */}
+                  {s.recorrenciaMes > 0 && (
+                    <div className="mt-3 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                      <div className="flex items-center gap-1.5">
+                        <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                        <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
+                      </div>
+                      <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                    </div>
+                  )}
 
                   {/* Indicador de status mensal - sempre visível para análise */}
                   {s.mediaDiaria > 0 && (

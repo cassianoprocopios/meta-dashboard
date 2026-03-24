@@ -570,3 +570,9 @@
 - [x] Alterar sincronizador: cat5 = recorrenciaValor apenas no dia 1, cat5 = "0" nos demais dias
 - [x] Quando Dpote falha, preservar cat5 existente (comportamento de fallback mantido)
 - [x] Reescrever testes do sincronizador: 10 testes cobrindo regra do dia 1, fallback e preservação de campos
+
+## Linha Dpote no card de unidade (Mar 2026)
+
+- [x] Calcular recorrenciaMes (soma de cat5 de todos os dias da empresa no mês) em statsPorEmpresa
+- [x] Exibir linha "Recorrência (Dpote)" no card de unidade com fundo violeta e ícone Repeat2
+- [x] Linha só aparece quando recorrenciaMes > 0 (sem poluir cards sem Dpote configurado)
