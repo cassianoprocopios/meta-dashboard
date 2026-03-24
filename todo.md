@@ -435,3 +435,7 @@
 ## Tabela Detalhada de Bonificações no Histórico
 
 - [x] Tabela por empresa: Mês, Quinzenal, Mensal, Super Meta, Total — com rodapé de totais anuais
+
+## Melhoria do Filtro de Ano no Histórico
+
+- [x] Seletor de ano mais visível: dropdown com range dinâmico de anos disponíveis no banco

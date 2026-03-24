@@ -45,6 +45,14 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
   const [ano, setAno] = useState(anoAtual);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<string>("todas");
 
+  // Gerar lista de anos disponíveis: do ano de início do sistema até o ano atual
+  const anosDisponiveis = useMemo(() => {
+    const inicio = 2024; // ano de início do sistema
+    const anos: number[] = [];
+    for (let a = anoAtual; a >= inicio; a--) anos.push(a);
+    return anos;
+  }, [anoAtual]);
+
   const { data, isLoading } = trpc.meta.historicoAnual.useQuery({ ano });
 
   // Empresas visíveis para o usuário
@@ -263,19 +271,30 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Seletor de ano */}
+          {/* Seletor de ano — dropdown com navegação por setas */}
           <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
             <button
-              onClick={() => setAno(a => a - 1)}
-              className="px-2 py-1 rounded-lg text-sm text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+              onClick={() => setAno(a => Math.max(a - 1, 2024))}
+              disabled={ano <= 2024}
+              className="px-2 py-1 rounded-lg text-sm text-muted-foreground hover:bg-background hover:text-foreground transition-colors disabled:opacity-30"
+              title="Ano anterior"
             >
               ‹
             </button>
-            <span className="px-3 py-1 text-sm font-semibold text-foreground">{ano}</span>
+            <select
+              value={ano}
+              onChange={e => setAno(Number(e.target.value))}
+              className="bg-transparent text-sm font-semibold text-foreground focus:outline-none cursor-pointer px-1 py-1 appearance-none text-center min-w-[60px]"
+            >
+              {anosDisponiveis.map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
             <button
               onClick={() => setAno(a => Math.min(a + 1, anoAtualCheck))}
               disabled={ano >= anoAtualCheck}
               className="px-2 py-1 rounded-lg text-sm text-muted-foreground hover:bg-background hover:text-foreground transition-colors disabled:opacity-30"
+              title="Próximo ano"
             >
               ›
             </button>
