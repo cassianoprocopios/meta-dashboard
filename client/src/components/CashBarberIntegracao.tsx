@@ -49,6 +49,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [cbFilialNome, setCbFilialNome] = useState("");
   const [dpoteFilialId, setDpoteFilialId] = useState<number | "">("");
   const [dpoteFilialNome, setDpoteFilialNome] = useState("");
+  const [dpoteValorAssinaturas, setDpoteValorAssinaturas] = useState<number | "">("" );
+  const [dpotePorcentagemBarbearia, setDpotePorcentagemBarbearia] = useState<number | "">(65);
   const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]); 
   const [mostrarFiliaisDpote, setMostrarFiliaisDpote] = useState(false);
   const [buscaFilial, setBuscaFilial] = useState("");
@@ -119,6 +121,10 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setCbFilialNome(configExistente.cbFilialNome || "");
       setDpoteFilialId((configExistente as any).dpoteFilialId || "");
       setDpoteFilialNome((configExistente as any).dpoteFilialNome || "");
+      const valorAss = (configExistente as any).dpoteValorAssinaturas;
+      setDpoteValorAssinaturas(valorAss ? parseFloat(String(valorAss)) : "");
+      const pctBarb = (configExistente as any).dpotePorcentagemBarbearia;
+      setDpotePorcentagemBarbearia(pctBarb ? parseFloat(String(pctBarb)) : 65);
       setSincAutoAtiva(!!(configExistente as any).sincAutoAtiva);
       setHorarioSinc((configExistente as any).horarioSinc || "23:00");
     }
@@ -249,6 +255,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       cbFilialNome: cbFilialNome || undefined,
       dpoteFilialId: dpoteFilialId ? Number(dpoteFilialId) : undefined,
       dpoteFilialNome: dpoteFilialNome || undefined,
+      dpoteValorAssinaturas: dpoteValorAssinaturas ? Number(dpoteValorAssinaturas) : undefined,
+      dpotePorcentagemBarbearia: dpotePorcentagemBarbearia ? Number(dpotePorcentagemBarbearia) : undefined,
     });
   };
 
@@ -639,6 +647,44 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       <p className="text-xs text-violet-400 mt-1">Opcional — sem este campo a Recorrência não será importada automaticamente</p>
                     )}
                   </div>
+
+                  {/* Parâmetros Dpote — só exibir quando filial configurada */}
+                  {dpoteFilialNome && (
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-violet-50 rounded-lg border border-violet-100">
+                      <div>
+                        <label className="block text-xs font-semibold text-violet-700 mb-1">Valor Total Assinaturas (R$)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1000"
+                          value={dpoteValorAssinaturas}
+                          onChange={(e) => setDpoteValorAssinaturas(e.target.value ? Number(e.target.value) : "")}
+                          placeholder="Ex: 145000"
+                          className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                        />
+                        <p className="text-xs text-violet-500 mt-1">Valor mensal total de assinaturas no Dpote</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-violet-700 mb-1">% Comissão Barbearia</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          step="1"
+                          value={dpotePorcentagemBarbearia}
+                          onChange={(e) => setDpotePorcentagemBarbearia(e.target.value ? Number(e.target.value) : "")}
+                          placeholder="Ex: 65"
+                          className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                        />
+                        <p className="text-xs text-violet-500 mt-1">Percentual da barbearia (ex: 65 = 65%)</p>
+                      </div>
+                      {dpoteValorAssinaturas && dpotePorcentagemBarbearia && (
+                        <div className="col-span-2 text-xs text-violet-700 font-medium">
+                          Base de cálculo: R$ {(Number(dpoteValorAssinaturas) * Number(dpotePorcentagemBarbearia) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2})} serão distribuídos proporcionalmente pelas fichas de cada filial
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {configExistente?.ultimaSincronizacao && (
                     <div className="flex items-center gap-2 text-xs text-slate-500">

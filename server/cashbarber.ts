@@ -531,3 +531,85 @@ export function calcularComissaoBrutaFilialPorNome(
   // Arredondar para inteiro (valores em reais)
   return Math.round(comissaoFilial);
 }
+
+/**
+ * Interface para resultado do cálculo Dpote por fichas ponderadas
+ */
+export interface DpoteResultadoPorFilial {
+  filialId: number;
+  filialNome: string;
+  fichas: number;
+  percentual: number;
+  comissaoBruta: number;
+}
+
+/**
+ * Calcula a Comissão Bruta Dpote por filial usando fichas ponderadas dos atendimentos.
+ *
+ * Fluxo:
+ * 1. Busca o catálogo de serviços para obter o peso em fichas de cada serviço (ser_valor_fichas)
+ * 2. Para cada filial, busca o relatório 15 (atendimentos do período)
+ * 3. Calcula fichas ponderadas: Σ(quantidade_atendimentos × ser_valor_fichas)
+ * 4. Distribui a comissão bruta proporcionalmente às fichas de cada filial
+ *
+ * @param token - Token JWT do CashBarber
+ * @param dataInicial - Data inicial no formato YYYY-MM-DD
+ * @param dataFinal - Data final no formato YYYY-MM-DD
+ * @param valorAssinaturas - Valor total de assinaturas do mês em reais
+ * @param porcentagemBarbearia - Percentual da comissão que vai para a barbearia (ex: 65)
+ * @returns Array com comissão bruta calculada por filial
+ */
+export async function cashbarberCalcularDpotePorFichas(
+  token: string,
+  dataInicial: string,
+  dataFinal: string,
+  valorAssinaturas: number,
+  porcentagemBarbearia: number
+): Promise<DpoteResultadoPorFilial[]> {
+  // 1. Buscar filiais
+  const filiais = await cashbarberListarFiliais(token);
+  if (!filiais || filiais.length === 0) return [];
+
+  // 2. Buscar catálogo de serviços para obter fichas por serviço
+  const catalogoServicos = await cashbarberListarServicos(token);
+  const fichasPorServicoId = new Map<number, number>(
+    catalogoServicos.map((s) => [s.id, (s as any).ser_valor_fichas || 0])
+  );
+
+  // 3. Para cada filial, buscar atendimentos e calcular fichas ponderadas
+  const fichasPorFilial: Array<{ filial: CashbarberFilial; fichas: number }> = [];
+
+  for (const filial of filiais) {
+    try {
+      const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, filial.id);
+      let totalFichas = 0;
+      for (const s of relatorio.servicos) {
+        const fichasPorAtt = fichasPorServicoId.get(s.ags_id_servico) || 0;
+        totalFichas += s.count * fichasPorAtt;
+      }
+      fichasPorFilial.push({ filial, fichas: totalFichas });
+    } catch {
+      // Se falhar para uma filial, continuar com as demais
+      fichasPorFilial.push({ filial, fichas: 0 });
+    }
+  }
+
+  // 4. Calcular comissão proporcional
+  const totalFichasGeral = fichasPorFilial.reduce((acc, f) => acc + f.fichas, 0);
+  const comissaoBrutaTotal = valorAssinaturas * (porcentagemBarbearia / 100);
+
+  return fichasPorFilial.map(({ filial, fichas }) => {
+    const percentual = totalFichasGeral > 0 ? (fichas / totalFichasGeral) * 100 : 0;
+    const comissaoBruta =
+      totalFichasGeral > 0 && fichas > 0
+        ? Math.round(comissaoBrutaTotal * (fichas / totalFichasGeral))
+        : 0;
+    return {
+      filialId: filial.id,
+      filialNome: filial.fil_bairro,
+      fichas,
+      percentual,
+      comissaoBruta,
+    };
+  });
+}

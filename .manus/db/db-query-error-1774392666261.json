@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  f.empresa_slug,\n  e.nome AS empresa_nome,\n  SUM(CAST(f.cat5 AS DECIMAL(15,2))) AS total_cat5,\n  COUNT(CASE WHEN CAST(f.cat5 AS DECIMAL(15,2)) > 0 THEN 1 END) AS dias_com_cat5,\n  MAX(CAST(f.cat5 AS DECIMAL(15,2))) AS maior_cat5\nFROM faturamentos f\nLEFT JOIN empresas e ON f.empresa_slug = e.slug AND f.tenant_id = e.tenant_id\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\nGROUP BY f.empresa_slug, e.nome\nORDER BY total_cat5 DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  f.empresa_slug,\n  e.nome AS empresa_nome,\n  SUM(CAST(f.cat5 AS DECIMAL(15,2))) AS total_cat5,\n  COUNT(CASE WHEN CAST(f.cat5 AS DECIMAL(15,2)) > 0 THEN 1 END) AS dias_com_cat5,\n  MAX(CAST(f.cat5 AS DECIMAL(15,2))) AS maior_cat5\nFROM faturamentos f\nLEFT JOIN empresas e ON f.empresa_slug = e.slug AND f.tenant_id = e.tenant_id\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\nGROUP BY f.empresa_slug, e.nome\nORDER BY total_cat5 DESC;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'f.empresa_slug' in 'on clause'"
+  ]
+}

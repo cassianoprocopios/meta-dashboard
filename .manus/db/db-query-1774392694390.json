@@ -1,0 +1,115 @@
+{
+  "query": "\nSELECT \n  f.empresaSlug,\n  f.data,\n  CAST(f.cat5 AS DECIMAL(15,2)) AS cat5\nFROM faturamentos f\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\n  AND CAST(f.cat5 AS DECIMAL(15,2)) > 0\nORDER BY f.empresaSlug, f.data;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  f.empresaSlug,\n  f.data,\n  CAST(f.cat5 AS DECIMAL(15,2)) AS cat5\nFROM faturamentos f\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\n  AND CAST(f.cat5 AS DECIMAL(15,2)) > 0\nORDER BY f.empresaSlug, f.data;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-25",
+      "cat5": "1175.07"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-26",
+      "cat5": "1952.44"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-27",
+      "cat5": "1321.57"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-25",
+      "cat5": "2676.19"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-26",
+      "cat5": "3819.90"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-27",
+      "cat5": "3568.23"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-28",
+      "cat5": "9816.88"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-29",
+      "cat5": "3116.26"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-03",
+      "cat5": "450.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-05",
+      "cat5": "1378.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-06",
+      "cat5": "1184.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-07",
+      "cat5": "1794.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-11",
+      "cat5": "672.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-12",
+      "cat5": "256.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-13",
+      "cat5": "1971.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-14",
+      "cat5": "2024.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-17",
+      "cat5": "722.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-18",
+      "cat5": "197.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-19",
+      "cat5": "498.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-20",
+      "cat5": "1280.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-03-21",
+      "cat5": "2411.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat5\nMASCOTE\t2026-03-25\t1175.07\nMASCOTE\t2026-03-26\t1952.44\nMASCOTE\t2026-03-27\t1321.57\nMORUMBI\t2026-03-25\t2676.19\nMORUMBI\t2026-03-26\t3819.90\nMORUMBI\t2026-03-27\t3568.23\nMORUMBI\t2026-03-28\t9816.88\nMORUMBI\t2026-03-29\t3116.26\nSERAPHINE\t2026-03-03\t450.00\nSERAPHINE\t2026-03-05\t1378.00\nSERAPHINE\t2026-03-06\t1184.00\nSERAPHINE\t2026-03-07\t1794.00\nSERAPHINE\t2026-03-11\t672.00\nSERAPHINE\t2026-03-12\t256.00\nSERAPHINE\t2026-03-13\t1971.00\nSERAPHINE\t2026-03-14\t2024.00\nSERAPHINE\t2026-03-17\t722.00\nSERAPHINE\t2026-03-18\t197.00\nSERAPHINE\t2026-03-19\t498.00\nSERAPHINE\t2026-03-20\t1280.00\nSERAPHINE\t2026-03-21\t2411.00\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

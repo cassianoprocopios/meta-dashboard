@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT empresaSlug, cbEmail, cbSenha, cbFilialId, dpoteFilialNome, dpoteFilialId, ativo\nFROM cashbarberConfig\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE')\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, cbEmail, cbSenha, cbFilialId, dpoteFilialNome, dpoteFilialId, ativo\nFROM cashbarberConfig\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE')\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "cbEmail": "barbierobarbearia@gmail.com",
+      "cbSenha": "2@Barbiero",
+      "cbFilialId": "3520",
+      "dpoteFilialNome": "NULL",
+      "dpoteFilialId": "NULL",
+      "ativo": "1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "cbEmail": "barbierobarbearia@gmail.com",
+      "cbSenha": "2@Barbiero",
+      "cbFilialId": "144",
+      "dpoteFilialNome": "NULL",
+      "dpoteFilialId": "NULL",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tcbEmail\tcbSenha\tcbFilialId\tdpoteFilialNome\tdpoteFilialId\tativo\nMASCOTE\tbarbierobarbearia@gmail.com\t2@Barbiero\t3520\tNULL\tNULL\t1\nMORUMBI\tbarbierobarbearia@gmail.com\t2@Barbiero\t144\tNULL\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

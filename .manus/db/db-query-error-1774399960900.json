@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE cashbarberConfig \n  ADD COLUMN dpoteValorAssinaturas DECIMAL(12,2) NULL AFTER dpoteHistoricoMes,\n  ADD COLUMN dpotePorcentagemBarbearia DECIMAL(5,2) NULL AFTER dpoteValorAssinaturas;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute ALTER TABLE cashbarberConfig \n  ADD COLUMN dpoteValorAssinaturas DECIMAL(12,2) NULL AFTER dpoteHistoricoMes,\n  ADD COLUMN dpotePorcentagemBarbearia DECIMAL(5,2) NULL AFTER dpoteValorAssinaturas;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'dpotevalorassinaturas' in 'cashbarberConfig'"
+  ]
+}

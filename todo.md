@@ -591,3 +591,20 @@
 - [x] Destacar a filial configurada com badge "configurada" e borda violeta
 - [x] Exibir total a distribuir no rodapé do painel (R$ comissaoBrutaTotal)
 - [x] Toast do Sync Dpote já exibe o valor por empresa (recorrenciaValor)
+
+## Automação Puppeteer para fluxo Dpote (Mar 2026)
+
+- [ ] Instalar puppeteer-core + chromium no projeto
+- [ ] Criar `server/cashbarberDpoteBrowser.ts`: navega pelo painel CashBarber, executa fluxo Dpote (Assinaturas → Dpote → Relatório → Criar Histórico → Continuar → Continuar → Enviar) e extrai Comissão Bruta por filial
+- [ ] Integrar no sincronizador: usar browser headless quando API retornar histórico vazio
+- [ ] Atualizar procedure `sincronizarDpote` para usar o novo fluxo
+- [ ] Testes de integração do fluxo browser
+
+## Cálculo Dpote via Fichas Ponderadas (Mar 2026)
+
+- [x] Função `cashbarberCalcularDpotePorFichas` no cashbarber.ts: busca relatório 15 por filial, calcula fichas ponderadas (count × ser_valor_fichas) e retorna comissão bruta proporcional
+- [x] Sincronizador usa fichas ponderadas: `calcularRecorrenciaDpotePorFichas` substitui `buscarRecorrenciaDpote`
+- [x] Campos `dpoteValorAssinaturas` e `dpotePorcentagemBarbearia` adicionados na tabela e no formulário
+- [x] Valores de março/2026 salvos no banco (Morumbi: R$ 65.992, Mascote: R$ 28.258)
+- [x] Job automático diário recalcula Dpote com atendimentos acumulados até o dia atual (confirmado: MASCOTE R$ 28.258 calculado às 01:00)
+- [x] 71 testes passando (todos os mocks atualizados para a nova função)

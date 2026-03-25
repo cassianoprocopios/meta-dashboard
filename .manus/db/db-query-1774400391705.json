@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Morumbi: R$ 65.992 (70% das fichas de 145.000 × 65%)\nUPDATE faturamentos SET cat5 = '65992.00' \nWHERE empresaSlug = 'morumbi' AND data = '2026-03-01' AND tenantId = (SELECT tenantId FROM cashbarberConfig WHERE empresaSlug = 'morumbi' LIMIT 1);\n\n-- Mascote: R$ 28.258 (30% das fichas de 145.000 × 65%)\nUPDATE faturamentos SET cat5 = '28258.00' \nWHERE empresaSlug = 'mascote' AND data = '2026-03-01' AND tenantId = (SELECT tenantId FROM cashbarberConfig WHERE empresaSlug = 'mascote' LIMIT 1);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Morumbi: R$ 65.992 (70% das fichas de 145.000 × 65%)\nUPDATE faturamentos SET cat5 = '65992.00' \nWHERE empresaSlug = 'morumbi' AND data = '2026-03-01' AND tenantId = (SELECT tenantId FROM cashbarberConfig WHERE empresaSlug = 'morumbi' LIMIT 1);\n\n-- Mascote: R$ 28.258 (30% das fichas de 145.000 × 65%)\nUPDATE faturamentos SET cat5 = '28258.00' \nWHERE empresaSlug = 'mascote' AND data = '2026-03-01' AND tenantId = (SELECT tenantId FROM cashbarberConfig WHERE empresaSlug = 'mascote' LIMIT 1);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 94
+}

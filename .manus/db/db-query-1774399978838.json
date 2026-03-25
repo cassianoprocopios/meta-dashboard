@@ -1,0 +1,22 @@
+{
+  "query": "-- Configurar parâmetros Dpote para todas as empresas com dpoteFilialNome configurado\nUPDATE cashbarberConfig \nSET dpoteValorAssinaturas = 145000.00, dpotePorcentagemBarbearia = 65.00\nWHERE dpoteFilialNome IS NOT NULL AND dpoteFilialNome != '';\n\n-- Verificar resultado\nSELECT empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute -- Configurar parâmetros Dpote para todas as empresas com dpoteFilialNome configurado\nUPDATE cashbarberConfig \nSET dpoteValorAssinaturas = 145000.00, dpotePorcentagemBarbearia = 65.00\nWHERE dpoteFilialNome IS NOT NULL AND dpoteFilialNome != '';\n\n-- Verificar resultado\nSELECT empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "dpoteFilialNome": "NULL",
+      "dpoteValorAssinaturas": "NULL",
+      "dpotePorcentagemBarbearia": "NULL"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "dpoteFilialNome": "NULL",
+      "dpoteValorAssinaturas": "NULL",
+      "dpotePorcentagemBarbearia": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpoteFilialNome\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\nMORUMBI\tNULL\tNULL\tNULL\nMASCOTE\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 75
+}

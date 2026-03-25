@@ -1055,6 +1055,8 @@ export async function upsertCashbarberConfig(data: InsertCashbarberConfig) {
         cbFilialNome: data.cbFilialNome,
         dpoteFilialId: data.dpoteFilialId ?? null,
         dpoteFilialNome: data.dpoteFilialNome ?? null,
+        dpoteValorAssinaturas: data.dpoteValorAssinaturas ?? null,
+        dpotePorcentagemBarbearia: data.dpotePorcentagemBarbearia ?? null,
         ativo: data.ativo ?? 1,
       })
       .where(and(eq(cashbarberConfig.tenantId, data.tenantId), eq(cashbarberConfig.empresaSlug, data.empresaSlug)));

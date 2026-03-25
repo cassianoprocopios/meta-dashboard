@@ -216,6 +216,10 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   dpoteHistoricoId: int("dpoteHistoricoId"),
   /** Mês/ano do histórico Dpote armazenado (formato YYYY-MM, ex: '2026-03') */
   dpoteHistoricoMes: varchar("dpoteHistoricoMes", { length: 7 }),
+  /** Valor total das assinaturas do mês (base para cálculo da comissão bruta Dpote) */
+  dpoteValorAssinaturas: decimal("dpoteValorAssinaturas", { precision: 12, scale: 2 }),
+  /** Percentual da comissão que vai para a barbearia (ex: 65 = 65%) */
+  dpotePorcentagemBarbearia: decimal("dpotePorcentagemBarbearia", { precision: 5, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

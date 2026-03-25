@@ -1,0 +1,38 @@
+{
+  "query": "\nSELECT \n  f.empresaSlug,\n  e.nome AS empresa_nome,\n  SUM(CAST(f.cat5 AS DECIMAL(15,2))) AS total_cat5,\n  COUNT(CASE WHEN CAST(f.cat5 AS DECIMAL(15,2)) > 0 THEN 1 END) AS dias_com_cat5,\n  MAX(CAST(f.cat5 AS DECIMAL(15,2))) AS maior_cat5\nFROM faturamentos f\nLEFT JOIN empresas e ON f.empresaSlug = e.slug AND f.tenantId = e.tenantId\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\nGROUP BY f.empresaSlug, e.nome\nORDER BY total_cat5 DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  f.empresaSlug,\n  e.nome AS empresa_nome,\n  SUM(CAST(f.cat5 AS DECIMAL(15,2))) AS total_cat5,\n  COUNT(CASE WHEN CAST(f.cat5 AS DECIMAL(15,2)) > 0 THEN 1 END) AS dias_com_cat5,\n  MAX(CAST(f.cat5 AS DECIMAL(15,2))) AS maior_cat5\nFROM faturamentos f\nLEFT JOIN empresas e ON f.empresaSlug = e.slug AND f.tenantId = e.tenantId\nWHERE \n  MONTH(f.data) = MONTH(CURDATE())\n  AND YEAR(f.data) = YEAR(CURDATE())\nGROUP BY f.empresaSlug, e.nome\nORDER BY total_cat5 DESC;\n",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "empresa_nome": "Morumbi",
+      "total_cat5": "22997.46",
+      "dias_com_cat5": "5",
+      "maior_cat5": "9816.88"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "empresa_nome": "Seraphine",
+      "total_cat5": "14837.00",
+      "dias_com_cat5": "13",
+      "maior_cat5": "2411.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "empresa_nome": "Mascote",
+      "total_cat5": "4449.08",
+      "dias_com_cat5": "3",
+      "maior_cat5": "1952.44"
+    },
+    {
+      "empresaSlug": "DOM_",
+      "empresa_nome": "Dom Pablo",
+      "total_cat5": "0.00",
+      "dias_com_cat5": "0",
+      "maior_cat5": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tempresa_nome\ttotal_cat5\tdias_com_cat5\tmaior_cat5\nMORUMBI\tMorumbi\t22997.46\t5\t9816.88\nSERAPHINE\tSeraphine\t14837.00\t13\t2411.00\nMASCOTE\tMascote\t4449.08\t3\t1952.44\nDOM_\tDom Pablo\t0.00\t0\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 76
+}

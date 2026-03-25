@@ -1,0 +1,42 @@
+{
+  "query": "\nSELECT \n  m.empresaSlug,\n  e.nome,\n  m.mes,\n  m.ano,\n  m.metaMensal,\n  m.metaQuinzenal\nFROM metas m\nLEFT JOIN empresas e ON m.empresaSlug = e.slug AND m.tenantId = e.tenantId\nWHERE m.mes = MONTH(CURDATE()) AND m.ano = YEAR(CURDATE())\nORDER BY m.empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  m.empresaSlug,\n  e.nome,\n  m.mes,\n  m.ano,\n  m.metaMensal,\n  m.metaQuinzenal\nFROM metas m\nLEFT JOIN empresas e ON m.empresaSlug = e.slug AND m.tenantId = e.tenantId\nWHERE m.mes = MONTH(CURDATE()) AND m.ano = YEAR(CURDATE())\nORDER BY m.empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "DOM_",
+      "nome": "Dom Pablo",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "250000.00",
+      "metaQuinzenal": "130000.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Mascote",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "100000.00",
+      "metaQuinzenal": "50000.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Morumbi",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "210000.00",
+      "metaQuinzenal": "105000.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Seraphine",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "120000.00",
+      "metaQuinzenal": "60000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tnome\tmes\tano\tmetaMensal\tmetaQuinzenal\nDOM_\tDom Pablo\t3\t2026\t250000.00\t130000.00\nMASCOTE\tMascote\t3\t2026\t100000.00\t50000.00\nMORUMBI\tMorumbi\t3\t2026\t210000.00\t105000.00\nSERAPHINE\tSeraphine\t3\t2026\t120000.00\t60000.00\n",
+  "stderr": "",
+  "execution_time_ms": 73
+}

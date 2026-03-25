@@ -30,10 +30,7 @@ import {
   cashbarberListarProdutos,
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
-  cashbarberCriarHistoricoDpote,
-  cashbarberBuscarHistoricoDpote,
-  calcularComissaoBrutaFilial,
-  calcularComissaoBrutaFilialPorNome,
+  cashbarberCalcularDpotePorFichas,
 } from "./cashbarber";
 
 /**
@@ -70,53 +67,43 @@ function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Se
 }
 
 /**
- * Busca ou cria o histórico Dpote para o mês/ano atual.
- * Reutiliza o ID salvo no banco para evitar criar duplicatas a cada sync.
+ * Calcula a Recorrência Dpote para uma empresa usando fichas ponderadas dos atendimentos.
  *
- * Identifica a filial por NOME (dpoteFilialNome) se disponível,
- * ou por ID numérico (dpoteFilialId) como fallback.
+ * Usa o relatório 15 do CashBarber para obter atendimentos por serviço por filial,
+ * multiplica pela fichas configuradas em cada serviço (ser_valor_fichas),
+ * e distribui a comissão bruta proporcionalmente.
  *
- * @returns ID do histórico Dpote e o valor de Comissão Bruta da filial (em reais)
+ * @param token - Token JWT do CashBarber
+ * @param dataInicial - Data inicial no formato YYYY-MM-DD
+ * @param dataFinal - Data final no formato YYYY-MM-DD
+ * @param dpoteFilialNome - Nome da filial no Dpote (busca parcial, case-insensitive)
+ * @param valorAssinaturas - Valor total de assinaturas configurado
+ * @param porcentagemBarbearia - Percentual da comissão para a barbearia (ex: 65)
+ * @returns Valor da comissão bruta da filial em reais
  */
-async function buscarRecorrenciaDpote(
+async function calcularRecorrenciaDpotePorFichas(
   token: string,
-  tenantId: number,
-  empresaSlug: string,
-  cbFilialId: number,
-  mes: number,
-  ano: number,
-  dpoteFilialNome?: string | null,
-  dpoteFilialId?: number | null
-): Promise<{ historicoId: number; recorrenciaValor: number }> {
-  const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
+  dataInicial: string,
+  dataFinal: string,
+  dpoteFilialNome: string,
+  valorAssinaturas: number,
+  porcentagemBarbearia: number
+): Promise<number> {
+  const resultados = await cashbarberCalcularDpotePorFichas(
+    token,
+    dataInicial,
+    dataFinal,
+    valorAssinaturas,
+    porcentagemBarbearia
+  );
 
-  // Verificar se já existe um histórico salvo para este mês
-  let historicoId = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
+  // Encontrar a filial pelo nome (busca parcial, case-insensitive)
+  const nomeBusca = dpoteFilialNome.trim().toLowerCase();
+  const filial = resultados.find(
+    (r) => r.filialNome && r.filialNome.toLowerCase().includes(nomeBusca)
+  );
 
-  if (!historicoId) {
-    // Criar novo histórico Dpote no CashBarber
-    historicoId = await cashbarberCriarHistoricoDpote(token);
-    // Salvar o ID no banco para reutilizar nas próximas syncs do mês
-    await saveDpoteHistoricoId(tenantId, empresaSlug, historicoId, mesSigla);
-  }
-
-  // Buscar os dados do histórico (atualizado a cada sync)
-  const historico = await cashbarberBuscarHistoricoDpote(token, historicoId);
-
-  // Calcular a Comissão Bruta da filial:
-  // Prioridade 1: por nome (dpoteFilialNome) — busca parcial, case-insensitive
-  // Prioridade 2: por ID numérico (dpoteFilialId)
-  // Fallback: por cbFilialId (ID da filial principal)
-  let recorrenciaValor = 0;
-  if (dpoteFilialNome && dpoteFilialNome.trim()) {
-    recorrenciaValor = calcularComissaoBrutaFilialPorNome(historico, dpoteFilialNome);
-  } else if (dpoteFilialId) {
-    recorrenciaValor = calcularComissaoBrutaFilial(historico, dpoteFilialId);
-  } else {
-    recorrenciaValor = calcularComissaoBrutaFilial(historico, cbFilialId);
-  }
-
-  return { historicoId, recorrenciaValor };
+  return filial?.comissaoBruta ?? 0;
 }
 
 /**
@@ -164,26 +151,43 @@ export async function sincronizarFaturamentoCashbarber(
     cashbarberListarProdutos(token),
   ]);
 
-  // 5. Buscar Recorrência via Dpote (Comissão Bruta da filial para o mês)
-  //    Este valor é único para o mês inteiro, mas atualizado a cada sync.
+  // 5. Calcular Recorrência via Dpote usando fichas ponderadas dos atendimentos do mês.
+  //    O valor é recalculado a cada sync com os atendimentos acumulados até o dia atual.
+  //    É lançado APENAS no dia 1 do mês para evitar duplicação.
   let recorrenciaValor = 0;
   let recorrenciaAtualizada = false;
-  try {
-    const dpote = await buscarRecorrenciaDpote(
-      token,
-      tenantId,
-      empresaSlug,
-      config.cbFilialId,
-      mes,
-      ano,
-      config.dpoteFilialNome ?? null,
-      config.dpoteFilialId ?? null
-    );
-    recorrenciaValor = dpote.recorrenciaValor;
-    recorrenciaAtualizada = true;
-  } catch (err) {
-    // Falha no Dpote não deve interromper a sync do faturamento diário
-    console.warn(`[CashBarber] Falha ao buscar Recorrência via Dpote para ${empresaSlug}:`, err);
+
+  // Só calcular Dpote se a empresa tiver nome de filial configurado e parâmetros de assinaturas
+  const dpoteFilialNome = config.dpoteFilialNome?.trim();
+  const dpoteValorAssinaturas = config.dpoteValorAssinaturas ? parseFloat(String(config.dpoteValorAssinaturas)) : undefined;
+  const dpotePorcentagemBarbearia = config.dpotePorcentagemBarbearia ? parseFloat(String(config.dpotePorcentagemBarbearia)) : undefined;
+
+  if (dpoteFilialNome && dpoteValorAssinaturas && dpotePorcentagemBarbearia) {
+    try {
+      // Calcular com atendimentos do dia 1 ao dia atual (ou último dia do mês)
+      const hoje = new Date();
+      const ehMesAtualDpote = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
+      const ultimoDiaDpote = ehMesAtualDpote ? hoje.getDate() : new Date(ano, mes, 0).getDate();
+      const dataInicialDpote = `${ano}-${String(mes).padStart(2, "0")}-01`;
+      const dataFinalDpote = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDiaDpote).padStart(2, "0")}`;
+
+      recorrenciaValor = await calcularRecorrenciaDpotePorFichas(
+        token,
+        dataInicialDpote,
+        dataFinalDpote,
+        dpoteFilialNome,
+        dpoteValorAssinaturas,
+        dpotePorcentagemBarbearia
+      );
+      recorrenciaAtualizada = true;
+      console.log(`[CashBarber] Dpote ${empresaSlug}: R$ ${recorrenciaValor} (fichas ponderadas)`);
+    } catch (err) {
+      // Falha no Dpote não deve interromper a sync do faturamento diário
+      console.warn(`[CashBarber] Falha ao calcular Recorrência via Dpote para ${empresaSlug}:`, err);
+    }
+  } else if (dpoteFilialNome) {
+    // Filial configurada mas sem parâmetros de assinaturas — logar aviso
+    console.warn(`[CashBarber] Dpote ${empresaSlug}: filial configurada mas sem valorAssinaturas/porcentagemBarbearia`);
   }
 
   // 6. Determinar o período: do dia 1 ao último dia do mês

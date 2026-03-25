@@ -1697,6 +1697,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           dpoteFilialId: z.number().int().positive().optional(),
           /** Nome da filial no módulo Dpote (ex: 'Morumbi', 'Mascote') — alternativa ao ID */
           dpoteFilialNome: z.string().optional(),
+          /** Valor total das assinaturas do mês (base para cálculo da comissão bruta Dpote) */
+          dpoteValorAssinaturas: z.number().positive().optional(),
+          /** Percentual da comissão que vai para a barbearia (ex: 65 = 65%) */
+          dpotePorcentagemBarbearia: z.number().min(1).max(100).optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -1716,6 +1720,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           cbFilialNome: input.cbFilialNome,
           dpoteFilialId: input.dpoteFilialId ?? null,
           dpoteFilialNome: input.dpoteFilialNome ?? null,
+          dpoteValorAssinaturas: input.dpoteValorAssinaturas ? String(input.dpoteValorAssinaturas) : null,
+          dpotePorcentagemBarbearia: input.dpotePorcentagemBarbearia ? String(input.dpotePorcentagemBarbearia) : null,
         });
         // Recarregar jobs após salvar a configuração
         recarregarJobsCashbarber().catch(() => {});

@@ -1,0 +1,24 @@
+{
+  "query": "SELECT empresaSlug, tenantId, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig WHERE ativo = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, tenantId, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig WHERE ativo = 1;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "tenantId": "1",
+      "dpoteFilialNome": "Morumbi",
+      "dpoteValorAssinaturas": "145000.00",
+      "dpotePorcentagemBarbearia": "65.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tenantId": "1",
+      "dpoteFilialNome": "Mascote",
+      "dpoteValorAssinaturas": "145000.00",
+      "dpotePorcentagemBarbearia": "65.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttenantId\tdpoteFilialNome\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\nMORUMBI\t1\tMorumbi\t145000.00\t65.00\nMASCOTE\t1\tMascote\t145000.00\t65.00\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

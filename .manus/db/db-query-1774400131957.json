@@ -1,0 +1,28 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'cashbarberConfig' AND COLUMN_NAME LIKE 'dpote%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'cashbarberConfig' AND COLUMN_NAME LIKE 'dpote%';",
+  "rows": [
+    {
+      "COLUMN_NAME": "dpoteFilialId"
+    },
+    {
+      "COLUMN_NAME": "dpoteFilialNome"
+    },
+    {
+      "COLUMN_NAME": "dpoteHistoricoId"
+    },
+    {
+      "COLUMN_NAME": "dpoteHistoricoMes"
+    },
+    {
+      "COLUMN_NAME": "dpoteValorAssinaturas"
+    },
+    {
+      "COLUMN_NAME": "dpotePorcentagemBarbearia"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\ndpoteFilialId\ndpoteFilialNome\ndpoteHistoricoId\ndpoteHistoricoMes\ndpoteValorAssinaturas\ndpotePorcentagemBarbearia\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

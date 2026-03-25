@@ -36,6 +36,10 @@ vi.mock("./cashbarber", () => ({
   }),
   calcularComissaoBrutaFilial: vi.fn().mockReturnValue(0),
   calcularComissaoBrutaFilialPorNome: vi.fn().mockReturnValue(0),
+  // Nova função usada pelo sincronizador para calcular Dpote via fichas ponderadas
+  cashbarberCalcularDpotePorFichas: vi.fn().mockResolvedValue([
+    { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+  ]),
 }));
 
 // ─── Importar após mocks ──────────────────────────────────────────────────────
@@ -50,6 +54,7 @@ import {
 import {
   calcularFaturamentoPorCategoriaComCatalogo,
   calcularComissaoBrutaFilialPorNome,
+  cashbarberCalcularDpotePorFichas,
 } from "./cashbarber";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -63,6 +68,8 @@ const configMock = {
   cbFilialId: "144",
   dpoteFilialNome: "Morumbi",
   dpoteFilialId: null,
+  dpoteValorAssinaturas: "145000.00",
+  dpotePorcentagemBarbearia: "65.00",
   ativo: 1,
   sincAutoAtiva: 1,
   horarioSinc: "00:00",
@@ -109,8 +116,10 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
       cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0,
       totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
     });
-    // Dpote retorna R$ 5.000 de comissão para a filial
-    vi.mocked(calcularComissaoBrutaFilialPorNome).mockReturnValue(5000);
+    // Dpote retorna R$ 5.000 de comissão para a filial (nova função via fichas ponderadas)
+    vi.mocked(cashbarberCalcularDpotePorFichas).mockResolvedValue([
+      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+    ]);
     // Sem registros existentes por padrão
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
   });
@@ -155,9 +164,7 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
 
   it("quando Dpote falha, preserva cat5 existente no dia 1 e '0' nos demais", async () => {
     // Dpote falha (lança erro)
-    vi.mocked(calcularComissaoBrutaFilialPorNome).mockImplementation(() => {
-      throw new Error("Dpote indisponível");
-    });
+    vi.mocked(cashbarberCalcularDpotePorFichas).mockRejectedValue(new Error("Dpote indisponível"));
 
     // Dia 1 tem registro existente com cat5=2500
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockImplementation(async (data) => {
@@ -230,7 +237,9 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
     });
 
     // Dpote retorna 5000 (este deve prevalecer)
-    vi.mocked(calcularComissaoBrutaFilialPorNome).mockReturnValue(5000);
+    vi.mocked(cashbarberCalcularDpotePorFichas).mockResolvedValue([
+      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+    ]);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
