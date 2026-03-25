@@ -30,15 +30,16 @@ vi.mock("./cashbarber", () => ({
   cashbarberRelatorio15: vi.fn().mockResolvedValue({ servicos: [], produtos: [] }),
   calcularFaturamentoPorCategoriaComCatalogo: vi.fn(),
   cashbarberCriarHistoricoDpote: vi.fn().mockResolvedValue(999),
+  cashbarberBuscarValorAssinaturas: vi.fn().mockResolvedValue(null), // retorna null para forçar uso do valor manual
   cashbarberBuscarHistoricoDpote: vi.fn().mockResolvedValue({
     faturamento: { valor_ganho_assinaturas: 10000, porcentagem_comissao_barbearias: 50 },
     filiais_servicos: [],
   }),
   calcularComissaoBrutaFilial: vi.fn().mockReturnValue(0),
   calcularComissaoBrutaFilialPorNome: vi.fn().mockReturnValue(0),
-  // Nova função usada pelo sincronizador para calcular Dpote via fichas ponderadas
+  // Função usada pelo sincronizador para calcular Dpote via fichas ponderadas
   cashbarberCalcularDpotePorFichas: vi.fn().mockResolvedValue([
-    { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+    { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, valorDistribuido: 5000, comissaoBruta: 5000 },
   ]),
 }));
 
@@ -116,9 +117,9 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
       cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0,
       totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
     });
-    // Dpote retorna R$ 5.000 de comissão para a filial (nova função via fichas ponderadas)
+    // Dpote retorna R$ 5.000 de faturamento para a filial (nova função via fichas ponderadas)
     vi.mocked(cashbarberCalcularDpotePorFichas).mockResolvedValue([
-      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, valorDistribuido: 5000, comissaoBruta: 5000 },
     ]);
     // Sem registros existentes por padrão
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
@@ -238,7 +239,7 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
 
     // Dpote retorna 5000 (este deve prevalecer)
     vi.mocked(cashbarberCalcularDpotePorFichas).mockResolvedValue([
-      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, comissaoBruta: 5000 },
+      { filialNome: "Morumbi/Vila Andrade", fichas: 64620, percentual: 70, valorDistribuido: 5000, comissaoBruta: 5000 },
     ]);
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");

@@ -70,19 +70,17 @@ function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Se
 }
 
 /**
- * Calcula a Recorrência Dpote para uma empresa usando fichas ponderadas dos atendimentos.
+ * Calcula o valor de Recorrência Dpote para uma filial específica usando fichas ponderadas.
  *
- * Usa o relatório 15 do CashBarber para obter atendimentos por serviço por filial,
- * multiplica pela fichas configuradas em cada serviço (ser_valor_fichas),
- * e distribui a comissão bruta proporcionalmente.
+ * Distribui 100% do valor de assinaturas proporcionalmente às fichas de cada filial.
  *
  * @param token - Token JWT do CashBarber
  * @param dataInicial - Data inicial no formato YYYY-MM-DD
  * @param dataFinal - Data final no formato YYYY-MM-DD
  * @param dpoteFilialNome - Nome da filial no Dpote (busca parcial, case-insensitive)
- * @param valorAssinaturas - Valor total de assinaturas configurado
- * @param porcentagemBarbearia - Percentual da comissão para a barbearia (ex: 65)
- * @returns Valor da comissão bruta da filial em reais
+ * @param valorAssinaturas - Valor total de assinaturas a distribuir (100%)
+ * @param porcentagemBarbearia - Parâmetro mantido por compatibilidade (ignorado no cálculo)
+ * @returns Valor distribuído para a filial em reais
  */
 async function calcularRecorrenciaDpotePorFichas(
   token: string,
@@ -106,7 +104,7 @@ async function calcularRecorrenciaDpotePorFichas(
     (r) => r.filialNome && r.filialNome.toLowerCase().includes(nomeBusca)
   );
 
-  return filial?.comissaoBruta ?? 0;
+  return filial?.valorDistribuido ?? 0;
 }
 
 /**
@@ -224,14 +222,16 @@ export async function sincronizarFaturamentoCashbarber(
         }
       }
 
-      if (valorAssinaturasEfetivo && porcentagemBarbeariaEfetiva) {
+      if (valorAssinaturasEfetivo) {
+        // porcentagemBarbearia não é mais usada no cálculo (distribuição é 100%)
+        const pct = porcentagemBarbeariaEfetiva ?? 100;
         recorrenciaValor = await calcularRecorrenciaDpotePorFichas(
           token,
           dataInicialDpote,
           dataFinalDpote,
           dpoteFilialNome,
           valorAssinaturasEfetivo,
-          porcentagemBarbeariaEfetiva
+          pct
         );
         recorrenciaAtualizada = true;
         console.log(`[CashBarber] Dpote ${empresaSlug}: R$ ${recorrenciaValor} (fichas ponderadas, fonte: ${valorFonteBusca})`);
@@ -377,14 +377,13 @@ export async function sincronizarFaturamentoCashbarber(
  * Resultado da aplicação do Dpote para um tenant
  */
 export interface ResultadoAplicacaoDpote {
-  aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }>;
+  aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }>;
   naoEncontrados: string[];
   totalAssinaturas: number;
-  porcentagemBarbearia: number;
 }
 
 /**
- * Calcula a distribuição Dpote por filial e aplica o valor de comissão bruta
+ * Calcula a distribuição Dpote por filial e aplica 100% do valor de assinaturas
  * como cat5 (Recorrência) no faturamento do dia 1 de cada empresa para o mês/ano.
  *
  * Esta função é chamada automaticamente pelo job de sync após sincronizar todas as empresas,
@@ -403,14 +402,15 @@ export async function aplicarDpoteParaTenant(
 
   // Encontrar config com Dpote configurado (usa a primeira com valorAssinaturas)
   const configComDpote = configs.find(
-    (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+    (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas
   );
   if (!configComDpote) {
     throw new Error(`Nenhuma empresa do tenant ${tenantId} com Dpote configurado encontrada.`);
   }
 
   let valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
-  let porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+  // porcentagemBarbearia não é mais usada no cálculo (distribuição é 100%)
+  const porcentagemBarbearia = 100;
 
   // Tentar buscar valor de assinaturas automaticamente via API do CashBarber
   const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
@@ -421,7 +421,6 @@ export async function aplicarDpoteParaTenant(
     const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
     if (dadosApi) {
       valorAssinaturas = dadosApi.valorAssinaturas;
-      porcentagemBarbearia = dadosApi.porcentagemBarbearia;
       console.log(`[CashBarber Dpote] Valor assinaturas buscado via API: R$ ${valorAssinaturas} (histórico #${historicoIdSalvo})`);
     }
   }
@@ -462,7 +461,7 @@ export async function aplicarDpoteParaTenant(
       cat2: existente?.cat2 ?? "0",
       cat3: existente?.cat3 ?? "0",
       cat4: existente?.cat4 ?? "0",
-      cat5: String(filial.comissaoBruta),
+      cat5: String(filial.valorDistribuido),
       sincronizadoCB: existente?.sincronizadoCB ?? 0,
       observacao: existente?.observacao ?? undefined,
       lancadoPor: existente?.lancadoPor ?? undefined,
@@ -471,11 +470,11 @@ export async function aplicarDpoteParaTenant(
     aplicados.push({
       empresaSlug: config.empresaSlug,
       filialNome: filial.filialNome,
-      comissaoBruta: filial.comissaoBruta,
+      valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat5 atualizado para ${config.empresaSlug}: R$ ${filial.comissaoBruta.toFixed(2)}`);
+    console.log(`[CashBarber Dpote] cat5 atualizado para ${config.empresaSlug}: R$ ${filial.valorDistribuido.toFixed(2)}`);
   }
 
-  return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas, porcentagemBarbearia };
+  return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };
 }

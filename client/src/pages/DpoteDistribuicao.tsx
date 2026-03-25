@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, AlertCircle, PencilLine } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -36,7 +36,7 @@ function fmtNum(v: number) {
 
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; payload: { comissaoBruta: number; fichas: number } }>;
+  payload?: Array<{ name: string; value: number; payload: { valorDistribuido: number; fichas: number } }>;
 }
 
 function CustomPieTooltip({ active, payload }: CustomTooltipProps) {
@@ -45,7 +45,7 @@ function CustomPieTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div className="bg-slate-900 border border-violet-500/30 rounded-xl px-3 py-2.5 shadow-xl text-xs">
       <p className="font-semibold text-violet-300 mb-1">{d.name}</p>
-      <p className="text-white">Comissão bruta: <span className="font-bold">{fmtFull(d.payload.comissaoBruta)}</span></p>
+      <p className="text-white">Faturamento: <span className="font-bold">{fmtFull(d.payload.valorDistribuido)}</span></p>
       <p className="text-violet-200/70">Fichas: {fmtNum(d.payload.fichas)}</p>
       <p className="text-violet-200/70">Proporção: {d.value.toFixed(1)}%</p>
     </div>
@@ -81,7 +81,6 @@ export default function DpoteDistribuicao() {
         description: `${resultado.empresaSlug}: ${fmtFull(resultado.cat5Anterior)} → ${fmtFull(resultado.cat5Novo)}`,
         duration: 5000,
       });
-      // Fechar painel de ajuste da empresa
       setAjusteAberto(null);
     },
     onError: (err) => {
@@ -91,10 +90,9 @@ export default function DpoteDistribuicao() {
 
   const aplicarMutation = trpc.cashbarber.aplicarDpoteNoFaturamento.useMutation({
     onSuccess: (resultado) => {
-      // Invalidar faturamentos para o dashboard atualizar
       utils.faturamento.listar.invalidate();
       const linhas = resultado.aplicados.map(
-        (a) => `${a.filialNome}: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(a.comissaoBruta)}`
+        (a) => `${a.filialNome}: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(a.valorDistribuido)}`
       ).join(" · ");
       const avisos = resultado.naoEncontrados.length > 0
         ? ` (não encontrado: ${resultado.naoEncontrados.join(", ")})`
@@ -118,7 +116,7 @@ export default function DpoteDistribuicao() {
       .map((f, i) => ({
         name: f.filialNome,
         value: f.percentual,
-        comissaoBruta: f.comissaoBruta,
+        valorDistribuido: f.valorDistribuido,
         fichas: f.fichas,
         cor: CORES_FILIAL[i % CORES_FILIAL.length],
       }));
@@ -130,13 +128,13 @@ export default function DpoteDistribuicao() {
       .filter((f) => f.fichas > 0)
       .map((f, i) => ({
         nome: f.filialNome,
-        comissaoBruta: f.comissaoBruta,
+        valorDistribuido: f.valorDistribuido,
         fichas: f.fichas,
         cor: CORES_FILIAL[i % CORES_FILIAL.length],
       }));
   }, [data]);
 
-  const comissaoBrutaTotal = data?.filiais?.reduce((acc, f) => acc + f.comissaoBruta, 0) ?? 0;
+  const totalDistribuido = data?.filiais?.reduce((acc, f) => acc + f.valorDistribuido, 0) ?? 0;
 
   return (
     <div className="space-y-6">
@@ -148,7 +146,7 @@ export default function DpoteDistribuicao() {
             Distribuição Dpote por Filial
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Comissão bruta de assinaturas distribuída proporcionalmente pelas fichas de cada unidade
+            100% das assinaturas distribuídas proporcionalmente pelas fichas de cada unidade
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -170,7 +168,7 @@ export default function DpoteDistribuicao() {
             {isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
             Atualizar
           </button>
-          {/* Botão principal: aplica comissão bruta como faturamento de cada unidade */}
+          {/* Botão principal: aplica valor distribuído como faturamento de cada unidade */}
           {data && data.filiais.length > 0 && (
             <Button
               onClick={() => aplicarMutation.mutate({ mes, ano })}
@@ -223,21 +221,16 @@ export default function DpoteDistribuicao() {
       {!isLoading && !error && data && data.filiais.length > 0 && (
         <>
           {/* Cards de resumo */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Total Assinaturas</p>
               <p className="text-lg font-bold text-foreground">{fmt(data.totalAssinaturas)}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">valor bruto do mês</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">valor bruto do mês (100%)</p>
             </Card>
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
-              <p className="text-xs text-muted-foreground mb-1">% Comissão Barbearia</p>
-              <p className="text-lg font-bold text-violet-400">{data.porcentagemBarbearia}%</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">do pote total</p>
-            </Card>
-            <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
-              <p className="text-xs text-muted-foreground mb-1">Comissão Bruta Total</p>
-              <p className="text-lg font-bold text-emerald-400">{fmt(comissaoBrutaTotal)}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">distribuída entre filiais</p>
+              <p className="text-xs text-muted-foreground mb-1">Total Distribuído</p>
+              <p className="text-lg font-bold text-emerald-400">{fmt(totalDistribuido)}</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">entre todas as filiais</p>
             </Card>
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Total de Fichas</p>
@@ -250,7 +243,7 @@ export default function DpoteDistribuicao() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.filiais
               .filter((f) => f.fichas > 0)
-              .sort((a, b) => b.comissaoBruta - a.comissaoBruta)
+              .sort((a, b) => b.valorDistribuido - a.valorDistribuido)
               .map((f, i) => {
                 const cor = CORES_FILIAL[i % CORES_FILIAL.length];
                 return (
@@ -277,10 +270,10 @@ export default function DpoteDistribuicao() {
                       </span>
                     </div>
 
-                    {/* Comissão bruta em destaque */}
+                    {/* Valor distribuído em destaque */}
                     <div className="mb-4">
-                      <p className="text-xs text-muted-foreground mb-0.5">Comissão Bruta</p>
-                      <p className="text-2xl font-bold" style={{ color: cor }}>{fmtFull(f.comissaoBruta)}</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">Faturamento Recorrência</p>
+                      <p className="text-2xl font-bold" style={{ color: cor }}>{fmtFull(f.valorDistribuido)}</p>
                     </div>
 
                     {/* Barra de proporção */}
@@ -339,9 +332,9 @@ export default function DpoteDistribuicao() {
               </ResponsiveContainer>
             </Card>
 
-            {/* Gráfico de barras — comissão bruta por filial */}
+            {/* Gráfico de barras — valor distribuído por filial */}
             <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Comissão Bruta por Filial (R$)</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Faturamento Recorrência por Filial (R$)</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -358,7 +351,7 @@ export default function DpoteDistribuicao() {
                     tickLine={false}
                   />
                   <Tooltip
-                    formatter={(value: number) => [fmtFull(value), "Comissão Bruta"]}
+                    formatter={(value: number) => [fmtFull(value), "Faturamento"]}
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
@@ -366,7 +359,7 @@ export default function DpoteDistribuicao() {
                       fontSize: "12px",
                     }}
                   />
-                  <Bar dataKey="comissaoBruta" radius={[6, 6, 0, 0]}>
+                  <Bar dataKey="valorDistribuido" radius={[6, 6, 0, 0]}>
                     {barData.map((entry, index) => (
                       <Cell key={`bar-${index}`} fill={entry.cor} />
                     ))}
@@ -386,14 +379,14 @@ export default function DpoteDistribuicao() {
                     <th className="text-left text-xs text-muted-foreground font-medium pb-2 pr-4">Filial</th>
                     <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Fichas</th>
                     <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Proporção</th>
-                    <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Comissão Bruta</th>
+                    <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Faturamento Recorrência</th>
                     <th className="text-right text-xs text-muted-foreground font-medium pb-2">Ajuste</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.filiais
                     .filter((f) => f.fichas > 0)
-                    .sort((a, b) => b.comissaoBruta - a.comissaoBruta)
+                    .sort((a, b) => b.valorDistribuido - a.valorDistribuido)
                     .map((f, i) => {
                       const cor = CORES_FILIAL[i % CORES_FILIAL.length];
                       const slug = f.filialNome.toLowerCase().replace(/\s+/g, "-");
@@ -412,7 +405,7 @@ export default function DpoteDistribuicao() {
                             <td className="py-2.5 pr-4 text-right">
                               <span className="font-semibold" style={{ color: cor }}>{f.percentual.toFixed(1)}%</span>
                             </td>
-                            <td className="py-2.5 pr-4 text-right font-bold text-foreground">{fmtFull(f.comissaoBruta)}</td>
+                            <td className="py-2.5 pr-4 text-right font-bold text-foreground">{fmtFull(f.valorDistribuido)}</td>
                             <td className="py-2.5 text-right">
                               <button
                                 onClick={() => setAjusteAberto(isAberto ? null : slug)}
@@ -437,7 +430,7 @@ export default function DpoteDistribuicao() {
                                     Ajuste manual — {f.filialNome} ({MESES[mes - 1]} {ano})
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    Comissão bruta calculada pelo CashBarber: <span className="font-semibold text-foreground">{fmtFull(f.comissaoBruta)}</span>
+                                    Faturamento calculado pelo CashBarber: <span className="font-semibold text-foreground">{fmtFull(f.valorDistribuido)}</span>
                                   </p>
                                   {/* Seletor de operação */}
                                   <div className="flex items-center gap-4">
@@ -482,9 +475,6 @@ export default function DpoteDistribuicao() {
                                       onClick={() => {
                                         const valor = parseFloat(ajuste.valor);
                                         if (isNaN(valor)) return;
-                                        // Encontrar o empresaSlug correspondente à filial
-                                        // (usa o slug da filial como chave temporária; o backend busca pelo empresaSlug real)
-                                        // Precisamos do empresaSlug real — buscamos da config Dpote via filialNome
                                         ajustarMutation.mutate({
                                           dpoteFilialNome: f.filialNome,
                                           mes,
@@ -507,7 +497,7 @@ export default function DpoteDistribuicao() {
                                   </div>
                                   {ajuste.operacao === "somar" && ajuste.valor && !isNaN(parseFloat(ajuste.valor)) && (
                                     <p className="text-xs text-violet-300/70">
-                                      Resultado: {fmtFull(f.comissaoBruta)} + {fmtFull(parseFloat(ajuste.valor))} = <span className="font-semibold text-violet-300">{fmtFull(f.comissaoBruta + parseFloat(ajuste.valor))}</span>
+                                      Resultado: {fmtFull(f.valorDistribuido)} + {fmtFull(parseFloat(ajuste.valor))} = <span className="font-semibold text-violet-300">{fmtFull(f.valorDistribuido + parseFloat(ajuste.valor))}</span>
                                     </p>
                                   )}
                                 </div>
@@ -522,7 +512,7 @@ export default function DpoteDistribuicao() {
                     <td className="pt-3 pr-4 font-semibold text-foreground">Total</td>
                     <td className="pt-3 pr-4 text-right font-semibold text-muted-foreground">{fmtNum(data.totalFichas)}</td>
                     <td className="pt-3 pr-4 text-right font-semibold text-violet-400">100%</td>
-                    <td className="pt-3 pr-4 text-right font-bold text-emerald-400">{fmtFull(comissaoBrutaTotal)}</td>
+                    <td className="pt-3 pr-4 text-right font-bold text-emerald-400">{fmtFull(totalDistribuido)}</td>
                     <td />
                   </tr>
                 </tbody>
@@ -530,7 +520,7 @@ export default function DpoteDistribuicao() {
             </div>
             {/* Fórmula de cálculo */}
             <div className="mt-4 pt-3 border-t border-border/50 text-[11px] text-muted-foreground/60 space-y-0.5">
-              <p>Fórmula: <span className="font-mono">Comissão Bruta Filial = {fmtFull(data.totalAssinaturas)} × {data.porcentagemBarbearia}% × (fichas_filial / {fmtNum(data.totalFichas)})</span></p>
+              <p>Fórmula: <span className="font-mono">Faturamento Filial = {fmtFull(data.totalAssinaturas)} × (fichas_filial / {fmtNum(data.totalFichas)})</span></p>
               <p>Fonte: CashBarber API — Relatório 15 (atendimentos por serviço) com fichas ponderadas por serviço</p>
             </div>
           </Card>

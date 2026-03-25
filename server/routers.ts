@@ -1690,8 +1690,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     }),
 
     /**
-     * Retorna a distribuição da comissão bruta Dpote por filial para o mês/ano especificado.
-     * Usa fichas ponderadas dos atendimentos para calcular a proporção de cada filial.
+     * Retorna a distribuição do Dpote por filial para o mês/ano especificado.
+     * Distribui 100% das assinaturas proporcionalmente às fichas de cada filial.
      */
     dpoteDistribuicao: protectedProcedure
       .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
@@ -1701,12 +1701,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         // Encontrar config com Dpote configurado (basta uma empresa — todas compartilham o mesmo pote)
         const configComDpote = configs.find(
-          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas
         );
-        if (!configComDpote) return { filiais: [], totalAssinaturas: 0, porcentagemBarbearia: 0, totalFichas: 0 };
+        if (!configComDpote) return { filiais: [], totalAssinaturas: 0, totalFichas: 0 };
 
         const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
-        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia ?? "100"));
 
         // Login CashBarber
         const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
@@ -1724,22 +1724,20 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         return {
           totalAssinaturas: valorAssinaturas,
-          porcentagemBarbearia,
           totalFichas,
           filiais: resultados.map((r) => ({
             filialId: r.filialId,
             filialNome: r.filialNome,
             fichas: r.fichas,
             percentual: r.percentual,
-            comissaoBruta: r.comissaoBruta,
+            valorDistribuido: r.valorDistribuido,
           })),
         };
       }),
 
     /**
-     * Calcula a distribuição Dpote por filial e aplica o valor de comissão bruta
-     * como cat5 (Recorrência) no faturamento do dia 1 de cada empresa para o mês/ano.
-     * Isso atualiza o dashboard de cada unidade com o valor correto de Recorrência.
+     * Calcula a distribuição Dpote por filial (100% das assinaturas por fichas)
+     * e aplica o valor distribuído como cat5 (Recorrência) no faturamento do dia 1.
      */
     aplicarDpoteNoFaturamento: protectedProcedure
       .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
@@ -1749,14 +1747,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         // Encontrar config com Dpote configurado (usa a primeira com valorAssinaturas)
         const configComDpote = configs.find(
-          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas
         );
         if (!configComDpote) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com Dpote configurado encontrada." });
         }
 
         const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
-        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia ?? "100"));
 
         // Login CashBarber
         const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
@@ -1766,14 +1764,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
         const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
-        // Calcular distribuição por filial
+        // Calcular distribuição por filial (100% das assinaturas)
         const resultados = await cashbarberCalcularDpotePorFichas(
           token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
         );
 
         // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
-        const dia1 = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
-        const aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }> = [];
+        const dia1 = dataInicial;
+        const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
 
         for (const config of configs) {
@@ -1788,7 +1786,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           // Buscar faturamento existente no dia 1 para preservar outras categorias
           const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
 
-          // Atualizar cat5 no dia 1 com o valor da comissão bruta da filial
+          // Atualizar cat5 no dia 1 com o valor distribuído da filial
           await upsertFaturamento({
             tenantId,
             empresaSlug: config.empresaSlug,
@@ -1797,7 +1795,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             cat2: existente?.cat2 ?? "0",
             cat3: existente?.cat3 ?? "0",
             cat4: existente?.cat4 ?? "0",
-            cat5: String(filial.comissaoBruta),
+            cat5: String(filial.valorDistribuido),
             sincronizadoCB: existente?.sincronizadoCB ?? 0,
             observacao: existente?.observacao ?? undefined,
             lancadoPor: existente?.lancadoPor ?? undefined,
@@ -1806,7 +1804,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           aplicados.push({
             empresaSlug: config.empresaSlug,
             filialNome: filial.filialNome,
-            comissaoBruta: filial.comissaoBruta,
+            valorDistribuido: filial.valorDistribuido,
           });
         }
 
@@ -1814,7 +1812,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           aplicados,
           naoEncontrados,
           totalAssinaturas: valorAssinaturas,
-          porcentagemBarbearia,
         };
       }),
 
@@ -1914,7 +1911,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     /**
      * Força a sincronização manual dos valores do Dpote com o CashBarber.
      * Cria um novo histórico Dpote na API, busca o valor atualizado de assinaturas
-     * e aplica a comissão bruta de cada filial no cat5 (dia 1 do mês).
+     * e aplica o valor distribuído (100% por fichas) de cada filial no cat5 (dia 1 do mês).
      */
     sincronizarDpoteManual: protectedProcedure
       .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
@@ -1955,15 +1952,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         } catch (errApi) {
           // Fallback: usar valor manual salvo na config
           const valManual = configComDpote.dpoteValorAssinaturas ? parseFloat(String(configComDpote.dpoteValorAssinaturas)) : null;
-          const pctManual = configComDpote.dpotePorcentagemBarbearia ? parseFloat(String(configComDpote.dpotePorcentagemBarbearia)) : null;
-          if (!valManual || !pctManual) {
+          if (!valManual) {
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: `Falha ao buscar valor da API e nenhum valor manual configurado: ${errApi instanceof Error ? errApi.message : String(errApi)}`,
             });
           }
           valorAssinaturas = valManual;
-          porcentagemBarbearia = pctManual;
+          porcentagemBarbearia = 100; // distribuição é sempre 100%
           fonteDados = "valor manual (API indisponível)";
         }
 
@@ -2004,7 +2000,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         // Aplicar cat5 no dia 1 de cada empresa configurada com Dpote
         const dia1 = dataInicial;
-        const aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }> = [];
+        const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
 
         for (const config of configs) {
@@ -2024,19 +2020,18 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             cat2: existente?.cat2 ?? "0",
             cat3: existente?.cat3 ?? "0",
             cat4: existente?.cat4 ?? "0",
-            cat5: String(filial.comissaoBruta),
+            cat5: String(filial.valorDistribuido),
             sincronizadoCB: existente?.sincronizadoCB ?? 0,
             observacao: existente?.observacao ?? undefined,
             lancadoPor: ctx.user?.email ?? undefined,
           });
-          aplicados.push({ empresaSlug: config.empresaSlug, filialNome: filial.filialNome, comissaoBruta: filial.comissaoBruta });
+          aplicados.push({ empresaSlug: config.empresaSlug, filialNome: filial.filialNome, valorDistribuido: filial.valorDistribuido });
         }
 
         return {
           aplicados,
           naoEncontrados,
           totalAssinaturas: valorAssinaturas,
-          porcentagemBarbearia,
           fonteDados,
           valorAssinaturasAtualizado,
           valorAssinaturasAnterior,

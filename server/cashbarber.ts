@@ -571,24 +571,24 @@ export interface DpoteResultadoPorFilial {
   filialNome: string;
   fichas: number;
   percentual: number;
+  /** Valor distribuído para esta filial (100% das assinaturas × proporção de fichas) */
+  valorDistribuido: number;
+  /** @deprecated use valorDistribuido */
   comissaoBruta: number;
 }
 
 /**
- * Calcula a Comissão Bruta Dpote por filial usando fichas ponderadas dos atendimentos.
+ * Calcula a distribuição do Dpote por filial usando fichas ponderadas dos atendimentos.
  *
- * Fluxo:
- * 1. Busca o catálogo de serviços para obter o peso em fichas de cada serviço (ser_valor_fichas)
- * 2. Para cada filial, busca o relatório 15 (atendimentos do período)
- * 3. Calcula fichas ponderadas: Σ(quantidade_atendimentos × ser_valor_fichas)
- * 4. Distribui a comissão bruta proporcionalmente às fichas de cada filial
+ * Distribui 100% do valor de assinaturas proporcionalmente às fichas de cada filial.
+ * Não aplica desconto de comissão — o valor total é o faturamento de recorrência.
  *
  * @param token - Token JWT do CashBarber
  * @param dataInicial - Data inicial no formato YYYY-MM-DD
  * @param dataFinal - Data final no formato YYYY-MM-DD
- * @param valorAssinaturas - Valor total de assinaturas do mês em reais
- * @param porcentagemBarbearia - Percentual da comissão que vai para a barbearia (ex: 65)
- * @returns Array com comissão bruta calculada por filial
+ * @param valorAssinaturas - Valor total de assinaturas a distribuir (100%)
+ * @param porcentagemBarbearia - Parâmetro mantido por compatibilidade (ignorado no cálculo)
+ * @returns Valor distribuído para cada filial em reais
  */
 export async function cashbarberCalcularDpotePorFichas(
   token: string,
@@ -625,22 +625,22 @@ export async function cashbarberCalcularDpotePorFichas(
     }
   }
 
-  // 4. Calcular comissão proporcional
+  // 4. Distribuir 100% das assinaturas proporcionalmente por fichas
   const totalFichasGeral = fichasPorFilial.reduce((acc, f) => acc + f.fichas, 0);
-  const comissaoBrutaTotal = valorAssinaturas * (porcentagemBarbearia / 100);
 
   return fichasPorFilial.map(({ filial, fichas }) => {
     const percentual = totalFichasGeral > 0 ? (fichas / totalFichasGeral) * 100 : 0;
-    const comissaoBruta =
+    const valorDistribuido =
       totalFichasGeral > 0 && fichas > 0
-        ? Math.round(comissaoBrutaTotal * (fichas / totalFichasGeral))
+        ? Math.round(valorAssinaturas * (fichas / totalFichasGeral))
         : 0;
     return {
       filialId: filial.id,
       filialNome: filial.fil_bairro,
       fichas,
       percentual,
-      comissaoBruta,
+      valorDistribuido,
+      comissaoBruta: valorDistribuido, // alias para compatibilidade
     };
   });
 }

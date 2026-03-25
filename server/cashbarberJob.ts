@@ -82,7 +82,7 @@ async function executarAplicacaoDpote(tenantId: number): Promise<void> {
   try {
     const resultado = await aplicarDpoteParaTenant(tenantId, mes, ano);
     const resumo = resultado.aplicados
-      .map((a) => `${a.empresaSlug}: R$ ${a.comissaoBruta.toFixed(2)}`)
+      .map((a) => `${a.empresaSlug}: R$ ${a.valorDistribuido.toFixed(2)}`)
       .join(" | ");
     console.log(`[CashBarber Job] Dpote aplicado ao dashboard (${mes}/${ano}): ${resumo}`);
     if (resultado.naoEncontrados.length > 0) {

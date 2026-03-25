@@ -227,7 +227,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const sincronizarDpote = trpc.cashbarber.sincronizarDpoteManual.useMutation({
     onSuccess: (data) => {
       const aplicadosStr = data.aplicados
-        .map((a) => `${a.filialNome}: R$ ${a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
+        .map((a) => `${a.filialNome}: R$ ${a.valorDistribuido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
         .join(" | ");
       toast.success(`Dpote sincronizado! ${aplicadosStr}`);
       if (data.valorAssinaturasAtualizado) {
@@ -1124,7 +1124,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                                 <p className="text-xs font-semibold text-green-700 mb-1">Dpote sincronizado com sucesso</p>
                                 {sincronizarDpote.data.aplicados.map((a) => (
                                   <p key={a.empresaSlug} className="text-xs text-green-600">
-                                    {a.filialNome}: R$ {a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    {a.filialNome}: R$ {a.valorDistribuido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                   </p>
                                 ))}
                                 <p className="text-xs text-green-500 mt-1">Fonte: {sincronizarDpote.data.fonteDados}</p>
