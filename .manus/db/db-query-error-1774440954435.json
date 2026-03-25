@@ -1,0 +1,8 @@
+{
+  "query": "SELECT f.empresaSlug, f.data, f.cat5 FROM faturamentos f WHERE f.mes = 3 AND f.ano = 2026 AND f.empresaSlug IN ('MORUMBI', 'MASCOTE') ORDER BY f.empresaSlug, f.data DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT f.empresaSlug, f.data, f.cat5 FROM faturamentos f WHERE f.mes = 3 AND f.ano = 2026 AND f.empresaSlug IN ('MORUMBI', 'MASCOTE') ORDER BY f.empresaSlug, f.data DESC LIMIT 10;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'f.mes' in 'where clause'"
+  ]
+}

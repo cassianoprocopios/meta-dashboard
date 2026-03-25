@@ -1,0 +1,60 @@
+{
+  "query": "SELECT f.empresaSlug, f.data, f.cat5 FROM faturamentos f WHERE f.data LIKE '2026-03%' AND f.empresaSlug IN ('MORUMBI', 'MASCOTE') ORDER BY f.empresaSlug, f.data DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT f.empresaSlug, f.data, f.cat5 FROM faturamentos f WHERE f.data LIKE '2026-03%' AND f.empresaSlug IN ('MORUMBI', 'MASCOTE') ORDER BY f.empresaSlug, f.data DESC LIMIT 10;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-27",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-26",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-25",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-24",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-23",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-22",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-21",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-20",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-19",
+      "cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-18",
+      "cat5": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat5\nMASCOTE\t2026-03-27\t0.00\nMASCOTE\t2026-03-26\t0.00\nMASCOTE\t2026-03-25\t0.00\nMASCOTE\t2026-03-24\t0.00\nMASCOTE\t2026-03-23\t0.00\nMASCOTE\t2026-03-22\t0.00\nMASCOTE\t2026-03-21\t0.00\nMASCOTE\t2026-03-20\t0.00\nMASCOTE\t2026-03-19\t0.00\nMASCOTE\t2026-03-18\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

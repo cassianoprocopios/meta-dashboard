@@ -1,0 +1,50 @@
+{
+  "query": "SELECT f.data, f.cat1, f.cat2, f.cat3, f.cat4, f.cat5 FROM faturamentos f JOIN empresas e ON e.slug = f.empresaSlug AND e.tenantId = f.tenantId WHERE e.slug = 'SERAPHINE' ORDER BY f.data DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT f.data, f.cat1, f.cat2, f.cat3, f.cat4, f.cat5 FROM faturamentos f JOIN empresas e ON e.slug = f.empresaSlug AND e.tenantId = f.tenantId WHERE e.slug = 'SERAPHINE' ORDER BY f.data DESC LIMIT 5;",
+  "rows": [
+    {
+      "data": "2026-03-21",
+      "cat1": "2220.00",
+      "cat2": "69.80",
+      "cat3": "2901.00",
+      "cat4": "720.00",
+      "cat5": "0.00"
+    },
+    {
+      "data": "2026-03-20",
+      "cat1": "2040.00",
+      "cat2": "47.00",
+      "cat3": "3047.19",
+      "cat4": "870.00",
+      "cat5": "0.00"
+    },
+    {
+      "data": "2026-03-19",
+      "cat1": "1050.00",
+      "cat2": "49.50",
+      "cat3": "1916.98",
+      "cat4": "460.00",
+      "cat5": "0.00"
+    },
+    {
+      "data": "2026-03-18",
+      "cat1": "1092.00",
+      "cat2": "3.00",
+      "cat3": "2862.99",
+      "cat4": "420.00",
+      "cat5": "0.00"
+    },
+    {
+      "data": "2026-03-17",
+      "cat1": "1540.00",
+      "cat2": "26.00",
+      "cat3": "1544.19",
+      "cat4": "580.00",
+      "cat5": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\tcat4\tcat5\n2026-03-21\t2220.00\t69.80\t2901.00\t720.00\t0.00\n2026-03-20\t2040.00\t47.00\t3047.19\t870.00\t0.00\n2026-03-19\t1050.00\t49.50\t1916.98\t460.00\t0.00\n2026-03-18\t1092.00\t3.00\t2862.99\t420.00\t0.00\n2026-03-17\t1540.00\t26.00\t1544.19\t580.00\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 71
+}

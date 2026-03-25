@@ -1,0 +1,8 @@
+{
+  "query": "SELECT f.data, f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.total FROM faturamentos f JOIN empresas e ON e.slug = f.empresaSlug AND e.tenantId = f.tenantId WHERE e.slug = 'SERAPHINE' ORDER BY f.data DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT f.data, f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.total FROM faturamentos f JOIN empresas e ON e.slug = f.empresaSlug AND e.tenantId = f.tenantId WHERE e.slug = 'SERAPHINE' ORDER BY f.data DESC LIMIT 5;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'f.total' in 'field list'"
+  ]
+}

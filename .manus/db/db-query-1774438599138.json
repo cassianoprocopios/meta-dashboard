@@ -1,0 +1,45 @@
+{
+  "query": "SELECT e.nome, e.slug, c.id, c.nome as categoriaNome, c.ordem FROM empresas e LEFT JOIN categorias c ON c.empresaSlug = e.slug AND c.tenantId = e.tenantId WHERE e.slug LIKE '%seraphine%' OR e.nome LIKE '%seraphine%' ORDER BY e.nome, c.ordem;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT e.nome, e.slug, c.id, c.nome as categoriaNome, c.ordem FROM empresas e LEFT JOIN categorias c ON c.empresaSlug = e.slug AND c.tenantId = e.tenantId WHERE e.slug LIKE '%seraphine%' OR e.nome LIKE '%seraphine%' ORDER BY e.nome, c.ordem;",
+  "rows": [
+    {
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "id": "12",
+      "categoriaNome": "Cabelo",
+      "ordem": "1"
+    },
+    {
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "id": "3",
+      "categoriaNome": "Produtos",
+      "ordem": "2"
+    },
+    {
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "id": "15",
+      "categoriaNome": "Unha",
+      "ordem": "3"
+    },
+    {
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "id": "9",
+      "categoriaNome": "Outros",
+      "ordem": "4"
+    },
+    {
+      "nome": "Seraphine",
+      "slug": "SERAPHINE",
+      "id": "6",
+      "categoriaNome": "Pacotes",
+      "ordem": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tslug\tid\tcategoriaNome\tordem\nSeraphine\tSERAPHINE\t12\tCabelo\t1\nSeraphine\tSERAPHINE\t3\tProdutos\t2\nSeraphine\tSERAPHINE\t15\tUnha\t3\nSeraphine\tSERAPHINE\t9\tOutros\t4\nSeraphine\tSERAPHINE\t6\tPacotes\t5\n",
+  "stderr": "",
+  "execution_time_ms": 119
+}

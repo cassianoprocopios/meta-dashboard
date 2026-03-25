@@ -725,3 +725,18 @@
 - [x] Remover import/referência ao avecJob no server/_core/index.ts
 - [x] Verificar que não há referências quebradas após remoção
 - [x] Executar testes: 81 testes passando (7 arquivos)
+
+## Dpote — Correção de Valor (25/03/2026)
+
+- [x] Verificar valor do Dpote no banco para hoje (25/03/2026)
+- [x] Verificar valor do Dpote no CashBarber
+- [x] Corrigir o valor no sistema conforme o CashBarber
+
+## Dpote — Diagnóstico de Atualização Diária (25/03/2026)
+
+- [x] Analisar logs completos do CashBarber Job de hoje
+- [x] Verificar que API retornou null para históricos #68218/#68219 (valor manual desatualizado)
+- [x] Corrigir valores no banco: MORUMBI R$ 47.124,56 | MASCOTE R$ 20.249,04
+- [x] Atualizar dpoteValorAssinaturas para R$ 67.373,60 em ambas as configs
+- [x] Corrigir sincronizador para criar novo histórico automaticamente quando API retornar null
+- [x] 81 testes passando após correção
