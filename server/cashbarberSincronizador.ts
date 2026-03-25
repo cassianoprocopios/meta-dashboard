@@ -17,6 +17,7 @@
 import {
   getCashbarberConfig,
   listCashbarberMapeamento,
+  listCashbarberConfigs,
   upsertFaturamento,
   updateCashbarberSyncStatus,
   insertCashbarberSyncLog,
@@ -342,4 +343,111 @@ export async function sincronizarFaturamentoCashbarber(
     recorrenciaValor,
     detalhes,
   };
+}
+
+/**
+ * Resultado da aplicação do Dpote para um tenant
+ */
+export interface ResultadoAplicacaoDpote {
+  aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }>;
+  naoEncontrados: string[];
+  totalAssinaturas: number;
+  porcentagemBarbearia: number;
+}
+
+/**
+ * Calcula a distribuição Dpote por filial e aplica o valor de comissão bruta
+ * como cat5 (Recorrência) no faturamento do dia 1 de cada empresa para o mês/ano.
+ *
+ * Esta função é chamada automaticamente pelo job de sync após sincronizar todas as empresas,
+ * e também pode ser chamada manualmente via procedure tRPC.
+ *
+ * @param tenantId - ID do tenant
+ * @param mes - Mês (1-12)
+ * @param ano - Ano (ex: 2026)
+ */
+export async function aplicarDpoteParaTenant(
+  tenantId: number,
+  mes: number,
+  ano: number
+): Promise<ResultadoAplicacaoDpote> {
+  const configs = await listCashbarberConfigs(tenantId);
+
+  // Encontrar config com Dpote configurado (usa a primeira com valorAssinaturas)
+  const configComDpote = configs.find(
+    (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+  );
+  if (!configComDpote) {
+    throw new Error(`Nenhuma empresa do tenant ${tenantId} com Dpote configurado encontrada.`);
+  }
+
+  let valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
+  let porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+
+  // Tentar buscar valor de assinaturas automaticamente via API do CashBarber
+  const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
+  const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
+  const historicoIdSalvo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
+
+  if (historicoIdSalvo) {
+    const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+    if (dadosApi) {
+      valorAssinaturas = dadosApi.valorAssinaturas;
+      porcentagemBarbearia = dadosApi.porcentagemBarbearia;
+      console.log(`[CashBarber Dpote] Valor assinaturas buscado via API: R$ ${valorAssinaturas} (histórico #${historicoIdSalvo})`);
+    }
+  }
+
+  // Calcular período
+  const hoje = new Date();
+  const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
+  const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(ano, mes, 0).getDate();
+  const dataInicial = `${ano}-${String(mes).padStart(2, "0")}-01`;
+  const dataFinal = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+  // Calcular distribuição por filial via fichas ponderadas
+  const resultados = await cashbarberCalcularDpotePorFichas(
+    token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
+  );
+
+  const dia1 = dataInicial;
+  const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
+  const naoEncontrados: string[] = [];
+
+  for (const config of configs) {
+    if (!config.dpoteFilialNome) continue;
+    const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
+    const filial = resultados.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
+    if (!filial) {
+      naoEncontrados.push(config.empresaSlug);
+      continue;
+    }
+
+    // Preservar outras categorias do dia 1
+    const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
+
+    await upsertFaturamento({
+      tenantId,
+      empresaSlug: config.empresaSlug,
+      data: dia1,
+      cat1: existente?.cat1 ?? "0",
+      cat2: existente?.cat2 ?? "0",
+      cat3: existente?.cat3 ?? "0",
+      cat4: existente?.cat4 ?? "0",
+      cat5: String(filial.comissaoBruta),
+      sincronizadoCB: existente?.sincronizadoCB ?? 0,
+      observacao: existente?.observacao ?? undefined,
+      lancadoPor: existente?.lancadoPor ?? undefined,
+    });
+
+    aplicados.push({
+      empresaSlug: config.empresaSlug,
+      filialNome: filial.filialNome,
+      comissaoBruta: filial.comissaoBruta,
+    });
+
+    console.log(`[CashBarber Dpote] cat5 atualizado para ${config.empresaSlug}: R$ ${filial.comissaoBruta.toFixed(2)}`);
+  }
+
+  return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas, porcentagemBarbearia };
 }

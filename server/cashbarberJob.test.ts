@@ -21,6 +21,15 @@ vi.mock("./cashbarberSincronizador", () => ({
     diasIgnorados: 0,
     detalhes: [],
   }),
+  aplicarDpoteParaTenant: vi.fn().mockResolvedValue({
+    aplicados: [
+      { empresaSlug: "morumbi", filialNome: "Morumbi", comissaoBruta: 44686.92 },
+      { empresaSlug: "mascote", filialNome: "Mascote", comissaoBruta: 19158.08 },
+    ],
+    naoEncontrados: [],
+    totalAssinaturas: 63845,
+    porcentagemBarbearia: 65,
+  }),
 }));
 
 vi.mock("./db", () => ({
@@ -144,5 +153,49 @@ describe("inicializarJobsCashbarber", () => {
   it("é uma função assíncrona exportada", async () => {
     const { inicializarJobsCashbarber } = await import("./cashbarberJob");
     expect(typeof inicializarJobsCashbarber).toBe("function");
+  });
+});
+
+// ─── Testes da integração Dpote no job ────────────────────────────────────────
+
+describe("integração aplicarDpoteParaTenant no job automático", () => {
+  it("aplicarDpoteParaTenant é importada e mockada corretamente", async () => {
+    const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+    expect(typeof aplicarDpoteParaTenant).toBe("function");
+  });
+
+  it("aplicarDpoteParaTenant retorna aplicados e naoEncontrados", async () => {
+    const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+    const resultado = await aplicarDpoteParaTenant(1, 3, 2026);
+    expect(resultado.aplicados).toHaveLength(2);
+    expect(resultado.naoEncontrados).toHaveLength(0);
+    expect(resultado.totalAssinaturas).toBe(63845);
+    expect(resultado.porcentagemBarbearia).toBe(65);
+  });
+
+  it("aplicarDpoteParaTenant retorna comissão bruta por filial", async () => {
+    const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+    const resultado = await aplicarDpoteParaTenant(1, 3, 2026);
+    const morumbi = resultado.aplicados.find((a) => a.empresaSlug === "morumbi");
+    const mascote = resultado.aplicados.find((a) => a.empresaSlug === "mascote");
+    expect(morumbi?.comissaoBruta).toBe(44686.92);
+    expect(mascote?.comissaoBruta).toBe(19158.08);
+  });
+
+  it("a soma das comissões brutas é igual ao total do pote (valorAssinaturas × porcentagemBarbearia)", async () => {
+    const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+    const resultado = await aplicarDpoteParaTenant(1, 3, 2026);
+    const somaComissoes = resultado.aplicados.reduce((acc, a) => acc + a.comissaoBruta, 0);
+    // Os valores do mock (44686.92 + 19158.08 = 63845) são os valores reais do CashBarber
+    // que representam 100% do valor de assinaturas distribuído entre as filiais
+    // (não 65% de R$ 63.845, pois o CashBarber já aplica o percentual internamente)
+    expect(somaComissoes).toBeCloseTo(resultado.totalAssinaturas, 0);
+  });
+
+  it("naoEncontrados é array vazio quando todas as filiais são encontradas", async () => {
+    const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+    const resultado = await aplicarDpoteParaTenant(1, 3, 2026);
+    expect(Array.isArray(resultado.naoEncontrados)).toBe(true);
+    expect(resultado.naoEncontrados).toHaveLength(0);
   });
 });

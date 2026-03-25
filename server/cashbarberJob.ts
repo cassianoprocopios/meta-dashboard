@@ -6,7 +6,7 @@
  */
 
 import * as cron from "node-cron";
-import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
+import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 
 // ─── Intervalo fixo: a cada hora ─────────────────────────────────────────────
 
@@ -70,6 +70,32 @@ async function executarSincronizacaoEmpresa(
 }
 
 /**
+ * Após sincronizar todas as empresas de um tenant, aplica a distribuição Dpote
+ * atualizando cat5 (Recorrência) de cada unidade com a comissão bruta correta.
+ * Isolado em try/catch para não interromper o ciclo do job em caso de falha.
+ */
+async function executarAplicacaoDpote(tenantId: number): Promise<void> {
+  const agora = new Date();
+  const mes = agora.getMonth() + 1;
+  const ano = agora.getFullYear();
+
+  try {
+    const resultado = await aplicarDpoteParaTenant(tenantId, mes, ano);
+    const resumo = resultado.aplicados
+      .map((a) => `${a.empresaSlug}: R$ ${a.comissaoBruta.toFixed(2)}`)
+      .join(" | ");
+    console.log(`[CashBarber Job] Dpote aplicado ao dashboard (${mes}/${ano}): ${resumo}`);
+    if (resultado.naoEncontrados.length > 0) {
+      console.warn(`[CashBarber Job] Dpote não encontrado para: ${resultado.naoEncontrados.join(", ")}`);
+    }
+  } catch (err) {
+    // Falha no Dpote não deve interromper o job
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[CashBarber Job] Falha ao aplicar Dpote para tenant ${tenantId}:`, msg);
+  }
+}
+
+/**
  * Agenda o job horário de uma empresa
  */
 function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
@@ -93,6 +119,18 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       await executarSincronizacaoEmpresa(tenantId, empresaSlug, "auto");
     } catch (err) {
       console.error(`[CashBarber Job] Falha no job automático de ${empresaSlug}:`, err);
+    }
+
+    // Após o sync desta empresa, verificar se é a última empresa do tenant
+    // e aplicar a distribuição Dpote para todas as unidades do tenant.
+    // A verificação evita múltiplas chamadas quando várias empresas do mesmo tenant sincronizam.
+    const todasEmpresasTenant = Array.from(jobsAtivos.values() as Iterable<JobStatus>)
+      .filter((j) => j.tenantId === tenantId);
+    const ultimaEmpresa = todasEmpresasTenant
+      .sort((a, b) => (a.empresaSlug > b.empresaSlug ? 1 : -1))
+      .at(-1);
+    if (ultimaEmpresa?.empresaSlug === empresaSlug) {
+      await executarAplicacaoDpote(tenantId);
     }
   });
 

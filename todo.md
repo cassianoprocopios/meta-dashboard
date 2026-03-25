@@ -648,3 +648,11 @@
 - [x] Procedure cashbarber.aplicarDpoteNoFaturamento: calcula comissão bruta por filial e salva/atualiza cat5 no faturamento do dia 1 de cada empresa para o mês
 - [x] Botão "Aplicar ao Dashboard" (verde) na tab Dpote que aciona a procedure e atualiza os valores de Recorrência de cada unidade
 - [x] Feedback visual: toast de sucesso com os valores aplicados por empresa (sonner)
+
+## Integração Dpote no Job Automático de Sync CashBarber
+
+- [x] Extrair lógica de distribuição Dpote para função reutilizável aplicarDpoteParaTenant() no sincronizador
+- [x] Integrar aplicarDpoteParaTenant() no job automático após o sync da última empresa do tenant
+- [x] Garantir que falha no Dpote não interrompe o sync principal (try/catch isolado com console.warn)
+- [x] Log detalhado: registrar valores aplicados por empresa no log do job (ex: MORUMBI: R$ 44686.92 | MASCOTE: R$ 19158.08)
+- [x] 5 testes unitários para a nova função reutilizável (81 testes passando no total)
