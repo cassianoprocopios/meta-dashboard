@@ -783,3 +783,7 @@
 - [x] Atualizar categorias no banco para MASCOTE e MORUMBI (9 categorias)
 - [x] Atualizar frontend: FaturamentoForm, dashboard Home.tsx, gráficos e tabelas para 9 categorias
 - [x] Sincronizar março/2026 com o novo mapeamento de 9 categorias
+
+## Correção de Bugs React
+- [x] Corrigir loop infinito "Maximum update depth exceeded" em CashBarberIntegracao.tsx linha 2149
+- [x] Corrigir "Each child in a list should have a unique key prop" na tabela DpoteDistribuicao

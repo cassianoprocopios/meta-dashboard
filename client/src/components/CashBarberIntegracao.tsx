@@ -9,7 +9,7 @@
  * 4. Sincronizar dados de um mês específico
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
@@ -131,7 +131,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   }, [configExistente]);
 
   useEffect(() => {
-    if (mapeamentoExistente.length > 0 && !catalogoCarregado) {
+    if (mapeamentoExistente.length > 0 && !catalogoCarregado && mapeamento.length === 0) {
       setMapeamento(mapeamentoExistente.map((m: any) => ({
         tipo: m.tipo,
         cbId: m.cbId,
@@ -139,7 +139,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
         metaCategoria: m.metaCategoria,
       })));
     }
-  }, [mapeamentoExistente]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapeamentoExistente.length, catalogoCarregado]);
 
   useEffect(() => {
     if (catalogo && !catalogoCarregado) {
@@ -1144,18 +1145,16 @@ export default function CashBarberIntegracao({ empresas }: CashBarberIntegracaoP
   // Buscar categorias de todas as empresas para exibir nomes corretos no mapeamento
   const { data: configs = [] } = trpc.cashbarber.listarTodas.useQuery();
 
-  // Buscar categorias de cada empresa
-  const [categoriasPorEmpresa, setCategoriasPorEmpresa] = useState<Record<string, Array<{ numero: number; nome: string }>>>({});
+   // Buscar categorias de cada empresa
   const { data: todasEmpresas = [] } = trpc.empresa.listar.useQuery();
-
-  useEffect(() => {
+  const categoriasPorEmpresa = useMemo(() => {
     const mapa: Record<string, Array<{ numero: number; nome: string }>> = {};
     for (const emp of todasEmpresas as any[]) {
       if (emp.categorias) {
         mapa[emp.slug] = emp.categorias.map((c: any) => ({ numero: c.numero, nome: c.nome }));
       }
     }
-    setCategoriasPorEmpresa(mapa);
+    return mapa;
   }, [todasEmpresas]);
 
   const empresasAtivas = empresas.filter((e) => e.ativo);

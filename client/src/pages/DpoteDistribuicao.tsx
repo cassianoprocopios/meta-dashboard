@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -634,8 +634,8 @@ export default function DpoteDistribuicao() {
                       const ajuste = ajustes[slug] ?? { valor: "", operacao: "substituir" as const };
                       const isAberto = ajusteAberto === slug;
                       return (
-                        <>
-                          <tr key={f.filialId} className="border-b border-border/50">
+                        <React.Fragment key={f.filialId}>
+                          <tr className="border-b border-border/50">
                             <td className="py-2.5 pr-4">
                               <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cor }} />
@@ -745,7 +745,7 @@ export default function DpoteDistribuicao() {
                               </td>
                             </tr>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   {/* Linha de total */}
