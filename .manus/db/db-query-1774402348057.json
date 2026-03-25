@@ -1,0 +1,24 @@
+{
+  "query": "SELECT id, empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig WHERE dpoteFilialNome IS NOT NULL AND dpoteFilialNome != '';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpotePorcentagemBarbearia FROM cashbarberConfig WHERE dpoteFilialNome IS NOT NULL AND dpoteFilialNome != '';",
+  "rows": [
+    {
+      "id": "1",
+      "empresaSlug": "MORUMBI",
+      "dpoteFilialNome": "Morumbi",
+      "dpoteValorAssinaturas": "145000.00",
+      "dpotePorcentagemBarbearia": "65.00"
+    },
+    {
+      "id": "2",
+      "empresaSlug": "MASCOTE",
+      "dpoteFilialNome": "Mascote",
+      "dpoteValorAssinaturas": "145000.00",
+      "dpotePorcentagemBarbearia": "65.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tdpoteFilialNome\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\n1\tMORUMBI\tMorumbi\t145000.00\t65.00\n2\tMASCOTE\tMascote\t145000.00\t65.00\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

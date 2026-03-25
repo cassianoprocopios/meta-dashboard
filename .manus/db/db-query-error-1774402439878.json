@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT f.dia, f.mes, f.ano, e.slug, f.cat5\nFROM faturamentos f\nJOIN empresas e ON f.empresaId = e.id\nWHERE f.mes = 3 AND f.ano = 2026 AND f.dia = 1 AND e.slug IN ('MORUMBI', 'MASCOTE')\nORDER BY e.slug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT f.dia, f.mes, f.ano, e.slug, f.cat5\nFROM faturamentos f\nJOIN empresas e ON f.empresaId = e.id\nWHERE f.mes = 3 AND f.ano = 2026 AND f.dia = 1 AND e.slug IN ('MORUMBI', 'MASCOTE')\nORDER BY e.slug;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'f.empresaid' in 'on clause'"
+  ]
+}

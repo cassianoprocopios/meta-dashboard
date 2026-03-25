@@ -608,3 +608,8 @@
 - [x] Valores de março/2026 salvos no banco (Morumbi: R$ 65.992, Mascote: R$ 28.258)
 - [x] Job automático diário recalcula Dpote com atendimentos acumulados até o dia atual (confirmado: MASCOTE R$ 28.258 calculado às 01:00)
 - [x] 71 testes passando (todos os mocks atualizados para a nova função)
+
+## Atualização Valor Assinaturas Março/2026
+
+- [x] Atualizar dpoteValorAssinaturas para R$ 63.845 (receita real de assinaturas março/2026)
+- [x] Recalcular Dpote com valores exatos do CashBarber (Morumbi: R$ 44.686,92 / Mascote: R$ 19.158,08)
