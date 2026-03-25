@@ -80,6 +80,7 @@ import {
   calcularFaturamentoPorCategoriaComCatalogo,
   cashbarberCriarHistoricoDpote,
   cashbarberBuscarHistoricoDpote,
+  cashbarberCalcularDpotePorFichas,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
@@ -1683,6 +1684,53 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const configs = await listCashbarberConfigs(tenantId);
       return configs.map((c) => ({ ...c, cbSenha: "***" }));
     }),
+
+    /**
+     * Retorna a distribuição da comissão bruta Dpote por filial para o mês/ano especificado.
+     * Usa fichas ponderadas dos atendimentos para calcular a proporção de cada filial.
+     */
+    dpoteDistribuicao: protectedProcedure
+      .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+
+        // Encontrar config com Dpote configurado (basta uma empresa — todas compartilham o mesmo pote)
+        const configComDpote = configs.find(
+          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+        );
+        if (!configComDpote) return { filiais: [], totalAssinaturas: 0, porcentagemBarbearia: 0, totalFichas: 0 };
+
+        const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
+        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+
+        // Login CashBarber
+        const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
+        const hoje = new Date();
+        const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
+        const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(input.ano, input.mes, 0).getDate();
+        const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+        const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+        const resultados = await cashbarberCalcularDpotePorFichas(
+          token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
+        );
+
+        const totalFichas = resultados.reduce((acc, r) => acc + r.fichas, 0);
+
+        return {
+          totalAssinaturas: valorAssinaturas,
+          porcentagemBarbearia,
+          totalFichas,
+          filiais: resultados.map((r) => ({
+            filialId: r.filialId,
+            filialNome: r.filialNome,
+            fichas: r.fichas,
+            percentual: r.percentual,
+            comissaoBruta: r.comissaoBruta,
+          })),
+        };
+      }),
 
     /** Retorna apenas os campos Dpote de todas as empresas configuradas (sem credenciais) */
     listarConfigsDpote: protectedProcedure.query(async ({ ctx }) => {

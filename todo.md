@@ -634,3 +634,10 @@
 - [x] Expor fichas da filial e fichas totais na procedure cashbarber.listarConfigsDpote
 - [x] Montar fórmula completa no frontend: Assinaturas × % comissão barbearia × % proporção fichas = comissão bruta filial
 - [x] Adicionar Tooltip shadcn/ui ao valor calculado no card de Recorrência com a fórmula completa
+
+## Seção Distribuição Dpote por Filial no Dashboard
+
+- [x] Procedure cashbarber.dpoteDistribuicao: retorna comissão bruta, fichas e percentual por filial para o mês/ano
+- [x] Componente DpoteDistribuicao: cards por filial + gráfico de pizza + gráfico de barras + tabela resumo
+- [x] Tab "Dpote" adicionada ao dashboard (visível para gerentes e admins)
+- [x] Exibe: valor total assinaturas, % comissão barbearia, total fichas, e por filial: fichas, %, comissão bruta

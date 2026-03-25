@@ -26,6 +26,7 @@ import HistoricoAnual from "@/pages/HistoricoAnual";
 import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
+import DpoteDistribuicao from "@/pages/DpoteDistribuicao";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
@@ -45,7 +46,7 @@ function pct(v: number, total: number) {
   return Math.round((v / total) * 100);
 }
 
-type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "historico" | "usuarios" | "empresas" | "auditoria" | "ia";
+type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "historico" | "usuarios" | "empresas" | "auditoria" | "ia" | "dpote";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logoutApp.useMutation({
@@ -159,6 +160,7 @@ export default function Home() {
         ...(isGerente ? ["metas"] as Tab[] : []),
         ...(isGerente ? ["bonificacao"] as Tab[] : []),
         ...(isGerente ? ["historico"] as Tab[] : []),
+        ...(isGerente ? ["dpote"] as Tab[] : []),
         ...(isGerente ? ["ia"] as Tab[] : []),
       ];
 
@@ -982,6 +984,7 @@ export default function Home() {
                 empresas: "Empresas",
                 auditoria: "Auditoria",
                 ia: "Análise IA",
+                dpote: "Dpote",
               };
               const icons: Record<Tab, React.ReactNode> = {
                 dashboard: <TrendingUp className="w-4 h-4" />,
@@ -993,6 +996,7 @@ export default function Home() {
                 empresas: <Building2 className="w-4 h-4" />,
                 auditoria: <Shield className="w-4 h-4" />,
                 ia: <Sparkles className="w-4 h-4" />,
+                dpote: <Repeat2 className="w-4 h-4" />,
               };
               return (
                 <button
@@ -2624,7 +2628,10 @@ export default function Home() {
           />
         )}
 
-        {/* ─── ANÁLISE IA ──────────────────────────────────────────────────────── */}
+             {/* ─── DPOTE DISTRIBUIÇÃO ────────────────────────────────────────── */}
+        {activeTab === "dpote" && isGerente && <DpoteDistribuicao />}
+
+        {/* ─── ANÁLISE IA ────────────────────────────────────────────────── */}
         {activeTab === "ia" && isGerente && (
           <AnaliseIA
             mes={mes}
