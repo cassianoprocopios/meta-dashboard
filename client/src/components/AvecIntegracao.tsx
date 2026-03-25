@@ -51,7 +51,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   categoriasMeta: Array<{ numero: number; nome: string }>;
 }) {
   const [expandido, setExpandido] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState<"config" | "cookie" | "mapeamento" | "sincronizar" | "agendamento">("config");
+  const [abaAtiva, setAbaAtiva] = useState<"config" | "apitoken" | "cookie" | "mapeamento" | "sincronizar" | "agendamento">("config");
 
   // Formulário de configuração
   const [avecEmail, setAvecEmail] = useState("");
@@ -61,6 +61,13 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
   const [conexaoMetodo, setConexaoMetodo] = useState<string | null>(null);
+
+  // API Token Bearer
+  const [apiTokenInput, setApiTokenInput] = useState("");
+  const [salvandoApiToken, setSalvandoApiToken] = useState(false);
+  const [removendoApiToken, setRemovendoApiToken] = useState(false);
+  const [apiTokenTestando, setApiTokenTestando] = useState(false);
+  const [apiTokenOk, setApiTokenOk] = useState<boolean | null>(null);
 
   // Cookie de sessão manual
   const [cookieInput, setCookieInput] = useState("");
@@ -171,6 +178,82 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
     },
   });
 
+  const salvarApiTokenMutation = trpc.avec.salvarApiToken.useMutation({
+    onSuccess: () => {
+      setSalvandoApiToken(false);
+      toast.success("Token da API Avec salvo! Tente sincronizar agora.");
+      setApiTokenInput("");
+      setApiTokenOk(null);
+      utils.avec.getConfig.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => {
+      setSalvandoApiToken(false);
+      toast.error(`Erro ao salvar token: ${err.message}`);
+    },
+  });
+
+  const removerApiTokenMutation = trpc.avec.removerApiToken.useMutation({
+    onSuccess: () => {
+      setRemovendoApiToken(false);
+      toast.success("Token da API removido.");
+      utils.avec.getConfig.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => {
+      setRemovendoApiToken(false);
+      toast.error(`Erro ao remover token: ${err.message}`);
+    },
+  });
+
+  const testarApiTokenMutation = trpc.avec.testarApiToken.useMutation({
+    onSuccess: (data) => {
+      setApiTokenTestando(false);
+      if (data.ok) {
+        setApiTokenOk(true);
+        toast.success("Token da API válido! Conexão estabelecida com sucesso.");
+      } else {
+        setApiTokenOk(false);
+        toast.error(`Token inválido: ${data.erro}`);
+      }
+    },
+    onError: (err) => {
+      setApiTokenTestando(false);
+      setApiTokenOk(false);
+      toast.error(`Erro ao testar token: ${err.message}`);
+    },
+  });
+
+  const handleSalvarApiToken = () => {
+    if (!apiTokenInput.trim()) {
+      toast.error("Cole o token Bearer antes de salvar.");
+      return;
+    }
+    if (!config) {
+      toast.error("Salve as credenciais Avec primeiro.");
+      return;
+    }
+    setSalvandoApiToken(true);
+    salvarApiTokenMutation.mutate({
+      empresaSlug: empresa.slug,
+      avecApiToken: apiTokenInput.trim(),
+    });
+  };
+
+  const handleRemoverApiToken = () => {
+    setRemovendoApiToken(true);
+    removerApiTokenMutation.mutate({ empresaSlug: empresa.slug });
+  };
+
+  const handleTestarApiToken = () => {
+    const token = apiTokenInput.trim() || config?.avecApiToken || "";
+    if (!token) {
+      toast.error("Cole o token Bearer ou salve um token primeiro.");
+      return;
+    }
+    setApiTokenTestando(true);
+    setApiTokenOk(null);
+    testarApiTokenMutation.mutate({ avecApiToken: token });
+  };
+
   const salvarCookieMutation = trpc.avec.salvarCookieSessao.useMutation({
     onSuccess: () => {
       setSalvandoCookie(false);
@@ -277,6 +360,12 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
 
   const temConfig = !!config;
   const temCookie = !!(config?.avecSessionCookie);
+  const temApiToken = !!(config?.avecApiToken);
+
+  // Calcular idade do token
+  const apiTokenIdade = config?.apiTokenConfiguradoEm
+    ? Math.floor((Date.now() - new Date(config.apiTokenConfiguradoEm).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
 
   // Calcular idade do cookie
   const cookieIdade = config?.cookieConfiguradoEm
@@ -300,13 +389,19 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                 <span className="flex items-center gap-1.5">
                   <CheckCircle className="w-3 h-3 text-green-400" />
                   Configurado — {config?.avecSalaoNome || config?.avecSalaoId}
-                  {temCookie && !cookieExpirado && (
+                  {temApiToken && (
+                    <span className="flex items-center gap-0.5 text-violet-400">
+                      <Key className="w-3 h-3" />
+                      API Token ativo
+                    </span>
+                  )}
+                  {!temApiToken && temCookie && !cookieExpirado && (
                     <span className="flex items-center gap-0.5 text-emerald-400">
                       <Cookie className="w-3 h-3" />
                       Cookie ativo
                     </span>
                   )}
-                  {temCookie && cookieExpirado && (
+                  {!temApiToken && temCookie && cookieExpirado && (
                     <span className="flex items-center gap-0.5 text-orange-400">
                       <AlertTriangle className="w-3 h-3" />
                       Cookie pode ter expirado
@@ -338,7 +433,8 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
               <div className="flex flex-wrap border-b border-border bg-muted/20">
                 {[
                   { id: "config", label: "Credenciais", icon: Settings },
-                  { id: "cookie", label: "Cookie Sessão", icon: Cookie, badge: temCookie },
+                  { id: "apitoken", label: "API Token", icon: Key, badge: temApiToken },
+                  { id: "cookie", label: "Cookie Sessão", icon: Cookie, badge: temCookie && !temApiToken },
                   { id: "mapeamento", label: "Mapeamento", icon: Map },
                   { id: "sincronizar", label: "Sincronizar", icon: RefreshCw },
                   { id: "agendamento", label: "Agendamento", icon: Clock },
@@ -438,6 +534,139 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       {salvarConfigMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Salvar Configuração
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Aba: API Token Bearer */}
+              {abaAtiva === "apitoken" && (
+                <div className="p-4 space-y-4">
+                  {/* Destaque: API Token é preferível ao cookie */}
+                  <div className="bg-violet-500/10 border border-violet-500/20 rounded-md p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-violet-400 font-medium text-sm">
+                      <Key className="w-4 h-4" />
+                      Token Bearer da API Oficial (Recomendado)
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      A API oficial do Avec (<code className="text-violet-400">api.avec.beauty</code>) usa autenticação por token Bearer.
+                      Este token é mais estável que o cookie de sessão e não é bloqueado por WAF.
+                      Quando configurado, o sistema usa a API oficial para sincronizar os dados.
+                    </p>
+                  </div>
+
+                  {/* Status do token atual */}
+                  {temApiToken && (
+                    <div className="flex items-center justify-between p-3 rounded-md text-sm border bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>
+                          Token configurado{apiTokenIdade !== null ? ` há ${apiTokenIdade} dia(s)` : ""}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRemoverApiToken}
+                        disabled={removendoApiToken}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                      >
+                        {removendoApiToken ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        Remover
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Instruções para obter o token */}
+                  <div className="bg-muted/20 rounded-md p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Info className="w-4 h-4 text-violet-400" />
+                      Como obter o token da API:
+                    </div>
+                    <ol className="space-y-2 text-xs text-muted-foreground list-none">
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">1</span>
+                        <span>
+                          Acesse o painel do Avec:{" "}
+                          <a
+                            href="https://admin.avec.beauty/seraphine-beauty-ltda/admin"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-violet-400 hover:underline inline-flex items-center gap-0.5"
+                          >
+                            admin.avec.beauty/seraphine-beauty-ltda/admin
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">2</span>
+                        <span>Vá em <strong>Configurações</strong> → <strong>Integrações</strong> → <strong>API</strong></span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">3</span>
+                        <span>Copie o <strong>Token Bearer</strong> gerado</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">4</span>
+                        <span>Cole abaixo, teste e clique em <strong>Salvar Token</strong></span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  {/* Aviso se não tem config */}
+                  {!temConfig && (
+                    <div className="flex items-center gap-2 p-3 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-md text-sm">
+                      <AlertTriangle className="w-4 h-4" />
+                      Configure e salve as credenciais Avec primeiro (aba Credenciais).
+                    </div>
+                  )}
+
+                  {/* Campo para colar o token */}
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      Token Bearer da API Avec
+                    </label>
+                    <textarea
+                      value={apiTokenInput}
+                      onChange={e => setApiTokenInput(e.target.value)}
+                      placeholder="Cole aqui o token Bearer da API do Avec..."
+                      rows={3}
+                      className="w-full px-3 py-2 text-xs font-mono bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none"
+                    />
+                  </div>
+
+                  {/* Status do teste */}
+                  {apiTokenOk !== null && (
+                    <div className={`flex items-center gap-2 p-3 rounded-md text-sm ${
+                      apiTokenOk ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
+                    }`}>
+                      {apiTokenOk ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                      {apiTokenOk ? "Token válido! API respondeu com sucesso." : "Token inválido. Verifique o token e tente novamente."}
+                    </div>
+                  )}
+
+                  {/* Botões */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={handleTestarApiToken}
+                      disabled={apiTokenTestando || (!apiTokenInput.trim() && !temApiToken)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-md hover:bg-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {apiTokenTestando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                      Testar Token
+                    </button>
+                    <button
+                      onClick={handleSalvarApiToken}
+                      disabled={salvandoApiToken || !apiTokenInput.trim() || !temConfig}
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-violet-600/20 text-violet-400 border border-violet-500/30 rounded-md hover:bg-violet-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {salvandoApiToken ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Salvar Token
+                    </button>
+                  </div>
+
+                  {/* Nota sobre validade */}
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-400">
+                    <strong>Vantagem:</strong> O token Bearer da API oficial não expira como o cookie de sessão.
+                    Uma vez configurado, o sistema usará a API <code>api.avec.beauty</code> para buscar os dados do relatório 0184 automaticamente.
                   </div>
                 </div>
               )}
@@ -652,17 +881,24 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     </div>
                   )}
 
-                  {temConfig && !temCookie && (
+                  {temConfig && !temApiToken && !temCookie && (
                     <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
-                      <Cookie className="w-4 h-4" />
-                      Sem cookie de sessão configurado. Configure na aba <strong>Cookie Sessão</strong> para sincronizar.
+                      <Key className="w-4 h-4" />
+                      Sem autenticação configurada. Configure o <strong>API Token</strong> (recomendado) ou o <strong>Cookie de Sessão</strong> para sincronizar.
                     </div>
                   )}
 
-                  {temConfig && temCookie && cookieExpirado && (
+                  {temConfig && temApiToken && (
+                    <div className="flex items-center gap-2 p-3 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-md text-sm">
+                      <Key className="w-4 h-4" />
+                      API Token configurado. A sincronização usará a API oficial do Avec.
+                    </div>
+                  )}
+
+                  {temConfig && !temApiToken && temCookie && cookieExpirado && (
                     <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
                       <AlertTriangle className="w-4 h-4" />
-                      Cookie pode ter expirado (configurado há {cookieIdade}h). Renove na aba <strong>Cookie Sessão</strong> se a sincronização falhar.
+                      Cookie pode ter expirado (configurado há {cookieIdade}h). Renove na aba <strong>Cookie Sessão</strong> ou configure o <strong>API Token</strong>.
                     </div>
                   )}
 
@@ -763,17 +999,17 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     </div>
                   )}
 
-                  {sincAutoAtiva && !temCookie && (
+                  {sincAutoAtiva && !temApiToken && !temCookie && (
                     <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
                       <AlertTriangle className="w-4 h-4" />
-                      Configure um cookie de sessão na aba <strong>Cookie Sessão</strong> para que o agendamento funcione.
+                      Configure o <strong>API Token</strong> (aba API Token) ou o <strong>Cookie de Sessão</strong> para que o agendamento funcione.
                     </div>
                   )}
 
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-400">
-                    <strong>Como funciona:</strong> O sistema usa o cookie de sessão configurado para buscar o faturamento diário por categoria no Avec.
+                    <strong>Como funciona:</strong> O sistema usa o API Token (preferível) ou o cookie de sessão para buscar o faturamento diário por categoria no Avec.
                     Os dados são mapeados para as categorias do Meta Dashboard e salvos automaticamente.
-                    Renove o cookie periodicamente (a cada 24–72h) para manter a sincronização ativa.
+                    {temApiToken ? " O API Token não expira — a sincronização automática funcionará indefinidamente." : " Renove o cookie periodicamente (a cada 24–72h) para manter a sincronização ativa."}
                   </div>
 
                   <button

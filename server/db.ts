@@ -1254,6 +1254,8 @@ export async function upsertAvecConfig(data: {
   ativo?: number;
   sincAutoAtiva?: number;
   horarioSinc?: string;
+  avecApiToken?: string | null;
+  apiTokenConfiguradoEm?: Date | null;
   avecSessionCookie?: string | null;
   cookieConfiguradoEm?: Date | null;
 }) {
@@ -1272,6 +1274,8 @@ export async function upsertAvecConfig(data: {
         ativo: data.ativo ?? 1,
         sincAutoAtiva: data.sincAutoAtiva ?? existing.sincAutoAtiva,
         horarioSinc: data.horarioSinc ?? existing.horarioSinc,
+        ...(data.avecApiToken !== undefined ? { avecApiToken: data.avecApiToken } : {}),
+        ...(data.apiTokenConfiguradoEm !== undefined ? { apiTokenConfiguradoEm: data.apiTokenConfiguradoEm } : {}),
         ...(data.avecSessionCookie !== undefined ? { avecSessionCookie: data.avecSessionCookie } : {}),
         ...(data.cookieConfiguradoEm !== undefined ? { cookieConfiguradoEm: data.cookieConfiguradoEm } : {}),
       })
@@ -1288,6 +1292,8 @@ export async function upsertAvecConfig(data: {
       ativo: data.ativo ?? 1,
       sincAutoAtiva: data.sincAutoAtiva ?? 0,
       horarioSinc: data.horarioSinc ?? "23:00",
+      avecApiToken: data.avecApiToken ?? null,
+      apiTokenConfiguradoEm: data.apiTokenConfiguradoEm ?? null,
       avecSessionCookie: data.avecSessionCookie ?? null,
       cookieConfiguradoEm: data.cookieConfiguradoEm ?? null,
     });

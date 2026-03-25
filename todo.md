@@ -698,3 +698,15 @@
 - [x] Aviso visual quando cookie pode estar expirado (> 48h desde configuração)
 - [x] Alertas na aba Sincronizar quando cookie não configurado ou potencialmente expirado
 - [x] Testes unitários (avec.cookie.test.ts) — 89 testes passando
+
+## Avec — Token Bearer da API Oficial e Mapeamento de Categorias
+
+- [ ] Adicionar campo `avecApiToken` na tabela avecConfig (TEXT nullable)
+- [ ] Migrar schema via SQL direto
+- [ ] Criar `server/avecApiClient.ts` — cliente da API oficial `api.avec.beauty` com Bearer token
+- [ ] Atualizar `avecSincronizador.ts` para usar API oficial quando token disponível (prioridade sobre cookie)
+- [ ] Adicionar procedures `avec.salvarApiToken`, `avec.testarApiToken` no routers.ts
+- [ ] Atualizar `AvecIntegracao.tsx`: nova aba "API Token" com campo para colar o token Bearer e instruções
+- [ ] Exibir badge "API Token" no cabeçalho quando token configurado
+- [ ] Aba "Mapeamento" no AvecIntegracao.tsx: mapear categorias Avec → categorias do sistema
+- [ ] Testes unitários para as novas procedures

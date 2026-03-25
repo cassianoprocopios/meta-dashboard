@@ -291,6 +291,14 @@ export const avecConfig = mysqlTable("avecConfig", {
   /** Horário de execução do job (formato HH:MM, ex: '23:00') */
   horarioSinc: varchar("horarioSinc", { length: 5 }).default("23:00"),
   /**
+   * Token Bearer da API oficial do Avec (api.avec.beauty).
+   * Obtido no painel do Avec em Configurações → Integrações → API.
+   * Tem prioridade sobre o cookie de sessão manual.
+   */
+  avecApiToken: text("avecApiToken"),
+  /** Data/hora em que o token da API foi configurado */
+  apiTokenConfiguradoEm: timestamp("apiTokenConfiguradoEm"),
+  /**
    * Cookie de sessão manual do Avec (ci_session).
    * Usado quando o login automático é bloqueado por WAF/firewall.
    * O usuário obtém este cookie no navegador e cola aqui.

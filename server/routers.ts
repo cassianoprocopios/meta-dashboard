@@ -2568,6 +2568,68 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return listAvecSyncLogs(tenantId, input.empresaSlug, input.limit);
       }),
 
+    /** Salva o token Bearer da API oficial do Avec */
+    salvarApiToken: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        avecApiToken: z.string().min(10),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getAvecConfig(tenantId, input.empresaSlug);
+        if (!config) {
+          throw new Error("Configuração Avec não encontrada. Salve as credenciais primeiro.");
+        }
+        await upsertAvecConfig({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          avecEmail: config.avecEmail,
+          avecSenha: config.avecSenha,
+          avecSalaoId: config.avecSalaoId,
+          avecSalaoNome: config.avecSalaoNome ?? undefined,
+          ativo: config.ativo,
+          sincAutoAtiva: config.sincAutoAtiva,
+          horarioSinc: config.horarioSinc ?? undefined,
+          avecApiToken: input.avecApiToken,
+          apiTokenConfiguradoEm: new Date(),
+        });
+        return { ok: true };
+      }),
+
+    /** Remove o token Bearer da API oficial do Avec */
+    removerApiToken: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getAvecConfig(tenantId, input.empresaSlug);
+        if (!config) throw new Error("Configuração não encontrada.");
+        await upsertAvecConfig({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          avecEmail: config.avecEmail,
+          avecSenha: config.avecSenha,
+          avecSalaoId: config.avecSalaoId,
+          avecSalaoNome: config.avecSalaoNome ?? undefined,
+          ativo: config.ativo,
+          sincAutoAtiva: config.sincAutoAtiva,
+          horarioSinc: config.horarioSinc ?? undefined,
+          avecApiToken: null,
+          apiTokenConfiguradoEm: null,
+        });
+        return { ok: true };
+      }),
+
+    /** Testa o token Bearer da API oficial do Avec */
+    testarApiToken: protectedProcedure
+      .input(z.object({
+        avecApiToken: z.string().min(10),
+      }))
+      .mutation(async ({ input }) => {
+        const { avecApiTestarToken } = await import("./avecApiClient");
+        const resultado = await avecApiTestarToken(input.avecApiToken);
+        return resultado;
+      }),
+
     /** Atualiza o agendamento automático Avec */
     atualizarAgendamento: protectedProcedure
       .input(z.object({
