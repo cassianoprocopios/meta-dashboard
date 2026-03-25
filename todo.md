@@ -641,3 +641,10 @@
 - [x] Componente DpoteDistribuicao: cards por filial + gráfico de pizza + gráfico de barras + tabela resumo
 - [x] Tab "Dpote" adicionada ao dashboard (visível para gerentes e admins)
 - [x] Exibe: valor total assinaturas, % comissão barbearia, total fichas, e por filial: fichas, %, comissão bruta
+
+## Integração Dpote → Faturamento cat5 por Unidade
+
+- [x] Entender como cat5 é salvo por empresa no sincronizador atual
+- [x] Procedure cashbarber.aplicarDpoteNoFaturamento: calcula comissão bruta por filial e salva/atualiza cat5 no faturamento do dia 1 de cada empresa para o mês
+- [x] Botão "Aplicar ao Dashboard" (verde) na tab Dpote que aciona a procedure e atualiza os valores de Recorrência de cada unidade
+- [x] Feedback visual: toast de sucesso com os valores aplicados por empresa (sonner)

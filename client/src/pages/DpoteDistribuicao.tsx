@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, AlertCircle } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -59,6 +61,29 @@ export default function DpoteDistribuicao() {
     { mes, ano },
     { enabled: true, staleTime: 5 * 60 * 1000 }
   );
+
+  const utils = trpc.useUtils();
+  const aplicarMutation = trpc.cashbarber.aplicarDpoteNoFaturamento.useMutation({
+    onSuccess: (resultado) => {
+      // Invalidar faturamentos para o dashboard atualizar
+      utils.faturamento.listar.invalidate();
+      const linhas = resultado.aplicados.map(
+        (a) => `${a.filialNome}: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(a.comissaoBruta)}`
+      ).join(" · ");
+      const avisos = resultado.naoEncontrados.length > 0
+        ? ` (não encontrado: ${resultado.naoEncontrados.join(", ")})`
+        : "";
+      toast.success("Dpote aplicado ao dashboard!", {
+        description: linhas + avisos,
+        duration: 6000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Erro ao aplicar Dpote", {
+        description: err.message,
+      });
+    },
+  });
 
   const pieData = useMemo(() => {
     if (!data?.filiais?.length) return [];
@@ -119,6 +144,19 @@ export default function DpoteDistribuicao() {
             {isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
             Atualizar
           </button>
+          {/* Botão principal: aplica comissão bruta como faturamento de cada unidade */}
+          {data && data.filiais.length > 0 && (
+            <Button
+              onClick={() => aplicarMutation.mutate({ mes, ano })}
+              disabled={aplicarMutation.isPending}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 h-auto"
+            >
+              {aplicarMutation.isPending
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <ArrowDownToLine className="w-3.5 h-3.5" />}
+              Aplicar ao Dashboard
+            </Button>
+          )}
         </div>
       </div>
 

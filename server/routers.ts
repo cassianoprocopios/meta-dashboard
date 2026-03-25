@@ -69,6 +69,7 @@ import {
   updateCashbarberAgendamento,
   getDpoteHistoricoId,
   saveDpoteHistoricoId,
+  getFaturamentoByDataEmpresaTenant,
 } from "./db";
 import {
   cashbarberLogin,
@@ -1729,6 +1730,88 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             percentual: r.percentual,
             comissaoBruta: r.comissaoBruta,
           })),
+        };
+      }),
+
+    /**
+     * Calcula a distribuição Dpote por filial e aplica o valor de comissão bruta
+     * como cat5 (Recorrência) no faturamento do dia 1 de cada empresa para o mês/ano.
+     * Isso atualiza o dashboard de cada unidade com o valor correto de Recorrência.
+     */
+    aplicarDpoteNoFaturamento: protectedProcedure
+      .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+
+        // Encontrar config com Dpote configurado (usa a primeira com valorAssinaturas)
+        const configComDpote = configs.find(
+          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas && c.dpotePorcentagemBarbearia
+        );
+        if (!configComDpote) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com Dpote configurado encontrada." });
+        }
+
+        const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
+        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia));
+
+        // Login CashBarber
+        const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
+        const hoje = new Date();
+        const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
+        const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(input.ano, input.mes, 0).getDate();
+        const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+        const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+        // Calcular distribuição por filial
+        const resultados = await cashbarberCalcularDpotePorFichas(
+          token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
+        );
+
+        // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
+        const dia1 = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+        const aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }> = [];
+        const naoEncontrados: string[] = [];
+
+        for (const config of configs) {
+          if (!config.dpoteFilialNome) continue;
+          const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
+          const filial = resultados.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
+          if (!filial) {
+            naoEncontrados.push(config.empresaSlug);
+            continue;
+          }
+
+          // Buscar faturamento existente no dia 1 para preservar outras categorias
+          const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
+
+          // Atualizar cat5 no dia 1 com o valor da comissão bruta da filial
+          await upsertFaturamento({
+            tenantId,
+            empresaSlug: config.empresaSlug,
+            data: dia1,
+            cat1: existente?.cat1 ?? "0",
+            cat2: existente?.cat2 ?? "0",
+            cat3: existente?.cat3 ?? "0",
+            cat4: existente?.cat4 ?? "0",
+            cat5: String(filial.comissaoBruta),
+            sincronizadoCB: existente?.sincronizadoCB ?? 0,
+            observacao: existente?.observacao ?? undefined,
+            lancadoPor: existente?.lancadoPor ?? undefined,
+          });
+
+          aplicados.push({
+            empresaSlug: config.empresaSlug,
+            filialNome: filial.filialNome,
+            comissaoBruta: filial.comissaoBruta,
+          });
+        }
+
+        return {
+          aplicados,
+          naoEncontrados,
+          totalAssinaturas: valorAssinaturas,
+          porcentagemBarbearia,
         };
       }),
 
