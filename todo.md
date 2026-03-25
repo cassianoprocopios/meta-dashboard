@@ -684,3 +684,17 @@
 - [x] Adicionar botão "Sync Avec" (fuchsia) ao lado do Sync Dpote no cabeçalho
 - [x] Acionar procedure avec.sincronizar com empresaSlug="seraphine" ao clicar
 - [x] Feedback visual: spinner durante sync, toast de sucesso/erro com número de dias importados
+
+## Avec — Suporte a Cookie de Sessão Manual
+
+- [x] Adicionar campo `avecSessionCookie` na tabela avecConfig (TEXT nullable)
+- [x] Migrar schema com pnpm db:push (via SQL direto)
+- [x] Atualizar funções helper no db.ts para incluir avecSessionCookie e cookieConfiguradoEm
+- [x] Adicionar procedures salvarCookieSessao e removerCookieSessao no routers.ts
+- [x] Atualizar procedure avec.testarConexao para usar cookie manual quando fornecido (sem tentar login)
+- [x] Atualizar avecSincronizador.ts para usar cookie manual quando disponível (fallback para login)
+- [x] Atualizar AvecIntegracao.tsx: nova aba "Cookie Sessão" com instruções passo a passo
+- [x] Exibir badge "Cookie ativo" no cabeçalho da empresa quando cookie está configurado
+- [x] Aviso visual quando cookie pode estar expirado (> 48h desde configuração)
+- [x] Alertas na aba Sincronizar quando cookie não configurado ou potencialmente expirado
+- [x] Testes unitários (avec.cookie.test.ts) — 89 testes passando

@@ -1,0 +1,34 @@
+{
+  "query": "SELECT t.id as tenantId, e.id as empresaId, e.slug, e.nome FROM tenants t JOIN empresas e ON e.tenantId = t.id ORDER BY e.slug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT t.id as tenantId, e.id as empresaId, e.slug, e.nome FROM tenants t JOIN empresas e ON e.tenantId = t.id ORDER BY e.slug;",
+  "rows": [
+    {
+      "tenantId": "120006",
+      "empresaId": "60005",
+      "slug": "DOM_",
+      "nome": "Dom Pablo"
+    },
+    {
+      "tenantId": "1",
+      "empresaId": "2",
+      "slug": "MASCOTE",
+      "nome": "Mascote"
+    },
+    {
+      "tenantId": "1",
+      "empresaId": "1",
+      "slug": "MORUMBI",
+      "nome": "Morumbi"
+    },
+    {
+      "tenantId": "1",
+      "empresaId": "3",
+      "slug": "SERAPHINE",
+      "nome": "Seraphine"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaId\tslug\tnome\n120006\t60005\tDOM_\tDom Pablo\n1\t2\tMASCOTE\tMascote\n1\t1\tMORUMBI\tMorumbi\n1\t3\tSERAPHINE\tSeraphine\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

@@ -2429,16 +2429,80 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return { id };
       }),
 
-    /** Testa as credenciais Avec fazendo login */
+    /** Salva o cookie de sessão manual do Avec */
+    salvarCookieSessao: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        avecSessionCookie: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getAvecConfig(tenantId, input.empresaSlug);
+        if (!config) {
+          throw new Error("Configuração Avec não encontrada. Salve as credenciais primeiro.");
+        }
+        await upsertAvecConfig({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          avecEmail: config.avecEmail,
+          avecSenha: config.avecSenha,
+          avecSalaoId: config.avecSalaoId,
+          avecSalaoNome: config.avecSalaoNome ?? undefined,
+          ativo: config.ativo,
+          sincAutoAtiva: config.sincAutoAtiva,
+          horarioSinc: config.horarioSinc ?? undefined,
+          avecSessionCookie: input.avecSessionCookie,
+          cookieConfiguradoEm: new Date(),
+        });
+        return { ok: true };
+      }),
+
+    /** Remove o cookie de sessão manual do Avec */
+    removerCookieSessao: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getAvecConfig(tenantId, input.empresaSlug);
+        if (!config) throw new Error("Configuração não encontrada.");
+        await upsertAvecConfig({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          avecEmail: config.avecEmail,
+          avecSenha: config.avecSenha,
+          avecSalaoId: config.avecSalaoId,
+          avecSalaoNome: config.avecSalaoNome ?? undefined,
+          ativo: config.ativo,
+          sincAutoAtiva: config.sincAutoAtiva,
+          horarioSinc: config.horarioSinc ?? undefined,
+          avecSessionCookie: null,
+          cookieConfiguradoEm: null,
+        });
+        return { ok: true };
+      }),
+
+    /** Testa as credenciais Avec — via cookie manual ou login */
     testarConexao: protectedProcedure
       .input(z.object({
         avecEmail: z.string().email(),
         avecSenha: z.string().min(1),
         avecSalaoId: z.string(),
+        avecSessionCookie: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         try {
-          const sessionCookie = await avecLogin(input.avecEmail, input.avecSenha);
+          let sessionCookie: string;
+          let metodo: "cookie_manual" | "login_automatico";
+
+          if (input.avecSessionCookie && input.avecSessionCookie.trim()) {
+            // Usar cookie manual fornecido
+            sessionCookie = input.avecSessionCookie.trim();
+            metodo = "cookie_manual";
+          } else {
+            // Tentar login automático
+            sessionCookie = await avecLogin(input.avecEmail, input.avecSenha);
+            metodo = "login_automatico";
+          }
+
           // Testar buscando faturamento do dia atual
           const hoje = new Date();
           const categorias = await avecBuscarFaturamentoDiaPorCategoria(
@@ -2448,9 +2512,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             hoje.getMonth() + 1,
             hoje.getFullYear()
           );
-          return { sucesso: true, categorias };
+          return { sucesso: true, categorias, metodo };
         } catch (err) {
-          return { sucesso: false, erro: err instanceof Error ? err.message : String(err), categorias: [] };
+          return { sucesso: false, erro: err instanceof Error ? err.message : String(err), categorias: [], metodo: "login_automatico" as const };
         }
       }),
 

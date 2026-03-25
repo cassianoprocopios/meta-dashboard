@@ -290,6 +290,14 @@ export const avecConfig = mysqlTable("avecConfig", {
   sincAutoAtiva: int("sincAutoAtiva").notNull().default(0),
   /** Horário de execução do job (formato HH:MM, ex: '23:00') */
   horarioSinc: varchar("horarioSinc", { length: 5 }).default("23:00"),
+  /**
+   * Cookie de sessão manual do Avec (ci_session).
+   * Usado quando o login automático é bloqueado por WAF/firewall.
+   * O usuário obtém este cookie no navegador e cola aqui.
+   */
+  avecSessionCookie: text("avecSessionCookie"),
+  /** Data/hora em que o cookie manual foi configurado */
+  cookieConfiguradoEm: timestamp("cookieConfiguradoEm"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -4,19 +4,21 @@
  * Componente de configuração da integração com o Avec.
  * Permite ao administrador:
  * 1. Configurar credenciais por empresa (email, senha, salão ID)
- * 2. Testar a conexão
- * 3. Configurar o mapeamento de categorias Avec → Meta Dashboard
- * 4. Sincronizar dados de um mês específico
- * 5. Configurar agendamento automático
+ * 2. Configurar cookie de sessão manual (para contornar bloqueio de WAF)
+ * 3. Testar a conexão
+ * 4. Configurar o mapeamento de categorias Avec → Meta Dashboard
+ * 5. Sincronizar dados de um mês específico
+ * 6. Configurar agendamento automático
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
   Loader2, CheckCircle, XCircle, RefreshCw, Settings,
   Zap, Map, Calendar, ChevronDown, ChevronRight,
-  Building2, AlertTriangle, Save, Play, Clock, History
+  Building2, AlertTriangle, Save, Play, Clock, History,
+  Cookie, Trash2, ExternalLink, Info, Key
 } from "lucide-react";
 
 type Empresa = { id: number; nome: string; slug: string; ativo: number };
@@ -49,7 +51,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   categoriasMeta: Array<{ numero: number; nome: string }>;
 }) {
   const [expandido, setExpandido] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState<"config" | "mapeamento" | "sincronizar" | "agendamento">("config");
+  const [abaAtiva, setAbaAtiva] = useState<"config" | "cookie" | "mapeamento" | "sincronizar" | "agendamento">("config");
 
   // Formulário de configuração
   const [avecEmail, setAvecEmail] = useState("");
@@ -58,6 +60,12 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [avecSalaoNome, setAvecSalaoNome] = useState("");
   const [testando, setTestando] = useState(false);
   const [conexaoOk, setConexaoOk] = useState<boolean | null>(null);
+  const [conexaoMetodo, setConexaoMetodo] = useState<string | null>(null);
+
+  // Cookie de sessão manual
+  const [cookieInput, setCookieInput] = useState("");
+  const [salvandoCookie, setSalvandoCookie] = useState(false);
+  const [removendoCookie, setRemovendoCookie] = useState(false);
 
   // Sincronização
   const [mesSinc, setMesSinc] = useState(new Date().getMonth() + 1);
@@ -82,8 +90,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   );
 
   // Sincronizar campos do form quando config carrega
-  const configLoaded = !!config;
-  useState(() => {
+  useEffect(() => {
     if (config) {
       setAvecEmail(config.avecEmail ?? "");
       setAvecSalaoId(config.avecSalaoId ?? "");
@@ -91,7 +98,7 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setSincAutoAtiva(config.sincAutoAtiva === 1);
       setHorarioSinc(config.horarioSinc ?? "23:00");
     }
-  });
+  }, [config]);
 
   // Carregar mapeamento existente
   const { data: mapeamentoSalvo } = trpc.avec.listarMapeamento.useQuery(
@@ -100,14 +107,14 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   );
 
   // Sincronizar mapeamento quando carrega
-  useState(() => {
+  useEffect(() => {
     if (mapeamentoSalvo && mapeamentoSalvo.length > 0) {
       setMapeamento(mapeamentoSalvo.map((m: { avecCategoria: string; metaCategoria: string }) => ({
         avecCategoria: m.avecCategoria,
         metaCategoria: m.metaCategoria,
       })));
     }
-  });
+  }, [mapeamentoSalvo]);
 
   // Carregar logs
   const { data: logs } = trpc.avec.listarLogs.useQuery(
@@ -147,16 +154,45 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setTestando(false);
       if (data.sucesso) {
         setConexaoOk(true);
-        toast.success("Conexão com o Avec estabelecida com sucesso!");
+        setConexaoMetodo(data.metodo ?? null);
+        const metodoLabel = data.metodo === "cookie_manual" ? "via cookie manual" : "via login automático";
+        toast.success(`Conexão estabelecida com sucesso (${metodoLabel})!`);
       } else {
         setConexaoOk(false);
+        setConexaoMetodo(null);
         toast.error(`Falha na conexão: ${data.erro}`);
       }
     },
     onError: (err) => {
       setTestando(false);
       setConexaoOk(false);
+      setConexaoMetodo(null);
       toast.error(`Erro ao testar conexão: ${err.message}`);
+    },
+  });
+
+  const salvarCookieMutation = trpc.avec.salvarCookieSessao.useMutation({
+    onSuccess: () => {
+      setSalvandoCookie(false);
+      toast.success("Cookie de sessão salvo! Tente sincronizar agora.");
+      setCookieInput("");
+      utils.avec.getConfig.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => {
+      setSalvandoCookie(false);
+      toast.error(`Erro ao salvar cookie: ${err.message}`);
+    },
+  });
+
+  const removerCookieMutation = trpc.avec.removerCookieSessao.useMutation({
+    onSuccess: () => {
+      setRemovendoCookie(false);
+      toast.success("Cookie removido.");
+      utils.avec.getConfig.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => {
+      setRemovendoCookie(false);
+      toast.error(`Erro ao remover cookie: ${err.message}`);
     },
   });
 
@@ -167,7 +203,15 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
     }
     setTestando(true);
     setConexaoOk(null);
-    testarConexaoMutation.mutate({ avecEmail, avecSenha, avecSalaoId });
+    setConexaoMetodo(null);
+    // Incluir cookie manual se disponível
+    const cookieAtual = config?.avecSessionCookie ?? undefined;
+    testarConexaoMutation.mutate({
+      avecEmail,
+      avecSenha,
+      avecSalaoId,
+      avecSessionCookie: cookieAtual || undefined,
+    });
   };
 
   const handleSalvarConfig = () => {
@@ -210,7 +254,35 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
     });
   };
 
+  const handleSalvarCookie = () => {
+    if (!cookieInput.trim()) {
+      toast.error("Cole o valor do cookie ci_session antes de salvar.");
+      return;
+    }
+    if (!config) {
+      toast.error("Salve as credenciais Avec primeiro.");
+      return;
+    }
+    setSalvandoCookie(true);
+    salvarCookieMutation.mutate({
+      empresaSlug: empresa.slug,
+      avecSessionCookie: cookieInput.trim(),
+    });
+  };
+
+  const handleRemoverCookie = () => {
+    setRemovendoCookie(true);
+    removerCookieMutation.mutate({ empresaSlug: empresa.slug });
+  };
+
   const temConfig = !!config;
+  const temCookie = !!(config?.avecSessionCookie);
+
+  // Calcular idade do cookie
+  const cookieIdade = config?.cookieConfiguradoEm
+    ? Math.floor((Date.now() - new Date(config.cookieConfiguradoEm).getTime()) / (1000 * 60 * 60))
+    : null;
+  const cookieExpirado = cookieIdade !== null && cookieIdade > 48;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
@@ -225,9 +297,21 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
             <div className="font-medium text-foreground">{empresa.nome}</div>
             <div className="text-xs text-muted-foreground">
               {temConfig ? (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1.5">
                   <CheckCircle className="w-3 h-3 text-green-400" />
-                  Configurado — Salão: {config?.avecSalaoNome || config?.avecSalaoId}
+                  Configurado — {config?.avecSalaoNome || config?.avecSalaoId}
+                  {temCookie && !cookieExpirado && (
+                    <span className="flex items-center gap-0.5 text-emerald-400">
+                      <Cookie className="w-3 h-3" />
+                      Cookie ativo
+                    </span>
+                  )}
+                  {temCookie && cookieExpirado && (
+                    <span className="flex items-center gap-0.5 text-orange-400">
+                      <AlertTriangle className="w-3 h-3" />
+                      Cookie pode ter expirado
+                    </span>
+                  )}
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
@@ -251,17 +335,18 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
           ) : (
             <>
               {/* Abas */}
-              <div className="flex border-b border-border bg-muted/20">
+              <div className="flex flex-wrap border-b border-border bg-muted/20">
                 {[
                   { id: "config", label: "Credenciais", icon: Settings },
+                  { id: "cookie", label: "Cookie Sessão", icon: Cookie, badge: temCookie },
                   { id: "mapeamento", label: "Mapeamento", icon: Map },
                   { id: "sincronizar", label: "Sincronizar", icon: RefreshCw },
                   { id: "agendamento", label: "Agendamento", icon: Clock },
-                ].map(({ id, label, icon: Icon }) => (
+                ].map(({ id, label, icon: Icon, badge }) => (
                   <button
                     key={id}
                     onClick={() => setAbaAtiva(id as typeof abaAtiva)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                    className={`relative flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                       abaAtiva === id
                         ? "border-b-2 border-violet-500 text-violet-400 bg-violet-500/10"
                         : "text-muted-foreground hover:text-foreground"
@@ -269,6 +354,9 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                   >
                     <Icon className="w-4 h-4" />
                     {label}
+                    {badge && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -326,12 +414,14 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       conexaoOk ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
                     }`}>
                       {conexaoOk ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                      {conexaoOk ? "Conexão estabelecida com sucesso!" : "Falha na conexão. Verifique as credenciais."}
+                      {conexaoOk
+                        ? `Conexão estabelecida! (${conexaoMetodo === "cookie_manual" ? "via cookie manual" : "via login automático"})`
+                        : "Falha na conexão. Verifique as credenciais ou configure um cookie de sessão."}
                     </div>
                   )}
 
                   {/* Botões */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={handleTestarConexao}
                       disabled={testando || !avecEmail || !avecSenha || !avecSalaoId}
@@ -348,6 +438,133 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                       {salvarConfigMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Salvar Configuração
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Aba: Cookie de Sessão Manual */}
+              {abaAtiva === "cookie" && (
+                <div className="p-4 space-y-4">
+                  {/* Aviso explicativo */}
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-400 font-medium text-sm">
+                      <Info className="w-4 h-4" />
+                      Por que usar cookie manual?
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      O servidor do Avec bloqueia requisições automáticas de IPs de datacenter (403 Forbidden).
+                      Para contornar isso, você pode fazer login no Avec no seu navegador e copiar o cookie de sessão aqui.
+                      O sistema usará esse cookie para buscar os dados automaticamente.
+                    </p>
+                  </div>
+
+                  {/* Status do cookie atual */}
+                  {temCookie && (
+                    <div className={`flex items-center justify-between p-3 rounded-md text-sm border ${
+                      cookieExpirado
+                        ? "bg-orange-500/10 border-orange-500/20 text-orange-400"
+                        : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <Cookie className="w-4 h-4" />
+                        <span>
+                          Cookie configurado há {cookieIdade}h
+                          {cookieExpirado ? " — pode ter expirado" : " — provavelmente ativo"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRemoverCookie}
+                        disabled={removendoCookie}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                      >
+                        {removendoCookie ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        Remover
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Instruções passo a passo */}
+                  <div className="bg-muted/20 rounded-md p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Key className="w-4 h-4 text-violet-400" />
+                      Como obter o cookie de sessão:
+                    </div>
+                    <ol className="space-y-2 text-xs text-muted-foreground list-none">
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">1</span>
+                        <span>
+                          Abra o Avec no seu navegador:{" "}
+                          <a
+                            href="https://admin.avec.beauty/seraphine-beauty-ltda/admin"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-violet-400 hover:underline inline-flex items-center gap-0.5"
+                          >
+                            admin.avec.beauty/seraphine-beauty-ltda/admin
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">2</span>
+                        <span>Faça login com as credenciais da Seraphine</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">3</span>
+                        <span>Pressione <kbd className="px-1 py-0.5 bg-muted border border-border rounded text-xs">F12</kbd> para abrir as Ferramentas do Desenvolvedor</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">4</span>
+                        <span>Vá em <strong>Application</strong> → <strong>Cookies</strong> → <strong>admin.avec.beauty</strong></span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">5</span>
+                        <span>Copie o valor do cookie <code className="px-1 py-0.5 bg-muted border border-border rounded text-xs">ci_session</code></span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold">6</span>
+                        <span>Cole abaixo e clique em <strong>Salvar Cookie</strong></span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  {/* Campo para colar o cookie */}
+                  {!temConfig && (
+                    <div className="flex items-center gap-2 p-3 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-md text-sm">
+                      <AlertTriangle className="w-4 h-4" />
+                      Configure e salve as credenciais Avec primeiro (aba Credenciais).
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      Valor do cookie <code className="text-violet-400">ci_session</code>
+                    </label>
+                    <textarea
+                      value={cookieInput}
+                      onChange={e => setCookieInput(e.target.value)}
+                      placeholder="Cole aqui o valor do cookie ci_session..."
+                      rows={4}
+                      className="w-full px-3 py-2 text-xs font-mono bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      O cookie é uma string longa (ex: <code className="text-violet-400">ci_session=a1b2c3d4...</code> ou apenas o valor após o "=").
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSalvarCookie}
+                    disabled={salvandoCookie || !cookieInput.trim() || !temConfig}
+                    className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-md hover:bg-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {salvandoCookie ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cookie className="w-4 h-4" />}
+                    Salvar Cookie
+                  </button>
+
+                  {/* Nota sobre validade */}
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-400">
+                    <strong>Validade:</strong> O cookie do Avec expira após algumas horas de inatividade (geralmente 24–72h).
+                    Quando a sincronização falhar com erro de autenticação, renove o cookie repetindo o processo acima.
                   </div>
                 </div>
               )}
@@ -435,6 +652,20 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     </div>
                   )}
 
+                  {temConfig && !temCookie && (
+                    <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
+                      <Cookie className="w-4 h-4" />
+                      Sem cookie de sessão configurado. Configure na aba <strong>Cookie Sessão</strong> para sincronizar.
+                    </div>
+                  )}
+
+                  {temConfig && temCookie && cookieExpirado && (
+                    <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
+                      <AlertTriangle className="w-4 h-4" />
+                      Cookie pode ter expirado (configurado há {cookieIdade}h). Renove na aba <strong>Cookie Sessão</strong> se a sincronização falhar.
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs text-muted-foreground mb-1">Mês</label>
@@ -471,33 +702,36 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                   </button>
 
                   {/* Logs de sincronização */}
-              {logs && logs.length > 0 && (
-                <div className="mt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <History className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-foreground">Histórico de Sincronizações</span>
-                  </div>
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {logs.map((log, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-muted/20 rounded text-xs">
-                        <div className="flex items-center gap-2">
-                          {log.status === "sucesso" ? (
-                            <CheckCircle className="w-3 h-3 text-green-400" />
-                          ) : (
-                            <XCircle className="w-3 h-3 text-red-400" />
-                          )}
-                          <span className="text-muted-foreground">
-                            {new Date(log.executadoEm).toLocaleString("pt-BR")}
-                          </span>
-                        </div>
-                        <span className={log.status === "sucesso" ? "text-green-400" : "text-red-400"}>
-                          {log.diasSincronizados ?? 0} dias | {log.origem}
-                        </span>
+                  {logs && logs.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <History className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">Histórico de Sincronizações</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
+                        {logs.map((log, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-2 bg-muted/20 rounded text-xs">
+                            <div className="flex items-center gap-2">
+                              {log.status === "ok" ? (
+                                <CheckCircle className="w-3 h-3 text-green-400" />
+                              ) : (
+                                <XCircle className="w-3 h-3 text-red-400" />
+                              )}
+                              <span className="text-muted-foreground">
+                                {new Date(log.executadoEm).toLocaleString("pt-BR")}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={log.status === "ok" ? "text-green-400" : "text-red-400"}>
+                                {log.diasSincronizados ?? 0} dias
+                              </span>
+                              <span className="text-muted-foreground">{log.origem}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -529,8 +763,17 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                     </div>
                   )}
 
+                  {sincAutoAtiva && !temCookie && (
+                    <div className="flex items-center gap-2 p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-md text-sm">
+                      <AlertTriangle className="w-4 h-4" />
+                      Configure um cookie de sessão na aba <strong>Cookie Sessão</strong> para que o agendamento funcione.
+                    </div>
+                  )}
+
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-3 text-xs text-blue-400">
-                    <strong>Como funciona:</strong> O sistema faz login no Avec com as credenciais configuradas e busca o faturamento diário por categoria. Os dados são mapeados para as categorias do Meta Dashboard e salvos automaticamente.
+                    <strong>Como funciona:</strong> O sistema usa o cookie de sessão configurado para buscar o faturamento diário por categoria no Avec.
+                    Os dados são mapeados para as categorias do Meta Dashboard e salvos automaticamente.
+                    Renove o cookie periodicamente (a cada 24–72h) para manter a sincronização ativa.
                   </div>
 
                   <button
@@ -579,6 +822,7 @@ export default function AvecIntegracao({ empresas }: AvecIntegracaoProps) {
           <h3 className="font-semibold text-foreground">Integração Avec</h3>
           <p className="text-sm text-muted-foreground">
             Sincronize automaticamente o faturamento diário do Avec para o Meta Dashboard.
+            Configure o cookie de sessão para ativar a sincronização.
           </p>
         </div>
       </div>

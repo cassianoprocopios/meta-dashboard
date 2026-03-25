@@ -84,18 +84,25 @@ export async function sincronizarFaturamentoAvec(
     throw new Error(`Avec: nenhum mapeamento de categorias configurado para ${empresaSlug}`);
   }
 
-  // 3. Fazer login no Avec
+  // 3. Obter sessão Avec: usar cookie manual se disponível, senão tentar login automático
   let sessionCookie: string;
-  try {
-    sessionCookie = await avecLogin(config.avecEmail, config.avecSenha);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await insertAvecSyncLog({
-      tenantId, empresaSlug, mes, ano, origem,
-      status: "erro", diasSincronizados: 0, diasIgnorados: 0, erros: msg,
-    });
-    await updateAvecSyncStatus(tenantId, empresaSlug, "erro");
-    throw new Error(`Avec: falha no login — ${msg}`);
+  if (config.avecSessionCookie && config.avecSessionCookie.trim()) {
+    // Usar cookie de sessão manual configurado pelo usuário
+    sessionCookie = config.avecSessionCookie.trim();
+    console.log(`[Avec] Usando cookie de sessão manual para ${empresaSlug}`);
+  } else {
+    // Tentar login automático (pode ser bloqueado por WAF em ambientes de servidor)
+    try {
+      sessionCookie = await avecLogin(config.avecEmail, config.avecSenha);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await insertAvecSyncLog({
+        tenantId, empresaSlug, mes, ano, origem,
+        status: "erro", diasSincronizados: 0, diasIgnorados: 0, erros: msg,
+      });
+      await updateAvecSyncStatus(tenantId, empresaSlug, "erro");
+      throw new Error(`Avec: falha no login — ${msg}. Dica: configure um cookie de sessão manual no painel Avec.`);
+    }
   }
 
   // 4. Determinar o intervalo de dias a sincronizar

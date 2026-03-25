@@ -1,0 +1,145 @@
+{
+  "query": "SELECT data, cat1, cat2, cat3, cat4, cat5, lancadoPor FROM faturamentos WHERE empresaSlug = 'SERAPHINE' AND data LIKE '2026-03-%' ORDER BY data LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat1, cat2, cat3, cat4, cat5, lancadoPor FROM faturamentos WHERE empresaSlug = 'SERAPHINE' AND data LIKE '2026-03-%' ORDER BY data LIMIT 30;",
+  "rows": [
+    {
+      "data": "2026-03-03",
+      "cat1": "3190.00",
+      "cat2": "45.30",
+      "cat3": "1906.98",
+      "cat4": "430.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-04",
+      "cat1": "765.00",
+      "cat2": "10.50",
+      "cat3": "1312.98",
+      "cat4": "188.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-05",
+      "cat1": "1272.00",
+      "cat2": "40.50",
+      "cat3": "2065.97",
+      "cat4": "300.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-06",
+      "cat1": "3165.00",
+      "cat2": "62.00",
+      "cat3": "3061.75",
+      "cat4": "393.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-07",
+      "cat1": "5146.00",
+      "cat2": "40.30",
+      "cat3": "3489.45",
+      "cat4": "280.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-10",
+      "cat1": "570.00",
+      "cat2": "10.50",
+      "cat3": "854.98",
+      "cat4": "210.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-11",
+      "cat1": "1260.00",
+      "cat2": "11.00",
+      "cat3": "1955.58",
+      "cat4": "574.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-12",
+      "cat1": "2756.00",
+      "cat2": "36.00",
+      "cat3": "2671.97",
+      "cat4": "700.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-13",
+      "cat1": "3576.00",
+      "cat2": "8.00",
+      "cat3": "2911.97",
+      "cat4": "240.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-14",
+      "cat1": "3747.00",
+      "cat2": "104.60",
+      "cat3": "3100.08",
+      "cat4": "505.99",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-17",
+      "cat1": "1540.00",
+      "cat2": "26.00",
+      "cat3": "1544.19",
+      "cat4": "580.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-18",
+      "cat1": "1092.00",
+      "cat2": "3.00",
+      "cat3": "2862.99",
+      "cat4": "420.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-19",
+      "cat1": "1050.00",
+      "cat2": "49.50",
+      "cat3": "1916.98",
+      "cat4": "460.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-20",
+      "cat1": "2040.00",
+      "cat2": "47.00",
+      "cat3": "3047.19",
+      "cat4": "870.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    },
+    {
+      "data": "2026-03-21",
+      "cat1": "2220.00",
+      "cat2": "69.80",
+      "cat3": "2901.00",
+      "cat4": "720.00",
+      "cat5": "0.00",
+      "lancadoPor": "mila.nascimento76"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\tcat4\tcat5\tlancadoPor\n2026-03-03\t3190.00\t45.30\t1906.98\t430.00\t0.00\tmila.nascimento76\n2026-03-04\t765.00\t10.50\t1312.98\t188.00\t0.00\tmila.nascimento76\n2026-03-05\t1272.00\t40.50\t2065.97\t300.00\t0.00\tmila.nascimento76\n2026-03-06\t3165.00\t62.00\t3061.75\t393.00\t0.00\tmila.nascimento76\n2026-03-07\t5146.00\t40.30\t3489.45\t280.00\t0.00\tmila.nascimento76\n2026-03-10\t570.00\t10.50\t854.98\t210.00\t0.00\tmila.nascimento76\n2026-03-11\t1260.00\t11.00\t1955.58\t574.00\t0.00\tmila.nascimento76\n2026-03-12\t2756.00\t36.00\t2671.97\t700.00\t0.00\tmila.nascimento76\n2026-03-13\t3576.00\t8.00\t2911.97\t240.00\t0.00\tmila.nascimento76\n2026-03-14\t3747.00\t104.60\t3100.08\t505.99\t0.00\tmila.nascimento76\n2026-03-17\t1540.00\t26.00\t1544.19\t580.00\t0.00\tmila.nascimento76\n2026-03-18\t1092.00\t3.00\t2862.99\t420.00\t0.00\tmila.nascimento76\n2026-03-19\t1050.00\t49.50\t1916.98\t460.00\t0.00\tmila.nascimento76\n2026-03-20\t2040.00\t47.00\t3047.19\t870.00\t0.00\tmila.nascimento76\n2026-03-21\t2220.00\t69.80\t2901.00\t720.00\t0.00\tmila.nascimento76\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

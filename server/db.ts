@@ -1254,6 +1254,8 @@ export async function upsertAvecConfig(data: {
   ativo?: number;
   sincAutoAtiva?: number;
   horarioSinc?: string;
+  avecSessionCookie?: string | null;
+  cookieConfiguradoEm?: Date | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1270,6 +1272,8 @@ export async function upsertAvecConfig(data: {
         ativo: data.ativo ?? 1,
         sincAutoAtiva: data.sincAutoAtiva ?? existing.sincAutoAtiva,
         horarioSinc: data.horarioSinc ?? existing.horarioSinc,
+        ...(data.avecSessionCookie !== undefined ? { avecSessionCookie: data.avecSessionCookie } : {}),
+        ...(data.cookieConfiguradoEm !== undefined ? { cookieConfiguradoEm: data.cookieConfiguradoEm } : {}),
       })
       .where(and(eq(avecConfig.tenantId, data.tenantId), eq(avecConfig.empresaSlug, data.empresaSlug)));
     return existing.id;
@@ -1284,6 +1288,8 @@ export async function upsertAvecConfig(data: {
       ativo: data.ativo ?? 1,
       sincAutoAtiva: data.sincAutoAtiva ?? 0,
       horarioSinc: data.horarioSinc ?? "23:00",
+      avecSessionCookie: data.avecSessionCookie ?? null,
+      cookieConfiguradoEm: data.cookieConfiguradoEm ?? null,
     });
     return (result as any)[0]?.insertId ?? 0;
   }
