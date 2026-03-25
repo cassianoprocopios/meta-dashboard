@@ -423,6 +423,10 @@ export const appRouter = router({
         cat3: z.string().default("0"),
         cat4: z.string().default("0"),
         cat5: z.string().default("0"),
+        cat6: z.string().default("0"),
+        cat7: z.string().default("0"),
+        cat8: z.string().default("0"),
+        cat9: z.string().default("0"),
         observacao: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -1788,7 +1792,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           // Buscar faturamento existente no dia 1 para preservar outras categorias
           const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
 
-          // Atualizar cat5 no dia 1 com o valor distribuído da filial
+          // Atualizar cat9 (Recorrência) no dia 1 com o valor distribuído da filial
           await upsertFaturamento({
             tenantId,
             empresaSlug: config.empresaSlug,
@@ -1797,7 +1801,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             cat2: existente?.cat2 ?? "0",
             cat3: existente?.cat3 ?? "0",
             cat4: existente?.cat4 ?? "0",
-            cat5: String(filial.valorDistribuido),
+            cat5: existente?.cat5 ?? "0",
+            cat6: existente?.cat6 ?? "0",
+            cat7: existente?.cat7 ?? "0",
+            cat8: existente?.cat8 ?? "0",
+            cat9: String(filial.valorDistribuido),
             sincronizadoCB: existente?.sincronizadoCB ?? 0,
             observacao: existente?.observacao ?? undefined,
             lancadoPor: existente?.lancadoPor ?? undefined,
@@ -1831,11 +1839,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     }),
 
     /**
-     * Ajusta manualmente o valor de Recorrência (cat5) de uma empresa no dia 1 do mês.
+     * Ajusta manualmente o valor de Recorrência (cat9) de uma empresa no dia 1 do mês.
      * Aceita empresaSlug direto OU dpoteFilialNome (nome da filial no CashBarber) para mapeamento automático.
      * Suporta dois modos:
-     * - "substituir": substitui o cat5 atual pelo novo valor
-     * - "somar": soma o novo valor ao cat5 atual
+     * - "substituir": substitui o cat9 atual pelo novo valor
+     * - "somar": soma o novo valor ao cat9 atual
      */
     ajustarCat5Empresa: protectedProcedure
       .input(
@@ -1880,11 +1888,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         // Buscar faturamento existente para preservar outras categorias
         const existente = await getFaturamentoByDataEmpresaTenant(dia1, empresaSlug, tenantId);
-        const cat5Atual = existente?.cat5 ? parseFloat(String(existente.cat5)) : 0;
+        const cat9Atual = existente?.cat9 ? parseFloat(String(existente.cat9)) : 0;
 
-        const novoCat5 =
+        const novoCat9 =
           input.operacao === "somar"
-            ? cat5Atual + input.valor
+            ? cat9Atual + input.valor
             : input.valor;
 
         await upsertFaturamento({
@@ -1895,7 +1903,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           cat2: existente?.cat2 ?? "0",
           cat3: existente?.cat3 ?? "0",
           cat4: existente?.cat4 ?? "0",
-          cat5: String(novoCat5),
+          cat5: existente?.cat5 ?? "0",
+          cat6: existente?.cat6 ?? "0",
+          cat7: existente?.cat7 ?? "0",
+          cat8: existente?.cat8 ?? "0",
+          cat9: String(novoCat9),
           sincronizadoCB: existente?.sincronizadoCB ?? 0,
           observacao: existente?.observacao ?? undefined,
           lancadoPor: ctx.user?.email ?? undefined,
@@ -1904,9 +1916,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return {
           empresaSlug,
           operacao: input.operacao,
-          cat5Anterior: cat5Atual,
-          cat5Novo: novoCat5,
-          diferenca: novoCat5 - cat5Atual,
+          cat5Anterior: cat9Atual,
+          cat5Novo: novoCat9,
+          diferenca: novoCat9 - cat9Atual,
         };
       }),
 
@@ -2000,7 +2012,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
         );
 
-        // Aplicar cat5 no dia 1 de cada empresa configurada com Dpote
+        // Aplicar cat9 (Recorrência) no dia 1 de cada empresa configurada com Dpote
         const dia1 = dataInicial;
         const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
@@ -2022,7 +2034,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             cat2: existente?.cat2 ?? "0",
             cat3: existente?.cat3 ?? "0",
             cat4: existente?.cat4 ?? "0",
-            cat5: String(filial.valorDistribuido),
+            cat5: existente?.cat5 ?? "0",
+            cat6: existente?.cat6 ?? "0",
+            cat7: existente?.cat7 ?? "0",
+            cat8: existente?.cat8 ?? "0",
+            cat9: String(filial.valorDistribuido),
             sincronizadoCB: existente?.sincronizadoCB ?? 0,
             observacao: existente?.observacao ?? undefined,
             lancadoPor: ctx.user?.email ?? undefined,

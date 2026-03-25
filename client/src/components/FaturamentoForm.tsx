@@ -47,7 +47,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
     initialData?.empresaSlug ?? defaultEmpresa
   );
   const [data, setData] = useState<string>(initialData?.data ?? defaultData);
-  const [cats, setCats] = useState<[string, string, string, string, string]>(
+  const [cats, setCats] = useState<[string, string, string, string, string, string, string, string, string]>(
     initialData
       ? [
           String(parseFloat(initialData.cat1 || "0")),
@@ -55,8 +55,12 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
           String(parseFloat(initialData.cat3 || "0")),
           String(parseFloat(initialData.cat4 || "0")),
           String(parseFloat(initialData.cat5 || "0")),
+          String(parseFloat(initialData.cat6 || "0")),
+          String(parseFloat(initialData.cat7 || "0")),
+          String(parseFloat(initialData.cat8 || "0")),
+          String(parseFloat(initialData.cat9 || "0")),
         ]
-      : ["", "", "", "", ""]
+      : ["", "", "", "", "", "", "", "", ""]
   );
   const [observacao, setObservacao] = useState<string>(initialData?.observacao ?? "");
 
@@ -72,17 +76,17 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   );
 
   // Usar categorias do banco se disponíveis, senão fallback para padrão
-  const LABELS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-  const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência"];
+  const LABELS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
+  const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Outros Serviços", "Pacote", "Recorrência", "", "", "", ""];
   const fallbackLabels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
   const labels = categoriasData.length > 0
-    ? categoriasData.slice(0, 5).map((c) => c.nome)
+    ? categoriasData.slice(0, 9).map((c) => c.nome)
     : fallbackLabels;
 
   // Reset cats when empresa changes (only for new entries)
   useEffect(() => {
     if (!initialData) {
-      setCats(["", "", "", "", ""]);
+      setCats(["", "", "", "", "", "", "", "", ""]);
     }
   }, [empresaSlug]);
 
@@ -110,6 +114,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         cat3: parseValStr(cats[2]),
         cat4: parseValStr(cats[3]),
         cat5: parseValStr(cats[4]),
+        cat6: parseValStr(cats[5]),
+        cat7: parseValStr(cats[6]),
+        cat8: parseValStr(cats[7]),
+        cat9: parseValStr(cats[8]),
         observacao: observacao || undefined,
       });
       toast.success(futuro ? "Lançamento previsto salvo!" : "Lançamento salvo com sucesso!");
@@ -179,10 +187,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   <p className="text-xs text-slate-500">
                     {/* Cada empresa mostra suas próprias categorias do banco */}
                     {emp.categorias && emp.categorias.length > 0
-                      ? emp.categorias.slice(0, 5).map((c) => c.nome).join(" / ")
+                      ? emp.categorias.slice(0, 9).map((c) => c.nome).join(" / ")
                       : (emp.tipoCategorias === "seraphine"
-                        ? "Cabelo / Produtos / Unha / Outros / Pacotes"
-                        : "Avulso / Produtos / Serv. Extra / Lavatório / Recorrência")}
+                        ? "Cabelo / Manicure / Outros / Pacote / Recorrência"
+                        : "Avulso / Serv. Extra / Auxiliar / Keune / Don Alcides / Caixinha / Barbiero / Bar / Recorrência")}
                   </p>
                 </div>
               </button>
@@ -249,7 +257,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   autoComplete="off"
                   value={cats[i]}
                   onChange={(e) => {
-                    const newCats = [...cats] as [string, string, string, string, string];
+                    const newCats = [...cats] as [string, string, string, string, string, string, string, string, string];
                     newCats[i] = e.target.value;
                     setCats(newCats);
                   }}

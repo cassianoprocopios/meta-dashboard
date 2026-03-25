@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Adicionar cat6-cat9 na tabela faturamentos\nALTER TABLE faturamentos \n  ADD COLUMN cat6 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat7 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat8 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat9 DECIMAL(12,2) NOT NULL DEFAULT 0;\n\n-- Adicionar cat6Nome-cat9Nome na tabela empresas\nALTER TABLE empresas\n  ADD COLUMN cat6Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 6',\n  ADD COLUMN cat7Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 7',\n  ADD COLUMN cat8Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 8',\n  ADD COLUMN cat9Nome VARCHAR(64) NOT NULL DEFAULT 'Recorrência';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Adicionar cat6-cat9 na tabela faturamentos\nALTER TABLE faturamentos \n  ADD COLUMN cat6 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat7 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat8 DECIMAL(12,2) NOT NULL DEFAULT 0,\n  ADD COLUMN cat9 DECIMAL(12,2) NOT NULL DEFAULT 0;\n\n-- Adicionar cat6Nome-cat9Nome na tabela empresas\nALTER TABLE empresas\n  ADD COLUMN cat6Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 6',\n  ADD COLUMN cat7Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 7',\n  ADD COLUMN cat8Nome VARCHAR(64) NOT NULL DEFAULT 'Cat 8',\n  ADD COLUMN cat9Nome VARCHAR(64) NOT NULL DEFAULT 'Recorrência';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1542
+}

@@ -31,6 +31,9 @@ const META_CATEGORIAS = [
   { value: "cat3", label: "Categoria 3" },
   { value: "cat4", label: "Categoria 4" },
   { value: "cat5", label: "Categoria 5" },
+  { value: "cat6", label: "Categoria 6" },
+  { value: "cat7", label: "Categoria 7" },
+  { value: "cat8", label: "Categoria 8" },
   { value: "ignorar", label: "Ignorar (não importar)" },
 ];
 

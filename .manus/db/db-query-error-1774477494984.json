@@ -1,0 +1,8 @@
+{
+  "query": "\n-- Migrar cat5 → cat9 para MASCOTE e MORUMBI (recorrência agora é cat9)\nUPDATE faturamentos \nSET cat9 = cat5, cat5 = '0'\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI') \n  AND (cat5 IS NOT NULL AND cat5 != '0' AND cat5 != '');\n\n-- Verificar resultado\nSELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL(10,2))) as total_cat9, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5\nFROM faturamentos\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI') AND mes = 3 AND ano = 2026\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Migrar cat5 → cat9 para MASCOTE e MORUMBI (recorrência agora é cat9)\nUPDATE faturamentos \nSET cat9 = cat5, cat5 = '0'\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI') \n  AND (cat5 IS NOT NULL AND cat5 != '0' AND cat5 != '');\n\n-- Verificar resultado\nSELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL(10,2))) as total_cat9, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5\nFROM faturamentos\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI') AND mes = 3 AND ano = 2026\nGROUP BY empresaSlug;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 9: Unknown column 'mes' in 'where clause'"
+  ]
+}

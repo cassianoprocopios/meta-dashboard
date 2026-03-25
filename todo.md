@@ -774,3 +774,12 @@
 - [x] Criar procedure tRPC cashbarber.dpoteSyncLog para listar histórico
 - [x] Implementar seção de histórico de sincronizações na tela DpoteDistribuicao
 - [x] Configurar sync CashBarber para separar lançamentos por categoria (cat1-cat4) conforme mapeamento
+
+## Expansão para 9 Categorias (MASCOTE e MORUMBI)
+- [x] Adicionar colunas cat6, cat7, cat8, cat9 na tabela faturamentos via SQL
+- [x] Atualizar schema Drizzle (schema.ts) com cat6, cat7, cat8, cat9
+- [x] Atualizar sincronizador e cashbarber.ts para processar cat6-cat9 (cat9=Recorrência)
+- [x] Atualizar mapeamento CashBarber: Keune→cat4, Don Alcides→cat5, Caixinha→cat6, Barbiero→cat7, Bar→cat8, Recorrência→cat9
+- [x] Atualizar categorias no banco para MASCOTE e MORUMBI (9 categorias)
+- [x] Atualizar frontend: FaturamentoForm, dashboard Home.tsx, gráficos e tabelas para 9 categorias
+- [x] Sincronizar março/2026 com o novo mapeamento de 9 categorias

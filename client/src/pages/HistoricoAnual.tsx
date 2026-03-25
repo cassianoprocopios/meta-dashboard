@@ -90,12 +90,12 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
         });
 
         const totalMensal = fatsRealizados.reduce((s: number, f: any) =>
-          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
 
         const fatsQ = fatsRealizados.filter((f: any) => parseInt(f.data.split("-")[2]) <= 15);
         const totalQuinzenal = fatsQ.reduce((s: number, f: any) =>
-          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
 
         const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
@@ -144,7 +144,7 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
         });
 
         const totalRealizado = fatsRealizados.reduce((s: number, f: any) =>
-          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+          s + [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
 
         const metaMensal = parseFloat(String(meta?.metaMensal || "0"));

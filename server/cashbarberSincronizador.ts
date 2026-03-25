@@ -299,20 +299,29 @@ export async function sincronizarFaturamentoCashbarber(
       const cat4 = categoriasMapeadas.has("cat4")
         ? String(faturamentoCB.cat4)
         : existente?.cat4 ?? "0";
+      const cat6 = categoriasMapeadas.has("cat6")
+        ? String(faturamentoCB.cat6)
+        : existente?.cat6 ?? "0";
+      const cat7 = categoriasMapeadas.has("cat7")
+        ? String(faturamentoCB.cat7)
+        : existente?.cat7 ?? "0";
+      const cat8 = categoriasMapeadas.has("cat8")
+        ? String(faturamentoCB.cat8)
+        : existente?.cat8 ?? "0";
 
-      // cat5 (Recorrência / Dpote):
+      // cat9 (Recorrência / Dpote):
       // O valor total mensal é distribuído igualmente por todos os dias do mês
       // sincronizados, refletindo a cobrança diária dos planos mensais.
       // Ex: R$ 30.000 em 30 dias = R$ 1.000/dia.
-      let cat5: string;
+      let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
         // Distribuir igualmente pelo número total de dias sincronizados no mês
         const totalDiasMes = new Date(ano, mes, 0).getDate();
         const valorDiario = recorrenciaValor / totalDiasMes;
-        cat5 = String(Math.round(valorDiario * 100) / 100);
+        cat9 = String(Math.round(valorDiario * 100) / 100);
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
-        cat5 = existente?.cat5 ?? "0";
+        cat9 = existente?.cat9 ?? "0";
       }
 
       // Salvar no banco (upsert com merge seletivo)
@@ -325,7 +334,10 @@ export async function sincronizarFaturamentoCashbarber(
         cat2,
         cat3,
         cat4,
-        cat5,
+        cat6,
+        cat7,
+        cat8,
+        cat9,
         sincronizadoCB: 1,
         // Preservar observacao e lancadoPor do registro existente
         observacao: existente?.observacao ?? undefined,
@@ -376,7 +388,7 @@ export async function sincronizarFaturamentoCashbarber(
         tipoExecucao: origem === "auto" ? "automatico" : "manual",
         erro: errosMsgs.length > 0 ? errosMsgs.slice(0, 3).join("; ") : null,
       });
-      console.log(`[CashBarber Dpote] cat5 distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia (total: R$ ${recorrenciaValor.toFixed(2)})`);
+      console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia (total: R$ ${recorrenciaValor.toFixed(2)})`);
     } catch (errLog) {
       console.warn(`[CashBarber] Falha ao registrar DpoteSyncLog para ${empresaSlug}:`, errLog);
     }
@@ -498,7 +510,10 @@ export async function aplicarDpoteParaTenant(
         cat2: existente?.cat2 ?? "0",
         cat3: existente?.cat3 ?? "0",
         cat4: existente?.cat4 ?? "0",
-        cat5: String(valorDiario),
+        cat6: existente?.cat6 ?? "0",
+        cat7: existente?.cat7 ?? "0",
+        cat8: existente?.cat8 ?? "0",
+        cat9: String(valorDiario),
         sincronizadoCB: existente?.sincronizadoCB ?? 0,
         observacao: existente?.observacao ?? undefined,
         lancadoPor: existente?.lancadoPor ?? undefined,
@@ -511,7 +526,7 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat5 distribuído diariamente para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (total: R$ ${filial.valorDistribuido.toFixed(2)})`);
+    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (total: R$ ${filial.valorDistribuido.toFixed(2)})`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };

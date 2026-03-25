@@ -293,12 +293,12 @@ export default function Home() {
 
       // Total geral (realizados + previstos) para exibir no card
       const total = rows.reduce((s: number, r: any) => {
-        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
       }, 0);
       // Total apenas realizados (para cálculos de média, máximo, mínimo)
       const totalRealizado = rowsRealizados.reduce((s: number, r: any) => {
-        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+        return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
       }, 0);
       const totalPrevisto = total - totalRealizado;
@@ -312,7 +312,7 @@ export default function Home() {
 
       // Máximo e mínimo diário apenas sobre dias realizados
       const totaisDiariosRealizados = rowsRealizados.map((r: any) =>
-        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0)
+        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0)
       );
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
@@ -343,7 +343,7 @@ export default function Home() {
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
       const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
@@ -364,19 +364,23 @@ export default function Home() {
         ? totalRealizado + totalPrevisto + (mediaDiaria * diasUteisRestantesSemLancamento)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
-      // Totais por categoria
-      const catTotals = [0, 0, 0, 0, 0];
+      // Totais por categoria (9 categorias)
+      const catTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0];
       rows.forEach((r: any) => {
         catTotals[0] += parseFloat(r.cat1 || "0");
         catTotals[1] += parseFloat(r.cat2 || "0");
         catTotals[2] += parseFloat(r.cat3 || "0");
         catTotals[3] += parseFloat(r.cat4 || "0");
         catTotals[4] += parseFloat(r.cat5 || "0");
+        catTotals[5] += parseFloat(r.cat6 || "0");
+        catTotals[6] += parseFloat(r.cat7 || "0");
+        catTotals[7] += parseFloat(r.cat8 || "0");
+        catTotals[8] += parseFloat(r.cat9 || "0");
       });
 
-      // Recorrência Dpote: soma de cat5 de todos os dias (distribuído diariamente, um valor por dia)
+      // Recorrência Dpote: soma de cat9 de todos os dias (distribuído diariamente, um valor por dia)
       const recorrenciaMes = rows.reduce(
-        (acc: number, r: any) => acc + parseFloat(r.cat5 || "0"),
+        (acc: number, r: any) => acc + parseFloat(r.cat9 || "0"),
         0
       );
 
@@ -452,14 +456,14 @@ export default function Home() {
       const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set<number>();
       const rowsAtual = faturamentosFiltrados.filter((f: any) => f.empresaSlug === emp.slug);
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       const rowsAnterior = faturamentosAnteriorFiltrados.filter((f: any) => {
         if (f.empresaSlug !== emp.slug) return false;
         const dia = parseInt(f.data.split("-")[2]);
         return diasAtual.has(dia);
       });
       const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAnteriorMesmosDias += totalAnterior;
       porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
@@ -500,8 +504,8 @@ export default function Home() {
       const labels = cats && cats.length > 0
         ? cats.map((c) => c.nome)
         : emp.tipoCategorias === "seraphine"
-          ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
-          : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+          ? ["Cabelo", "Manicure", "Outros", "Pacote", "Recorrência", "", "", "", ""]
+          : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
       return {
         empresa: emp.nome,
         cor: emp.cor,
@@ -532,7 +536,7 @@ export default function Home() {
       rows.forEach((f: any) => {
         if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
         const dia = parseInt(f.data.split("-")[2]);
-        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5]
+        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
           .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
         mapa[dia] = (mapa[dia] ?? 0) + total;
       });
@@ -629,7 +633,7 @@ export default function Home() {
       // Quinzenal
       if (s.metaQuinzenal > 0 && mes === hoje.getMonth() + 1 && hoje.getDate() <= 15) {
         const totalQuinzenal = s.rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15)
-          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
         if (totalQuinzenal < s.metaQuinzenal * 0.8 && s.diasUteisRestantesQuinzenal === 0) {
           list.push({ tipo: "warning", msg: `${s.emp.nome}: Meta quinzenal não atingida (${fmt(totalQuinzenal)} de ${fmt(s.metaQuinzenal)}).` });
@@ -2237,12 +2241,12 @@ export default function Home() {
                   const labels = empCats && empCats.length > 0
                     ? empCats.map((c) => c.nome)
                     : s.emp.tipoCategorias === "seraphine"
-                      ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
-                      : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+                      ? ["Cabelo", "Manicure", "Outros", "Pacote", "Recorrência", "", "", "", ""]
+                      : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
                   const pieData = labels
                     .map((l, i) => ({ name: l, value: s.catTotals[i] }))
-                    .filter((d) => d.value > 0);
-                  const COLORS = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
+                    .filter((d) => d.value > 0 && d.name);
+                  const COLORS = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#f97316", "#84cc16", "#8b5cf6"];
                   return (
                     <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-card">
                       <h3 className="font-semibold text-foreground mb-3 text-sm">{s.emp.nome} — Categorias</h3>
@@ -2387,8 +2391,8 @@ export default function Home() {
                 const labels = empCats && empCats.length > 0
                   ? empCats.map((c) => c.nome)
                   : emp.tipoCategorias === "seraphine"
-                    ? ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"]
-                    : ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
+                    ? ["Cabelo", "Manicure", "Outros", "Pacote", "Recorrência", "", "", "", ""]
+                    : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
@@ -2410,7 +2414,7 @@ export default function Home() {
                         </thead>
                         <tbody>
                           {rows.map((row: any) => {
-                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5].map((v: any) => parseFloat(v || "0"));
+                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9].map((v: any) => parseFloat(v || "0"));
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
                             // Detectar se o dia é futuro (previsto)
@@ -2487,8 +2491,8 @@ export default function Home() {
                           const realizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje2);
                           const previstos  = rows.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
                           const sumCats = (list: any[]) =>
-                            [0,1,2,3,4].map((i) =>
-                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5][i] || "0"), 0)
+                            [0,1,2,3,4,5,6,7,8].map((i) =>
+                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5,r.cat6,r.cat7,r.cat8,r.cat9][i] || "0"), 0)
                             );
                           const catsReal = sumCats(realizados);
                           const catsPrev = sumCats(previstos);

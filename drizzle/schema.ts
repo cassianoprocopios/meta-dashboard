@@ -86,7 +86,11 @@ export const empresas = mysqlTable("empresas", {
   cat2Nome: varchar("cat2Nome", { length: 64 }).notNull().default("Produtos"),
   cat3Nome: varchar("cat3Nome", { length: 64 }).notNull().default("Serv. Extra"),
   cat4Nome: varchar("cat4Nome", { length: 64 }).notNull().default("Lavatório"),
-  cat5Nome: varchar("cat5Nome", { length: 64 }).notNull().default("Recorrência"),
+  cat5Nome: varchar("cat5Nome", { length: 64 }).notNull().default("Don Alcides"),
+  cat6Nome: varchar("cat6Nome", { length: 64 }).notNull().default("Caixinha"),
+  cat7Nome: varchar("cat7Nome", { length: 64 }).notNull().default("Barbiero"),
+  cat8Nome: varchar("cat8Nome", { length: 64 }).notNull().default("Bar"),
+  cat9Nome: varchar("cat9Nome", { length: 64 }).notNull().default("Recorrência"),
   ativo: int("ativo").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -155,6 +159,10 @@ export const faturamentos = mysqlTable("faturamentos", {
   cat3: decimal("cat3", { precision: 12, scale: 2 }).notNull().default("0"),
   cat4: decimal("cat4", { precision: 12, scale: 2 }).notNull().default("0"),
   cat5: decimal("cat5", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat6: decimal("cat6", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat7: decimal("cat7", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat8: decimal("cat8", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat9: decimal("cat9", { precision: 12, scale: 2 }).notNull().default("0"),
   observacao: text("observacao"),
   lancadoPor: varchar("lancadoPor", { length: 128 }),
   // Valor total registrado quando o lançamento era previsto (dia futuro).

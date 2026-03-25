@@ -35,6 +35,10 @@ interface Faturamento {
   cat3: string | number;
   cat4: string | number;
   cat5: string | number;
+  cat6?: string | number;
+  cat7?: string | number;
+  cat8?: string | number;
+  cat9?: string | number;
 }
 
 interface Props {
@@ -111,7 +115,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     const rowsRealizados = rows.filter((r) => new Date(r.data + "T00:00:00") <= hoje);
 
     const totalMensal = rowsRealizados.reduce((s: number, r) => {
-      return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+      return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
         .reduce((a: number, v) => a + parseFloat(String(v || 0)), 0);
     }, 0);
 
@@ -121,7 +125,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
       return dia <= 15;
     });
     const totalQuinzenal = rowsQ.reduce((s: number, r) => {
-      return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5]
+      return s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
         .reduce((a: number, v) => a + parseFloat(String(v || 0)), 0);
     }, 0);
 

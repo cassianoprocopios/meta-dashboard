@@ -82,7 +82,7 @@ const mapeamentoCat1Cat2 = [
   { tipo: "produto_categoria", cbId: "30", cbNome: "Produtos", metaCategoria: "cat2" },
 ];
 
-/** Registro existente no dia 1 com Recorrência (cat5) preenchida manualmente */
+/** Registro existente no dia 1 com Recorrência (cat9) preenchida manualmente */
 const registroExistenteDia1 = {
   id: 42,
   tenantId: 1,
@@ -92,7 +92,11 @@ const registroExistenteDia1 = {
   cat2: "1200",
   cat3: "300",
   cat4: "150",
-  cat5: "2500", // ← Recorrência existente no dia 1
+  cat5: "0",
+  cat6: "0",
+  cat7: "0",
+  cat8: "0",
+  cat9: "2500", // ← Recorrência existente no dia 1
   observacao: "Lançamento manual",
   lancadoPor: "admin",
   totalPrevisto: null,
@@ -103,7 +107,7 @@ const registroExistenteDia5 = {
   ...registroExistenteDia1,
   id: 43,
   data: "2025-03-05",
-  cat5: "0",
+  cat9: "0",
 };
 
 // ─── Testes ───────────────────────────────────────────────────────────────────
@@ -114,7 +118,7 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
     vi.mocked(getCashbarberConfig).mockResolvedValue(configMock as any);
     vi.mocked(listCashbarberMapeamento).mockResolvedValue(mapeamentoCat1Cat2 as any);
     vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0,
+      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0,
       totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
     });
     // Dpote retorna R$ 5.000 de faturamento para a filial (nova função via fichas ponderadas)
@@ -125,7 +129,7 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
   });
 
-  it("distribui cat5 igualmente por todos os dias do mês", async () => {
+  it("distribui cat9 igualmente por todos os dias do mês", async () => {
     // Sincronizar março/2025 (mês passado, vai até dia 31)
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
@@ -135,43 +139,43 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
     // Março tem 31 dias: R$ 5000 / 31 = R$ 161.29/dia
     const valorDiarioEsperado = String(Math.round((5000 / 31) * 100) / 100);
 
-    // Dia 1: deve ter cat5 = valor diário
+    // Dia 1: deve ter cat9 = valor diário
     const chamadaDia1 = calls.find((c) => c[0].data === "2025-03-01");
     expect(chamadaDia1).toBeDefined();
-    expect(chamadaDia1![0].cat5).toBe(valorDiarioEsperado);
+    expect(chamadaDia1![0].cat9).toBe(valorDiarioEsperado);
 
-    // Dia 2: deve ter cat5 = valor diário (não mais "0")
+    // Dia 2: deve ter cat9 = valor diário (não mais "0")
     const chamadaDia2 = calls.find((c) => c[0].data === "2025-03-02");
     expect(chamadaDia2).toBeDefined();
-    expect(chamadaDia2![0].cat5).toBe(valorDiarioEsperado);
+    expect(chamadaDia2![0].cat9).toBe(valorDiarioEsperado);
 
-    // Dia 15: deve ter cat5 = valor diário
+    // Dia 15: deve ter cat9 = valor diário
     const chamadaDia15 = calls.find((c) => c[0].data === "2025-03-15");
     expect(chamadaDia15).toBeDefined();
-    expect(chamadaDia15![0].cat5).toBe(valorDiarioEsperado);
+    expect(chamadaDia15![0].cat9).toBe(valorDiarioEsperado);
 
-    // Dia 31: deve ter cat5 = valor diário
+    // Dia 31: deve ter cat9 = valor diário
     const chamadaDia31 = calls.find((c) => c[0].data === "2025-03-31");
     expect(chamadaDia31).toBeDefined();
-    expect(chamadaDia31![0].cat5).toBe(valorDiarioEsperado);
+    expect(chamadaDia31![0].cat9).toBe(valorDiarioEsperado);
   });
 
-  it("total de cat5 no mês ≈ recorrenciaValor (soma dos valores diários)", async () => {
+  it("total de cat9 no mês ≈ recorrenciaValor (soma dos valores diários)", async () => {
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
-    const totalCat5 = calls.reduce((sum, c) => sum + parseFloat(c[0].cat5 ?? "0"), 0);
+    const totalCat9 = calls.reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
 
-    // Total de cat5 deve ser próximo de 5000 (diferença máxima de R$ 0.31 por arredondamento)
-    expect(totalCat5).toBeGreaterThanOrEqual(4999);
-    expect(totalCat5).toBeLessThanOrEqual(5001);
+    // Total de cat9 deve ser próximo de 5000 (diferença máxima de R$ 0.31 por arredondamento)
+    expect(totalCat9).toBeGreaterThanOrEqual(4999);
+    expect(totalCat9).toBeLessThanOrEqual(5001);
   });
 
-  it("quando Dpote falha, preserva cat5 existente no dia 1 e '0' nos demais", async () => {
+  it("quando Dpote falha, preserva cat9 existente no dia 1 e '0' nos demais", async () => {
     // Dpote falha (lança erro)
     vi.mocked(cashbarberCalcularDpotePorFichas).mockRejectedValue(new Error("Dpote indisponível"));
 
-    // Dia 1 tem registro existente com cat5=2500
+    // Dia 1 tem registro existente com cat9=2500
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockImplementation(async (data) => {
       if (data === "2025-03-01") return registroExistenteDia1 as any;
       return undefined;
@@ -181,13 +185,13 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
 
-    // Dia 1: preserva cat5=2500 do registro existente
+    // Dia 1: preserva cat9=2500 do registro existente
     const chamadaDia1 = calls.find((c) => c[0].data === "2025-03-01");
-    expect(chamadaDia1![0].cat5).toBe("2500");
+    expect(chamadaDia1![0].cat9).toBe("2500");
 
-    // Dia 5: sem registro existente → cat5 = "0"
+    // Dia 5: sem registro existente → cat9 = "0"
     const chamadaDia5 = calls.find((c) => c[0].data === "2025-03-05");
-    expect(chamadaDia5![0].cat5).toBe("0");
+    expect(chamadaDia5![0].cat9).toBe("0");
   });
 
   it("preserva cat3, cat4, observacao e lancadoPor do registro existente", async () => {
@@ -209,7 +213,7 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
       cat2: "1500",          // ← atualizado pelo CashBarber
       cat3: "300",           // ← preservado do registro existente
       cat4: "150",           // ← preservado do registro existente
-      cat5: valorDiarioEsperado, // ← valor Dpote diário (total / dias do mês)
+      cat9: valorDiarioEsperado, // ← valor Dpote diário (total / dias do mês)
       observacao: "Lançamento manual",
       lancadoPor: "admin",
     });
@@ -229,17 +233,17 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
     });
   });
 
-  it("cat5 NUNCA é alimentada pelo mapeamento CashBarber (apenas pelo Dpote)", async () => {
-    // Mapeamento cobrindo cat5 também
+  it("cat9 NUNCA é alimentada pelo mapeamento CashBarber (apenas pelo Dpote)", async () => {
+    // Mapeamento cobrindo cat9 também
     vi.mocked(listCashbarberMapeamento).mockResolvedValue([
       { tipo: "servico_categoria", cbId: "10", cbNome: "Serviços", metaCategoria: "cat1" },
       { tipo: "produto_categoria", cbId: "30", cbNome: "Produtos", metaCategoria: "cat2" },
-      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat5" },
+      { tipo: "servico_categoria", cbId: "50", cbNome: "Recorrencia", metaCategoria: "cat9" },
     ] as any);
 
-    // CashBarber retorna cat5=3000 pelo mapeamento — deve ser ignorado
+    // CashBarber retorna cat9=3000 pelo mapeamento — deve ser ignorado
     vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
-      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 3000,
+      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 3000,
       totalServicos: 9000, totalProdutos: 1500, totalGeral: 10500, detalhes: [],
     });
 
@@ -253,9 +257,9 @@ describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpo
     const chamadaDia1 = vi.mocked(upsertFaturamento).mock.calls.find(
       (c) => c[0].data === "2025-03-01"
     );
-    // cat5 deve ser valor diário do Dpote (5000/31), não 3000 (mapeamento CashBarber)
+    // cat9 deve ser valor diário do Dpote (5000/31), não 3000 (mapeamento CashBarber)
     const valorDiarioEsperado = String(Math.round((5000 / 31) * 100) / 100);
-    expect(chamadaDia1![0].cat5).toBe(valorDiarioEsperado);
+    expect(chamadaDia1![0].cat9).toBe(valorDiarioEsperado);
   });
 
   it("lança erro se configuração CashBarber não encontrada", async () => {

@@ -421,16 +421,20 @@ export async function createEmpresa(input: InsertEmpresa) {
   const result = await db.insert(empresas).values(input);
   const empresaId = (result as any).insertId;
   // Inicializar categorias padrão na tabela categorias
-  const CATS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
+  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
+  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Pacotes", "Cat 6", "Cat 7", "Cat 8", "Recorrência"];
   const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
-  // Usar cat1Nome..cat5Nome se fornecidos, senão usar padrão do tipo
+  // Usar cat1Nome..cat9Nome se fornecidos, senão usar padrão do tipo
   const nomes = [
     (input as any).cat1Nome ?? catNomes[0],
     (input as any).cat2Nome ?? catNomes[1],
     (input as any).cat3Nome ?? catNomes[2],
     (input as any).cat4Nome ?? catNomes[3],
     (input as any).cat5Nome ?? catNomes[4],
+    (input as any).cat6Nome ?? catNomes[5],
+    (input as any).cat7Nome ?? catNomes[6],
+    (input as any).cat8Nome ?? catNomes[7],
+    (input as any).cat9Nome ?? catNomes[8],
   ];
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({
@@ -467,6 +471,10 @@ export async function updateEmpresa(
     cat3Nome?: string;
     cat4Nome?: string;
     cat5Nome?: string;
+    cat6Nome?: string;
+    cat7Nome?: string;
+    cat8Nome?: string;
+    cat9Nome?: string;
   }
 ) {
   const db = await getDb();
@@ -525,6 +533,10 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat3 as string || "0"),
       parseFloat(input.cat4 as string || "0"),
       parseFloat(input.cat5 as string || "0"),
+      parseFloat(input.cat6 as string || "0"),
+      parseFloat(input.cat7 as string || "0"),
+      parseFloat(input.cat8 as string || "0"),
+      parseFloat(input.cat9 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const hoje = new Date();
     const [ano, mes, dia] = (input.data as string).split("-").map(Number);
@@ -536,6 +548,10 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat3: input.cat3,
       cat4: input.cat4,
       cat5: input.cat5,
+      cat6: input.cat6,
+      cat7: input.cat7,
+      cat8: input.cat8,
+      cat9: input.cat9,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
       // Propaga sincronizadoCB se fornecido (1 = importado pelo CashBarber)
@@ -559,6 +575,10 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat3 as string || "0"),
       parseFloat(input.cat4 as string || "0"),
       parseFloat(input.cat5 as string || "0"),
+      parseFloat(input.cat6 as string || "0"),
+      parseFloat(input.cat7 as string || "0"),
+      parseFloat(input.cat8 as string || "0"),
+      parseFloat(input.cat9 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const insertData = {
       ...input,
@@ -1266,7 +1286,7 @@ export async function getFaturamentosHistoricoMensalByTenant(
     .select({
       data: faturamentos.data,
       empresaSlug: faturamentos.empresaSlug,
-      cat5: faturamentos.cat5,
+      cat9: faturamentos.cat9,
     })
     .from(faturamentos)
     .where(eq(faturamentos.tenantId, tenantId))
@@ -1287,8 +1307,8 @@ export async function getFaturamentosHistoricoMensalByTenant(
 
     const mesAno = `${rowAnoStr}-${rowMesStr}`;
     const chave = `${mesAno}|${row.empresaSlug}`;
-    const cat5Val = parseFloat(String(row.cat5 ?? "0"));
-    mapa[chave] = (mapa[chave] ?? 0) + cat5Val;
+    const cat9Val = parseFloat(String(row.cat9 ?? "0"));
+    mapa[chave] = (mapa[chave] ?? 0) + cat9Val;
   }
 
   return Object.entries(mapa).map(([chave, totalCat5]) => {

@@ -1,0 +1,34 @@
+{
+  "query": "\nSELECT empresaSlug, \n  SUM(CAST(cat1 AS DECIMAL(10,2))) as cat1_total,\n  SUM(CAST(cat2 AS DECIMAL(10,2))) as cat2_total,\n  SUM(CAST(cat3 AS DECIMAL(10,2))) as cat3_total,\n  SUM(CAST(cat4 AS DECIMAL(10,2))) as cat4_total,\n  SUM(CAST(cat5 AS DECIMAL(10,2))) as cat5_total,\n  SUM(CAST(cat6 AS DECIMAL(10,2))) as cat6_total,\n  SUM(CAST(cat7 AS DECIMAL(10,2))) as cat7_total,\n  SUM(CAST(cat8 AS DECIMAL(10,2))) as cat8_total,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as cat9_total\nFROM faturamentos\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, \n  SUM(CAST(cat1 AS DECIMAL(10,2))) as cat1_total,\n  SUM(CAST(cat2 AS DECIMAL(10,2))) as cat2_total,\n  SUM(CAST(cat3 AS DECIMAL(10,2))) as cat3_total,\n  SUM(CAST(cat4 AS DECIMAL(10,2))) as cat4_total,\n  SUM(CAST(cat5 AS DECIMAL(10,2))) as cat5_total,\n  SUM(CAST(cat6 AS DECIMAL(10,2))) as cat6_total,\n  SUM(CAST(cat7 AS DECIMAL(10,2))) as cat7_total,\n  SUM(CAST(cat8 AS DECIMAL(10,2))) as cat8_total,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as cat9_total\nFROM faturamentos\nWHERE empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "cat1_total": "38619.00",
+      "cat2_total": "7881.45",
+      "cat3_total": "17503.00",
+      "cat4_total": "838.00",
+      "cat5_total": "0.00",
+      "cat6_total": "0.00",
+      "cat7_total": "0.00",
+      "cat8_total": "0.00",
+      "cat9_total": "47177.04"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "cat1_total": "14944.50",
+      "cat2_total": "3960.02",
+      "cat3_total": "7565.20",
+      "cat4_total": "3835.60",
+      "cat5_total": "0.00",
+      "cat6_total": "0.00",
+      "cat7_total": "0.00",
+      "cat8_total": "0.00",
+      "cat9_total": "20197.12"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tcat1_total\tcat2_total\tcat3_total\tcat4_total\tcat5_total\tcat6_total\tcat7_total\tcat8_total\tcat9_total\nMORUMBI\t38619.00\t7881.45\t17503.00\t838.00\t0.00\t0.00\t0.00\t0.00\t47177.04\nMASCOTE\t14944.50\t3960.02\t7565.20\t3835.60\t0.00\t0.00\t0.00\t0.00\t20197.12\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

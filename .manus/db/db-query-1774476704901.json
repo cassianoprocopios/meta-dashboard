@@ -1,0 +1,140 @@
+{
+  "query": "\n-- Atualizar categorias de MASCOTE\nUPDATE categorias SET nome = 'Avulso/Clube' WHERE empresaSlug = 'mascote' AND ordem = 1 AND tenantId = 1;\nUPDATE categorias SET nome = 'Serv. Extra' WHERE empresaSlug = 'mascote' AND ordem = 2 AND tenantId = 1;\nUPDATE categorias SET nome = 'Auxiliar' WHERE empresaSlug = 'mascote' AND ordem = 3 AND tenantId = 1;\nUPDATE categorias SET nome = 'Keune' WHERE empresaSlug = 'mascote' AND ordem = 4 AND tenantId = 1;\nUPDATE categorias SET nome = 'Don Alcides' WHERE empresaSlug = 'mascote' AND ordem = 5 AND tenantId = 1;\n\n-- Inserir cat6-cat9 para MASCOTE se não existirem\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Caixinha', 6, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Barbiero', 7, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Bar', 8, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Recorrência', 9, 1);\n\n-- Atualizar categorias de MORUMBI\nUPDATE categorias SET nome = 'Avulso/Clube' WHERE empresaSlug = 'morumbi' AND ordem = 1 AND tenantId = 1;\nUPDATE categorias SET nome = 'Serv. Extra' WHERE empresaSlug = 'morumbi' AND ordem = 2 AND tenantId = 1;\nUPDATE categorias SET nome = 'Auxiliar' WHERE empresaSlug = 'morumbi' AND ordem = 3 AND tenantId = 1;\nUPDATE categorias SET nome = 'Keune' WHERE empresaSlug = 'morumbi' AND ordem = 4 AND tenantId = 1;\nUPDATE categorias SET nome = 'Don Alcides' WHERE empresaSlug = 'morumbi' AND ordem = 5 AND tenantId = 1;\n\n-- Inserir cat6-cat9 para MORUMBI se não existirem\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Caixinha', 6, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Barbiero', 7, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Bar', 8, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Recorrência', 9, 1);\n\n-- Verificar resultado\nSELECT empresaSlug, nome, ordem FROM categorias WHERE tenantId = 1 AND empresaSlug IN ('mascote', 'morumbi') ORDER BY empresaSlug, ordem;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Atualizar categorias de MASCOTE\nUPDATE categorias SET nome = 'Avulso/Clube' WHERE empresaSlug = 'mascote' AND ordem = 1 AND tenantId = 1;\nUPDATE categorias SET nome = 'Serv. Extra' WHERE empresaSlug = 'mascote' AND ordem = 2 AND tenantId = 1;\nUPDATE categorias SET nome = 'Auxiliar' WHERE empresaSlug = 'mascote' AND ordem = 3 AND tenantId = 1;\nUPDATE categorias SET nome = 'Keune' WHERE empresaSlug = 'mascote' AND ordem = 4 AND tenantId = 1;\nUPDATE categorias SET nome = 'Don Alcides' WHERE empresaSlug = 'mascote' AND ordem = 5 AND tenantId = 1;\n\n-- Inserir cat6-cat9 para MASCOTE se não existirem\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Caixinha', 6, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Barbiero', 7, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Bar', 8, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'mascote', 'Recorrência', 9, 1);\n\n-- Atualizar categorias de MORUMBI\nUPDATE categorias SET nome = 'Avulso/Clube' WHERE empresaSlug = 'morumbi' AND ordem = 1 AND tenantId = 1;\nUPDATE categorias SET nome = 'Serv. Extra' WHERE empresaSlug = 'morumbi' AND ordem = 2 AND tenantId = 1;\nUPDATE categorias SET nome = 'Auxiliar' WHERE empresaSlug = 'morumbi' AND ordem = 3 AND tenantId = 1;\nUPDATE categorias SET nome = 'Keune' WHERE empresaSlug = 'morumbi' AND ordem = 4 AND tenantId = 1;\nUPDATE categorias SET nome = 'Don Alcides' WHERE empresaSlug = 'morumbi' AND ordem = 5 AND tenantId = 1;\n\n-- Inserir cat6-cat9 para MORUMBI se não existirem\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Caixinha', 6, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Barbiero', 7, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Bar', 8, 1);\nINSERT IGNORE INTO categorias (tenantId, empresaSlug, nome, ordem, ativo) VALUES (1, 'morumbi', 'Recorrência', 9, 1);\n\n-- Verificar resultado\nSELECT empresaSlug, nome, ordem FROM categorias WHERE tenantId = 1 AND empresaSlug IN ('mascote', 'morumbi') ORDER BY empresaSlug, ordem;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Avulso/Clube",
+      "ordem": "1"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Serv. Extra",
+      "ordem": "2"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Auxiliar",
+      "ordem": "3"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Keune",
+      "ordem": "4"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Don Alcides",
+      "ordem": "5"
+    },
+    {
+      "empresaSlug": "mascote",
+      "nome": "Caixinha",
+      "ordem": "6"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Caixinha",
+      "ordem": "6"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Barbiero",
+      "ordem": "7"
+    },
+    {
+      "empresaSlug": "mascote",
+      "nome": "Barbiero",
+      "ordem": "7"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Bar",
+      "ordem": "8"
+    },
+    {
+      "empresaSlug": "mascote",
+      "nome": "Bar",
+      "ordem": "8"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Recorrência",
+      "ordem": "9"
+    },
+    {
+      "empresaSlug": "mascote",
+      "nome": "Recorrência",
+      "ordem": "9"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Avulso/Clube",
+      "ordem": "1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Serv. Extra",
+      "ordem": "2"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Auxiliar",
+      "ordem": "3"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Keune",
+      "ordem": "4"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Don Alcides",
+      "ordem": "5"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Caixinha",
+      "ordem": "6"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "nome": "Caixinha",
+      "ordem": "6"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Barbiero",
+      "ordem": "7"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "nome": "Barbiero",
+      "ordem": "7"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Bar",
+      "ordem": "8"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "nome": "Bar",
+      "ordem": "8"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Recorrência",
+      "ordem": "9"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "nome": "Recorrência",
+      "ordem": "9"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tnome\tordem\nMASCOTE\tAvulso/Clube\t1\nMASCOTE\tServ. Extra\t2\nMASCOTE\tAuxiliar\t3\nMASCOTE\tKeune\t4\nMASCOTE\tDon Alcides\t5\nmascote\tCaixinha\t6\nMASCOTE\tCaixinha\t6\nMASCOTE\tBarbiero\t7\nmascote\tBarbiero\t7\nMASCOTE\tBar\t8\nmascote\tBar\t8\nMASCOTE\tRecorrência\t9\nmascote\tRecorrência\t9\nMORUMBI\tAvulso/Clube\t1\nMORUMBI\tServ. Extra\t2\nMORUMBI\tAuxiliar\t3\nMORUMBI\tKeune\t4\nMORUMBI\tDon Alcides\t5\nMORUMBI\tCaixinha\t6\nmorumbi\tCaixinha\t6\nMORUMBI\tBarbiero\t7\nmorumbi\tBarbiero\t7\nMORUMBI\tBar\t8\nmorumbi\tBar\t8\nMORUMBI\tRecorrência\t9\nmorumbi\tRecorrência\t9\n",
+  "stderr": "",
+  "execution_time_ms": 220
+}

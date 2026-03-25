@@ -1,0 +1,106 @@
+{
+  "query": "SELECT tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE tenantId = 1 ORDER BY tipo, cbNome LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE tenantId = 1 ORDER BY tipo, cbNome LIMIT 50;",
+  "rows": [
+    {
+      "tipo": "servico_categoria",
+      "cbId": "13295",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat4"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "13295",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat4"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "22518",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "22518",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "605",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat3"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "605",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat3"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "607",
+      "cbNome": "Bar",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "607",
+      "cbNome": "Bar",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "606",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "606",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "632",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "632",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "19096",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "19096",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "17206",
+      "cbNome": "Keune",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "17206",
+      "cbNome": "Keune",
+      "metaCategoria": "cat2"
+    }
+  ],
+  "messages": [],
+  "stdout": "tipo\tcbId\tcbNome\tmetaCategoria\nservico_categoria\t13295\tAuxiliar\tcat4\nservico_categoria\t13295\tAuxiliar\tcat4\nservico_categoria\t22518\tAVULSO/CLUBE\tcat1\nservico_categoria\t22518\tAVULSO/CLUBE\tcat1\nservico_categoria\t605\tSERVIÇO EXTRA\tcat3\nservico_categoria\t605\tSERVIÇO EXTRA\tcat3\nproduto_categoria\t607\tBar\tcat2\nproduto_categoria\t607\tBar\tcat2\nproduto_categoria\t606\tBarbiero\tcat2\nproduto_categoria\t606\tBarbiero\tcat2\nproduto_categoria\t632\tCaixinha\tcat2\nproduto_categoria\t632\tCaixinha\tcat2\nproduto_categoria\t19096\tDon Alcides\tcat2\nproduto_categoria\t19096\tDon Alcides\tcat2\nproduto_categoria\t17206\tKeune\tcat2\nproduto_categoria\t17206\tKeune\tcat2\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}
