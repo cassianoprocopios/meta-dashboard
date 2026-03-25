@@ -1,0 +1,30 @@
+{
+  "query": "SELECT empresaSlug, COUNT(*) as total_dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5 FROM faturamentos WHERE data LIKE '2026-03-%' GROUP BY empresaSlug ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, COUNT(*) as total_dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5 FROM faturamentos WHERE data LIKE '2026-03-%' GROUP BY empresaSlug ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "DOM_",
+      "total_dias": "25",
+      "total_cat5": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "total_dias": "27",
+      "total_cat5": "13115.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "total_dias": "29",
+      "total_cat5": "30678.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "total_dias": "16",
+      "total_cat5": "14837.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_dias\ttotal_cat5\nDOM_\t25\t0.00\nMASCOTE\t27\t13115.00\nMORUMBI\t29\t30678.00\nSERAPHINE\t16\t14837.00\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

@@ -1,0 +1,18 @@
+{
+  "query": "SELECT empresaSlug, MAX(data) as ultimo_dia FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, MAX(data) as ultimo_dia FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "ultimo_dia": "2026-03-27"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "ultimo_dia": "2026-03-29"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tultimo_dia\nMASCOTE\t2026-03-27\nMORUMBI\t2026-03-29\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

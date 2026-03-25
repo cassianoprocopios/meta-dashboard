@@ -1,0 +1,24 @@
+{
+  "query": "SELECT empresaSlug, COUNT(*) as total_dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, MIN(CAST(cat5 AS DECIMAL(10,2))) as min_cat5, MAX(CAST(cat5 AS DECIMAL(10,2))) as max_cat5 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, COUNT(*) as total_dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, MIN(CAST(cat5 AS DECIMAL(10,2))) as min_cat5, MAX(CAST(cat5 AS DECIMAL(10,2))) as max_cat5 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "total_dias": "29",
+      "total_cat5": "28698.69",
+      "min_cat5": "989.61",
+      "max_cat5": "989.61"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "total_dias": "27",
+      "total_cat5": "11422.62",
+      "min_cat5": "423.06",
+      "max_cat5": "423.06"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_dias\ttotal_cat5\tmin_cat5\tmax_cat5\nMORUMBI\t29\t28698.69\t989.61\t989.61\nMASCOTE\t27\t11422.62\t423.06\t423.06\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

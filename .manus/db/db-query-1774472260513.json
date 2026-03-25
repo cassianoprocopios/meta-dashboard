@@ -1,0 +1,18 @@
+{
+  "query": "SELECT DISTINCT tenantId, empresaSlug FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT tenantId, empresaSlug FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') LIMIT 5;",
+  "rows": [
+    {
+      "tenantId": "1",
+      "empresaSlug": "MASCOTE"
+    },
+    {
+      "tenantId": "1",
+      "empresaSlug": "MORUMBI"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaSlug\n1\tMASCOTE\n1\tMORUMBI\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

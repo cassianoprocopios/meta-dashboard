@@ -1,0 +1,9 @@
+{
+  "query": "SELECT LEFT(data, 7) as mes, empresaSlug, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, COUNT(*) as dias FROM faturamentos WHERE data < '2026-03-01' AND CAST(cat5 AS DECIMAL(10,2)) > 0 GROUP BY LEFT(data, 7), empresaSlug ORDER BY mes DESC, empresaSlug LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT LEFT(data, 7) as mes, empresaSlug, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, COUNT(*) as dias FROM faturamentos WHERE data < '2026-03-01' AND CAST(cat5 AS DECIMAL(10,2)) > 0 GROUP BY LEFT(data, 7), empresaSlug ORDER BY mes DESC, empresaSlug LIMIT 20;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 54
+}

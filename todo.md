@@ -768,3 +768,4 @@
 - [x] Criar procedure tRPC cashbarber.dpoteHistoricoMensal para buscar evolução de cat5 por empresa ao longo dos meses
 - [x] Implementar seção de histórico com gráfico de linha na tela DpoteDistribuicao.tsx
 - [x] Incluir cat5 (Recorrência) na somatória do faturamento total de cada unidade no dashboard
+- [x] Incluir cat5 (Recorrência) no progresso de meta e no total faturado no mês do dashboard
