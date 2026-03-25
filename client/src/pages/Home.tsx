@@ -176,11 +176,10 @@ export default function Home() {
   const { data: configsDpote = [] } = trpc.cashbarber.listarConfigsDpote.useQuery();
   // Mapa slug → config Dpote para acesso rápido
   const dpoteConfigMap = useMemo(() => {
-    const m: Record<string, { valorAssinaturas: number | null; porcentagemBarbearia: number | null; temHistorico: boolean }> = {};
+    const m: Record<string, { valorAssinaturas: number | null; temHistorico: boolean }> = {};
     for (const c of configsDpote) {
       m[c.empresaSlug] = {
         valorAssinaturas: c.dpoteValorAssinaturas,
-        porcentagemBarbearia: c.dpotePorcentagemBarbearia,
         temHistorico: !!(c.dpoteHistoricoId),
       };
     }
@@ -1891,7 +1890,6 @@ export default function Home() {
                   {s.recorrenciaMes > 0 && (() => {
                     const dpoteCfg = dpoteConfigMap[s.emp.slug];
                     const valorBruto = dpoteCfg?.valorAssinaturas;
-                    const pctBarbearia = dpoteCfg?.porcentagemBarbearia;
                     const fonteAuto = dpoteCfg?.temHistorico;
                     return (
                       <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
@@ -1902,7 +1900,7 @@ export default function Home() {
                             <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
                           </div>
                           {/* Tooltip com fórmula completa do cálculo */}
-                          {(valorBruto && pctBarbearia) ? (
+                          {valorBruto ? (
                             <UITooltip>
                               <UITooltipTrigger asChild>
                                 <span className="text-sm font-bold text-violet-300 cursor-help underline decoration-dotted decoration-violet-400/50 underline-offset-2">
@@ -1916,26 +1914,21 @@ export default function Home() {
                                 <p className="text-[11px] font-semibold text-violet-300 mb-1.5">Fórmula do cálculo Dpote</p>
                                 <div className="space-y-1 text-[11px] text-violet-200/80">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-violet-400 font-mono">Assinaturas</span>
+                                    <span className="text-violet-400 font-mono">Assinaturas (100%)</span>
                                     <span className="text-violet-500">=</span>
                                     <span className="font-semibold text-white">{fmtFull(valorBruto)}</span>
                                   </div>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-violet-400 font-mono">× Comissão barbearia</span>
-                                    <span className="text-violet-500">=</span>
-                                    <span className="font-semibold text-white">{pctBarbearia}%</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-violet-400 font-mono">× Proporção fichas</span>
+                                    <span className="text-violet-400 font-mono">× Proporção fichas desta filial</span>
                                     <span className="text-violet-500">=</span>
                                     <span className="font-semibold text-white">
-                                      {valorBruto > 0 && pctBarbearia > 0
-                                        ? `${((s.recorrenciaMes / (valorBruto * pctBarbearia / 100)) * 100).toFixed(1)}%`
+                                      {valorBruto > 0
+                                        ? `${((s.recorrenciaMes / valorBruto) * 100).toFixed(1)}%`
                                         : "—"}
                                     </span>
                                   </div>
                                   <div className="mt-1.5 pt-1.5 border-t border-violet-500/30 flex items-center gap-1.5">
-                                    <span className="text-violet-300 font-mono font-semibold">= Comissão bruta filial</span>
+                                    <span className="text-violet-300 font-mono font-semibold">= Faturamento Recorrência</span>
                                     <span className="text-violet-500">=</span>
                                     <span className="font-bold text-violet-200">{fmtFull(s.recorrenciaMes)}</span>
                                   </div>
@@ -1947,7 +1940,7 @@ export default function Home() {
                           )}
                         </div>
                         {/* Linha de detalhe: fonte do cálculo */}
-                        {(valorBruto || pctBarbearia) && (
+                        {valorBruto && (
                           <div className="flex items-center justify-between gap-2 px-3 pb-2">
                             <div className="flex items-center gap-1.5">
                               {fonteAuto ? (
@@ -1961,20 +1954,10 @@ export default function Home() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-violet-300/70">
-                              {valorBruto != null && (
-                                <span title="Valor bruto de assinaturas do mês">
-                                  {fmtFull(valorBruto)} assinaturas
-                                </span>
-                              )}
-                              {pctBarbearia != null && (
-                                <span className="text-violet-300/50">×</span>
-                              )}
-                              {pctBarbearia != null && (
-                                <span title="Percentual de comissão da barbearia">
-                                  {pctBarbearia}%
-                                </span>
-                              )}
+                            <div className="flex items-center gap-1 text-[10px] text-violet-300/70">
+                              <span title="Valor bruto de assinaturas do mês">
+                                {fmtFull(valorBruto)} assinaturas (100%)
+                              </span>
                             </div>
                           </div>
                         )}

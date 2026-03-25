@@ -756,3 +756,11 @@
 - [x] Retornar flags `valorAssinaturasAtualizado`, `valorAssinaturasAnterior` e `totalAssinaturas` na resposta
 - [x] Exibir toast de informação e painel azul no frontend quando o valor foi atualizado automaticamente
 - [x] 81 testes passando após implementação
+
+## Remoção de Comissão / Distribuição 100% Dpote
+
+- [x] Remover campo dpotePorcentagemBarbearia do formulário de configuração no AdminPanel (CashBarberIntegracao.tsx)
+- [x] Atualizar preview de base de cálculo: exibir "100% de R$ X serão distribuídos proporcionalmente pelas fichas"
+- [x] Atualizar tooltip da fórmula Dpote no dashboard: remover linha "× Comissão barbearia", exibir "Assinaturas (100%)" e "× Proporção fichas desta filial"
+- [x] Atualizar linha de detalhe da fonte: exibir "X assinaturas (100%)" sem percentual de comissão
+- [x] Remover dpotePorcentagemBarbearia do dpoteConfigMap no Home.tsx

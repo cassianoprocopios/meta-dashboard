@@ -50,7 +50,6 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const [dpoteFilialId, setDpoteFilialId] = useState<number | "">("");
   const [dpoteFilialNome, setDpoteFilialNome] = useState("");
   const [dpoteValorAssinaturas, setDpoteValorAssinaturas] = useState<number | "">("" );
-  const [dpotePorcentagemBarbearia, setDpotePorcentagemBarbearia] = useState<number | "">(65);
   const [filiais, setFiliais] = useState<Array<{ id: number; nome: string }>>([]); 
   const [mostrarFiliaisDpote, setMostrarFiliaisDpote] = useState(false);
   const [buscaFilial, setBuscaFilial] = useState("");
@@ -123,8 +122,6 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       setDpoteFilialNome((configExistente as any).dpoteFilialNome || "");
       const valorAss = (configExistente as any).dpoteValorAssinaturas;
       setDpoteValorAssinaturas(valorAss ? parseFloat(String(valorAss)) : "");
-      const pctBarb = (configExistente as any).dpotePorcentagemBarbearia;
-      setDpotePorcentagemBarbearia(pctBarb ? parseFloat(String(pctBarb)) : 65);
       setSincAutoAtiva(!!(configExistente as any).sincAutoAtiva);
       setHorarioSinc((configExistente as any).horarioSinc || "23:00");
     }
@@ -277,7 +274,6 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       dpoteFilialId: dpoteFilialId ? Number(dpoteFilialId) : undefined,
       dpoteFilialNome: dpoteFilialNome || undefined,
       dpoteValorAssinaturas: dpoteValorAssinaturas ? Number(dpoteValorAssinaturas) : undefined,
-      dpotePorcentagemBarbearia: dpotePorcentagemBarbearia ? Number(dpotePorcentagemBarbearia) : undefined,
     });
   };
 
@@ -699,29 +695,9 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                           <p className="text-xs text-violet-500 mt-1">Valor mensal total de assinaturas no Dpote</p>
                         )}
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-violet-700 mb-1">% Comissão Barbearia</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="100"
-                          step="1"
-                          value={dpotePorcentagemBarbearia}
-                          onChange={(e) => setDpotePorcentagemBarbearia(e.target.value ? Number(e.target.value) : "")}
-                          placeholder="Ex: 65"
-                          className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
-                        />
-                        {(configExistente as any)?.dpoteHistoricoId ? (
-                          <p className="text-xs text-emerald-600 mt-1">
-                            ✓ Percentual buscado automaticamente via API
-                          </p>
-                        ) : (
-                          <p className="text-xs text-violet-500 mt-1">Percentual da barbearia (ex: 65 = 65%)</p>
-                        )}
-                      </div>
-                      {dpoteValorAssinaturas && dpotePorcentagemBarbearia && (
+                      {dpoteValorAssinaturas && (
                         <div className="col-span-2 text-xs text-violet-700 font-medium">
-                          Base de cálculo: R$ {(Number(dpoteValorAssinaturas) * Number(dpotePorcentagemBarbearia) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2})} serão distribuídos proporcionalmente pelas fichas de cada filial
+                          100% de R$ {Number(dpoteValorAssinaturas).toLocaleString('pt-BR', {minimumFractionDigits: 2})} serão distribuídos proporcionalmente pelas fichas de cada filial
                           {(configExistente as any)?.dpoteHistoricoId && (
                             <span className="ml-2 text-emerald-600">(atualizado automaticamente a cada sync)</span>
                           )}
