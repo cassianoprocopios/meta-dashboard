@@ -677,3 +677,10 @@
 - [x] Procedures tRPC: avec.getConfig, salvarConfig, testarConexao, listarMapeamento, salvarMapeamento, sincronizar, listarLogs, atualizarAgendamento
 - [x] Job Avec integrado no servidor principal (_core/index.ts)
 - [x] 81 testes passando, 0 erros TypeScript
+
+## Botão Sync Avec no Cabeçalho do Dashboard
+
+- [x] Localizar botão Sync CashBarber no cabeçalho do Home.tsx
+- [x] Adicionar botão "Sync Avec" (fuchsia) ao lado do Sync Dpote no cabeçalho
+- [x] Acionar procedure avec.sincronizar com empresaSlug="seraphine" ao clicar
+- [x] Feedback visual: spinner durante sync, toast de sucesso/erro com número de dias importados
