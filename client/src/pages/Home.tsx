@@ -168,6 +168,21 @@ export default function Home() {
   const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
     trpc.meta.listar.useQuery({ mes, ano });
 
+  // Configurações Dpote por empresa (valor bruto de assinaturas e percentual)
+  const { data: configsDpote = [] } = trpc.cashbarber.listarConfigsDpote.useQuery();
+  // Mapa slug → config Dpote para acesso rápido
+  const dpoteConfigMap = useMemo(() => {
+    const m: Record<string, { valorAssinaturas: number | null; porcentagemBarbearia: number | null; temHistorico: boolean }> = {};
+    for (const c of configsDpote) {
+      m[c.empresaSlug] = {
+        valorAssinaturas: c.dpoteValorAssinaturas,
+        porcentagemBarbearia: c.dpotePorcentagemBarbearia,
+        temHistorico: !!(c.dpoteHistoricoId),
+      };
+    }
+    return m;
+  }, [configsDpote]);
+
   // Mês anterior para comparativo
   const mesAnterior = mes === 1 ? 12 : mes - 1;
   const anoAnterior = mes === 1 ? ano - 1 : ano;
@@ -1866,15 +1881,56 @@ export default function Home() {
                   </div>
 
                   {/* Linha de Recorrência Dpote — exibida apenas quando há valor */}
-                  {s.recorrenciaMes > 0 && (
-                    <div className="mt-3 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                      <div className="flex items-center gap-1.5">
-                        <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
-                        <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
+                  {s.recorrenciaMes > 0 && (() => {
+                    const dpoteCfg = dpoteConfigMap[s.emp.slug];
+                    const valorBruto = dpoteCfg?.valorAssinaturas;
+                    const pctBarbearia = dpoteCfg?.porcentagemBarbearia;
+                    const fonteAuto = dpoteCfg?.temHistorico;
+                    return (
+                      <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
+                        {/* Linha principal: ícone + rótulo + valor calculado */}
+                        <div className="flex items-center justify-between gap-2 px-3 py-2">
+                          <div className="flex items-center gap-1.5">
+                            <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                            <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
+                          </div>
+                          <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                        </div>
+                        {/* Linha de detalhe: fonte do cálculo */}
+                        {(valorBruto || pctBarbearia) && (
+                          <div className="flex items-center justify-between gap-2 px-3 pb-2">
+                            <div className="flex items-center gap-1.5">
+                              {fonteAuto ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                  CashBarber API
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-500/15 px-1.5 py-0.5 rounded-md">
+                                  Manual
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] text-violet-300/70">
+                              {valorBruto != null && (
+                                <span title="Valor bruto de assinaturas do mês">
+                                  {fmtFull(valorBruto)} assinaturas
+                                </span>
+                              )}
+                              {pctBarbearia != null && (
+                                <span className="text-violet-300/50">×</span>
+                              )}
+                              {pctBarbearia != null && (
+                                <span title="Percentual de comissão da barbearia">
+                                  {pctBarbearia}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Indicador de status mensal - sempre visível para análise */}
                   {s.mediaDiaria > 0 && (

@@ -1684,6 +1684,19 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       return configs.map((c) => ({ ...c, cbSenha: "***" }));
     }),
 
+    /** Retorna apenas os campos Dpote de todas as empresas configuradas (sem credenciais) */
+    listarConfigsDpote: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const configs = await listCashbarberConfigs(tenantId);
+      return configs.map((c) => ({
+        empresaSlug: c.empresaSlug,
+        dpoteValorAssinaturas: c.dpoteValorAssinaturas ? parseFloat(String(c.dpoteValorAssinaturas)) : null,
+        dpotePorcentagemBarbearia: c.dpotePorcentagemBarbearia ? parseFloat(String(c.dpotePorcentagemBarbearia)) : null,
+        dpoteHistoricoId: (c as any).dpoteHistoricoId ?? null,
+        dpoteHistoricoMes: (c as any).dpoteHistoricoMes ?? null,
+      }));
+    }),
+
     /** Salva a configuração CashBarber de uma empresa */
     salvarConfig: protectedProcedure
       .input(

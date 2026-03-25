@@ -622,3 +622,9 @@
 - [x] Fallback: usar dpoteValorAssinaturas manual se API não retornar valor
 - [x] Exibir badge "auto" com indicador verde pulsante no AdminPanel quando histórico salvo
 - [x] Testes da nova função (5 cenários, 76 testes passando no total)
+
+## Card de Recorrência — Exibir Fonte do Cálculo
+
+- [x] Expor dpoteValorAssinaturas, dpotePorcentagemBarbearia e dpoteHistoricoId na procedure cashbarber.listarConfigsDpote
+- [x] Exibir no card de Recorrência: valor bruto de assinaturas (R$) e percentual (%) usados no cálculo
+- [x] Tag de fonte: "CashBarber API" com ponto verde pulsante (quando dpoteHistoricoId presente) ou "Manual" (quando valor inserido manualmente)
