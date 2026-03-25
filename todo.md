@@ -765,3 +765,5 @@
 - [x] Atualizar linha de detalhe da fonte: exibir "X assinaturas (100%)" sem percentual de comissão
 - [x] Remover dpotePorcentagemBarbearia do dpoteConfigMap no Home.tsx
 - [x] Adicionar indicador visual de "100% distribuído" na tela DpoteDistribuicao.tsx
+- [x] Criar procedure tRPC cashbarber.dpoteHistoricoMensal para buscar evolução de cat5 por empresa ao longo dos meses
+- [x] Implementar seção de histórico com gráfico de linha na tela DpoteDistribuicao.tsx

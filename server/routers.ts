@@ -71,6 +71,7 @@ import {
   getDpoteHistoricoId,
   saveDpoteHistoricoId,
   getFaturamentoByDataEmpresaTenant,
+  getFaturamentosHistoricoMensalByTenant,
 } from "./db";
 import {
   cashbarberLogin,
@@ -2498,6 +2499,74 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           }
         }
         return { resultados };
+      }),
+
+    /**
+     * Retorna o histórico mensal de Recorrência (cat5) por empresa
+     * para os últimos N meses (padrão: 12).
+     * Retorna array de mêses com o total de cat5 por empresa.
+     */
+    dpoteHistoricoMensal: protectedProcedure
+      .input(
+        z.object({
+          anoFim: z.number().int().min(2020).optional(),
+          mesFim: z.number().int().min(1).max(12).optional(),
+          qtdMeses: z.number().int().min(2).max(24).optional(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const agora = new Date();
+        const anoFim = input.anoFim ?? agora.getFullYear();
+        const mesFim = input.mesFim ?? (agora.getMonth() + 1);
+        const qtdMeses = input.qtdMeses ?? 12;
+
+        // Buscar empresas do tenant para obter nomes
+        const empresasList = await getEmpresasByTenant(tenantId);
+        const empresaNomes: Record<string, string> = {};
+        for (const e of empresasList) {
+          empresaNomes[e.slug] = e.nome;
+        }
+
+        // Buscar histórico de cat5 por empresa e mês
+        const historico = await getFaturamentosHistoricoMensalByTenant(tenantId, anoFim, mesFim, qtdMeses);
+
+        // Coletar todos os meses e empresas presentes
+        const mesesSet = new Set<string>();
+        const empresasSet = new Set<string>();
+        for (const h of historico) {
+          mesesSet.add(h.mesAno);
+          empresasSet.add(h.empresaSlug);
+        }
+
+        // Ordenar meses cronologicamente
+        const mesesOrdenados = Array.from(mesesSet).sort();
+
+        // Montar estrutura: array de { mesAno, mesLabel, [empresaSlug]: totalCat5 }
+        const MESES_LABEL = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+        const pontos = mesesOrdenados.map((mesAno) => {
+          const [anoStr, mesStr] = mesAno.split("-");
+          const mesIdx = parseInt(mesStr, 10) - 1;
+          const mesLabel = `${MESES_LABEL[mesIdx]}/${anoStr.slice(2)}`;
+          const ponto: Record<string, string | number> = { mesAno, mesLabel };
+          for (const slug of Array.from(empresasSet)) {
+            const entry = historico.find((h) => h.mesAno === mesAno && h.empresaSlug === slug);
+            ponto[slug] = entry ? Math.round(entry.totalCat5 * 100) / 100 : 0;
+          }
+          return ponto;
+        });
+
+        // Montar lista de empresas com nome e slug
+        const empresasLista = Array.from(empresasSet).map((slug) => ({
+          slug,
+          nome: empresaNomes[slug] ?? slug,
+        }));
+
+        return {
+          pontos,
+          empresas: empresasLista,
+          meses: mesesOrdenados,
+        };
       }),
   }),
 });

@@ -1234,3 +1234,63 @@ export async function getDpoteHistoricoId(
   return null;
 }
 
+
+// ─── HISTÓRICO MENSAL DE RECORRÊNCIA (cat5) ───────────────────────────────────
+
+/**
+ * Retorna o total de cat5 (Recorrência/Dpote) por empresa e mês/ano
+ * para os últimos N meses a partir do mês de referência.
+ * Retorna array de { mesAno: "YYYY-MM", empresaSlug: string, totalCat5: number }
+ */
+export async function getFaturamentosHistoricoMensalByTenant(
+  tenantId: number,
+  anoFim: number,
+  mesFim: number,
+  qtdMeses = 12
+): Promise<Array<{ mesAno: string; empresaSlug: string; totalCat5: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Calcular o mês de início (qtdMeses atrás)
+  let anoInicio = anoFim;
+  let mesInicio = mesFim - qtdMeses + 1;
+  while (mesInicio <= 0) {
+    mesInicio += 12;
+    anoInicio -= 1;
+  }
+
+  // Buscar todos os faturamentos do tenant no intervalo
+  const allRows = await db
+    .select({
+      data: faturamentos.data,
+      empresaSlug: faturamentos.empresaSlug,
+      cat5: faturamentos.cat5,
+    })
+    .from(faturamentos)
+    .where(eq(faturamentos.tenantId, tenantId))
+    .orderBy(asc(faturamentos.data), asc(faturamentos.empresaSlug));
+
+  // Filtrar pelo intervalo de datas e agregar por mesAno + empresaSlug
+  const mapa: Record<string, number> = {};
+
+  for (const row of allRows) {
+    const [rowAnoStr, rowMesStr] = row.data.split("-");
+    const rowAno = parseInt(rowAnoStr, 10);
+    const rowMes = parseInt(rowMesStr, 10);
+
+    // Verificar se está no intervalo
+    const aposInicio = rowAno > anoInicio || (rowAno === anoInicio && rowMes >= mesInicio);
+    const antesOuIgualFim = rowAno < anoFim || (rowAno === anoFim && rowMes <= mesFim);
+    if (!aposInicio || !antesOuIgualFim) continue;
+
+    const mesAno = `${rowAnoStr}-${rowMesStr}`;
+    const chave = `${mesAno}|${row.empresaSlug}`;
+    const cat5Val = parseFloat(String(row.cat5 ?? "0"));
+    mapa[chave] = (mapa[chave] ?? 0) + cat5Val;
+  }
+
+  return Object.entries(mapa).map(([chave, totalCat5]) => {
+    const [mesAno, empresaSlug] = chave.split("|");
+    return { mesAno, empresaSlug, totalCat5 };
+  });
+}

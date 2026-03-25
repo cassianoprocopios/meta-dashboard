@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle, History } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -23,6 +24,27 @@ const CORES_FILIAL = [
   "#f43f5e", // rosa
   "#3b82f6", // azul
 ];
+
+// Tooltip customizado para o gráfico de linha
+function CustomLineTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-slate-900 border border-violet-500/30 rounded-xl px-3 py-2.5 shadow-xl text-xs min-w-[160px]">
+      <p className="font-semibold text-violet-300 mb-2">{label}</p>
+      {payload.map((p: any) => (
+        <div key={p.dataKey} className="flex items-center justify-between gap-4 mb-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+            <span className="text-muted-foreground">{p.name}</span>
+          </div>
+          <span className="font-bold text-white">
+            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(p.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function fmt(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(v);
@@ -64,6 +86,7 @@ export default function DpoteDistribuicao() {
   const [ano] = useState(hoje.getFullYear());
   const [ajustes, setAjustes] = useState<Record<string, AjusteState>>({});
   const [ajusteAberto, setAjusteAberto] = useState<string | null>(null);
+  const [qtdMesesHistorico, setQtdMesesHistorico] = useState(12);
 
   const { data, isLoading, error, refetch, isFetching } = trpc.cashbarber.dpoteDistribuicao.useQuery(
     { mes, ano },
@@ -135,6 +158,12 @@ export default function DpoteDistribuicao() {
   }, [data]);
 
   const totalDistribuido = data?.filiais?.reduce((acc, f) => acc + f.valorDistribuido, 0) ?? 0;
+
+  // Query de histórico mensal
+  const { data: historicoData, isLoading: historicoLoading } = trpc.cashbarber.dpoteHistoricoMensal.useQuery(
+    { anoFim: mes >= 1 ? ano : ano - 1, mesFim: mes, qtdMeses: qtdMesesHistorico },
+    { staleTime: 5 * 60 * 1000 }
+  );
 
   // Indicador de 100% distribuído: verifica se totalDistribuido ≈ totalAssinaturas (tolerância de R$ 1 por arredondamento)
   const pctDistribuido = data?.totalAssinaturas && data.totalAssinaturas > 0
@@ -374,6 +403,137 @@ export default function DpoteDistribuicao() {
                 );
               })}
           </div>
+
+          {/* Histórico mensal — gráfico de linha */}
+          <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-violet-400" />
+                <h3 className="text-sm font-semibold text-foreground">Evolução Mensal do Faturamento de Recorrência</h3>
+              </div>
+              {/* Seletor de período */}
+              <div className="flex items-center gap-1.5">
+                {[6, 12, 18, 24].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setQtdMesesHistorico(n)}
+                    className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                      qtdMesesHistorico === n
+                        ? "bg-violet-500/20 border-violet-500/40 text-violet-300 font-semibold"
+                        : "bg-muted/40 border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {n}m
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {historicoLoading && (
+              <div className="flex items-center justify-center h-[260px]">
+                <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+              </div>
+            )}
+
+            {!historicoLoading && (!historicoData || historicoData.pontos.length === 0) && (
+              <div className="flex flex-col items-center justify-center h-[260px] text-center">
+                <History className="w-8 h-8 text-violet-400/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum dado de recorrência encontrado</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Lançamentos com cat5 &gt; 0 aparecerão aqui</p>
+              </div>
+            )}
+
+            {!historicoLoading && historicoData && historicoData.pontos.length > 0 && (
+              <>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={historicoData.pontos} margin={{ top: 5, right: 16, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="mesLabel"
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                      tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomLineTooltip />} />
+                    <Legend
+                      formatter={(value) => {
+                        const emp = historicoData.empresas.find((e) => e.slug === value);
+                        return <span className="text-xs text-muted-foreground">{emp?.nome ?? value}</span>;
+                      }}
+                    />
+                    {historicoData.empresas.map((emp, i) => (
+                      <Line
+                        key={emp.slug}
+                        type="monotone"
+                        dataKey={emp.slug}
+                        name={emp.slug}
+                        stroke={CORES_FILIAL[i % CORES_FILIAL.length]}
+                        strokeWidth={2.5}
+                        dot={{ r: 4, fill: CORES_FILIAL[i % CORES_FILIAL.length], strokeWidth: 0 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+                {/* Tabela resumo do histórico */}
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left text-muted-foreground font-medium pb-1.5 pr-3">Mês</th>
+                        {historicoData.empresas.map((emp, i) => (
+                          <th key={emp.slug} className="text-right text-muted-foreground font-medium pb-1.5 pr-3">
+                            <span style={{ color: CORES_FILIAL[i % CORES_FILIAL.length] }}>{emp.nome}</span>
+                          </th>
+                        ))}
+                        <th className="text-right text-muted-foreground font-medium pb-1.5">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...historicoData.pontos].reverse().map((ponto) => {
+                        const total = historicoData.empresas.reduce(
+                          (acc, emp) => acc + (typeof ponto[emp.slug] === "number" ? (ponto[emp.slug] as number) : 0),
+                          0
+                        );
+                        const isMesAtual = ponto.mesAno === `${ano}-${String(mes).padStart(2, "0")}`;
+                        return (
+                          <tr
+                            key={ponto.mesAno as string}
+                            className={`border-b border-border/40 ${
+                              isMesAtual ? "bg-violet-500/5" : ""
+                            }`}
+                          >
+                            <td className={`py-1.5 pr-3 font-medium ${
+                              isMesAtual ? "text-violet-300" : "text-foreground"
+                            }`}>
+                              {ponto.mesLabel as string}
+                              {isMesAtual && <span className="ml-1 text-[9px] text-violet-400 font-bold">atual</span>}
+                            </td>
+                            {historicoData.empresas.map((emp) => (
+                              <td key={emp.slug} className="py-1.5 pr-3 text-right text-muted-foreground">
+                                {(ponto[emp.slug] as number) > 0
+                                  ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(ponto[emp.slug] as number)
+                                  : <span className="text-muted-foreground/30">—</span>}
+                              </td>
+                            ))}
+                            <td className="py-1.5 text-right font-bold text-foreground">
+                              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(total)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </Card>
 
           {/* Gráficos lado a lado */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
