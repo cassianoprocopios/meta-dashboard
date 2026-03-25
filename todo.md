@@ -656,3 +656,11 @@
 - [x] Garantir que falha no Dpote não interrompe o sync principal (try/catch isolado com console.warn)
 - [x] Log detalhado: registrar valores aplicados por empresa no log do job (ex: MORUMBI: R$ 44686.92 | MASCOTE: R$ 19158.08)
 - [x] 5 testes unitários para a nova função reutilizável (81 testes passando no total)
+
+## Ajuste Manual de Recorrência (cat5) na Tab Dpote
+
+- [x] Procedure cashbarber.ajustarCat5Empresa: aceita dpoteFilialNome (mapeamento automático) ou empresaSlug, modos substituir/somar
+- [x] Painel de ajuste inline por empresa na tabela da tab Dpote: campo de valor, radio substituir/somar, botão Aplicar
+- [x] Exibir comissão bruta calculada pelo CashBarber ao lado do campo para referência
+- [x] Preview do resultado ao somar (ex: R$ 44.686 + R$ 1.000 = R$ 45.686)
+- [x] Toast de confirmação com valor anterior e novo valor após ajuste (81 testes passando)

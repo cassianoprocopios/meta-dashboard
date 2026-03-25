@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, AlertCircle, PencilLine } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -52,10 +52,18 @@ function CustomPieTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
+// Estado de ajuste manual por empresa
+interface AjusteState {
+  valor: string;
+  operacao: "substituir" | "somar";
+}
+
 export default function DpoteDistribuicao() {
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano] = useState(hoje.getFullYear());
+  const [ajustes, setAjustes] = useState<Record<string, AjusteState>>({});
+  const [ajusteAberto, setAjusteAberto] = useState<string | null>(null);
 
   const { data, isLoading, error, refetch, isFetching } = trpc.cashbarber.dpoteDistribuicao.useQuery(
     { mes, ano },
@@ -63,6 +71,24 @@ export default function DpoteDistribuicao() {
   );
 
   const utils = trpc.useUtils();
+
+  // Mutation de ajuste manual por empresa
+  const ajustarMutation = trpc.cashbarber.ajustarCat5Empresa.useMutation({
+    onSuccess: (resultado) => {
+      utils.faturamento.listar.invalidate();
+      const op = resultado.operacao === "somar" ? "somado" : "substituído";
+      toast.success(`Recorrência ${op} com sucesso!`, {
+        description: `${resultado.empresaSlug}: ${fmtFull(resultado.cat5Anterior)} → ${fmtFull(resultado.cat5Novo)}`,
+        duration: 5000,
+      });
+      // Fechar painel de ajuste da empresa
+      setAjusteAberto(null);
+    },
+    onError: (err) => {
+      toast.error("Erro ao ajustar Recorrência", { description: err.message });
+    },
+  });
+
   const aplicarMutation = trpc.cashbarber.aplicarDpoteNoFaturamento.useMutation({
     onSuccess: (resultado) => {
       // Invalidar faturamentos para o dashboard atualizar
@@ -360,7 +386,8 @@ export default function DpoteDistribuicao() {
                     <th className="text-left text-xs text-muted-foreground font-medium pb-2 pr-4">Filial</th>
                     <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Fichas</th>
                     <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Proporção</th>
-                    <th className="text-right text-xs text-muted-foreground font-medium pb-2">Comissão Bruta</th>
+                    <th className="text-right text-xs text-muted-foreground font-medium pb-2 pr-4">Comissão Bruta</th>
+                    <th className="text-right text-xs text-muted-foreground font-medium pb-2">Ajuste</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -369,20 +396,125 @@ export default function DpoteDistribuicao() {
                     .sort((a, b) => b.comissaoBruta - a.comissaoBruta)
                     .map((f, i) => {
                       const cor = CORES_FILIAL[i % CORES_FILIAL.length];
+                      const slug = f.filialNome.toLowerCase().replace(/\s+/g, "-");
+                      const ajuste = ajustes[slug] ?? { valor: "", operacao: "substituir" as const };
+                      const isAberto = ajusteAberto === slug;
                       return (
-                        <tr key={f.filialId} className="border-b border-border/50 last:border-0">
-                          <td className="py-2.5 pr-4">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cor }} />
-                              <span className="font-medium text-foreground">{f.filialNome}</span>
-                            </div>
-                          </td>
-                          <td className="py-2.5 pr-4 text-right text-muted-foreground">{fmtNum(f.fichas)}</td>
-                          <td className="py-2.5 pr-4 text-right">
-                            <span className="font-semibold" style={{ color: cor }}>{f.percentual.toFixed(1)}%</span>
-                          </td>
-                          <td className="py-2.5 text-right font-bold text-foreground">{fmtFull(f.comissaoBruta)}</td>
-                        </tr>
+                        <>
+                          <tr key={f.filialId} className="border-b border-border/50">
+                            <td className="py-2.5 pr-4">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cor }} />
+                                <span className="font-medium text-foreground">{f.filialNome}</span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 pr-4 text-right text-muted-foreground">{fmtNum(f.fichas)}</td>
+                            <td className="py-2.5 pr-4 text-right">
+                              <span className="font-semibold" style={{ color: cor }}>{f.percentual.toFixed(1)}%</span>
+                            </td>
+                            <td className="py-2.5 pr-4 text-right font-bold text-foreground">{fmtFull(f.comissaoBruta)}</td>
+                            <td className="py-2.5 text-right">
+                              <button
+                                onClick={() => setAjusteAberto(isAberto ? null : slug)}
+                                className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors ${
+                                  isAberto
+                                    ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                                    : "bg-muted/50 border-border text-muted-foreground hover:text-foreground hover:border-violet-500/30"
+                                }`}
+                              >
+                                <PencilLine className="w-3 h-3" />
+                                Ajustar
+                              </button>
+                            </td>
+                          </tr>
+                          {/* Painel de ajuste inline */}
+                          {isAberto && (
+                            <tr key={`${f.filialId}-ajuste`}>
+                              <td colSpan={5} className="pb-3 pt-1">
+                                <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-3">
+                                  <p className="text-xs font-semibold text-violet-300 flex items-center gap-1.5">
+                                    <PencilLine className="w-3.5 h-3.5" />
+                                    Ajuste manual — {f.filialNome} ({MESES[mes - 1]} {ano})
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Comissão bruta calculada pelo CashBarber: <span className="font-semibold text-foreground">{fmtFull(f.comissaoBruta)}</span>
+                                  </p>
+                                  {/* Seletor de operação */}
+                                  <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`op-${slug}`}
+                                        value="substituir"
+                                        checked={ajuste.operacao === "substituir"}
+                                        onChange={() => setAjustes((prev) => ({ ...prev, [slug]: { ...ajuste, operacao: "substituir" } }))}
+                                        className="accent-violet-500"
+                                      />
+                                      <span className="text-xs text-foreground">Substituir valor</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`op-${slug}`}
+                                        value="somar"
+                                        checked={ajuste.operacao === "somar"}
+                                        onChange={() => setAjustes((prev) => ({ ...prev, [slug]: { ...ajuste, operacao: "somar" } }))}
+                                        className="accent-violet-500"
+                                      />
+                                      <span className="text-xs text-foreground">Somar ao valor atual</span>
+                                    </label>
+                                  </div>
+                                  {/* Campo de valor */}
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">R$</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      placeholder="0,00"
+                                      value={ajuste.valor}
+                                      onChange={(e) => setAjustes((prev) => ({ ...prev, [slug]: { ...ajuste, valor: e.target.value } }))}
+                                      className="flex-1 text-sm bg-background border border-border rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      disabled={!ajuste.valor || isNaN(parseFloat(ajuste.valor)) || ajustarMutation.isPending}
+                                      onClick={() => {
+                                        const valor = parseFloat(ajuste.valor);
+                                        if (isNaN(valor)) return;
+                                        // Encontrar o empresaSlug correspondente à filial
+                                        // (usa o slug da filial como chave temporária; o backend busca pelo empresaSlug real)
+                                        // Precisamos do empresaSlug real — buscamos da config Dpote via filialNome
+                                        ajustarMutation.mutate({
+                                          dpoteFilialNome: f.filialNome,
+                                          mes,
+                                          ano,
+                                          valor,
+                                          operacao: ajuste.operacao,
+                                        });
+                                      }}
+                                      className="bg-violet-600 hover:bg-violet-500 text-white text-xs"
+                                    >
+                                      {ajustarMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                      Aplicar
+                                    </Button>
+                                    <button
+                                      onClick={() => setAjusteAberto(null)}
+                                      className="text-xs text-muted-foreground hover:text-foreground px-2 py-1.5"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                  {ajuste.operacao === "somar" && ajuste.valor && !isNaN(parseFloat(ajuste.valor)) && (
+                                    <p className="text-xs text-violet-300/70">
+                                      Resultado: {fmtFull(f.comissaoBruta)} + {fmtFull(parseFloat(ajuste.valor))} = <span className="font-semibold text-violet-300">{fmtFull(f.comissaoBruta + parseFloat(ajuste.valor))}</span>
+                                    </p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       );
                     })}
                   {/* Linha de total */}
@@ -390,7 +522,8 @@ export default function DpoteDistribuicao() {
                     <td className="pt-3 pr-4 font-semibold text-foreground">Total</td>
                     <td className="pt-3 pr-4 text-right font-semibold text-muted-foreground">{fmtNum(data.totalFichas)}</td>
                     <td className="pt-3 pr-4 text-right font-semibold text-violet-400">100%</td>
-                    <td className="pt-3 text-right font-bold text-emerald-400">{fmtFull(comissaoBrutaTotal)}</td>
+                    <td className="pt-3 pr-4 text-right font-bold text-emerald-400">{fmtFull(comissaoBrutaTotal)}</td>
+                    <td />
                   </tr>
                 </tbody>
               </table>

@@ -1828,6 +1828,86 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       }));
     }),
 
+    /**
+     * Ajusta manualmente o valor de Recorrência (cat5) de uma empresa no dia 1 do mês.
+     * Aceita empresaSlug direto OU dpoteFilialNome (nome da filial no CashBarber) para mapeamento automático.
+     * Suporta dois modos:
+     * - "substituir": substitui o cat5 atual pelo novo valor
+     * - "somar": soma o novo valor ao cat5 atual
+     */
+    ajustarCat5Empresa: protectedProcedure
+      .input(
+        z.object({
+          /** Slug da empresa (prioritário) ou nome da filial Dpote para mapeamento automático */
+          empresaSlug: z.string().optional(),
+          dpoteFilialNome: z.string().optional(),
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020),
+          valor: z.number().min(0),
+          operacao: z.enum(["substituir", "somar"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+
+        // Resolver o empresaSlug: usar direto ou mapear via dpoteFilialNome
+        let empresaSlug = input.empresaSlug;
+        if (!empresaSlug && input.dpoteFilialNome) {
+          const configs = await listCashbarberConfigs(tenantId);
+          const nomeBusca = input.dpoteFilialNome.trim().toLowerCase();
+          const config = configs.find(
+            (c) => c.dpoteFilialNome && c.dpoteFilialNome.trim().toLowerCase() === nomeBusca
+          ) ?? configs.find(
+            (c) => c.dpoteFilialNome && nomeBusca.includes(c.dpoteFilialNome.trim().toLowerCase())
+          ) ?? configs.find(
+            (c) => c.dpoteFilialNome && c.dpoteFilialNome.trim().toLowerCase().includes(nomeBusca)
+          );
+          if (!config) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Nenhuma empresa encontrada com dpoteFilialNome correspondente a "${input.dpoteFilialNome}". Configure o nome da filial Dpote no AdminPanel.`,
+            });
+          }
+          empresaSlug = config.empresaSlug;
+        }
+        if (!empresaSlug) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Informe empresaSlug ou dpoteFilialNome." });
+        }
+
+        const dia1 = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+
+        // Buscar faturamento existente para preservar outras categorias
+        const existente = await getFaturamentoByDataEmpresaTenant(dia1, empresaSlug, tenantId);
+        const cat5Atual = existente?.cat5 ? parseFloat(String(existente.cat5)) : 0;
+
+        const novoCat5 =
+          input.operacao === "somar"
+            ? cat5Atual + input.valor
+            : input.valor;
+
+        await upsertFaturamento({
+          tenantId,
+          empresaSlug,
+          data: dia1,
+          cat1: existente?.cat1 ?? "0",
+          cat2: existente?.cat2 ?? "0",
+          cat3: existente?.cat3 ?? "0",
+          cat4: existente?.cat4 ?? "0",
+          cat5: String(novoCat5),
+          sincronizadoCB: existente?.sincronizadoCB ?? 0,
+          observacao: existente?.observacao ?? undefined,
+          lancadoPor: ctx.user?.email ?? undefined,
+        });
+
+        return {
+          empresaSlug,
+          operacao: input.operacao,
+          cat5Anterior: cat5Atual,
+          cat5Novo: novoCat5,
+          diferenca: novoCat5 - cat5Atual,
+        };
+      }),
+
     /** Salva a configuração CashBarber de uma empresa */
     salvarConfig: protectedProcedure
       .input(
