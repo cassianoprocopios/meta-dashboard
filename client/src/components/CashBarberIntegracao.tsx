@@ -227,9 +227,16 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
   const sincronizarDpote = trpc.cashbarber.sincronizarDpoteManual.useMutation({
     onSuccess: (data) => {
       const aplicadosStr = data.aplicados
-        .map((a) => `${a.empresaSlug}: R$ ${a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
+        .map((a) => `${a.filialNome}: R$ ${a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
         .join(" | ");
       toast.success(`Dpote sincronizado! ${aplicadosStr}`);
+      if (data.valorAssinaturasAtualizado) {
+        const anterior = data.valorAssinaturasAnterior
+          ? `R$ ${data.valorAssinaturasAnterior.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+          : "não configurado";
+        const novo = `R$ ${data.totalAssinaturas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+        toast.info(`Valor de assinaturas atualizado automaticamente: ${anterior} → ${novo}`);
+      }
       if (data.naoEncontrados.length > 0) {
         toast.warning(`Filiais não encontradas: ${data.naoEncontrados.join(", ")}`);
       }
@@ -1112,14 +1119,31 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                             </button>
                           </div>
                           {sincronizarDpote.data && (
-                            <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                              <p className="text-xs font-semibold text-green-700 mb-1">Dpote sincronizado com sucesso</p>
-                              {sincronizarDpote.data.aplicados.map((a) => (
-                                <p key={a.empresaSlug} className="text-xs text-green-600">
-                                  {a.filialNome}: R$ {a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                </p>
-                              ))}
-                              <p className="text-xs text-green-500 mt-1">Fonte: {sincronizarDpote.data.fonteDados}</p>
+                            <div className="mt-3 space-y-2">
+                              <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                                <p className="text-xs font-semibold text-green-700 mb-1">Dpote sincronizado com sucesso</p>
+                                {sincronizarDpote.data.aplicados.map((a) => (
+                                  <p key={a.empresaSlug} className="text-xs text-green-600">
+                                    {a.filialNome}: R$ {a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                  </p>
+                                ))}
+                                <p className="text-xs text-green-500 mt-1">Fonte: {sincronizarDpote.data.fonteDados}</p>
+                              </div>
+                              {sincronizarDpote.data.valorAssinaturasAtualizado && (
+                                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 flex items-start gap-2">
+                                  <Info className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-xs font-semibold text-blue-700">Valor de assinaturas atualizado automaticamente</p>
+                                    <p className="text-xs text-blue-600">
+                                      {sincronizarDpote.data.valorAssinaturasAnterior
+                                        ? `R$ ${sincronizarDpote.data.valorAssinaturasAnterior.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                                        : "não configurado"}
+                                      {" → "}
+                                      R$ {sincronizarDpote.data.totalAssinaturas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

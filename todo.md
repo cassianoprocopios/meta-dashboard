@@ -748,3 +748,11 @@
 - [x] Exibir resultado (valor calculado por empresa + fonte de dados) no AdminPanel
 - [x] Adicionar botão "Sincronizar Dpote" na seção Recorrência da aba Sincronizar
 - [x] 81 testes passando após implementação
+
+## CashBarber — Atualização Automática do Valor de Assinaturas no Sync Dpote
+
+- [x] Criar função updateCashbarberDpoteConfig no db.ts para atualizar apenas campos Dpote
+- [x] Atualizar procedure sincronizarDpoteManual para salvar dpoteValorAssinaturas e dpotePorcentagemBarbearia quando API retornar valor diferente do salvo (tolerância de 0.1%)
+- [x] Retornar flags `valorAssinaturasAtualizado`, `valorAssinaturasAnterior` e `totalAssinaturas` na resposta
+- [x] Exibir toast de informação e painel azul no frontend quando o valor foi atualizado automaticamente
+- [x] 81 testes passando após implementação

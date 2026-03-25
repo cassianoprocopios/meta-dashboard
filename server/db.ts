@@ -1067,6 +1067,24 @@ export async function upsertCashbarberConfig(data: InsertCashbarberConfig) {
   }
 }
 
+/** Atualiza apenas os campos de Dpote (valor de assinaturas e porcentagem) sem sobrescrever credenciais */
+export async function updateCashbarberDpoteConfig(
+  tenantId: number,
+  empresaSlug: string,
+  dpoteValorAssinaturas: number,
+  dpotePorcentagemBarbearia: number
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(cashbarberConfig)
+    .set({
+      dpoteValorAssinaturas: String(dpoteValorAssinaturas),
+      dpotePorcentagemBarbearia: String(dpotePorcentagemBarbearia),
+    })
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+}
+
 /** Atualiza o status da última sincronização */
 export async function updateCashbarberSyncStatus(
   tenantId: number,

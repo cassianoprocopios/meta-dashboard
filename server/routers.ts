@@ -62,6 +62,7 @@ import {
   listCashbarberConfigs,
   upsertCashbarberConfig,
   updateCashbarberSyncStatus,
+  updateCashbarberDpoteConfig,
   listCashbarberMapeamento,
   saveCashbarberMapeamento,
   insertCashbarberSyncLog,
@@ -1966,6 +1967,30 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           fonteDados = "valor manual (API indisponível)";
         }
 
+        // Atualizar automaticamente o valor de assinaturas na config se veio da API e for diferente do salvo
+        let valorAssinaturasAtualizado = false;
+        let valorAssinaturasAnterior: number | null = null;
+        if (fonteDados.startsWith("API")) {
+          const valSalvo = configComDpote.dpoteValorAssinaturas
+            ? parseFloat(String(configComDpote.dpoteValorAssinaturas))
+            : null;
+          const diferenca = valSalvo !== null ? Math.abs(valorAssinaturas - valSalvo) / valSalvo : 1;
+          if (valSalvo === null || diferenca > 0.001) {
+            // Atualizar todos os configs que usam Dpote com o novo valor
+            for (const config of configs) {
+              if (!config.dpoteFilialNome) continue;
+              await updateCashbarberDpoteConfig(
+                tenantId,
+                config.empresaSlug,
+                valorAssinaturas,
+                porcentagemBarbearia
+              );
+            }
+            valorAssinaturasAtualizado = true;
+            valorAssinaturasAnterior = valSalvo;
+          }
+        }
+
         // Calcular distribuição por filial
         const hoje = new Date();
         const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
@@ -2013,6 +2038,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           totalAssinaturas: valorAssinaturas,
           porcentagemBarbearia,
           fonteDados,
+          valorAssinaturasAtualizado,
+          valorAssinaturasAnterior,
         };
       }),
 
