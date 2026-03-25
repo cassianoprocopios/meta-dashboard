@@ -652,7 +652,15 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                   {dpoteFilialNome && (
                     <div className="grid grid-cols-2 gap-3 p-3 bg-violet-50 rounded-lg border border-violet-100">
                       <div>
-                        <label className="block text-xs font-semibold text-violet-700 mb-1">Valor Total Assinaturas (R$)</label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <label className="block text-xs font-semibold text-violet-700">Valor Total Assinaturas (R$)</label>
+                          {(configExistente as any)?.dpoteHistoricoId && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+                              auto
+                            </span>
+                          )}
+                        </div>
                         <input
                           type="number"
                           min="0"
@@ -662,7 +670,13 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                           placeholder="Ex: 145000"
                           className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
                         />
-                        <p className="text-xs text-violet-500 mt-1">Valor mensal total de assinaturas no Dpote</p>
+                        {(configExistente as any)?.dpoteHistoricoId ? (
+                          <p className="text-xs text-emerald-600 mt-1">
+                            ✓ Buscado automaticamente via API (histórico #{(configExistente as any).dpoteHistoricoId})
+                          </p>
+                        ) : (
+                          <p className="text-xs text-violet-500 mt-1">Valor mensal total de assinaturas no Dpote</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-violet-700 mb-1">% Comissão Barbearia</label>
@@ -676,11 +690,20 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                           placeholder="Ex: 65"
                           className="w-full px-3 py-2 rounded-lg border border-violet-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
                         />
-                        <p className="text-xs text-violet-500 mt-1">Percentual da barbearia (ex: 65 = 65%)</p>
+                        {(configExistente as any)?.dpoteHistoricoId ? (
+                          <p className="text-xs text-emerald-600 mt-1">
+                            ✓ Percentual buscado automaticamente via API
+                          </p>
+                        ) : (
+                          <p className="text-xs text-violet-500 mt-1">Percentual da barbearia (ex: 65 = 65%)</p>
+                        )}
                       </div>
                       {dpoteValorAssinaturas && dpotePorcentagemBarbearia && (
                         <div className="col-span-2 text-xs text-violet-700 font-medium">
                           Base de cálculo: R$ {(Number(dpoteValorAssinaturas) * Number(dpotePorcentagemBarbearia) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2})} serão distribuídos proporcionalmente pelas fichas de cada filial
+                          {(configExistente as any)?.dpoteHistoricoId && (
+                            <span className="ml-2 text-emerald-600">(atualizado automaticamente a cada sync)</span>
+                          )}
                         </div>
                       )}
                     </div>

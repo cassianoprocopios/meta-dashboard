@@ -455,6 +455,37 @@ export async function cashbarberBuscarHistoricoDpote(
 }
 
 /**
+ * Busca o valor real de assinaturas (valor_ganho_assinaturas) de um histórico Dpote
+ * diretamente da API do CashBarber, usando o ID do histórico salvo no banco.
+ *
+ * Retorna o valor em reais (número inteiro, ex: 63845 = R$ 63.845,00).
+ * Retorna null se o histórico não existir ou a API retornar erro.
+ *
+ * @param token - Token JWT do CashBarber
+ * @param historicoId - ID do histórico Dpote (salvo em cashbarberConfig.dpoteHistoricoId)
+ */
+export async function cashbarberBuscarValorAssinaturas(
+  token: string,
+  historicoId: number,
+  // Injetável para facilitar testes (default: cashbarberBuscarHistoricoDpote)
+  _buscarHistorico: (token: string, id: number) => Promise<CashbarberDpoteHistorico> = cashbarberBuscarHistoricoDpote
+): Promise<{ valorAssinaturas: number; porcentagemBarbearia: number } | null> {
+  try {
+    const historico = await _buscarHistorico(token, historicoId);
+    const { valor_ganho_assinaturas, porcentagem_comissao_barbearias } = historico.faturamento;
+    if (typeof valor_ganho_assinaturas !== "number" || valor_ganho_assinaturas <= 0) {
+      return null;
+    }
+    return {
+      valorAssinaturas: valor_ganho_assinaturas,
+      porcentagemBarbearia: porcentagem_comissao_barbearias,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Calcula a Comissão Bruta de uma filial específica a partir dos dados do histórico Dpote.
  *
  * Fórmula: valor_total × porcentagem_barbearia% × (fichas_filial / fichas_total)

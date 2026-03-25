@@ -613,3 +613,12 @@
 
 - [x] Atualizar dpoteValorAssinaturas para R$ 63.845 (receita real de assinaturas março/2026)
 - [x] Recalcular Dpote com valores exatos do CashBarber (Morumbi: R$ 44.686,92 / Mascote: R$ 19.158,08)
+
+## Busca Automática do Valor de Assinaturas via API CashBarber
+
+- [x] Investigar endpoint da API CashBarber para histórico Dpote (valor de assinaturas do mês)
+- [x] Implementar cashbarberBuscarValorAssinaturas(token, historicoId, _buscarHistorico?) em cashbarber.ts
+- [x] Integrar no sincronizador: buscar valor automaticamente via dpoteHistoricoId antes de calcular Dpote
+- [x] Fallback: usar dpoteValorAssinaturas manual se API não retornar valor
+- [x] Exibir badge "auto" com indicador verde pulsante no AdminPanel quando histórico salvo
+- [x] Testes da nova função (5 cenários, 76 testes passando no total)

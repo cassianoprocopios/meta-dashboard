@@ -31,6 +31,7 @@ import {
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
   cashbarberCalcularDpotePorFichas,
+  cashbarberBuscarValorAssinaturas,
 } from "./cashbarber";
 
 /**
@@ -162,7 +163,7 @@ export async function sincronizarFaturamentoCashbarber(
   const dpoteValorAssinaturas = config.dpoteValorAssinaturas ? parseFloat(String(config.dpoteValorAssinaturas)) : undefined;
   const dpotePorcentagemBarbearia = config.dpotePorcentagemBarbearia ? parseFloat(String(config.dpotePorcentagemBarbearia)) : undefined;
 
-  if (dpoteFilialNome && dpoteValorAssinaturas && dpotePorcentagemBarbearia) {
+  if (dpoteFilialNome) {
     try {
       // Calcular com atendimentos do dia 1 ao dia atual (ou último dia do mês)
       const hoje = new Date();
@@ -171,23 +172,47 @@ export async function sincronizarFaturamentoCashbarber(
       const dataInicialDpote = `${ano}-${String(mes).padStart(2, "0")}-01`;
       const dataFinalDpote = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDiaDpote).padStart(2, "0")}`;
 
-      recorrenciaValor = await calcularRecorrenciaDpotePorFichas(
-        token,
-        dataInicialDpote,
-        dataFinalDpote,
-        dpoteFilialNome,
-        dpoteValorAssinaturas,
-        dpotePorcentagemBarbearia
-      );
-      recorrenciaAtualizada = true;
-      console.log(`[CashBarber] Dpote ${empresaSlug}: R$ ${recorrenciaValor} (fichas ponderadas)`);
+      // Tentar buscar valor de assinaturas automaticamente via API do CashBarber
+      // usando o ID do histórico Dpote salvo no banco (dpoteHistoricoId)
+      let valorAssinaturasEfetivo = dpoteValorAssinaturas;
+      let porcentagemBarbeariaEfetiva = dpotePorcentagemBarbearia;
+      let valorFonteBusca = "manual";
+
+      const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
+      const historicoIdSalvo = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
+
+      if (historicoIdSalvo) {
+        const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+        if (dadosApi) {
+          valorAssinaturasEfetivo = dadosApi.valorAssinaturas;
+          porcentagemBarbeariaEfetiva = dadosApi.porcentagemBarbearia;
+          valorFonteBusca = `api (histórico #${historicoIdSalvo})`;
+          console.log(`[CashBarber] Dpote ${empresaSlug}: valor assinaturas buscado automaticamente = R$ ${valorAssinaturasEfetivo} (${valorFonteBusca})`);
+        } else {
+          console.warn(`[CashBarber] Dpote ${empresaSlug}: API retornou null para histórico #${historicoIdSalvo}, usando valor manual`);
+        }
+      } else {
+        console.log(`[CashBarber] Dpote ${empresaSlug}: sem histórico Dpote salvo para ${mesSigla}, usando valor manual`);
+      }
+
+      if (valorAssinaturasEfetivo && porcentagemBarbeariaEfetiva) {
+        recorrenciaValor = await calcularRecorrenciaDpotePorFichas(
+          token,
+          dataInicialDpote,
+          dataFinalDpote,
+          dpoteFilialNome,
+          valorAssinaturasEfetivo,
+          porcentagemBarbeariaEfetiva
+        );
+        recorrenciaAtualizada = true;
+        console.log(`[CashBarber] Dpote ${empresaSlug}: R$ ${recorrenciaValor} (fichas ponderadas, fonte: ${valorFonteBusca})`);
+      } else {
+        console.warn(`[CashBarber] Dpote ${empresaSlug}: sem valorAssinaturas disponível (nem API nem manual)`);
+      }
     } catch (err) {
       // Falha no Dpote não deve interromper a sync do faturamento diário
       console.warn(`[CashBarber] Falha ao calcular Recorrência via Dpote para ${empresaSlug}:`, err);
     }
-  } else if (dpoteFilialNome) {
-    // Filial configurada mas sem parâmetros de assinaturas — logar aviso
-    console.warn(`[CashBarber] Dpote ${empresaSlug}: filial configurada mas sem valorAssinaturas/porcentagemBarbearia`);
   }
 
   // 6. Determinar o período: do dia 1 ao último dia do mês
