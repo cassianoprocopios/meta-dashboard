@@ -773,3 +773,4 @@
 - [x] Registrar log automaticamente no sincronizador a cada sync do Dpote
 - [x] Criar procedure tRPC cashbarber.dpoteSyncLog para listar histórico
 - [x] Implementar seção de histórico de sincronizações na tela DpoteDistribuicao
+- [x] Configurar sync CashBarber para separar lançamentos por categoria (cat1-cat4) conforme mapeamento

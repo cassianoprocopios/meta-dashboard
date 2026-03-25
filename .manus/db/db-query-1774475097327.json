@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  ROUND(SUM(CAST(cat1 AS DECIMAL(10,2))), 0) as total_cat1_avulso,\n  ROUND(SUM(CAST(cat2 AS DECIMAL(10,2))), 0) as total_cat2_produtos,\n  ROUND(SUM(CAST(cat3 AS DECIMAL(10,2))), 0) as total_cat3_serv_extra,\n  ROUND(SUM(CAST(cat4 AS DECIMAL(10,2))), 0) as total_cat4_auxiliar,\n  ROUND(SUM(CAST(cat5 AS DECIMAL(10,2))), 0) as total_cat5_recorrencia,\n  ROUND(SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2))), 0) as total_geral\nFROM faturamentos\nWHERE tenantId = 1 AND MONTH(data) = 3 AND YEAR(data) = 2026\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  ROUND(SUM(CAST(cat1 AS DECIMAL(10,2))), 0) as total_cat1_avulso,\n  ROUND(SUM(CAST(cat2 AS DECIMAL(10,2))), 0) as total_cat2_produtos,\n  ROUND(SUM(CAST(cat3 AS DECIMAL(10,2))), 0) as total_cat3_serv_extra,\n  ROUND(SUM(CAST(cat4 AS DECIMAL(10,2))), 0) as total_cat4_auxiliar,\n  ROUND(SUM(CAST(cat5 AS DECIMAL(10,2))), 0) as total_cat5_recorrencia,\n  ROUND(SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2))), 0) as total_geral\nFROM faturamentos\nWHERE tenantId = 1 AND MONTH(data) = 3 AND YEAR(data) = 2026\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "total_cat1_avulso": "14945",
+      "total_cat2_produtos": "3960",
+      "total_cat3_serv_extra": "7565",
+      "total_cat4_auxiliar": "3836",
+      "total_cat5_recorrencia": "20199",
+      "total_geral": "50505"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "total_cat1_avulso": "38519",
+      "total_cat2_produtos": "7881",
+      "total_cat3_serv_extra": "17503",
+      "total_cat4_auxiliar": "838",
+      "total_cat5_recorrencia": "47175",
+      "total_geral": "111916"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_cat1_avulso\ttotal_cat2_produtos\ttotal_cat3_serv_extra\ttotal_cat4_auxiliar\ttotal_cat5_recorrencia\ttotal_geral\nMASCOTE\t14945\t3960\t7565\t3836\t20199\t50505\nMORUMBI\t38519\t7881\t17503\t838\t47175\t111916\n",
+  "stderr": "",
+  "execution_time_ms": 70
+}

@@ -1,0 +1,9 @@
+{
+  "query": "\n-- MASCOTE: corrigir SERVIÇO EXTRA para cat3\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat3' \nWHERE empresaSlug = 'MASCOTE' AND cbNome = 'SERVIÇO EXTRA' AND tipo = 'servico_categoria';\n\n-- MASCOTE: corrigir Auxiliar para cat4\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat4' \nWHERE empresaSlug = 'MASCOTE' AND cbNome = 'Auxiliar' AND tipo = 'servico_categoria';\n\n-- MORUMBI: corrigir SERVIÇO EXTRA para cat3\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat3' \nWHERE empresaSlug = 'MORUMBI' AND cbNome = 'SERVIÇO EXTRA' AND tipo = 'servico_categoria';\n\n-- MORUMBI: corrigir Auxiliar para cat4\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat4' \nWHERE empresaSlug = 'MORUMBI' AND cbNome = 'Auxiliar' AND tipo = 'servico_categoria';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- MASCOTE: corrigir SERVIÇO EXTRA para cat3\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat3' \nWHERE empresaSlug = 'MASCOTE' AND cbNome = 'SERVIÇO EXTRA' AND tipo = 'servico_categoria';\n\n-- MASCOTE: corrigir Auxiliar para cat4\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat4' \nWHERE empresaSlug = 'MASCOTE' AND cbNome = 'Auxiliar' AND tipo = 'servico_categoria';\n\n-- MORUMBI: corrigir SERVIÇO EXTRA para cat3\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat3' \nWHERE empresaSlug = 'MORUMBI' AND cbNome = 'SERVIÇO EXTRA' AND tipo = 'servico_categoria';\n\n-- MORUMBI: corrigir Auxiliar para cat4\nUPDATE cashbarberMapeamento \nSET metaCategoria = 'cat4' \nWHERE empresaSlug = 'MORUMBI' AND cbNome = 'Auxiliar' AND tipo = 'servico_categoria';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 97
+}

@@ -1,0 +1,85 @@
+{
+  "query": "SELECT empresaSlug, nome, ordem FROM categorias WHERE tenantId = 1 ORDER BY empresaSlug, ordem LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, nome, ordem FROM categorias WHERE tenantId = 1 ORDER BY empresaSlug, ordem LIMIT 30;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Avulso",
+      "ordem": "1"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Produtos",
+      "ordem": "2"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Serv. Extra",
+      "ordem": "3"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Auxiliar / Lavatório",
+      "ordem": "4"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "nome": "Recorrência",
+      "ordem": "5"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Avulso",
+      "ordem": "1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Produtos",
+      "ordem": "2"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Serv. Extra",
+      "ordem": "3"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Lavatório",
+      "ordem": "4"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "nome": "Recorrência",
+      "ordem": "5"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Cabelo",
+      "ordem": "1"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Produtos",
+      "ordem": "2"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Unha",
+      "ordem": "3"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Outros",
+      "ordem": "4"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "nome": "Pacotes",
+      "ordem": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tnome\tordem\nMASCOTE\tAvulso\t1\nMASCOTE\tProdutos\t2\nMASCOTE\tServ. Extra\t3\nMASCOTE\tAuxiliar / Lavatório\t4\nMASCOTE\tRecorrência\t5\nMORUMBI\tAvulso\t1\nMORUMBI\tProdutos\t2\nMORUMBI\tServ. Extra\t3\nMORUMBI\tLavatório\t4\nMORUMBI\tRecorrência\t5\nSERAPHINE\tCabelo\t1\nSERAPHINE\tProdutos\t2\nSERAPHINE\tUnha\t3\nSERAPHINE\tOutros\t4\nSERAPHINE\tPacotes\t5\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

@@ -1,0 +1,46 @@
+{
+  "query": "SELECT empresaSlug, tipo, cbNome, metaCategoria FROM cashbarberMapeamento WHERE tipo = 'servico_categoria' ORDER BY empresaSlug, metaCategoria;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, tipo, cbNome, metaCategoria FROM cashbarberMapeamento WHERE tipo = 'servico_categoria' ORDER BY empresaSlug, metaCategoria;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat3"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat4"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat3"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat4"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttipo\tcbNome\tmetaCategoria\nMASCOTE\tservico_categoria\tAVULSO/CLUBE\tcat1\nMASCOTE\tservico_categoria\tSERVIÇO EXTRA\tcat3\nMASCOTE\tservico_categoria\tAuxiliar\tcat4\nMORUMBI\tservico_categoria\tAVULSO/CLUBE\tcat1\nMORUMBI\tservico_categoria\tSERVIÇO EXTRA\tcat3\nMORUMBI\tservico_categoria\tAuxiliar\tcat4\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}
