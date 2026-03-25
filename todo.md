@@ -764,3 +764,4 @@
 - [x] Atualizar tooltip da fórmula Dpote no dashboard: remover linha "× Comissão barbearia", exibir "Assinaturas (100%)" e "× Proporção fichas desta filial"
 - [x] Atualizar linha de detalhe da fonte: exibir "X assinaturas (100%)" sem percentual de comissão
 - [x] Remover dpotePorcentagemBarbearia do dpoteConfigMap no Home.tsx
+- [x] Adicionar indicador visual de "100% distribuído" na tela DpoteDistribuicao.tsx

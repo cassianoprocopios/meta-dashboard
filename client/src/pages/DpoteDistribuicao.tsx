@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -136,6 +136,13 @@ export default function DpoteDistribuicao() {
 
   const totalDistribuido = data?.filiais?.reduce((acc, f) => acc + f.valorDistribuido, 0) ?? 0;
 
+  // Indicador de 100% distribuído: verifica se totalDistribuido ≈ totalAssinaturas (tolerância de R$ 1 por arredondamento)
+  const pctDistribuido = data?.totalAssinaturas && data.totalAssinaturas > 0
+    ? (totalDistribuido / data.totalAssinaturas) * 100
+    : 0;
+  const diferenca = data?.totalAssinaturas ? Math.abs(totalDistribuido - data.totalAssinaturas) : 0;
+  const distribuicaoCompleta = diferenca <= 1; // tolerância de R$ 1 por arredondamentos
+
   return (
     <div className="space-y-6">
       {/* Cabeçalho */}
@@ -238,6 +245,72 @@ export default function DpoteDistribuicao() {
               <p className="text-[10px] text-muted-foreground/60 mt-0.5">ponderadas no período</p>
             </Card>
           </div>
+
+          {/* Indicador de 100% distribuído */}
+          <Card className={`p-4 border-0 shadow-sm rounded-2xl overflow-hidden ${
+            distribuicaoCompleta
+              ? "bg-emerald-500/5 border border-emerald-500/20"
+              : "bg-amber-500/5 border border-amber-500/20"
+          }`}>
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div className="flex items-center gap-2">
+                {distribuicaoCompleta ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                )}
+                <div>
+                  <p className={`text-sm font-semibold ${
+                    distribuicaoCompleta ? "text-emerald-400" : "text-amber-400"
+                  }`}>
+                    {distribuicaoCompleta
+                      ? "100% distribuído com sucesso"
+                      : `${pctDistribuido.toFixed(2)}% distribuído`}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    {distribuicaoCompleta
+                      ? `${fmtFull(totalDistribuido)} distribuídos de ${fmtFull(data.totalAssinaturas)} em assinaturas`
+                      : `Diferença de ${fmtFull(diferenca)} — pode ser arredondamento ou filial sem fichas`}
+                  </p>
+                </div>
+              </div>
+              <span className={`text-2xl font-black tabular-nums ${
+                distribuicaoCompleta ? "text-emerald-400" : "text-amber-400"
+              }`}>
+                {pctDistribuido.toFixed(1)}%
+              </span>
+            </div>
+            {/* Barra de progresso */}
+            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  distribuicaoCompleta ? "bg-emerald-500" : "bg-amber-500"
+                }`}
+                style={{ width: `${Math.min(pctDistribuido, 100)}%` }}
+              />
+            </div>
+            {/* Detalhes por filial em linha */}
+            {data.filiais.filter((f) => f.fichas > 0).length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {data.filiais
+                  .filter((f) => f.fichas > 0)
+                  .sort((a, b) => b.valorDistribuido - a.valorDistribuido)
+                  .map((f, i) => {
+                    const cor = CORES_FILIAL[i % CORES_FILIAL.length];
+                    return (
+                      <div
+                        key={f.filialId}
+                        className="flex items-center gap-1.5 text-[11px] bg-muted/40 rounded-lg px-2.5 py-1"
+                      >
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cor }} />
+                        <span className="text-muted-foreground font-medium">{f.filialNome}</span>
+                        <span className="font-bold" style={{ color: cor }}>{f.percentual.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </Card>
 
           {/* Cards por filial */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
