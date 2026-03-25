@@ -1,0 +1,28 @@
+{
+  "query": "SELECT empresaSlug, COUNT(*) as dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, ROUND(AVG(CAST(cat5 AS DECIMAL(10,2))), 2) as media_diaria FROM faturamentos WHERE data LIKE '2026-03-%' AND tenantId = 1 GROUP BY empresaSlug ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, COUNT(*) as dias, SUM(CAST(cat5 AS DECIMAL(10,2))) as total_cat5, ROUND(AVG(CAST(cat5 AS DECIMAL(10,2))), 2) as media_diaria FROM faturamentos WHERE data LIKE '2026-03-%' AND tenantId = 1 GROUP BY empresaSlug ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "dias": "31",
+      "total_cat5": "20154.03",
+      "media_diaria": "650.13"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "dias": "31",
+      "total_cat5": "47218.89",
+      "media_diaria": "1523.19"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "dias": "16",
+      "total_cat5": "14837.00",
+      "media_diaria": "927.31"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias\ttotal_cat5\tmedia_diaria\nMASCOTE\t31\t20154.03\t650.13\nMORUMBI\t31\t47218.89\t1523.19\nSERAPHINE\t16\t14837.00\t927.31\n",
+  "stderr": "",
+  "execution_time_ms": 89
+}

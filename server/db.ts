@@ -8,6 +8,8 @@ import {
   cashbarberSyncLog,
   CashbarberConfig,
   CashbarberMapeamento,
+  dpoteSyncLog,
+  InsertDpoteSyncLog,
   categorias,
   empresas,
   faturamentos,
@@ -1293,4 +1295,79 @@ export async function getFaturamentosHistoricoMensalByTenant(
     const [mesAno, empresaSlug] = chave.split("|");
     return { mesAno, empresaSlug, totalCat5 };
   });
+}
+
+// ─── DPOTE SYNC LOG ──────────────────────────────────────────────────────────
+
+export async function insertDpoteSyncLog(data: {
+  tenantId: number;
+  empresaSlug: string;
+  mes: number;
+  ano: number;
+  valorAnterior: number;
+  valorNovo: number;
+  diasAtualizados: number;
+  fonte: string;
+  tipoExecucao: string;
+  erro?: string | null;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const variacao = data.valorNovo - data.valorAnterior;
+  await db.insert(dpoteSyncLog).values({
+    tenantId: data.tenantId,
+    empresaSlug: data.empresaSlug,
+    mes: data.mes,
+    ano: data.ano,
+    valorAnterior: String(data.valorAnterior.toFixed(2)),
+    valorNovo: String(data.valorNovo.toFixed(2)),
+    variacao: String(variacao.toFixed(2)),
+    diasAtualizados: data.diasAtualizados,
+    fonte: data.fonte,
+    tipoExecucao: data.tipoExecucao,
+    erro: data.erro ?? null,
+  });
+}
+
+export async function getDpoteSyncLogs(
+  tenantId: number,
+  limit = 50
+): Promise<Array<{
+  id: number;
+  empresaSlug: string;
+  mes: number;
+  ano: number;
+  valorAnterior: string;
+  valorNovo: string;
+  variacao: string;
+  diasAtualizados: number;
+  fonte: string;
+  tipoExecucao: string;
+  erro: string | null;
+  executadoEm: Date;
+}>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select()
+    .from(dpoteSyncLog)
+    .where(eq(dpoteSyncLog.tenantId, tenantId))
+    .orderBy(desc(dpoteSyncLog.executadoEm))
+    .limit(limit);
+  return rows;
+}
+
+export async function getDpoteSyncLogsByEmpresa(
+  tenantId: number,
+  empresaSlug: string,
+  limit = 20
+) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(dpoteSyncLog)
+    .where(and(eq(dpoteSyncLog.tenantId, tenantId), eq(dpoteSyncLog.empresaSlug, empresaSlug)))
+    .orderBy(desc(dpoteSyncLog.executadoEm))
+    .limit(limit);
 }

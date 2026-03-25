@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `dpoteSyncLog` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `tenantId` int NOT NULL,\n  `empresaSlug` varchar(64) NOT NULL,\n  `mes` int NOT NULL,\n  `ano` int NOT NULL,\n  `valorAnterior` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `valorNovo` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `variacao` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `diasAtualizados` int NOT NULL DEFAULT 0,\n  `fonte` varchar(16) NOT NULL DEFAULT 'api',\n  `tipoExecucao` varchar(16) NOT NULL DEFAULT 'automatico',\n  `erro` text,\n  `executadoEm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `idx_dpoteSyncLog_tenant_mes` (`tenantId`, `mes`, `ano`),\n  KEY `idx_dpoteSyncLog_empresa` (`tenantId`, `empresaSlug`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute CREATE TABLE IF NOT EXISTS `dpoteSyncLog` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `tenantId` int NOT NULL,\n  `empresaSlug` varchar(64) NOT NULL,\n  `mes` int NOT NULL,\n  `ano` int NOT NULL,\n  `valorAnterior` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `valorNovo` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `variacao` decimal(12,2) NOT NULL DEFAULT '0.00',\n  `diasAtualizados` int NOT NULL DEFAULT 0,\n  `fonte` varchar(16) NOT NULL DEFAULT 'api',\n  `tipoExecucao` varchar(16) NOT NULL DEFAULT 'automatico',\n  `erro` text,\n  `executadoEm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `idx_dpoteSyncLog_tenant_mes` (`tenantId`, `mes`, `ano`),\n  KEY `idx_dpoteSyncLog_empresa` (`tenantId`, `empresaSlug`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 206
+}

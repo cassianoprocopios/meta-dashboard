@@ -72,6 +72,7 @@ import {
   saveDpoteHistoricoId,
   getFaturamentoByDataEmpresaTenant,
   getFaturamentosHistoricoMensalByTenant,
+  getDpoteSyncLogs,
 } from "./db";
 import {
   cashbarberLogin,
@@ -2567,6 +2568,31 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           empresas: empresasLista,
           meses: mesesOrdenados,
         };
+      }),
+
+    dpoteSyncLog: protectedProcedure
+      .input(
+        z.object({
+          limit: z.number().int().min(1).max(200).optional().default(50),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const logs = await getDpoteSyncLogs(tenantId, input.limit);
+        return logs.map((log) => ({
+          id: log.id,
+          empresaSlug: log.empresaSlug,
+          mes: log.mes,
+          ano: log.ano,
+          valorAnterior: parseFloat(String(log.valorAnterior)),
+          valorNovo: parseFloat(String(log.valorNovo)),
+          variacao: parseFloat(String(log.variacao)),
+          diasAtualizados: log.diasAtualizados,
+          fonte: log.fonte,
+          tipoExecucao: log.tipoExecucao,
+          erro: log.erro,
+          executadoEm: log.executadoEm,
+        }));
       }),
   }),
 });

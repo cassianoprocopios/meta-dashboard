@@ -267,3 +267,30 @@ export const cashbarberMapeamento = mysqlTable("cashbarberMapeamento", {
 export type CashbarberMapeamento = typeof cashbarberMapeamento.$inferSelect;
 export type InsertCashbarberMapeamento = typeof cashbarberMapeamento.$inferInsert;
 
+
+// ─── HISTÓRICO DE SINCRONIZAÇÕES DO DPOTE ────────────────────────────────────
+// Registra cada execução de sync do Dpote (automática ou manual) com valores antes/depois
+export const dpoteSyncLog = mysqlTable("dpoteSyncLog", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  /** Valor de recorrência antes da sincronização (0 se era o primeiro sync) */
+  valorAnterior: decimal("valorAnterior", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Novo valor de recorrência após a sincronização */
+  valorNovo: decimal("valorNovo", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Diferença entre novo e anterior (pode ser negativa) */
+  variacao: decimal("variacao", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Número de dias atualizados no banco */
+  diasAtualizados: int("diasAtualizados").notNull().default(0),
+  /** Fonte do valor: 'api' (CashBarber retornou) | 'manual' (valor manual configurado) */
+  fonte: varchar("fonte", { length: 16 }).notNull().default("api"),
+  /** Tipo de execução: 'automatico' (job) | 'manual' (acionado pelo usuário) */
+  tipoExecucao: varchar("tipoExecucao", { length: 16 }).notNull().default("automatico"),
+  /** Mensagem de erro, se houver */
+  erro: text("erro"),
+  executadoEm: timestamp("executadoEm").defaultNow().notNull(),
+});
+export type DpoteSyncLog = typeof dpoteSyncLog.$inferSelect;
+export type InsertDpoteSyncLog = typeof dpoteSyncLog.$inferInsert;

@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   LineChart, Line,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle, History } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle, History, Clock, ChevronDown, ChevronUp } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -87,6 +87,8 @@ export default function DpoteDistribuicao() {
   const [ajustes, setAjustes] = useState<Record<string, AjusteState>>({});
   const [ajusteAberto, setAjusteAberto] = useState<string | null>(null);
   const [qtdMesesHistorico, setQtdMesesHistorico] = useState(12);
+  const [syncLogAberto, setSyncLogAberto] = useState(false);
+  const [syncLogLimit, setSyncLogLimit] = useState(20);
 
   const { data, isLoading, error, refetch, isFetching } = trpc.cashbarber.dpoteDistribuicao.useQuery(
     { mes, ano },
@@ -131,6 +133,12 @@ export default function DpoteDistribuicao() {
       });
     },
   });
+
+  // Buscar histórico de sincronizações do Dpote
+  const { data: syncLogs, isLoading: syncLogsLoading } = trpc.cashbarber.dpoteSyncLog.useQuery(
+    { limit: syncLogLimit },
+    { enabled: syncLogAberto, staleTime: 30 * 1000 }
+  );
 
   const pieData = useMemo(() => {
     if (!data?.filiais?.length) return [];
@@ -756,6 +764,129 @@ export default function DpoteDistribuicao() {
               <p>Fórmula: <span className="font-mono">Faturamento Filial = {fmtFull(data.totalAssinaturas)} × (fichas_filial / {fmtNum(data.totalFichas)})</span></p>
               <p>Fonte: CashBarber API — Relatório 15 (atendimentos por serviço) com fichas ponderadas por serviço</p>
             </div>
+          </Card>
+
+          {/* Histórico de Sincronizações */}
+          <Card className="p-5 bg-card border-border/50">
+            <button
+              className="w-full flex items-center justify-between text-left"
+              onClick={() => setSyncLogAberto((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-violet-400" />
+                <span className="font-semibold text-foreground text-sm">Histórico de Sincronizações do Dpote</span>
+              </div>
+              {syncLogAberto ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+
+            {syncLogAberto && (
+              <div className="mt-4">
+                {syncLogsLoading ? (
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Carregando histórico...
+                  </div>
+                ) : !syncLogs?.length ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Nenhuma sincronização registrada ainda.</p>
+                    <p className="text-xs mt-1 opacity-70">O histórico será preenchido automaticamente a cada sync do Dpote.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border/50 text-xs text-muted-foreground">
+                            <th className="pb-2 pr-4 text-left font-medium">Data / Hora</th>
+                            <th className="pb-2 pr-4 text-left font-medium">Empresa</th>
+                            <th className="pb-2 pr-4 text-left font-medium">Mês/Ano</th>
+                            <th className="pb-2 pr-4 text-right font-medium">Valor Anterior</th>
+                            <th className="pb-2 pr-4 text-right font-medium">Novo Valor</th>
+                            <th className="pb-2 pr-4 text-right font-medium">Variação</th>
+                            <th className="pb-2 pr-4 text-center font-medium">Dias</th>
+                            <th className="pb-2 pr-4 text-center font-medium">Fonte</th>
+                            <th className="pb-2 text-center font-medium">Tipo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {syncLogs.map((log) => {
+                            const variacao = log.variacao;
+                            const variacaoPositiva = variacao > 0;
+                            const variacaoNegativa = variacao < 0;
+                            const mesLabel = MESES[log.mes - 1]?.slice(0, 3) ?? log.mes;
+                            return (
+                              <tr key={log.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+                                <td className="py-2.5 pr-4 text-muted-foreground text-xs whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5">
+                                    <Clock className="w-3 h-3 opacity-50" />
+                                    {new Date(log.executadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                  </div>
+                                </td>
+                                <td className="py-2.5 pr-4">
+                                  <span className="font-medium text-foreground">{log.empresaSlug}</span>
+                                </td>
+                                <td className="py-2.5 pr-4 text-muted-foreground text-xs">
+                                  {mesLabel}/{log.ano}
+                                </td>
+                                <td className="py-2.5 pr-4 text-right text-muted-foreground text-xs">
+                                  {log.valorAnterior > 0 ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(log.valorAnterior) : <span className="opacity-40">—</span>}
+                                </td>
+                                <td className="py-2.5 pr-4 text-right font-semibold text-emerald-400">
+                                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(log.valorNovo)}
+                                </td>
+                                <td className="py-2.5 pr-4 text-right text-xs">
+                                  {variacao === 0 ? (
+                                    <span className="text-muted-foreground">—</span>
+                                  ) : (
+                                    <span className={variacaoPositiva ? "text-emerald-400" : variacaoNegativa ? "text-rose-400" : "text-muted-foreground"}>
+                                      {variacaoPositiva ? "+" : ""}{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(variacao)}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2.5 pr-4 text-center text-xs text-muted-foreground">
+                                  {log.diasAtualizados}
+                                </td>
+                                <td className="py-2.5 pr-4 text-center">
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                    log.fonte === "api" ? "bg-blue-500/20 text-blue-400" : "bg-amber-500/20 text-amber-400"
+                                  }`}>
+                                    {log.fonte === "api" ? "API" : "Manual"}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 text-center">
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                    log.tipoExecucao === "automatico" ? "bg-violet-500/20 text-violet-400" : "bg-slate-500/20 text-slate-400"
+                                  }`}>
+                                    {log.tipoExecucao === "automatico" ? "Auto" : "Manual"}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {syncLogs.length >= syncLogLimit && (
+                      <div className="mt-3 text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSyncLogLimit((v) => v + 20)}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Carregar mais
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </Card>
         </>
       )}

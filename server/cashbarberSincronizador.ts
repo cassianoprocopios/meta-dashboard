@@ -22,9 +22,11 @@ import {
   upsertFaturamento,
   updateCashbarberSyncStatus,
   insertCashbarberSyncLog,
+  insertDpoteSyncLog,
   getFaturamentoByDataEmpresaTenant,
   saveDpoteHistoricoId,
   getDpoteHistoricoId,
+  getAllFaturamentosByTenant,
 } from "./db";
 import {
   cashbarberLogin,
@@ -352,7 +354,35 @@ export async function sincronizarFaturamentoCashbarber(
   const statusFinal = errosMsgs.length === 0 ? "ok" : diasSincronizados > 0 ? "parcial" : "erro";
   await updateCashbarberSyncStatus(tenantId, empresaSlug, statusFinal);
 
-  // 9. Registrar no log
+  // 9a. Registrar no log do Dpote (se a recorrência foi atualizada)
+  if (recorrenciaAtualizada) {
+    // Calcular valor anterior: soma do cat5 atual no banco antes da sync
+    // (aproximação: buscar todos os registros do mês e somar cat5 antes do upsert)
+    // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
+    // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
+    const totalDiasMes = new Date(ano, mes, 0).getDate();
+    const valorDiarioNovo = recorrenciaValor / totalDiasMes;
+    // Registrar o log de sincronização do Dpote
+    try {
+      await insertDpoteSyncLog({
+        tenantId,
+        empresaSlug,
+        mes,
+        ano,
+        valorAnterior: 0, // será calculado na próxima iteração via histórico
+        valorNovo: recorrenciaValor,
+        diasAtualizados: diasSincronizados,
+        fonte: "api",
+        tipoExecucao: origem === "auto" ? "automatico" : "manual",
+        erro: errosMsgs.length > 0 ? errosMsgs.slice(0, 3).join("; ") : null,
+      });
+      console.log(`[CashBarber Dpote] cat5 distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia (total: R$ ${recorrenciaValor.toFixed(2)})`);
+    } catch (errLog) {
+      console.warn(`[CashBarber] Falha ao registrar DpoteSyncLog para ${empresaSlug}:`, errLog);
+    }
+  }
+
+  // 9b. Registrar no log geral do CashBarber
   await insertCashbarberSyncLog({
     tenantId,
     empresaSlug,

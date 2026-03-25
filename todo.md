@@ -769,3 +769,7 @@
 - [x] Implementar seção de histórico com gráfico de linha na tela DpoteDistribuicao.tsx
 - [x] Incluir cat5 (Recorrência) na somatória do faturamento total de cada unidade no dashboard
 - [x] Incluir cat5 (Recorrência) no progresso de meta e no total faturado no mês do dashboard
+- [x] Criar tabela dpoteSyncLog no schema e migrar banco
+- [x] Registrar log automaticamente no sincronizador a cada sync do Dpote
+- [x] Criar procedure tRPC cashbarber.dpoteSyncLog para listar histórico
+- [x] Implementar seção de histórico de sincronizações na tela DpoteDistribuicao
