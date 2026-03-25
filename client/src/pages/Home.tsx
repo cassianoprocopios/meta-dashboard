@@ -27,6 +27,7 @@ import Bonificacao from "@/pages/Bonificacao";
 import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -1888,13 +1889,56 @@ export default function Home() {
                     const fonteAuto = dpoteCfg?.temHistorico;
                     return (
                       <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
-                        {/* Linha principal: ícone + rótulo + valor calculado */}
+                        {/* Linha principal: ícone + rótulo + valor calculado com tooltip da fórmula */}
                         <div className="flex items-center justify-between gap-2 px-3 py-2">
                           <div className="flex items-center gap-1.5">
                             <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
                             <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
                           </div>
-                          <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                          {/* Tooltip com fórmula completa do cálculo */}
+                          {(valorBruto && pctBarbearia) ? (
+                            <UITooltip>
+                              <UITooltipTrigger asChild>
+                                <span className="text-sm font-bold text-violet-300 cursor-help underline decoration-dotted decoration-violet-400/50 underline-offset-2">
+                                  {fmt(s.recorrenciaMes)}
+                                </span>
+                              </UITooltipTrigger>
+                              <UITooltipContent
+                                side="top"
+                                className="max-w-xs bg-slate-900 border border-violet-500/30 text-violet-100 px-3 py-2.5 rounded-xl shadow-xl"
+                              >
+                                <p className="text-[11px] font-semibold text-violet-300 mb-1.5">Fórmula do cálculo Dpote</p>
+                                <div className="space-y-1 text-[11px] text-violet-200/80">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-violet-400 font-mono">Assinaturas</span>
+                                    <span className="text-violet-500">=</span>
+                                    <span className="font-semibold text-white">{fmtFull(valorBruto)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-violet-400 font-mono">× Comissão barbearia</span>
+                                    <span className="text-violet-500">=</span>
+                                    <span className="font-semibold text-white">{pctBarbearia}%</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-violet-400 font-mono">× Proporção fichas</span>
+                                    <span className="text-violet-500">=</span>
+                                    <span className="font-semibold text-white">
+                                      {valorBruto > 0 && pctBarbearia > 0
+                                        ? `${((s.recorrenciaMes / (valorBruto * pctBarbearia / 100)) * 100).toFixed(1)}%`
+                                        : "—"}
+                                    </span>
+                                  </div>
+                                  <div className="mt-1.5 pt-1.5 border-t border-violet-500/30 flex items-center gap-1.5">
+                                    <span className="text-violet-300 font-mono font-semibold">= Comissão bruta filial</span>
+                                    <span className="text-violet-500">=</span>
+                                    <span className="font-bold text-violet-200">{fmtFull(s.recorrenciaMes)}</span>
+                                  </div>
+                                </div>
+                              </UITooltipContent>
+                            </UITooltip>
+                          ) : (
+                            <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                          )}
                         </div>
                         {/* Linha de detalhe: fonte do cálculo */}
                         {(valorBruto || pctBarbearia) && (

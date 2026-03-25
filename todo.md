@@ -628,3 +628,9 @@
 - [x] Expor dpoteValorAssinaturas, dpotePorcentagemBarbearia e dpoteHistoricoId na procedure cashbarber.listarConfigsDpote
 - [x] Exibir no card de Recorrência: valor bruto de assinaturas (R$) e percentual (%) usados no cálculo
 - [x] Tag de fonte: "CashBarber API" com ponto verde pulsante (quando dpoteHistoricoId presente) ou "Manual" (quando valor inserido manualmente)
+
+## Tooltip Fórmula Dpote no Card de Recorrência
+
+- [x] Expor fichas da filial e fichas totais na procedure cashbarber.listarConfigsDpote
+- [x] Montar fórmula completa no frontend: Assinaturas × % comissão barbearia × % proporção fichas = comissão bruta filial
+- [x] Adicionar Tooltip shadcn/ui ao valor calculado no card de Recorrência com a fórmula completa
