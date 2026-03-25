@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
+import { inicializarJobsAvec } from "../avecJob";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -63,6 +64,10 @@ async function startServer() {
     // Inicializar jobs de sincronização automática do CashBarber
     inicializarJobsCashbarber().catch((err) => {
       console.error("[CashBarber Job] Falha na inicialização:", err);
+    });
+    // Inicializar jobs de sincronização automática do Avec
+    inicializarJobsAvec().catch((err: unknown) => {
+      console.error("[Avec Job] Falha na inicialização:", err);
     });
   });
 }

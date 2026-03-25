@@ -85,6 +85,20 @@ import {
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
+import { sincronizarFaturamentoAvec } from "./avecSincronizador";
+import { recarregarJobsAvecPorTenant, iniciarJobAvec, pararJobAvec } from "./avecJob";
+import {
+  getAvecConfig,
+  listAvecConfigs,
+  upsertAvecConfig,
+  updateAvecSyncStatus,
+  listAvecMapeamento,
+  saveAvecMapeamento,
+  insertAvecSyncLog,
+  listAvecSyncLogs,
+  updateAvecAgendamento,
+} from "./db";
+import { avecLogin, avecBuscarFaturamentoDiaPorCategoria } from "./avec";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
@@ -2370,5 +2384,143 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return { resultados };
       }),
   }),
-});;
+  avec: router({
+    /** Busca a configuração Avec de uma empresa */
+    getConfig: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const config = await getAvecConfig(tenantId, input.empresaSlug);
+        if (!config) return null;
+        // Nunca retornar a senha
+        const { avecSenha: _, ...safe } = config;
+        return safe;
+      }),
+
+    /** Lista todas as configurações Avec do tenant */
+    listarConfigs: protectedProcedure
+      .query(async ({ ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listAvecConfigs(tenantId);
+        return configs.map(({ avecSenha: _, ...safe }) => safe);
+      }),
+
+    /** Salva (upsert) a configuração Avec de uma empresa */
+    salvarConfig: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        avecEmail: z.string().email(),
+        avecSenha: z.string().min(1),
+        avecSalaoId: z.string(),
+        avecSalaoNome: z.string().optional(),
+        ativo: z.number().optional(),
+        sincAutoAtiva: z.number().optional(),
+        horarioSinc: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const id = await upsertAvecConfig({ tenantId, ...input });
+        // Recarregar jobs se sincronização automática estiver ativa
+        if (input.sincAutoAtiva === 1) {
+          iniciarJobAvec(tenantId, input.empresaSlug);
+        } else {
+          pararJobAvec(tenantId, input.empresaSlug);
+        }
+        return { id };
+      }),
+
+    /** Testa as credenciais Avec fazendo login */
+    testarConexao: protectedProcedure
+      .input(z.object({
+        avecEmail: z.string().email(),
+        avecSenha: z.string().min(1),
+        avecSalaoId: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const sessionCookie = await avecLogin(input.avecEmail, input.avecSenha);
+          // Testar buscando faturamento do dia atual
+          const hoje = new Date();
+          const categorias = await avecBuscarFaturamentoDiaPorCategoria(
+            sessionCookie,
+            input.avecSalaoId,
+            hoje.getDate(),
+            hoje.getMonth() + 1,
+            hoje.getFullYear()
+          );
+          return { sucesso: true, categorias };
+        } catch (err) {
+          return { sucesso: false, erro: err instanceof Error ? err.message : String(err), categorias: [] };
+        }
+      }),
+
+    /** Lista o mapeamento de categorias Avec de uma empresa */
+    listarMapeamento: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return listAvecMapeamento(tenantId, input.empresaSlug);
+      }),
+
+    /** Salva o mapeamento de categorias Avec */
+    salvarMapeamento: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        mapeamentos: z.array(z.object({
+          avecCategoria: z.string(),
+          metaCategoria: z.string(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await saveAvecMapeamento(tenantId, input.empresaSlug, input.mapeamentos);
+        return { ok: true };
+      }),
+
+    /** Executa a sincronização manual do Avec para uma empresa */
+    sincronizar: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const resultado = await sincronizarFaturamentoAvec(
+          tenantId,
+          input.empresaSlug,
+          input.mes,
+          input.ano,
+          "manual"
+        );
+        return resultado;
+      }),
+
+    /** Lista os logs de sincronização Avec */
+    listarLogs: protectedProcedure
+      .input(z.object({ empresaSlug: z.string(), limit: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return listAvecSyncLogs(tenantId, input.empresaSlug, input.limit);
+      }),
+
+    /** Atualiza o agendamento automático Avec */
+    atualizarAgendamento: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        sincAutoAtiva: z.boolean(),
+        horarioSinc: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await updateAvecAgendamento(tenantId, input.empresaSlug, input.sincAutoAtiva, input.horarioSinc);
+        if (input.sincAutoAtiva) {
+          iniciarJobAvec(tenantId, input.empresaSlug);
+        } else {
+          pararJobAvec(tenantId, input.empresaSlug);
+        }
+        return { ok: true };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

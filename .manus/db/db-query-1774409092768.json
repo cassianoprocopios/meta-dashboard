@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, email, role, ativo FROM users LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, email, role, ativo FROM users LIMIT 10",
+  "rows": [
+    {
+      "id": "1",
+      "email": "cassiano@barbierogrupo.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "210003",
+      "email": "teste@studioteste.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "210004",
+      "email": "maria@salaoexemplo.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "210035",
+      "email": "barbierobarbearia@gmail.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "300001",
+      "email": "gustavo92souza@hotmail.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "510010",
+      "email": "cintia.mezanini@gmail.com",
+      "role": "user",
+      "ativo": "1"
+    },
+    {
+      "id": "510049",
+      "email": "camila@barbiero.com",
+      "role": "user",
+      "ativo": "1"
+    },
+    {
+      "id": "540217",
+      "email": "camila@barbiero.com.br",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "540254",
+      "email": "pablolima1505@gmail.com",
+      "role": "admin",
+      "ativo": "1"
+    },
+    {
+      "id": "540261",
+      "email": "dompablobarber@gmail.com",
+      "role": "admin",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\tativo\n1\tcassiano@barbierogrupo.com\tadmin\t1\n210003\tteste@studioteste.com\tadmin\t1\n210004\tmaria@salaoexemplo.com\tadmin\t1\n210035\tbarbierobarbearia@gmail.com\tadmin\t1\n300001\tgustavo92souza@hotmail.com\tadmin\t1\n510010\tcintia.mezanini@gmail.com\tuser\t1\n510049\tcamila@barbiero.com\tuser\t1\n540217\tcamila@barbiero.com.br\tadmin\t1\n540254\tpablolima1505@gmail.com\tadmin\t1\n540261\tdompablobarber@gmail.com\tadmin\t1\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

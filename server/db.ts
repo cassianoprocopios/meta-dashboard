@@ -1215,3 +1215,193 @@ export async function getDpoteHistoricoId(
   }
   return null;
 }
+
+// ─── AVEC CONFIG ──────────────────────────────────────────────────────────────
+
+/** Busca a configuração Avec de uma empresa */
+export async function getAvecConfig(tenantId: number, empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const { avecConfig } = await import("../drizzle/schema");
+  const result = await db
+    .select()
+    .from(avecConfig)
+    .where(and(eq(avecConfig.tenantId, tenantId), eq(avecConfig.empresaSlug, empresaSlug)))
+    .limit(1);
+  return result[0];
+}
+
+/** Lista todas as configurações Avec de um tenant */
+export async function listAvecConfigs(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { avecConfig } = await import("../drizzle/schema");
+  return db
+    .select()
+    .from(avecConfig)
+    .where(eq(avecConfig.tenantId, tenantId))
+    .orderBy(asc(avecConfig.empresaSlug));
+}
+
+/** Salva (upsert) a configuração Avec de uma empresa */
+export async function upsertAvecConfig(data: {
+  tenantId: number;
+  empresaSlug: string;
+  avecEmail: string;
+  avecSenha: string;
+  avecSalaoId: string;
+  avecSalaoNome?: string;
+  ativo?: number;
+  sincAutoAtiva?: number;
+  horarioSinc?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { avecConfig } = await import("../drizzle/schema");
+  const existing = await getAvecConfig(data.tenantId, data.empresaSlug);
+  if (existing) {
+    await db
+      .update(avecConfig)
+      .set({
+        avecEmail: data.avecEmail,
+        avecSenha: data.avecSenha,
+        avecSalaoId: data.avecSalaoId,
+        avecSalaoNome: data.avecSalaoNome ?? null,
+        ativo: data.ativo ?? 1,
+        sincAutoAtiva: data.sincAutoAtiva ?? existing.sincAutoAtiva,
+        horarioSinc: data.horarioSinc ?? existing.horarioSinc,
+      })
+      .where(and(eq(avecConfig.tenantId, data.tenantId), eq(avecConfig.empresaSlug, data.empresaSlug)));
+    return existing.id;
+  } else {
+    const result = await db.insert(avecConfig).values({
+      tenantId: data.tenantId,
+      empresaSlug: data.empresaSlug,
+      avecEmail: data.avecEmail,
+      avecSenha: data.avecSenha,
+      avecSalaoId: data.avecSalaoId,
+      avecSalaoNome: data.avecSalaoNome ?? null,
+      ativo: data.ativo ?? 1,
+      sincAutoAtiva: data.sincAutoAtiva ?? 0,
+      horarioSinc: data.horarioSinc ?? "23:00",
+    });
+    return (result as any)[0]?.insertId ?? 0;
+  }
+}
+
+/** Atualiza o status da última sincronização Avec */
+export async function updateAvecSyncStatus(
+  tenantId: number,
+  empresaSlug: string,
+  status: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  const { avecConfig } = await import("../drizzle/schema");
+  await db
+    .update(avecConfig)
+    .set({
+      ultimaSincronizacao: new Date(),
+      statusUltimaSinc: status,
+    })
+    .where(and(eq(avecConfig.tenantId, tenantId), eq(avecConfig.empresaSlug, empresaSlug)));
+}
+
+/** Atualiza configurações de agendamento automático Avec */
+export async function updateAvecAgendamento(
+  tenantId: number,
+  empresaSlug: string,
+  sincAutoAtiva: boolean,
+  horarioSinc: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  const { avecConfig } = await import("../drizzle/schema");
+  await db
+    .update(avecConfig)
+    .set({ sincAutoAtiva: sincAutoAtiva ? 1 : 0, horarioSinc })
+    .where(and(eq(avecConfig.tenantId, tenantId), eq(avecConfig.empresaSlug, empresaSlug)));
+}
+
+// ─── AVEC MAPEAMENTO ──────────────────────────────────────────────────────────
+
+/** Lista o mapeamento de categorias Avec de uma empresa */
+export async function listAvecMapeamento(tenantId: number, empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const { avecMapeamento } = await import("../drizzle/schema");
+  return db
+    .select()
+    .from(avecMapeamento)
+    .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, empresaSlug)))
+    .orderBy(asc(avecMapeamento.avecCategoria));
+}
+
+/** Salva o mapeamento completo de categorias Avec (substitui tudo) */
+export async function saveAvecMapeamento(
+  tenantId: number,
+  empresaSlug: string,
+  items: Array<{ avecCategoria: string; metaCategoria: string }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { avecMapeamento } = await import("../drizzle/schema");
+  // Deletar mapeamento existente
+  await db
+    .delete(avecMapeamento)
+    .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, empresaSlug)));
+  // Inserir novo mapeamento
+  if (items.length > 0) {
+    await db.insert(avecMapeamento).values(
+      items.map((item) => ({
+        tenantId,
+        empresaSlug,
+        avecCategoria: item.avecCategoria,
+        metaCategoria: item.metaCategoria,
+      }))
+    );
+  }
+}
+
+// ─── AVEC SYNC LOG ────────────────────────────────────────────────────────────
+
+/** Insere um registro de log de sincronização Avec */
+export async function insertAvecSyncLog(data: {
+  tenantId: number;
+  empresaSlug: string;
+  origem: "auto" | "manual";
+  status: "ok" | "erro" | "parcial";
+  mes: number;
+  ano: number;
+  diasSincronizados: number;
+  diasIgnorados: number;
+  erros?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  const { avecSyncLog } = await import("../drizzle/schema");
+  await db.insert(avecSyncLog).values({
+    tenantId: data.tenantId,
+    empresaSlug: data.empresaSlug,
+    origem: data.origem,
+    status: data.status,
+    mes: data.mes,
+    ano: data.ano,
+    diasSincronizados: data.diasSincronizados,
+    diasIgnorados: data.diasIgnorados,
+    erros: data.erros,
+  });
+}
+
+/** Lista os logs de sincronização Avec de uma empresa */
+export async function listAvecSyncLogs(tenantId: number, empresaSlug: string, limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  const { avecSyncLog } = await import("../drizzle/schema");
+  return db
+    .select()
+    .from(avecSyncLog)
+    .where(and(eq(avecSyncLog.tenantId, tenantId), eq(avecSyncLog.empresaSlug, empresaSlug)))
+    .orderBy(desc(avecSyncLog.executadoEm))
+    .limit(limit);
+}

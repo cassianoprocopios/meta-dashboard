@@ -664,3 +664,16 @@
 - [x] Exibir comissão bruta calculada pelo CashBarber ao lado do campo para referência
 - [x] Preview do resultado ao somar (ex: R$ 44.686 + R$ 1.000 = R$ 45.686)
 - [x] Toast de confirmação com valor anterior e novo valor após ajuste (81 testes passando)
+
+## Integração Avec — Sincronização Faturamento Seraphine
+
+- [x] Investigar API do Avec (login por cookie, endpoint /admin/relatorios/listar, salão ID 95687)
+- [x] Criar server/avec.ts com funções avecLogin, avecBuscarFaturamentoDiario, avecBuscarFaturamentoDiaPorCategoria
+- [x] Criar server/avecSincronizador.ts com sincronizarFaturamentoAvec
+- [x] Criar server/avecJob.ts com job automático (cron horário por tenant)
+- [x] Adicionar tabelas avecConfig e avecSyncLog no schema (via SQL direto)
+- [x] Adicionar funções helper Avec no server/db.ts
+- [x] Adicionar configuração Avec no AdminPanel (AvecIntegracao.tsx) — aba violeta "Avec"
+- [x] Procedures tRPC: avec.getConfig, salvarConfig, testarConexao, listarMapeamento, salvarMapeamento, sincronizar, listarLogs, atualizarAgendamento
+- [x] Job Avec integrado no servidor principal (_core/index.ts)
+- [x] 81 testes passando, 0 erros TypeScript
