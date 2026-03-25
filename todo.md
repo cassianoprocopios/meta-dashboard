@@ -740,3 +740,11 @@
 - [x] Atualizar dpoteValorAssinaturas para R$ 67.373,60 em ambas as configs
 - [x] Corrigir sincronizador para criar novo histórico automaticamente quando API retornar null
 - [x] 81 testes passando após correção
+
+## CashBarber — Botão Sync Manual Dpote
+
+- [x] Adicionar procedure tRPC `cashbarber.sincronizarDpoteManual` no routers.ts
+- [x] Adicionar import de `cashbarberBuscarValorAssinaturas` no routers.ts
+- [x] Exibir resultado (valor calculado por empresa + fonte de dados) no AdminPanel
+- [x] Adicionar botão "Sincronizar Dpote" na seção Recorrência da aba Sincronizar
+- [x] 81 testes passando após implementação

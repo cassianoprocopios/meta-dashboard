@@ -81,6 +81,7 @@ import {
   calcularFaturamentoPorCategoriaComCatalogo,
   cashbarberCriarHistoricoDpote,
   cashbarberBuscarHistoricoDpote,
+  cashbarberBuscarValorAssinaturas,
   cashbarberCalcularDpotePorFichas,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
@@ -1906,6 +1907,112 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           cat5Anterior: cat5Atual,
           cat5Novo: novoCat5,
           diferenca: novoCat5 - cat5Atual,
+        };
+      }),
+
+    /**
+     * Força a sincronização manual dos valores do Dpote com o CashBarber.
+     * Cria um novo histórico Dpote na API, busca o valor atualizado de assinaturas
+     * e aplica a comissão bruta de cada filial no cat5 (dia 1 do mês).
+     */
+    sincronizarDpoteManual: protectedProcedure
+      .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+
+        // Encontrar config com Dpote configurado
+        const configComDpote = configs.find(
+          (c) => c.dpoteFilialNome && c.cbEmail && c.cbSenha
+        );
+        if (!configComDpote) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com Dpote configurado encontrada." });
+        }
+
+        // Login no CashBarber
+        const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
+
+        // Criar novo histórico Dpote para obter valor atualizado
+        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+        let valorAssinaturas: number;
+        let porcentagemBarbearia: number;
+        let historicoId: number;
+        let fonteDados: string;
+
+        try {
+          historicoId = await cashbarberCriarHistoricoDpote(token);
+          await saveDpoteHistoricoId(tenantId, configComDpote.empresaSlug, historicoId, mesSigla);
+          // Aguardar processamento
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoId);
+          if (!dadosApi || dadosApi.valorAssinaturas <= 0) {
+            throw new Error(`Histórico #${historicoId} retornou valor inválido`);
+          }
+          valorAssinaturas = dadosApi.valorAssinaturas;
+          porcentagemBarbearia = dadosApi.porcentagemBarbearia;
+          fonteDados = `API (histórico #${historicoId})`;
+        } catch (errApi) {
+          // Fallback: usar valor manual salvo na config
+          const valManual = configComDpote.dpoteValorAssinaturas ? parseFloat(String(configComDpote.dpoteValorAssinaturas)) : null;
+          const pctManual = configComDpote.dpotePorcentagemBarbearia ? parseFloat(String(configComDpote.dpotePorcentagemBarbearia)) : null;
+          if (!valManual || !pctManual) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Falha ao buscar valor da API e nenhum valor manual configurado: ${errApi instanceof Error ? errApi.message : String(errApi)}`,
+            });
+          }
+          valorAssinaturas = valManual;
+          porcentagemBarbearia = pctManual;
+          fonteDados = "valor manual (API indisponível)";
+        }
+
+        // Calcular distribuição por filial
+        const hoje = new Date();
+        const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
+        const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(input.ano, input.mes, 0).getDate();
+        const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+        const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+        const resultados = await cashbarberCalcularDpotePorFichas(
+          token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
+        );
+
+        // Aplicar cat5 no dia 1 de cada empresa configurada com Dpote
+        const dia1 = dataInicial;
+        const aplicados: Array<{ empresaSlug: string; filialNome: string; comissaoBruta: number }> = [];
+        const naoEncontrados: string[] = [];
+
+        for (const config of configs) {
+          if (!config.dpoteFilialNome) continue;
+          const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
+          const filial = resultados.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
+          if (!filial) {
+            naoEncontrados.push(config.empresaSlug);
+            continue;
+          }
+          const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
+          await upsertFaturamento({
+            tenantId,
+            empresaSlug: config.empresaSlug,
+            data: dia1,
+            cat1: existente?.cat1 ?? "0",
+            cat2: existente?.cat2 ?? "0",
+            cat3: existente?.cat3 ?? "0",
+            cat4: existente?.cat4 ?? "0",
+            cat5: String(filial.comissaoBruta),
+            sincronizadoCB: existente?.sincronizadoCB ?? 0,
+            observacao: existente?.observacao ?? undefined,
+            lancadoPor: ctx.user?.email ?? undefined,
+          });
+          aplicados.push({ empresaSlug: config.empresaSlug, filialNome: filial.filialNome, comissaoBruta: filial.comissaoBruta });
+        }
+
+        return {
+          aplicados,
+          naoEncontrados,
+          totalAssinaturas: valorAssinaturas,
+          porcentagemBarbearia,
+          fonteDados,
         };
       }),
 

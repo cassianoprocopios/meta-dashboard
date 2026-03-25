@@ -224,6 +224,20 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
     onError: (err) => toast.error(err.message),
   });
 
+  const sincronizarDpote = trpc.cashbarber.sincronizarDpoteManual.useMutation({
+    onSuccess: (data) => {
+      const aplicadosStr = data.aplicados
+        .map((a) => `${a.empresaSlug}: R$ ${a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
+        .join(" | ");
+      toast.success(`Dpote sincronizado! ${aplicadosStr}`);
+      if (data.naoEncontrados.length > 0) {
+        toast.warning(`Filiais não encontradas: ${data.naoEncontrados.join(", ")}`);
+      }
+      utils.cashbarber.listarConfig.invalidate({ empresaSlug: empresa.slug });
+    },
+    onError: (err) => toast.error(`Erro ao sincronizar Dpote: ${err.message}`),
+  });
+
   const configurarAgendamento = trpc.cashbarber.configurarAgendamento.useMutation({
     onSuccess: () => {
       toast.success(sincAutoAtiva ? "Sincronização automática ativada! Dados serão importados a cada hora." : "Sincronização automática desativada.");
@@ -1068,6 +1082,47 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
                         <p className="text-xs text-slate-400 text-right">
                           Última sincronização: {new Date(configExistente.ultimaSincronizacao).toLocaleString()}
                         </p>
+                      )}
+
+                      {/* Seção Dpote */}
+                      {configExistente?.dpoteFilialNome && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 rounded-full bg-violet-500" />
+                            <span className="text-sm font-semibold text-slate-700">Recorrência (Dpote)</span>
+                          </div>
+                          <div className="flex items-start gap-2 p-3 bg-violet-50 rounded-lg text-xs text-violet-700 border border-violet-100 mb-3">
+                            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>
+                              Força a busca do valor atualizado de assinaturas no CashBarber e aplica a comissão bruta de cada filial no dia 1 do mês selecionado.
+                            </span>
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => sincronizarDpote.mutate({ mes: mesSinc, ano: anoSinc })}
+                              disabled={sincronizarDpote.isPending}
+                              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
+                            >
+                              {sincronizarDpote.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="w-4 h-4" />
+                              )}
+                              {sincronizarDpote.isPending ? "Sincronizando Dpote..." : `Sincronizar Dpote ${mesesNomes[mesSinc - 1]}/${anoSinc}`}
+                            </button>
+                          </div>
+                          {sincronizarDpote.data && (
+                            <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-100">
+                              <p className="text-xs font-semibold text-green-700 mb-1">Dpote sincronizado com sucesso</p>
+                              {sincronizarDpote.data.aplicados.map((a) => (
+                                <p key={a.empresaSlug} className="text-xs text-green-600">
+                                  {a.filialNome}: R$ {a.comissaoBruta.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                </p>
+                              ))}
+                              <p className="text-xs text-green-500 mt-1">Fonte: {sincronizarDpote.data.fonteDados}</p>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </>
                   )}
