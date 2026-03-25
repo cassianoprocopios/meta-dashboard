@@ -112,22 +112,6 @@ export default function Home() {
 
   const [syncingDpote, setSyncingDpote] = useState(false);
 
-  const [syncingAvec, setSyncingAvec] = useState(false);
-  const sincronizarAvecMutation = trpc.avec.sincronizar.useMutation({
-    onSuccess: (data) => {
-      if (!data.erros) {
-        toast.success(`✨ Sync Avec concluída! ${data.diasSincronizados} dias importados.`);
-      } else {
-        toast.warning(`Sync Avec concluída com avisos: ${data.erros}`);
-      }
-      setSyncingAvec(false);
-      refetchFat();
-    },
-    onError: (err) => {
-      toast.error(`Erro na sync Avec: ${err.message}`);
-      setSyncingAvec(false);
-    },
-  });
   const sincronizarDpoteMutation = trpc.cashbarber.sincronizarDpote.useMutation({
     onSuccess: (data) => {
       const atualizadas = data.resultados.filter((r) => r.recorrenciaAtualizada);
@@ -800,22 +784,7 @@ export default function Home() {
                   {syncingDpote ? "Atualizando..." : "Sync Dpote"}
                 </button>
               )}
-              {isGerente && (
-                <button
-                  onClick={() => {
-                    setSyncingAvec(true);
-                    sincronizarAvecMutation.mutate({ empresaSlug: "seraphine", mes, ano });
-                  }}
-                  disabled={syncingAvec}
-                  title="Sincronizar faturamento Avec (Seraphine) agora"
-                  className="flex items-center gap-1.5 text-sm text-fuchsia-600 hover:text-fuchsia-700 px-3 py-1.5 rounded-xl hover:bg-fuchsia-50 dark:hover:bg-fuchsia-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {syncingAvec
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Zap className="w-4 h-4" />}
-                  {syncingAvec ? "Sincronizando..." : "Sync Avec"}
-                </button>
-              )}
+
               {podeLancarFaturamento && (
                 <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
                   <Plus className="w-4 h-4" /> Novo Lançamento

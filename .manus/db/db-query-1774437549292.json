@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE 'avec%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW TABLES LIKE 'avec%';",
+  "rows": [
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (avec%)": "avecConfig"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (avec%)": "avecMapeamento"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (avec%)": "avecSyncLog"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_MANH2fxvkecBuwjELBL3u8 (avec%)\navecConfig\navecMapeamento\navecSyncLog\n",
+  "stderr": "",
+  "execution_time_ms": 140
+}

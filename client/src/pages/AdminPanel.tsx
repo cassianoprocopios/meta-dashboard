@@ -11,7 +11,6 @@ import {
 import Onboarding from "@/components/Onboarding";
 import VinculosPanel from "@/components/VinculosPanel";
 import CashBarberIntegracao from "@/components/CashBarberIntegracao";
-import AvecIntegracao from "@/components/AvecIntegracao";
 
 type Perfil = "gerente" | "recepcionista" | "operador";
 
@@ -709,7 +708,7 @@ function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user, logout } = useAuth();
-  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico" | "cashbarber" | "avec">("empresas");
+  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico" | "cashbarber">("empresas");
   const [filtroHistorico, setFiltroHistorico] = useState<"todos" | "empresa_criada" | "usuario_criado" | "acesso">("todos");
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
@@ -879,17 +878,7 @@ export default function AdminPanel() {
                 <Zap className="w-4 h-4" />
                 CashBarber
               </button>
-              <button
-                onClick={() => setAba("avec")}
-                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  aba === "avec"
-                    ? "border-violet-500 text-violet-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <Zap className="w-4 h-4" />
-                Avec
-              </button>
+
             </div>
 
             <div className="ml-auto flex items-center px-3 sm:px-4 py-2 sm:py-0 border-t sm:border-t-0 border-slate-100">
@@ -1098,13 +1087,6 @@ export default function AdminPanel() {
           {/* Aba CashBarber */}
           {aba === "cashbarber" && (
             <CashBarberIntegracao empresas={empresas as Array<{ id: number; nome: string; slug: string; ativo: number }>} />
-          )}
-
-          {/* Aba Avec */}
-          {aba === "avec" && (
-            <div className="p-4 sm:p-6">
-              <AvecIntegracao empresas={empresas as Array<{ id: number; nome: string; slug: string; ativo: number }>} />
-            </div>
           )}
 
           {/* Aba Histórico */}

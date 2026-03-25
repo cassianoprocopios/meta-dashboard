@@ -710,3 +710,18 @@
 - [ ] Exibir badge "API Token" no cabeçalho quando token configurado
 - [ ] Aba "Mapeamento" no AvecIntegracao.tsx: mapear categorias Avec → categorias do sistema
 - [ ] Testes unitários para as novas procedures
+
+## Limpeza — Remover Sincronização Avec
+
+- [x] Remover arquivos: server/avec.ts, server/avecApiClient.ts, server/avecSincronizador.ts
+- [x] Remover arquivo de teste: server/avec.cookie.test.ts
+- [x] Remover tabelas avecConfig, avecSyncLog, avecMapeamento do schema Drizzle
+- [x] Limpar tabelas Avec no banco via SQL (TRUNCATE)
+- [x] Remover todas as procedures avec.* do routers.ts
+- [x] Remover helpers upsertAvecConfig, getAvecConfig, etc. do db.ts
+- [x] Remover componente AvecIntegracao.tsx
+- [x] Remover aba "Avec" do AdminPanel (AdminPanel.tsx)
+- [x] Remover botão "Sync Avec" do cabeçalho do Home.tsx
+- [x] Remover import/referência ao avecJob no server/_core/index.ts
+- [x] Verificar que não há referências quebradas após remoção
+- [x] Executar testes: 81 testes passando (7 arquivos)
