@@ -374,7 +374,7 @@ export default function Home() {
         catTotals[4] += parseFloat(r.cat5 || "0");
       });
 
-      // Recorrência Dpote: soma de cat5 de todos os dias (está no dia 1, mas somamos todos por segurança)
+      // Recorrência Dpote: soma de cat5 de todos os dias (distribuído diariamente, um valor por dia)
       const recorrenciaMes = rows.reduce(
         (acc: number, r: any) => acc + parseFloat(r.cat5 || "0"),
         0

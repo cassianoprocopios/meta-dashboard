@@ -108,7 +108,7 @@ const registroExistenteDia5 = {
 
 // ─── Testes ───────────────────────────────────────────────────────────────────
 
-describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", () => {
+describe("sincronizarFaturamentoCashbarber - distribuição diária de cat5 (Dpote)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getCashbarberConfig).mockResolvedValue(configMock as any);
@@ -125,42 +125,46 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
     vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
   });
 
-  it("salva cat5 = recorrenciaValor APENAS no dia 1 do mês", async () => {
+  it("distribui cat5 igualmente por todos os dias do mês", async () => {
     // Sincronizar março/2025 (mês passado, vai até dia 31)
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
     // Capturar todas as chamadas ao upsertFaturamento
     const calls = vi.mocked(upsertFaturamento).mock.calls;
 
-    // Dia 1: deve ter cat5 = "5000"
+    // Março tem 31 dias: R$ 5000 / 31 = R$ 161.29/dia
+    const valorDiarioEsperado = String(Math.round((5000 / 31) * 100) / 100);
+
+    // Dia 1: deve ter cat5 = valor diário
     const chamadaDia1 = calls.find((c) => c[0].data === "2025-03-01");
     expect(chamadaDia1).toBeDefined();
-    expect(chamadaDia1![0].cat5).toBe("5000");
+    expect(chamadaDia1![0].cat5).toBe(valorDiarioEsperado);
 
-    // Dia 2: deve ter cat5 = "0"
+    // Dia 2: deve ter cat5 = valor diário (não mais "0")
     const chamadaDia2 = calls.find((c) => c[0].data === "2025-03-02");
     expect(chamadaDia2).toBeDefined();
-    expect(chamadaDia2![0].cat5).toBe("0");
+    expect(chamadaDia2![0].cat5).toBe(valorDiarioEsperado);
 
-    // Dia 15: deve ter cat5 = "0"
+    // Dia 15: deve ter cat5 = valor diário
     const chamadaDia15 = calls.find((c) => c[0].data === "2025-03-15");
     expect(chamadaDia15).toBeDefined();
-    expect(chamadaDia15![0].cat5).toBe("0");
+    expect(chamadaDia15![0].cat5).toBe(valorDiarioEsperado);
 
-    // Dia 31: deve ter cat5 = "0"
+    // Dia 31: deve ter cat5 = valor diário
     const chamadaDia31 = calls.find((c) => c[0].data === "2025-03-31");
     expect(chamadaDia31).toBeDefined();
-    expect(chamadaDia31![0].cat5).toBe("0");
+    expect(chamadaDia31![0].cat5).toBe(valorDiarioEsperado);
   });
 
-  it("total de cat5 no mês = recorrenciaValor (não multiplicado pelos dias)", async () => {
+  it("total de cat5 no mês ≈ recorrenciaValor (soma dos valores diários)", async () => {
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
     const totalCat5 = calls.reduce((sum, c) => sum + parseFloat(c[0].cat5 ?? "0"), 0);
 
-    // Total de cat5 deve ser exatamente 5000 (não 5000 × 31 dias)
-    expect(totalCat5).toBe(5000);
+    // Total de cat5 deve ser próximo de 5000 (diferença máxima de R$ 0.31 por arredondamento)
+    expect(totalCat5).toBeGreaterThanOrEqual(4999);
+    expect(totalCat5).toBeLessThanOrEqual(5001);
   });
 
   it("quando Dpote falha, preserva cat5 existente no dia 1 e '0' nos demais", async () => {
@@ -198,12 +202,14 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
       (c) => c[0].data === "2025-03-01"
     );
     expect(chamadaDia1).toBeDefined();
+    // Março tem 31 dias: R$ 5000 / 31 = R$ 161.29/dia
+    const valorDiarioEsperado = String(Math.round((5000 / 31) * 100) / 100);
     expect(chamadaDia1![0]).toMatchObject({
       cat1: "6000",          // ← atualizado pelo CashBarber
       cat2: "1500",          // ← atualizado pelo CashBarber
       cat3: "300",           // ← preservado do registro existente
       cat4: "150",           // ← preservado do registro existente
-      cat5: "5000",          // ← valor Dpote (dia 1)
+      cat5: valorDiarioEsperado, // ← valor Dpote diário (total / dias do mês)
       observacao: "Lançamento manual",
       lancadoPor: "admin",
     });
@@ -247,8 +253,9 @@ describe("sincronizarFaturamentoCashbarber - regra do dia 1 para cat5 (Dpote)", 
     const chamadaDia1 = vi.mocked(upsertFaturamento).mock.calls.find(
       (c) => c[0].data === "2025-03-01"
     );
-    // cat5 deve ser 5000 (Dpote), não 3000 (mapeamento CashBarber)
-    expect(chamadaDia1![0].cat5).toBe("5000");
+    // cat5 deve ser valor diário do Dpote (5000/31), não 3000 (mapeamento CashBarber)
+    const valorDiarioEsperado = String(Math.round((5000 / 31) * 100) / 100);
+    expect(chamadaDia1![0].cat5).toBe(valorDiarioEsperado);
   });
 
   it("lança erro se configuração CashBarber não encontrada", async () => {

@@ -6,10 +6,11 @@
  *
  * IMPORTANTE:
  * - O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
- * - cat5 (Recorrência) é calculada automaticamente via Dpote (Assinaturas):
- *   Comissão Bruta da filial = valor_total × porcentagem_barbearia% × (fichas_filial / fichas_total)
- * - O valor de cat5 é único para o mês inteiro, mas atualizado a cada sync
- *   (pois as assinaturas entram no banco ao longo do mês).
+ * - cat5 (Recorrência) representa planos mensais cobrados diariamente.
+ *   O valor total mensal é distribuído igualmente por todos os dias do mês
+ *   (ex: R$ 30.000 em 30 dias = R$ 1.000/dia), refletindo a cobrança diária.
+ * - O total mensal de cat5 é calculado via Dpote (fichas ponderadas) e
+ *   atualizado a cada sync (pois as assinaturas entram no banco ao longo do mês).
  * - Um único histórico Dpote é criado por mês e reutilizado nas syncs seguintes
  *   (o ID é armazenado em cashbarberConfig.dpoteHistoricoId).
  */
@@ -298,14 +299,15 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat4 ?? "0";
 
       // cat5 (Recorrência / Dpote):
-      // O valor Dpote é o total mensal da comissão da filial.
-      // Para evitar duplicação, ele é lançado APENAS no dia 1 do mês.
-      // Nos demais dias, cat5 é zerado (ou preservado se não vier do CashBarber).
+      // O valor total mensal é distribuído igualmente por todos os dias do mês
+      // sincronizados, refletindo a cobrança diária dos planos mensais.
+      // Ex: R$ 30.000 em 30 dias = R$ 1.000/dia.
       let cat5: string;
-      if (recorrenciaAtualizada) {
-        // Dia 1: recebe o valor total da Recorrência
-        // Demais dias: cat5 = "0" (zerado pelo CashBarber)
-        cat5 = dia === 1 ? String(recorrenciaValor) : "0";
+      if (recorrenciaAtualizada && recorrenciaValor > 0) {
+        // Distribuir igualmente pelo número total de dias sincronizados no mês
+        const totalDiasMes = new Date(ano, mes, 0).getDate();
+        const valorDiario = recorrenciaValor / totalDiasMes;
+        cat5 = String(Math.round(valorDiario * 100) / 100);
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
         cat5 = existente?.cat5 ?? "0";
@@ -384,7 +386,8 @@ export interface ResultadoAplicacaoDpote {
 
 /**
  * Calcula a distribuição Dpote por filial e aplica 100% do valor de assinaturas
- * como cat5 (Recorrência) no faturamento do dia 1 de cada empresa para o mês/ano.
+ * como cat5 (Recorrência) distribuindo igualmente por todos os dias do mês.
+ * Ex: R$ 30.000 em 30 dias = R$ 1.000/dia por empresa.
  *
  * Esta função é chamada automaticamente pelo job de sync após sincronizar todas as empresas,
  * e também pode ser chamada manualmente via procedure tRPC.
@@ -437,7 +440,7 @@ export async function aplicarDpoteParaTenant(
     token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
   );
 
-  const dia1 = dataInicial;
+  const totalDiasMes = new Date(ano, mes, 0).getDate();
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
   const naoEncontrados: string[] = [];
 
@@ -450,22 +453,27 @@ export async function aplicarDpoteParaTenant(
       continue;
     }
 
-    // Preservar outras categorias do dia 1
-    const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
+    // Distribuir o valor de recorrência igualmente por todos os dias do mês
+    const valorDiario = Math.round((filial.valorDistribuido / totalDiasMes) * 100) / 100;
 
-    await upsertFaturamento({
-      tenantId,
-      empresaSlug: config.empresaSlug,
-      data: dia1,
-      cat1: existente?.cat1 ?? "0",
-      cat2: existente?.cat2 ?? "0",
-      cat3: existente?.cat3 ?? "0",
-      cat4: existente?.cat4 ?? "0",
-      cat5: String(filial.valorDistribuido),
-      sincronizadoCB: existente?.sincronizadoCB ?? 0,
-      observacao: existente?.observacao ?? undefined,
-      lancadoPor: existente?.lancadoPor ?? undefined,
-    });
+    for (let dia = 1; dia <= totalDiasMes; dia++) {
+      const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
+
+      await upsertFaturamento({
+        tenantId,
+        empresaSlug: config.empresaSlug,
+        data: dataStr,
+        cat1: existente?.cat1 ?? "0",
+        cat2: existente?.cat2 ?? "0",
+        cat3: existente?.cat3 ?? "0",
+        cat4: existente?.cat4 ?? "0",
+        cat5: String(valorDiario),
+        sincronizadoCB: existente?.sincronizadoCB ?? 0,
+        observacao: existente?.observacao ?? undefined,
+        lancadoPor: existente?.lancadoPor ?? undefined,
+      });
+    }
 
     aplicados.push({
       empresaSlug: config.empresaSlug,
@@ -473,7 +481,7 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat5 atualizado para ${config.empresaSlug}: R$ ${filial.valorDistribuido.toFixed(2)}`);
+    console.log(`[CashBarber Dpote] cat5 distribuído diariamente para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (total: R$ ${filial.valorDistribuido.toFixed(2)})`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };
