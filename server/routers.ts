@@ -470,6 +470,94 @@ export const appRouter = router({
         await deleteFaturamento(input.id);
         return { success: true };
       }),
+
+    /**
+     * Salva o valor total de Recorrência (cat9) manualmente para um mês/empresa.
+     * Distribui o valor proporcionalmente pelos dias do mês:
+     *   - Dias de 1 até hoje (dia vigente): valorTotal ÷ diasDoMes por dia
+     *   - Dias futuros: R$ 0
+     */
+    salvarRecorrenciaManual: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string().min(1),
+        mes: z.number().int().min(1).max(12),
+        ano: z.number().int().min(2020),
+        valorTotal: z.number().min(0),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem configurar Recorrência." });
+        }
+        if (ctx.user.role !== "admin") {
+          const slugs = await getUserEmpresaSlugs(ctx.user.id);
+          const empresaVinculada = ctx.user.empresaVinculada;
+          if (slugs.length > 0) {
+            if (!slugs.includes(input.empresaSlug)) {
+              throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar Recorrência da sua unidade." });
+            }
+          } else if (empresaVinculada && empresaVinculada !== input.empresaSlug) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar Recorrência da sua unidade." });
+          }
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { mes, ano, empresaSlug, valorTotal } = input;
+
+        const diasDoMes = new Date(ano, mes, 0).getDate();
+        const hoje = new Date();
+        const diaVigente =
+          hoje.getFullYear() === ano && hoje.getMonth() + 1 === mes
+            ? hoje.getDate()
+            : hoje.getFullYear() > ano || (hoje.getFullYear() === ano && hoje.getMonth() + 1 > mes)
+            ? diasDoMes
+            : 0;
+
+        const valorDiario = valorTotal / diasDoMes;
+        let diasAtualizados = 0;
+        let diasInseridos = 0;
+
+        for (let dia = 1; dia <= diasDoMes; dia++) {
+          const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+          const cat9Valor = dia <= diaVigente ? String(valorDiario.toFixed(2)) : "0";
+          const existente = await getFaturamentoByDataEmpresaTenant(dataStr, empresaSlug, tenantId);
+          if (existente) {
+            await upsertFaturamento({
+              tenantId, empresaSlug, data: dataStr,
+              cat1: existente.cat1 ?? "0", cat2: existente.cat2 ?? "0",
+              cat3: existente.cat3 ?? "0", cat4: existente.cat4 ?? "0",
+              cat5: existente.cat5 ?? "0", cat6: existente.cat6 ?? "0",
+              cat7: existente.cat7 ?? "0", cat8: existente.cat8 ?? "0",
+              cat9: cat9Valor,
+              sincronizadoCB: existente.sincronizadoCB ?? 0,
+              observacao: existente.observacao ?? undefined,
+              lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
+            });
+            diasAtualizados++;
+          } else if (dia <= diaVigente) {
+            await upsertFaturamento({
+              tenantId, empresaSlug, data: dataStr,
+              cat1: "0", cat2: "0", cat3: "0", cat4: "0",
+              cat5: "0", cat6: "0", cat7: "0", cat8: "0",
+              cat9: cat9Valor, sincronizadoCB: 0,
+              lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
+            });
+            diasInseridos++;
+          }
+        }
+
+        return {
+          valorTotal,
+          valorDiario: parseFloat(valorDiario.toFixed(2)),
+          diasDoMes,
+          diaVigente,
+          diasAtualizados,
+          diasInseridos,
+          acumuladoAteHoje: parseFloat((valorDiario * diaVigente).toFixed(2)),
+          diasRestantes: diasDoMes - diaVigente,
+          necessarioPorDia: diaVigente < diasDoMes
+            ? parseFloat(((valorTotal - valorDiario * diaVigente) / (diasDoMes - diaVigente)).toFixed(2))
+            : 0,
+        };
+      }),
   }),
 
   // ─── METAS ─────────────────────────────────────────────────────────────────

@@ -833,3 +833,14 @@
 
 ## Aplicação Dpote Março 2026 (Mar 2026)
 - [x] Aplicar valores de Recorrência de Março com base no histórico #68544 (Morumbi R$ 51.256,89 | Mascote R$ 21.914,31)
+
+## Recorrência Manual no Dashboard (Mar 2026)
+- [ ] Procedure tRPC: salvarRecorrenciaManual(mes, ano, empresaSlug, valorTotal) — distribui pelos dias do mês
+- [ ] Card de entrada manual de Recorrência no dashboard por empresa (campo valor total + preview diário)
+- [ ] Mostrar no card: valor diário calculado, acumulado até hoje, e meta diária necessária para os dias restantes
+
+## Recorrência Manual no Dashboard (Mar 2026)
+- [x] Botão de lápis no card de Recorrência para entrada manual do valor total
+- [x] Painel inline com campo de valor, preview diário/acumulado/total e botão Aplicar
+- [x] Procedure tRPC salvarRecorrenciaManual distribui valor pelos dias do mês
+- [x] Suporte a Enter para confirmar e Escape para cancelar
