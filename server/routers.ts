@@ -511,12 +511,15 @@ export const appRouter = router({
             ? diasDoMes
             : 0;
 
-        const valorDiario = valorTotal / diasDoMes;
+        // valorTotal é o total APURADO até hoje (não uma projeção mensal)
+        // valorDiario = total acumulado / dias decorridos
+        const valorDiario = diaVigente > 0 ? valorTotal / diaVigente : 0;
         let diasAtualizados = 0;
         let diasInseridos = 0;
 
         for (let dia = 1; dia <= diasDoMes; dia++) {
           const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+          // Dias passados e hoje: valor diário real apurado; dias futuros: R$ 0
           const cat9Valor = dia <= diaVigente ? String(valorDiario.toFixed(2)) : "0";
           const existente = await getFaturamentoByDataEmpresaTenant(dataStr, empresaSlug, tenantId);
           if (existente) {
@@ -551,11 +554,11 @@ export const appRouter = router({
           diaVigente,
           diasAtualizados,
           diasInseridos,
-          acumuladoAteHoje: parseFloat((valorDiario * diaVigente).toFixed(2)),
+          // acumuladoAteHoje = valorTotal (é exatamente o que foi informado)
+          acumuladoAteHoje: parseFloat(valorTotal.toFixed(2)),
           diasRestantes: diasDoMes - diaVigente,
-          necessarioPorDia: diaVigente < diasDoMes
-            ? parseFloat(((valorTotal - valorDiario * diaVigente) / (diasDoMes - diaVigente)).toFixed(2))
-            : 0,
+          // projeção mensal = valorDiario × diasDoMes
+          projecaoMensal: parseFloat((valorDiario * diasDoMes).toFixed(2)),
         };
       }),
   }),

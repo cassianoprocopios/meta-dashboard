@@ -844,3 +844,9 @@
 - [x] Painel inline com campo de valor, preview diário/acumulado/total e botão Aplicar
 - [x] Procedure tRPC salvarRecorrenciaManual distribui valor pelos dias do mês
 - [x] Suporte a Enter para confirmar e Escape para cancelar
+
+## Correção Recorrência Manual - Valor Apurado (Mar 2026)
+- [x] Corrigir salvarRecorrenciaManual: valor informado é o total apurado até hoje, não previsão mensal
+- [x] Distribuir valor diário = valorTotal / diaHoje (não / diasDoMes)
+- [x] Dias futuros ficam com R$ 0
+- [x] Atualizar preview no frontend: Diário (média), Apurado até dia X, Projeção Mensal

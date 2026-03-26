@@ -1918,8 +1918,11 @@ export default function Home() {
                     const diaHoje = (new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes)
                       ? new Date().getDate() : diasDoMes;
                     const valorManualNum = parseFloat(recorrenciaManualValor.replace(",", ".")) || 0;
-                    const previewDiario = valorManualNum > 0 ? valorManualNum / diasDoMes : 0;
-                    const previewAcumulado = previewDiario * diaHoje;
+                    // valorManualNum é o total APURADO até hoje
+                    // valorDiário = total apurado / dias decorridos
+                    const previewDiario = valorManualNum > 0 && diaHoje > 0 ? valorManualNum / diaHoje : 0;
+                    // Projeção mensal = valorDiário × total de dias do mês
+                    const previewProjecaoMensal = previewDiario * diasDoMes;
                     return (
                       <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
                         {/* Linha principal: ícone + rótulo + valor calculado com tooltip da fórmula */}
@@ -2073,16 +2076,16 @@ export default function Home() {
                             {valorManualNum > 0 && (
                               <div className="mt-2 grid grid-cols-3 gap-2">
                                 <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Diário</p>
+                                  <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Diário (média)</p>
                                   <p className="text-[11px] font-bold text-violet-300">{fmtFull(previewDiario)}</p>
                                 </div>
-                                <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Acumulado (dia {diaHoje})</p>
-                                  <p className="text-[11px] font-bold text-violet-300">{fmtFull(previewAcumulado)}</p>
+                                <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5 text-center">
+                                  <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">Apurado até dia {diaHoje}</p>
+                                  <p className="text-[11px] font-bold text-emerald-300">{fmtFull(valorManualNum)}</p>
                                 </div>
-                                <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Total Mês</p>
-                                  <p className="text-[11px] font-bold text-violet-200">{fmtFull(valorManualNum)}</p>
+                                <div className="rounded-lg bg-slate-500/10 px-2 py-1.5 text-center">
+                                  <p className="text-[9px] text-slate-400/70 uppercase tracking-wide">Projeção Mensal</p>
+                                  <p className="text-[11px] font-bold text-slate-300">{fmtFull(previewProjecaoMensal)}</p>
                                 </div>
                               </div>
                             )}
