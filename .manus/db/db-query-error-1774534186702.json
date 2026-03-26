@@ -1,0 +1,8 @@
+{
+  "query": "UPDATE cashbarber_config \nSET dpote_historico_id = 68539, \n    dpote_valor_assinaturas = 73171.20\nWHERE dpote_historico_id IS NOT NULL OR dpote_valor_assinaturas IS NOT NULL;\n\nSELECT empresa_slug, dpote_historico_id, dpote_valor_assinaturas \nFROM cashbarber_config;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE cashbarber_config \nSET dpote_historico_id = 68539, \n    dpote_valor_assinaturas = 73171.20\nWHERE dpote_historico_id IS NOT NULL OR dpote_valor_assinaturas IS NOT NULL;\n\nSELECT empresa_slug, dpote_historico_id, dpote_valor_assinaturas \nFROM cashbarber_config;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'manh2fxvkecbuwjelbl3u8.cashbarber_config' doesn't exist"
+  ]
+}

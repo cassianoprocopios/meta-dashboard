@@ -822,3 +822,8 @@
 - [x] Dias futuros do mês: R$ 0 (ainda não aconteceram)
 - [x] Mês seguinte: distribuir previsão baseada no total do mês atual (valor_total_atual ÷ dias_mês_seguinte por dia)
 - [x] Ao chegar o dia vigente no mês seguinte: sobrescrever previsão com valor apurado real do Dpote
+
+## Correção Valor Assinaturas Dpote (Mar 2026)
+- [x] Corrigir valor total de assinaturas exibido na tela Dpote para R$ 73.171,20
+- [x] Aumentar maxTentativas de 30 para 60 na busca retroativa de histórico ativo
+- [x] Corrigir banco: dpoteHistoricoId = 68539, dpoteValorAssinaturas = 73171.20 (ambas empresas)
