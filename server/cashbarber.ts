@@ -652,3 +652,84 @@ export async function cashbarberCalcularDpotePorFichas(
     };
   });
 }
+
+/**
+ * Busca o histórico Dpote mais recente com dados válidos (fichas > 0).
+ * Começa pelo idInicial e vai decrementando até encontrar um com fichas preenchidas.
+ */
+export async function cashbarberBuscarHistoricoAtivo(
+  token: string,
+  idInicial: number,
+  maxTentativas = 20
+): Promise<{ historicoId: number; historico: CashbarberDpoteHistorico } | null> {
+  for (let i = 0; i < maxTentativas; i++) {
+    const id = idInicial - i;
+    if (id <= 0) break;
+    try {
+      const historico = await cashbarberBuscarHistoricoDpote(token, id);
+      const totalFichas = historico.filiais_servicos.reduce(
+        (acc, fs) => acc + fs.servicos.reduce((a, s) => a + (s.fichas || 0), 0),
+        0
+      );
+      if (totalFichas > 0 && historico.faturamento.valor_ganho_assinaturas > 0) {
+        return { historicoId: id, historico };
+      }
+    } catch {
+      // ID inválido ou sem acesso — continuar
+    }
+  }
+  return null;
+}
+
+/**
+ * Calcula a distribuição Dpote diretamente a partir do histórico Dpote oficial do CashBarber.
+ * Usa o histórico mais recente com fichas > 0 (buscado via cashbarberBuscarHistoricoAtivo).
+ */
+export async function cashbarberCalcularDpoteViaHistorico(
+  token: string,
+  idHistoricoRecente: number
+): Promise<{
+  historicoId: number;
+  valorAssinaturas: number;
+  porcentagemBarbearias: number;
+  totalFichas: number;
+  filiais: DpoteResultadoPorFilial[];
+} | null> {
+  const resultado = await cashbarberBuscarHistoricoAtivo(token, idHistoricoRecente);
+  if (!resultado) return null;
+
+  const { historicoId, historico } = resultado;
+  const { valor_ganho_assinaturas, porcentagem_comissao_barbearias } = historico.faturamento;
+  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
+
+  let totalFichas = 0;
+  const filiaisComFichas = historico.filiais_servicos.map((fs) => {
+    const fichas = fs.servicos.reduce((acc, s) => acc + (s.fichas || 0), 0);
+    totalFichas += fichas;
+    return { filial: fs.filial, fichas };
+  });
+
+  const filiais: DpoteResultadoPorFilial[] = filiaisComFichas.map(({ filial, fichas }) => {
+    const percentual = totalFichas > 0 ? (fichas / totalFichas) * 100 : 0;
+    const valorDistribuido =
+      totalFichas > 0 && fichas > 0
+        ? Math.round(comissaoBrutaTotal * (fichas / totalFichas))
+        : 0;
+    return {
+      filialId: filial.id,
+      filialNome: filial.fil_bairro,
+      fichas,
+      percentual,
+      valorDistribuido,
+      comissaoBruta: valorDistribuido,
+    };
+  });
+
+  return {
+    historicoId,
+    valorAssinaturas: valor_ganho_assinaturas,
+    porcentagemBarbearias: porcentagem_comissao_barbearias,
+    totalFichas,
+    filiais,
+  };
+}

@@ -83,9 +83,11 @@ import {
   cashbarberRelatorio15,
   calcularFaturamentoPorCategoriaComCatalogo,
   cashbarberCriarHistoricoDpote,
+  cashbarberBuscarHistoricoAtivo,
   cashbarberBuscarHistoricoDpote,
   cashbarberBuscarValorAssinaturas,
   cashbarberCalcularDpotePorFichas,
+  cashbarberCalcularDpoteViaHistorico,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
@@ -1705,33 +1707,45 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const tenantId = await getTenantIdFromCtx(ctx);
         const configs = await listCashbarberConfigs(tenantId);
 
-        // Encontrar config com Dpote configurado (basta uma empresa — todas compartilham o mesmo pote)
-        const configComDpote = configs.find(
-          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas
-        );
-        if (!configComDpote) return { filiais: [], totalAssinaturas: 0, totalFichas: 0 };
-
-        const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
-        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia ?? "100"));
+        // Usar qualquer config com credenciais CashBarber para fazer login
+        const configComCred = configs.find((c) => c.cbEmail && c.cbSenha);
+        if (!configComCred) return { filiais: [], totalAssinaturas: 0, totalFichas: 0, historicoId: null };
 
         // Login CashBarber
-        const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
-        const hoje = new Date();
-        const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
-        const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(input.ano, input.mes, 0).getDate();
-        const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
-        const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        const token = await cashbarberLogin(configComCred.cbEmail, configComCred.cbSenha);
 
-        const resultados = await cashbarberCalcularDpotePorFichas(
-          token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
-        );
+        // Criar um novo histórico para obter o ID mais recente como ponto de partida
+        let idInicial: number;
+        try {
+          idInicial = await cashbarberCriarHistoricoDpote(token);
+        } catch {
+          // Se falhar, usar o ID salvo no banco como fallback
+          // Buscar o ID mais recente de qualquer empresa configurada
+          const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+          let savedId: number | null = null;
+          for (const cfg of configs) {
+            savedId = await getDpoteHistoricoId(tenantId, cfg.empresaSlug, mesSigla);
+            if (savedId) break;
+          }
+          idInicial = savedId ?? 68539; // fallback para o ID conhecido com dados
+        }
 
-        const totalFichas = resultados.reduce((acc, r) => acc + r.fichas, 0);
+        // Buscar o histórico mais recente com fichas > 0 (retroativamente)
+        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial);
+        if (!resultado) return { filiais: [], totalAssinaturas: 0, totalFichas: 0, historicoId: null };
+
+        // Salvar o ID do histórico ativo no banco para todas as empresas configuradas
+        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+        for (const cfg of configs) {
+          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla);
+        }
 
         return {
-          totalAssinaturas: valorAssinaturas,
-          totalFichas,
-          filiais: resultados.map((r) => ({
+          totalAssinaturas: resultado.valorAssinaturas,
+          totalFichas: resultado.totalFichas,
+          historicoId: resultado.historicoId,
+          porcentagemBarbearias: resultado.porcentagemBarbearias,
+          filiais: resultado.filiais.map((r) => ({
             filialId: r.filialId,
             filialNome: r.filialNome,
             fichas: r.fichas,
@@ -1751,39 +1765,50 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const tenantId = await getTenantIdFromCtx(ctx);
         const configs = await listCashbarberConfigs(tenantId);
 
-        // Encontrar config com Dpote configurado (usa a primeira com valorAssinaturas)
-        const configComDpote = configs.find(
-          (c) => c.dpoteFilialNome && c.dpoteValorAssinaturas
-        );
-        if (!configComDpote) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com Dpote configurado encontrada." });
+        // Usar qualquer config com credenciais CashBarber para fazer login
+        const configComCred = configs.find((c) => c.cbEmail && c.cbSenha);
+        if (!configComCred) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com credenciais CashBarber configurada." });
         }
 
-        const valorAssinaturas = parseFloat(String(configComDpote.dpoteValorAssinaturas));
-        const porcentagemBarbearia = parseFloat(String(configComDpote.dpotePorcentagemBarbearia ?? "100"));
-
         // Login CashBarber
-        const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
-        const hoje = new Date();
-        const ehMesAtual = input.mes === hoje.getMonth() + 1 && input.ano === hoje.getFullYear();
-        const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(input.ano, input.mes, 0).getDate();
-        const dataInicial = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
-        const dataFinal = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        const token = await cashbarberLogin(configComCred.cbEmail, configComCred.cbSenha);
 
-        // Calcular distribuição por filial (100% das assinaturas)
-        const resultados = await cashbarberCalcularDpotePorFichas(
-          token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
-        );
+        // Criar um novo histórico para obter o ID mais recente como ponto de partida
+        let idInicial: number;
+        try {
+          idInicial = await cashbarberCriarHistoricoDpote(token);
+        } catch {
+          const mesSiglaFallback = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+          let savedId: number | null = null;
+          for (const cfg of configs) {
+            savedId = await getDpoteHistoricoId(tenantId, cfg.empresaSlug, mesSiglaFallback);
+            if (savedId) break;
+          }
+          idInicial = savedId ?? 68539;
+        }
+
+        // Buscar o histórico mais recente com fichas > 0 (retroativamente)
+        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial);
+        if (!resultado) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum histórico Dpote com dados válidos encontrado." });
+        }
+
+        // Salvar o ID do histórico ativo no banco
+        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+        for (const cfg of configs) {
+          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla);
+        }
 
         // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
-        const dia1 = dataInicial;
+        const dia1 = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
         const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
 
         for (const config of configs) {
           if (!config.dpoteFilialNome) continue;
           const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
-          const filial = resultados.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
+          const filial = resultado.filiais.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
           if (!filial) {
             naoEncontrados.push(config.empresaSlug);
             continue;
@@ -1821,7 +1846,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return {
           aplicados,
           naoEncontrados,
-          totalAssinaturas: valorAssinaturas,
+          totalAssinaturas: resultado.valorAssinaturas,
+          historicoId: resultado.historicoId,
         };
       }),
 

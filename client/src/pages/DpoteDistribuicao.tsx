@@ -265,21 +265,28 @@ export default function DpoteDistribuicao() {
       {!isLoading && !error && data && data.filiais.length > 0 && (
         <>
           {/* Cards de resumo */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Total Assinaturas</p>
               <p className="text-lg font-bold text-foreground">{fmt(data.totalAssinaturas)}</p>
               <p className="text-[10px] text-muted-foreground/60 mt-0.5">valor bruto do mês (100%)</p>
             </Card>
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
-              <p className="text-xs text-muted-foreground mb-1">Total Distribuído</p>
+              <p className="text-xs text-muted-foreground mb-1">Pote Distribuído</p>
               <p className="text-lg font-bold text-emerald-400">{fmt(totalDistribuido)}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">entre todas as filiais</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                {data.porcentagemBarbearias != null ? `${data.porcentagemBarbearias}% das assinaturas` : 'entre todas as filiais'}
+              </p>
             </Card>
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Total de Fichas</p>
               <p className="text-lg font-bold text-cyan-400">{fmtNum(data.totalFichas)}</p>
               <p className="text-[10px] text-muted-foreground/60 mt-0.5">ponderadas no período</p>
+            </Card>
+            <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
+              <p className="text-xs text-muted-foreground mb-1">Histórico CashBarber</p>
+              <p className="text-lg font-bold text-violet-400">#{data.historicoId ?? '—'}</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">ID do histórico Dpote ativo</p>
             </Card>
           </div>
 

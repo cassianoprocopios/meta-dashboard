@@ -787,3 +787,11 @@
 ## Correção de Bugs React
 - [x] Corrigir loop infinito "Maximum update depth exceeded" em CashBarberIntegracao.tsx linha 2149
 - [x] Corrigir "Each child in a list should have a unique key prop" na tabela DpoteDistribuicao
+
+## Automação Dpote via Web Scraping CashBarber
+- [ ] Explorar fluxo de login e telas Dpote no CashBarber via browser
+- [ ] Instalar Puppeteer no projeto para automação de browser
+- [ ] Implementar scraper: login → Painel Assinaturas → Dpote → Relatório → Criar Histórico → extrair fichas e faturamento por unidade
+- [ ] Criar procedure tRPC cashbarber.sincronizarDpoteScraping
+- [ ] Atualizar job automático para usar scraping em vez de API
+- [ ] Atualizar frontend com botão de sync e resultado da extração
