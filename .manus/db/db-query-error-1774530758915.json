@@ -1,0 +1,8 @@
+{
+  "query": "SELECT empresa_slug, dpote_filial_nome, dpote_valor_assinaturas, dpote_historico_id FROM cashbarberConfig LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresa_slug, dpote_filial_nome, dpote_valor_assinaturas, dpote_historico_id FROM cashbarberConfig LIMIT 10;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'empresa_slug' in 'field list'"
+  ]
+}

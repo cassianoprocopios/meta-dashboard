@@ -1225,14 +1225,22 @@ export async function saveDpoteHistoricoId(
   tenantId: number,
   empresaSlug: string,
   historicoId: number,
-  mesSigla: string // formato YYYY-MM
+  mesSigla: string, // formato YYYY-MM
+  valorAssinaturas?: number
 ) {
   const db = await getDb();
   if (!db) return;
-  await db
-    .update(cashbarberConfig)
-    .set({ dpoteHistoricoId: historicoId, dpoteHistoricoMes: mesSigla })
-    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+  if (valorAssinaturas !== undefined) {
+    await db
+      .update(cashbarberConfig)
+      .set({ dpoteHistoricoId: historicoId, dpoteHistoricoMes: mesSigla, dpoteValorAssinaturas: String(valorAssinaturas) })
+      .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+  } else {
+    await db
+      .update(cashbarberConfig)
+      .set({ dpoteHistoricoId: historicoId, dpoteHistoricoMes: mesSigla })
+      .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+  }
 }
 
 /** Retorna o ID do histórico Dpote salvo para o mês atual (ou null se não existir / for de outro mês) */

@@ -1734,10 +1734,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial);
         if (!resultado) return { filiais: [], totalAssinaturas: 0, totalFichas: 0, historicoId: null };
 
-        // Salvar o ID do histórico ativo no banco para todas as empresas configuradas
+        // Salvar o ID do histórico ativo e o valor de assinaturas no banco para todas as empresas configuradas
         const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
         for (const cfg of configs) {
-          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla);
+          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla, resultado.valorAssinaturas);
         }
 
         return {
@@ -1794,10 +1794,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum histórico Dpote com dados válidos encontrado." });
         }
 
-        // Salvar o ID do histórico ativo no banco
+        // Salvar o ID do histórico ativo e o valor de assinaturas no banco
         const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
         for (const cfg of configs) {
-          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla);
+          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla, resultado.valorAssinaturas);
         }
 
         // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente

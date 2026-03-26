@@ -1,0 +1,22 @@
+{
+  "query": "SELECT empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpoteHistoricoId FROM cashbarberConfig LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, dpoteFilialNome, dpoteValorAssinaturas, dpoteHistoricoId FROM cashbarberConfig LIMIT 10;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "dpoteFilialNome": "Morumbi",
+      "dpoteValorAssinaturas": "67373.60",
+      "dpoteHistoricoId": "68548"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "dpoteFilialNome": "Mascote",
+      "dpoteValorAssinaturas": "67373.60",
+      "dpoteHistoricoId": "68548"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpoteFilialNome\tdpoteValorAssinaturas\tdpoteHistoricoId\nMORUMBI\tMorumbi\t67373.60\t68548\nMASCOTE\tMascote\t67373.60\t68548\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

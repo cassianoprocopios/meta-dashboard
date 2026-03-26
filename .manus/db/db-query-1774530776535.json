@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE cashbarberConfig SET dpoteValorAssinaturas = '73171.20', dpoteHistoricoId = '68544' WHERE empresaSlug IN ('MORUMBI', 'MASCOTE');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE cashbarberConfig SET dpoteValorAssinaturas = '73171.20', dpoteHistoricoId = '68544' WHERE empresaSlug IN ('MORUMBI', 'MASCOTE');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 69
+}

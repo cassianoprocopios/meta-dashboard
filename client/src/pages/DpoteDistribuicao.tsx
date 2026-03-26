@@ -285,9 +285,7 @@ export default function DpoteDistribuicao() {
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Pote Distribuído</p>
               <p className="text-lg font-bold text-emerald-400">{fmt(totalDistribuido)}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                {data.porcentagemBarbearias != null ? `${data.porcentagemBarbearias}% das assinaturas` : 'entre todas as filiais'}
-              </p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">100% das assinaturas</p>
             </Card>
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Total de Fichas</p>
@@ -297,7 +295,9 @@ export default function DpoteDistribuicao() {
             <Card className="p-4 border-0 shadow-sm rounded-2xl bg-card">
               <p className="text-xs text-muted-foreground mb-1">Histórico CashBarber</p>
               <p className="text-lg font-bold text-violet-400">#{data.historicoId ?? '—'}</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">ID do histórico Dpote ativo</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                {data.historicoId ? `${MESES[mes - 1]} ${ano} — histórico ativo` : 'ID do histórico Dpote ativo'}
+              </p>
             </Card>
           </div>
 

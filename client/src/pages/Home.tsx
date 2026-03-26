@@ -623,7 +623,7 @@ export default function Home() {
         const faltaDia = s.metaDiariaMensal - s.mediaDiaria;
         list.push({
           tipo: "warning",
-          msg: `${s.emp.nome}: média diária R$ ${fmt(s.mediaDiaria)} — precisa de +${fmt(faltaDia)}/dia para atingir a meta.`,
+          msg: `${s.emp.nome}: média diária ${fmt(s.mediaDiaria)} — precisa de +${fmt(faltaDia)}/dia para atingir a meta.`,
         });
       } else if (progresso >= 1) {
         list.push({ tipo: "success", msg: `${s.emp.nome}: Meta mensal atingida!` });

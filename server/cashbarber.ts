@@ -658,8 +658,12 @@ export async function cashbarberCalcularDpotePorFichas(
 export async function cashbarberBuscarHistoricoAtivo(
   token: string,
   idInicial: number,
-  maxTentativas = 20
+  maxTentativas = 30
 ): Promise<{ historicoId: number; historico: CashbarberDpoteHistorico } | null> {
+  // Limiar mínimo de fichas para considerar um histórico como completo do mês.
+  // Históricos parciais (poucos dias) têm poucas fichas e devem ser ignorados.
+  const MIN_FICHAS = 10000;
+
   for (let i = 0; i < maxTentativas; i++) {
     const id = idInicial - i;
     if (id <= 0) break;
@@ -669,7 +673,8 @@ export async function cashbarberBuscarHistoricoAtivo(
         (acc, fs) => acc + fs.servicos.reduce((a, s) => a + (s.fichas || 0), 0),
         0
       );
-      if (totalFichas > 0 && historico.faturamento.valor_ganho_assinaturas > 0) {
+      // Exige fichas acima do limiar para garantir que é um histórico mensal completo
+      if (totalFichas >= MIN_FICHAS && historico.faturamento.valor_ganho_assinaturas > 0) {
         return { historicoId: id, historico };
       }
     } catch {

@@ -801,3 +801,15 @@
 
 ## Correção Cálculo Dpote - 100% do valor total (Mar 2026)
 - [x] Corrigir distribuição Dpote: usar 100% do valor total de assinaturas (não 65%)
+
+## Revisão Dashboard e Reformulação Dpote (Mar 2026)
+- [ ] Revisar e corrigir informações do dashboard principal (cards, cálculos, exibição)
+- [ ] Reformular tela de Distribuição Dpote com layout correto e dados atualizados
+
+## Revisão Dashboard e Reformulação Dpote (Mar 2026)
+- [x] Corrigir limiar de fichas na busca de histórico ativo (MIN_FICHAS = 10.000)
+- [x] Corrigir banco: dpoteHistoricoId = 68544, dpoteValorAssinaturas = 73.171,20
+- [x] saveDpoteHistoricoId agora salva valorAssinaturas junto com o ID
+- [x] Corrigir card "Pote Distribuído" para mostrar "100% das assinaturas"
+- [x] Melhorar card "Histórico CashBarber" com mês e ano do histórico ativo
+- [x] Corrigir alerta com duplo R$ R$ nos alertas do dashboard
