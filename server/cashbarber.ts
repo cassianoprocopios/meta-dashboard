@@ -521,9 +521,8 @@ export function calcularComissaoBrutaFilial(
 
   if (totalFichas === 0 || fichasFilial === 0) return 0;
 
-  // Comissão bruta total × proporção da filial
-  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
-  const comissaoFilial = comissaoBrutaTotal * (fichasFilial / totalFichas);
+  // Distribui 100% do valor total de assinaturas proporcional às fichas da filial
+  const comissaoFilial = valor_ganho_assinaturas * (fichasFilial / totalFichas);
 
   // Arredondar para inteiro (valores em reais)
   return Math.round(comissaoFilial);
@@ -563,9 +562,8 @@ export function calcularComissaoBrutaFilialPorNome(
 
   if (totalFichas === 0 || fichasFilial === 0) return 0;
 
-  // Comissão bruta total × proporção da filial
-  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
-  const comissaoFilial = comissaoBrutaTotal * (fichasFilial / totalFichas);
+  // Distribui 100% do valor total de assinaturas proporcional às fichas da filial
+  const comissaoFilial = valor_ganho_assinaturas * (fichasFilial / totalFichas);
 
   // Arredondar para inteiro (valores em reais)
   return Math.round(comissaoFilial);
@@ -700,7 +698,8 @@ export async function cashbarberCalcularDpoteViaHistorico(
 
   const { historicoId, historico } = resultado;
   const { valor_ganho_assinaturas, porcentagem_comissao_barbearias } = historico.faturamento;
-  const comissaoBrutaTotal = valor_ganho_assinaturas * (porcentagem_comissao_barbearias / 100);
+  // Distribui 100% do valor total de assinaturas entre as filiais
+  const valorTotalDistribuir = valor_ganho_assinaturas;
 
   let totalFichas = 0;
   const filiaisComFichas = historico.filiais_servicos.map((fs) => {
@@ -713,7 +712,7 @@ export async function cashbarberCalcularDpoteViaHistorico(
     const percentual = totalFichas > 0 ? (fichas / totalFichas) * 100 : 0;
     const valorDistribuido =
       totalFichas > 0 && fichas > 0
-        ? Math.round(comissaoBrutaTotal * (fichas / totalFichas))
+        ? Math.round(valorTotalDistribuir * (fichas / totalFichas))
         : 0;
     return {
       filialId: filial.id,

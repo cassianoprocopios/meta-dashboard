@@ -216,19 +216,18 @@ describe("calcularComissaoBrutaFilial", () => {
   it("deve calcular corretamente a comissão bruta da filial Morumbi (70% das fichas)", () => {
     // Total fichas: 70+30 (Morumbi) + 40+10 (Mascote) = 150
     // Fichas Morumbi: 100 → 100/150 = 66.67%
-    // Comissão bruta total: 63035 × 65% = 40972.75
-    // Comissão Morumbi: 40972.75 × 66.67% ≈ 27316
+    // Distribui 100% do valor: 63035 × 66.67% ≈ 42023
     const resultado = calcularComissaoBrutaFilial(historicoBase, 144);
-    expect(resultado).toBeGreaterThan(27000);
-    expect(resultado).toBeLessThan(28000);
+    expect(resultado).toBeGreaterThan(41000);
+    expect(resultado).toBeLessThan(43000);
   });
 
   it("deve calcular corretamente a comissão bruta da filial Mascote (33% das fichas)", () => {
     // Fichas Mascote: 50 → 50/150 = 33.33%
-    // Comissão Mascote: 40972.75 × 33.33% ≈ 13657
+    // Distribui 100% do valor: 63035 × 33.33% ≈ 21012
     const resultado = calcularComissaoBrutaFilial(historicoBase, 3520);
-    expect(resultado).toBeGreaterThan(13000);
-    expect(resultado).toBeLessThan(14000);
+    expect(resultado).toBeGreaterThan(20000);
+    expect(resultado).toBeLessThan(22000);
   });
 
   it("deve retornar 0 se a filial não tiver fichas", () => {
@@ -259,12 +258,11 @@ describe("calcularComissaoBrutaFilial", () => {
     expect(Number.isInteger(resultado)).toBe(true);
   });
 
-  it("a soma das comissões de todas as filiais deve ser igual à comissão bruta total", () => {
+  it("a soma das comissões de todas as filiais deve ser igual ao valor total de assinaturas", () => {
     const morumbi = calcularComissaoBrutaFilial(historicoBase, 144);
     const mascote = calcularComissaoBrutaFilial(historicoBase, 3520);
-    const comissaoBrutaTotal = Math.round(63035 * 0.65);
-    // A soma pode diferir em 1 real por arredondamento
-    expect(Math.abs(morumbi + mascote - comissaoBrutaTotal)).toBeLessThanOrEqual(1);
+    // Distribui 100% do valor total — soma pode diferir em 1 real por arredondamento
+    expect(Math.abs(morumbi + mascote - 63035)).toBeLessThanOrEqual(1);
   });
 });
 
@@ -296,22 +294,24 @@ describe("calcularComissaoBrutaFilialPorNome", () => {
   };
 
   it("deve encontrar filial pelo nome exato", () => {
+    // Distribui 100% do valor: 63035 × 66.67% ≈ 42023
     const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "Morumbi");
-    expect(resultado).toBeGreaterThan(27000);
-    expect(resultado).toBeLessThan(28000);
+    expect(resultado).toBeGreaterThan(41000);
+    expect(resultado).toBeLessThan(43000);
   });
 
   it("deve encontrar filial com busca case-insensitive", () => {
     const resultadoMinusculo = calcularComissaoBrutaFilialPorNome(historicoBase, "morumbi");
     const resultadoMaiusculo = calcularComissaoBrutaFilialPorNome(historicoBase, "MORUMBI");
     expect(resultadoMinusculo).toBe(resultadoMaiusculo);
-    expect(resultadoMinusculo).toBeGreaterThan(27000);
+    expect(resultadoMinusculo).toBeGreaterThan(41000);
   });
 
   it("deve encontrar filial com busca parcial", () => {
+    // Distribui 100% do valor: 63035 × 33.33% ≈ 21012
     const resultado = calcularComissaoBrutaFilialPorNome(historicoBase, "Masc");
-    expect(resultado).toBeGreaterThan(13000);
-    expect(resultado).toBeLessThan(14000);
+    expect(resultado).toBeGreaterThan(20000);
+    expect(resultado).toBeLessThan(22000);
   });
 
   it("deve retornar 0 se o nome não for encontrado", () => {

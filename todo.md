@@ -798,3 +798,6 @@
 
 ## Botão Aplicar Dpote no Faturamento (Mar 2026)
 - [x] Botão "Aplicar no Faturamento" na tela Dpote com confirmação, loading e feedback de resultado
+
+## Correção Cálculo Dpote - 100% do valor total (Mar 2026)
+- [x] Corrigir distribuição Dpote: usar 100% do valor total de assinaturas (não 65%)
