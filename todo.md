@@ -795,3 +795,6 @@
 - [ ] Criar procedure tRPC cashbarber.sincronizarDpoteScraping
 - [ ] Atualizar job automático para usar scraping em vez de API
 - [ ] Atualizar frontend com botão de sync e resultado da extração
+
+## Botão Aplicar Dpote no Faturamento (Mar 2026)
+- [x] Botão "Aplicar no Faturamento" na tela Dpote com confirmação, loading e feedback de resultado

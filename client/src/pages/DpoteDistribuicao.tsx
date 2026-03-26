@@ -2,13 +2,21 @@ import React, { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   LineChart, Line,
 } from "recharts";
-import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle, History, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Repeat2, Award, Hash, TrendingUp, ArrowDownToLine, CheckCircle2, PencilLine, AlertCircle, History, Clock, ChevronDown, ChevronUp, AlertTriangle, Zap } from "lucide-react";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -89,6 +97,7 @@ export default function DpoteDistribuicao() {
   const [qtdMesesHistorico, setQtdMesesHistorico] = useState(12);
   const [syncLogAberto, setSyncLogAberto] = useState(false);
   const [syncLogLimit, setSyncLogLimit] = useState(20);
+  const [confirmarAplicar, setConfirmarAplicar] = useState(false);
 
   const { data, isLoading, error, refetch, isFetching } = trpc.cashbarber.dpoteDistribuicao.useQuery(
     { mes, ano },
@@ -115,6 +124,7 @@ export default function DpoteDistribuicao() {
 
   const aplicarMutation = trpc.cashbarber.aplicarDpoteNoFaturamento.useMutation({
     onSuccess: (resultado) => {
+      setConfirmarAplicar(false);
       utils.faturamento.listar.invalidate();
       const linhas = resultado.aplicados.map(
         (a) => `${a.filialNome}: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(a.valorDistribuido)}`
@@ -122,12 +132,13 @@ export default function DpoteDistribuicao() {
       const avisos = resultado.naoEncontrados.length > 0
         ? ` (não encontrado: ${resultado.naoEncontrados.join(", ")})`
         : "";
-      toast.success("Dpote aplicado ao dashboard!", {
+      toast.success("Dpote aplicado ao faturamento!", {
         description: linhas + avisos,
         duration: 6000,
       });
     },
     onError: (err) => {
+      setConfirmarAplicar(false);
       toast.error("Erro ao aplicar Dpote", {
         description: err.message,
       });
@@ -212,17 +223,17 @@ export default function DpoteDistribuicao() {
             {isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
             Atualizar
           </button>
-          {/* Botão principal: aplica valor distribuído como faturamento de cada unidade */}
+          {/* Botão principal: abre diálogo de confirmação antes de aplicar */}
           {data && data.filiais.length > 0 && (
             <Button
-              onClick={() => aplicarMutation.mutate({ mes, ano })}
+              onClick={() => setConfirmarAplicar(true)}
               disabled={aplicarMutation.isPending}
               className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 h-auto"
             >
               {aplicarMutation.isPending
                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 : <ArrowDownToLine className="w-3.5 h-3.5" />}
-              Aplicar ao Dashboard
+              Aplicar no Faturamento
             </Button>
           )}
         </div>
@@ -897,6 +908,94 @@ export default function DpoteDistribuicao() {
           </Card>
         </>
       )}
+
+      {/* Diálogo de confirmação para aplicar Dpote no faturamento */}
+      <Dialog open={confirmarAplicar} onOpenChange={(open) => { if (!aplicarMutation.isPending) setConfirmarAplicar(open); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-emerald-400" />
+              Aplicar Dpote no Faturamento
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Os valores abaixo serão lançados como <strong>Recorrência</strong> no dia 1 de {MESES[(mes ?? 1) - 1]} {ano} para cada unidade.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Tabela de valores por filial */}
+          {data && data.filiais.filter((f) => f.fichas > 0).length > 0 && (
+            <div className="rounded-xl border border-border/60 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border/60">
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground">Unidade</th>
+                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground">Fichas</th>
+                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground">%</th>
+                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground">Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.filiais
+                    .filter((f) => f.fichas > 0)
+                    .sort((a, b) => b.valorDistribuido - a.valorDistribuido)
+                    .map((f, i) => {
+                      const cor = CORES_FILIAL[i % CORES_FILIAL.length];
+                      return (
+                        <tr key={f.filialId} className="border-b border-border/40 last:border-0">
+                          <td className="px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cor }} />
+                              <span className="font-medium text-foreground text-xs">{f.filialNome}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">{fmtNum(f.fichas)}</td>
+                          <td className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: cor }}>{f.percentual.toFixed(1)}%</td>
+                          <td className="px-4 py-2.5 text-right text-xs font-bold text-foreground">{fmt(f.valorDistribuido)}</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-muted/30 border-t border-border/60">
+                    <td className="px-4 py-2.5 text-xs font-semibold text-muted-foreground" colSpan={3}>Total</td>
+                    <td className="px-4 py-2.5 text-right text-sm font-bold text-emerald-400">{fmt(totalDistribuido)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          {/* Aviso de sobrescrita */}
+          <div className="flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-300/90">
+              Esta ação <strong>sobrescreve</strong> o valor de Recorrência existente no dia 1 de cada unidade. As demais categorias do dia não serão alteradas.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmarAplicar(false)}
+              disabled={aplicarMutation.isPending}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => aplicarMutation.mutate({ mes, ano })}
+              disabled={aplicarMutation.isPending}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+            >
+              {aplicarMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" />Aplicando...</>
+              ) : (
+                <><ArrowDownToLine className="w-4 h-4 mr-2" />Confirmar e Aplicar</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
