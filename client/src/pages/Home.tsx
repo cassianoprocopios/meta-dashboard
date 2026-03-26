@@ -2065,9 +2065,26 @@ export default function Home() {
                                 )}
                               </button>
                             </div>
-                            {/* Informação de assinaturas */}
-                            <div className="mt-1 text-[9px] text-violet-400/60 text-right">
-                              {fmtFull(valorBruto)} assinaturas (100%)
+                            {/* Data/hora da última atualização manual + informação de assinaturas */}
+                            <div className="mt-1 flex items-center justify-between gap-1">
+                              {fonteAtual === "manual" && dpoteCfg?.recorrenciaManualAtualizadoEm ? (
+                                <span className="inline-flex items-center gap-1 text-[9px] text-violet-400/70">
+                                  <Clock className="w-2.5 h-2.5 flex-shrink-0" />
+                                  Atualizado em{" "}
+                                  {new Date(dpoteCfg.recorrenciaManualAtualizadoEm).toLocaleString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              ) : (
+                                <span />
+                              )}
+                              <span className="text-[9px] text-violet-400/60">
+                                {fmtFull(valorBruto)} assinaturas (100%)
+                              </span>
                             </div>
                           </div>
                         )}

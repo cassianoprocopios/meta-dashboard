@@ -876,3 +876,7 @@
 - [x] Ao selecionar Manual: abre painel de entrada do valor total apurado
 - [x] Badge de fonte para usuários não-gerentes
 - [x] 84 testes passando
+
+## Data/Hora da Última Atualização Manual no Card de Recorrência
+
+- [x] Exibir data e hora da última atualização manual no card de Recorrência (quando fonte = manual)
