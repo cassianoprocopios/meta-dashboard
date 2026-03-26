@@ -813,3 +813,12 @@
 - [x] Corrigir card "Pote Distribuído" para mostrar "100% das assinaturas"
 - [x] Melhorar card "Histórico CashBarber" com mês e ano do histórico ativo
 - [x] Corrigir alerta com duplo R$ R$ nos alertas do dashboard
+
+## Recorrência Proporcional ao Dia Vigente (Mar 2026)
+- [x] Corrigir lançamento de Recorrência: valor deve ser proporcional ao dia vigente (acumulado até hoje, não total mensal)
+
+## Recorrência Proporcional ao Dia Vigente - Opção C (Mar 2026)
+- [x] Dias 1 até hoje: valor_total ÷ dias_do_mês (valor diário fixo apurado)
+- [x] Dias futuros do mês: R$ 0 (ainda não aconteceram)
+- [x] Mês seguinte: distribuir previsão baseada no total do mês atual (valor_total_atual ÷ dias_mês_seguinte por dia)
+- [x] Ao chegar o dia vigente no mês seguinte: sobrescrever previsão com valor apurado real do Dpote

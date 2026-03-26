@@ -330,3 +330,94 @@ describe("getCategoriasMapeadas (lógica interna)", () => {
     expect(cats.size).toBe(0);
   });
 });
+
+// ─── Testes da nova lógica de distribuição proporcional ao dia vigente ──────────
+
+describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getCashbarberConfig).mockResolvedValue(configMock as any);
+    vi.mocked(listCashbarberMapeamento).mockResolvedValue(mapeamentoCat1Cat2 as any);
+    vi.mocked(calcularFaturamentoPorCategoriaComCatalogo).mockReturnValue({
+      cat1: 6000, cat2: 1500, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0,
+      totalServicos: 6000, totalProdutos: 1500, totalGeral: 7500, detalhes: [],
+    });
+    vi.mocked(cashbarberCalcularDpotePorFichas).mockResolvedValue([
+      { filialNome: "Morumbi/Vila Andrade", fichas: 56030, percentual: 70.08, valorDistribuido: 5000, comissaoBruta: 5000 },
+    ]);
+    vi.mocked(getFaturamentoByDataEmpresaTenant).mockResolvedValue(undefined);
+  });
+
+  it("mês passado: todos os dias recebem valor diário (nenhum é futuro)", async () => {
+    // Março/2025 é mês passado — todos os 31 dias devem ter cat9 = valor diário
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", 3, 2025, "auto");
+
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+    const valorDiario = String(Math.round((5000 / 31) * 100) / 100);
+
+    // Todos os dias de 1 a 31 devem ter cat9 = valor diário
+    for (let dia = 1; dia <= 31; dia++) {
+      const dataStr = `2025-03-${String(dia).padStart(2, "0")}`;
+      const chamada = calls.find((c) => c[0].data === dataStr);
+      expect(chamada).toBeDefined();
+      expect(chamada![0].cat9).toBe(valorDiario);
+    }
+  });
+
+  it("mês atual: dias passados e hoje recebem valor diário; dias futuros recebem '0'", async () => {
+    const hoje = new Date();
+    const mes = hoje.getMonth() + 1;
+    const ano = hoje.getFullYear();
+    const diaHoje = hoje.getDate();
+    const totalDias = new Date(ano, mes, 0).getDate();
+
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", mes, ano, "auto");
+
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+    const valorDiario = String(Math.round((5000 / totalDias) * 100) / 100);
+
+    // Dias 1 até hoje: devem ter cat9 = valor diário
+    for (let dia = 1; dia <= diaHoje; dia++) {
+      const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const chamada = calls.find((c) => c[0].data === dataStr);
+      expect(chamada).toBeDefined();
+      expect(chamada![0].cat9).toBe(valorDiario);
+    }
+
+    // Dias após hoje: devem ter cat9 = "0"
+    for (let dia = diaHoje + 1; dia <= totalDias; dia++) {
+      const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const chamada = calls.find((c) => c[0].data === dataStr);
+      if (chamada) {
+        expect(chamada![0].cat9).toBe("0");
+      }
+    }
+  });
+
+  it("mês atual: total de cat9 acumulado até hoje ≈ valor diário × dias passados", async () => {
+    const hoje = new Date();
+    const mes = hoje.getMonth() + 1;
+    const ano = hoje.getFullYear();
+    const diaHoje = hoje.getDate();
+    const totalDias = new Date(ano, mes, 0).getDate();
+
+    await sincronizarFaturamentoCashbarber(1, "MORUMBI", mes, ano, "auto");
+
+    const calls = vi.mocked(upsertFaturamento).mock.calls;
+
+    // Somar apenas os dias de 1 até hoje
+    const totalAcumulado = calls
+      .filter((c) => {
+        const dia = parseInt(c[0].data.split("-")[2]);
+        return dia <= diaHoje;
+      })
+      .reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
+
+    const valorDiario = Math.round((5000 / totalDias) * 100) / 100;
+    const esperado = valorDiario * diaHoje;
+
+    // Tolerância de R$ 1 por arredondamento
+    expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 1);
+    expect(totalAcumulado).toBeLessThanOrEqual(esperado + 1);
+  });
+});

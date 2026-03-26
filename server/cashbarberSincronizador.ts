@@ -310,15 +310,18 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // O valor total mensal é distribuído igualmente por todos os dias do mês
-      // sincronizados, refletindo a cobrança diária dos planos mensais.
-      // Ex: R$ 30.000 em 30 dias = R$ 1.000/dia.
+      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_do_mês.
+      // Dias futuros (ainda não aconteceram) recebem "0".
+      // Ex: R$ 73.171 em 31 dias = R$ 2.360/dia; dias futuros = R$ 0.
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        // Distribuir igualmente pelo número total de dias sincronizados no mês
         const totalDiasMes = new Date(ano, mes, 0).getDate();
-        const valorDiario = recorrenciaValor / totalDiasMes;
-        cat9 = String(Math.round(valorDiario * 100) / 100);
+        const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
+        // Verificar se o dia é futuro (maior que hoje no mês atual)
+        const hoje2 = new Date();
+        const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
+        const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
+        cat9 = diaFuturo ? "0" : String(valorDiario);
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
         cat9 = existente?.cat9 ?? "0";
@@ -486,6 +489,11 @@ export async function aplicarDpoteParaTenant(
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
   const naoEncontrados: string[] = [];
 
+  // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
+  const hojeAplic = new Date();
+  const ehMesAtualAplic = mes === hojeAplic.getMonth() + 1 && ano === hojeAplic.getFullYear();
+  const diaVigenteAplic = hojeAplic.getDate();
+
   for (const config of configs) {
     if (!config.dpoteFilialNome) continue;
     const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
@@ -495,12 +503,16 @@ export async function aplicarDpoteParaTenant(
       continue;
     }
 
-    // Distribuir o valor de recorrência igualmente por todos os dias do mês
+    // Valor diário = total ÷ dias do mês
     const valorDiario = Math.round((filial.valorDistribuido / totalDiasMes) * 100) / 100;
 
     for (let dia = 1; dia <= totalDiasMes; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
+
+      // Regra: dias passados e o dia vigente recebem valor diário; dias futuros recebem "0"
+      const diaFuturoAplic = ehMesAtualAplic && dia > diaVigenteAplic;
+      const cat9Valor = diaFuturoAplic ? "0" : String(valorDiario);
 
       await upsertFaturamento({
         tenantId,
@@ -513,8 +525,43 @@ export async function aplicarDpoteParaTenant(
         cat6: existente?.cat6 ?? "0",
         cat7: existente?.cat7 ?? "0",
         cat8: existente?.cat8 ?? "0",
-        cat9: String(valorDiario),
+        cat9: cat9Valor,
         sincronizadoCB: existente?.sincronizadoCB ?? 0,
+        observacao: existente?.observacao ?? undefined,
+        lancadoPor: existente?.lancadoPor ?? undefined,
+      });
+    }
+
+    // Previsão para o mês seguinte: distribuir o valor total do mês atual como estimativa
+    // Cada dia do próximo mês recebe valorDiario como previsão
+    // Quando chegar o dia vigente no mês seguinte, a sync sobrescreverá com o valor real
+    const mesProximo = mes === 12 ? 1 : mes + 1;
+    const anoProximo = mes === 12 ? ano + 1 : ano;
+    const totalDiasMesProximo = new Date(anoProximo, mesProximo, 0).getDate();
+    const valorDiarioPrevisao = Math.round((filial.valorDistribuido / totalDiasMesProximo) * 100) / 100;
+
+    for (let dia = 1; dia <= totalDiasMesProximo; dia++) {
+      const dataStr = `${anoProximo}-${String(mesProximo).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
+
+      // Só preencher previsão se não houver valor real já lançado (cat9 != "0" e sincronizadoCB=1)
+      // Isso evita sobrescrever um valor apurado real com a previsão
+      const jaTemValorReal = existente?.sincronizadoCB === 1 && existente?.cat9 && existente.cat9 !== "0";
+      if (jaTemValorReal) continue;
+
+      await upsertFaturamento({
+        tenantId,
+        empresaSlug: config.empresaSlug,
+        data: dataStr,
+        cat1: existente?.cat1 ?? "0",
+        cat2: existente?.cat2 ?? "0",
+        cat3: existente?.cat3 ?? "0",
+        cat4: existente?.cat4 ?? "0",
+        cat6: existente?.cat6 ?? "0",
+        cat7: existente?.cat7 ?? "0",
+        cat8: existente?.cat8 ?? "0",
+        cat9: String(valorDiarioPrevisao),
+        sincronizadoCB: 0, // marca como previsão (não sincronizado do CashBarber)
         observacao: existente?.observacao ?? undefined,
         lancadoPor: existente?.lancadoPor ?? undefined,
       });
@@ -526,7 +573,7 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (total: R$ ${filial.valorDistribuido.toFixed(2)})`);
+    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (dias passados/hoje), R$ ${valorDiarioPrevisao.toFixed(2)}/dia (previsão ${mesProximo}/${anoProximo})`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };
