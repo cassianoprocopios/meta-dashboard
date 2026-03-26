@@ -830,3 +830,6 @@
 
 ## Atualização Histórico Dpote Correto (Mar 2026)
 - [x] Atualizar banco para usar histórico 68544 (R$ 73.171,20 | 79.985 fichas | Morumbi 70,05% | Mascote 29,95%)
+
+## Aplicação Dpote Março 2026 (Mar 2026)
+- [x] Aplicar valores de Recorrência de Março com base no histórico #68544 (Morumbi R$ 51.256,89 | Mascote R$ 21.914,31)

@@ -1,0 +1,24 @@
+{
+  "query": "SELECT empresaSlug,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as soma_cat9,\n  COUNT(*) as total_dias,\n  SUM(CASE WHEN CAST(cat9 AS DECIMAL(10,2)) > 0 THEN 1 ELSE 0 END) as dias_com_valor,\n  SUM(CASE WHEN CAST(cat9 AS DECIMAL(10,2)) = 0 THEN 1 ELSE 0 END) as dias_zerados\nFROM faturamentos \nWHERE tenantId = 1 \n  AND empresaSlug IN ('MORUMBI', 'MASCOTE') \n  AND data >= '2026-03-01' \n  AND data <= '2026-03-31'\nGROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as soma_cat9,\n  COUNT(*) as total_dias,\n  SUM(CASE WHEN CAST(cat9 AS DECIMAL(10,2)) > 0 THEN 1 ELSE 0 END) as dias_com_valor,\n  SUM(CASE WHEN CAST(cat9 AS DECIMAL(10,2)) = 0 THEN 1 ELSE 0 END) as dias_zerados\nFROM faturamentos \nWHERE tenantId = 1 \n  AND empresaSlug IN ('MORUMBI', 'MASCOTE') \n  AND data >= '2026-03-01' \n  AND data <= '2026-03-31'\nGROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "soma_cat9": "42989.70",
+      "total_dias": "31",
+      "dias_com_valor": "26",
+      "dias_zerados": "5"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "soma_cat9": "18379.66",
+      "total_dias": "31",
+      "dias_com_valor": "26",
+      "dias_zerados": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tsoma_cat9\ttotal_dias\tdias_com_valor\tdias_zerados\nMORUMBI\t42989.70\t31\t26\t5\nMASCOTE\t18379.66\t31\t26\t5\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}
