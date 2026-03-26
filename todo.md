@@ -850,3 +850,9 @@
 - [x] Distribuir valor diário = valorTotal / diaHoje (não / diasDoMes)
 - [x] Dias futuros ficam com R$ 0
 - [x] Atualizar preview no frontend: Diário (média), Apurado até dia X, Projeção Mensal
+
+## Botão Sincronizar CashBarber no Painel Manual (Mar 2026)
+- [x] Adicionar botão "Sincronizar com CashBarber" no painel de Recorrência manual para sobrescrever valor manual com dados do CashBarber
+- [x] Procedure tRPC cashbarber.sincronizarDpotePorEmpresa para sincronizar por empresa específica
+- [x] Loading state durante sincronização e toast de feedback (sucesso/aviso/erro)
+- [x] Badge "CashBarber API" / "Manual" já existente no card de Recorrência

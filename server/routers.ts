@@ -2703,6 +2703,42 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         };
       }),
 
+    /**
+     * Sincroniza o Dpote (Recorrência/cat9) do mês atual apenas para uma empresa específica.
+     * Usado pelo botão "Sincronizar com CashBarber" no painel manual de Recorrência.
+     */
+    sincronizarDpotePorEmpresa: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string().min(1),
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        try {
+          const resultado = await sincronizarFaturamentoCashbarber(
+            tenantId,
+            input.empresaSlug,
+            input.mes,
+            input.ano,
+            "manual"
+          );
+          return {
+            empresa: input.empresaSlug,
+            recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
+            recorrenciaValor: resultado.recorrenciaValor ?? 0,
+            erros: resultado.erros ? [resultado.erros] : [],
+          };
+        } catch (e) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
+      }),
+
     dpoteSyncLog: protectedProcedure
       .input(
         z.object({

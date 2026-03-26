@@ -116,6 +116,24 @@ export default function Home() {
   // Estado para o painel de entrada manual de Recorrência
   const [recorrenciaManualSlug, setRecorrenciaManualSlug] = useState<string | null>(null);
   const [recorrenciaManualValor, setRecorrenciaManualValor] = useState("");
+  const [syncingRecorrenciaSlug, setSyncingRecorrenciaSlug] = useState<string | null>(null);
+  const sincronizarDpotePorEmpresaMutation = trpc.cashbarber.sincronizarDpotePorEmpresa.useMutation({
+    onSuccess: (data) => {
+      setSyncingRecorrenciaSlug(null);
+      if (data.erros.length > 0) {
+        toast.warning(`Sincronização com avisos: ${data.erros.join(", ")}`);
+      } else if (data.recorrenciaAtualizada) {
+        toast.success(`↻ Recorrência sincronizada! ${data.empresa}: ${fmtFull(data.recorrenciaValor)}`);
+      } else {
+        toast.info("CashBarber sincronizado. Nenhuma alteração no valor de Recorrência.");
+      }
+      refetchFat();
+    },
+    onError: (err) => {
+      setSyncingRecorrenciaSlug(null);
+      toast.error(`Erro ao sincronizar com CashBarber: ${err.message}`);
+    },
+  });
   const salvarRecorrenciaManualMutation = trpc.faturamento.salvarRecorrenciaManual.useMutation({
     onSuccess: (data) => {
       toast.success(
@@ -2017,6 +2035,25 @@ export default function Home() {
                             <p className="text-[11px] text-violet-300/80 mb-2 font-medium">
                               Informe o valor total de Recorrência do mês. O sistema distribui proporcionalmente pelos dias já decorridos.
                             </p>
+                            {/* Botão de sincronização com CashBarber */}
+                            <button
+                              onClick={() => {
+                                setSyncingRecorrenciaSlug(s.emp.slug);
+                                sincronizarDpotePorEmpresaMutation.mutate({
+                                  empresaSlug: s.emp.slug,
+                                  mes,
+                                  ano,
+                                });
+                              }}
+                              disabled={sincronizarDpotePorEmpresaMutation.isPending && syncingRecorrenciaSlug === s.emp.slug}
+                              className="w-full mb-2.5 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-400/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {sincronizarDpotePorEmpresaMutation.isPending && syncingRecorrenciaSlug === s.emp.slug ? (
+                                <><Loader2 className="w-3 h-3 animate-spin" /> Sincronizando com CashBarber...</>
+                              ) : (
+                                <><RefreshCw className="w-3 h-3" /> Sincronizar com CashBarber</>
+                              )}
+                            </button>
                             <div className="flex items-center gap-2">
                               <div className="relative flex-1">
                                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-semibold">R$</span>
