@@ -827,3 +827,6 @@
 - [x] Corrigir valor total de assinaturas exibido na tela Dpote para R$ 73.171,20
 - [x] Aumentar maxTentativas de 30 para 60 na busca retroativa de histórico ativo
 - [x] Corrigir banco: dpoteHistoricoId = 68539, dpoteValorAssinaturas = 73171.20 (ambas empresas)
+
+## Atualização Histórico Dpote Correto (Mar 2026)
+- [x] Atualizar banco para usar histórico 68544 (R$ 73.171,20 | 79.985 fichas | Morumbi 70,05% | Mascote 29,95%)

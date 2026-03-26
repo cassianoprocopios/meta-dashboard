@@ -1,0 +1,20 @@
+{
+  "query": "UPDATE cashbarberConfig \nSET dpoteHistoricoId = 68544, \n    dpoteValorAssinaturas = 73171.20\nWHERE tenantId IS NOT NULL;\n\nSELECT empresaSlug, dpoteHistoricoId, dpoteValorAssinaturas \nFROM cashbarberConfig;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE cashbarberConfig \nSET dpoteHistoricoId = 68544, \n    dpoteValorAssinaturas = 73171.20\nWHERE tenantId IS NOT NULL;\n\nSELECT empresaSlug, dpoteHistoricoId, dpoteValorAssinaturas \nFROM cashbarberConfig;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "dpoteHistoricoId": "68544",
+      "dpoteValorAssinaturas": "73171.20"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "dpoteHistoricoId": "68544",
+      "dpoteValorAssinaturas": "73171.20"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpoteHistoricoId\tdpoteValorAssinaturas\nMORUMBI\t68544\t73171.20\nMASCOTE\t68544\t73171.20\n",
+  "stderr": "",
+  "execution_time_ms": 127
+}
