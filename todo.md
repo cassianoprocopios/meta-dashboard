@@ -856,3 +856,23 @@
 - [x] Procedure tRPC cashbarber.sincronizarDpotePorEmpresa para sincronizar por empresa específica
 - [x] Loading state durante sincronização e toast de feedback (sucesso/aviso/erro)
 - [x] Badge "CashBarber API" / "Manual" já existente no card de Recorrência
+
+## Seletor de Fonte de Recorrência no Dashboard (Mar 2026)
+- [ ] Adicionar campo `recorrenciaFonte` (enum: 'cashbarber'|'manual') na tabela `metas` ou `cashbarberConfig`
+- [ ] Procedure tRPC para salvar a escolha de fonte por empresa/mês
+- [ ] UI: seletor toggle "CashBarber API" / "Manual" no painel de Recorrência
+- [ ] Quando fonte = cashbarber: exibir valor sincronizado, desabilitar campo manual
+- [ ] Quando fonte = manual: exibir campo de entrada manual, desabilitar sync automático
+- [ ] Persistir escolha no banco e refletir no dashboard após reload
+
+## Seletor de Fonte de Recorrência (CashBarber vs Manual)
+
+- [x] Adicionar colunas recorrenciaFonte, recorrenciaValorManual, recorrenciaManualAtualizadoEm na tabela cashbarberConfig
+- [x] Funções de DB saveRecorrenciaFonte e getRecorrenciaFonte
+- [x] Procedure tRPC cashbarber.salvarRecorrenciaFonte (persiste escolha e distribui valor manual nos dias do mês)
+- [x] Procedure listarConfigsDpote expandida para retornar recorrenciaFonte e recorrenciaValorManual
+- [x] Toggle UI CashBarber API / Manual no card de Recorrência (visível para gerentes/admin)
+- [x] Ao selecionar CashBarber: sincroniza imediatamente com a API
+- [x] Ao selecionar Manual: abre painel de entrada do valor total apurado
+- [x] Badge de fonte para usuários não-gerentes
+- [x] 84 testes passando

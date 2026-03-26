@@ -228,6 +228,17 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   dpoteValorAssinaturas: decimal("dpoteValorAssinaturas", { precision: 12, scale: 2 }),
   /** Percentual da comissão que vai para a barbearia (ex: 65 = 65%) */
   dpotePorcentagemBarbearia: decimal("dpotePorcentagemBarbearia", { precision: 5, scale: 2 }),
+  /**
+   * Fonte do valor de Recorrência exibido no dashboard:
+   * 'cashbarber' = usa o valor sincronizado com a API do CashBarber
+   * 'manual'     = usa o valor digitado manualmente pelo gerente
+   * Padrão: 'cashbarber'
+   */
+  recorrenciaFonte: varchar("recorrenciaFonte", { length: 16 }).default("cashbarber"),
+  /** Valor manual de Recorrência informado pelo gerente (total apurado até hoje) */
+  recorrenciaValorManual: decimal("recorrenciaValorManual", { precision: 12, scale: 2 }),
+  /** Data/hora em que o valor manual foi salvo */
+  recorrenciaManualAtualizadoEm: timestamp("recorrenciaManualAtualizadoEm"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -1399,3 +1399,41 @@ export async function getDpoteSyncLogsByEmpresa(
     .orderBy(desc(dpoteSyncLog.executadoEm))
     .limit(limit);
 }
+
+// ─── RECORRÊNCIA FONTE (CashBarber vs Manual) ─────────────────────────────────
+
+/** Salva a escolha de fonte de Recorrência e (opcionalmente) o valor manual */
+export async function saveRecorrenciaFonte(
+  tenantId: number,
+  empresaSlug: string,
+  fonte: "cashbarber" | "manual",
+  valorManual?: number
+) {
+  const db = await getDb();
+  if (!db) return;
+  const set: Record<string, unknown> = { recorrenciaFonte: fonte };
+  if (fonte === "manual" && valorManual !== undefined) {
+    set.recorrenciaValorManual = String(valorManual);
+    set.recorrenciaManualAtualizadoEm = new Date();
+  }
+  await db
+    .update(cashbarberConfig)
+    .set(set)
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
+}
+
+/** Retorna a fonte de Recorrência e o valor manual salvo para uma empresa */
+export async function getRecorrenciaFonte(tenantId: number, empresaSlug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select({
+      recorrenciaFonte: cashbarberConfig.recorrenciaFonte,
+      recorrenciaValorManual: cashbarberConfig.recorrenciaValorManual,
+      recorrenciaManualAtualizadoEm: cashbarberConfig.recorrenciaManualAtualizadoEm,
+    })
+    .from(cashbarberConfig)
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)))
+    .limit(1);
+  return rows[0] ?? null;
+}

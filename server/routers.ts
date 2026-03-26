@@ -73,6 +73,8 @@ import {
   getFaturamentoByDataEmpresaTenant,
   getFaturamentosHistoricoMensalByTenant,
   getDpoteSyncLogs,
+  saveRecorrenciaFonte,
+  getRecorrenciaFonte,
 } from "./db";
 import {
   cashbarberLogin,
@@ -1952,6 +1954,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         dpotePorcentagemBarbearia: c.dpotePorcentagemBarbearia ? parseFloat(String(c.dpotePorcentagemBarbearia)) : null,
         dpoteHistoricoId: (c as any).dpoteHistoricoId ?? null,
         dpoteHistoricoMes: (c as any).dpoteHistoricoMes ?? null,
+        recorrenciaFonte: ((c as any).recorrenciaFonte ?? "cashbarber") as "cashbarber" | "manual",
+        recorrenciaValorManual: (c as any).recorrenciaValorManual ? parseFloat(String((c as any).recorrenciaValorManual)) : null,
+        recorrenciaManualAtualizadoEm: (c as any).recorrenciaManualAtualizadoEm ?? null,
       }));
     }),
 
@@ -2707,6 +2712,76 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
      * Sincroniza o Dpote (Recorrência/cat9) do mês atual apenas para uma empresa específica.
      * Usado pelo botão "Sincronizar com CashBarber" no painel manual de Recorrência.
      */
+    /**
+     * Salva a escolha de fonte de Recorrência (cashbarber ou manual) para uma empresa.
+     * Quando fonte = 'manual', também salva o valor manual informado e distribui nos dias do mês.
+     */
+    salvarRecorrenciaFonte: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string().min(1),
+          fonte: z.enum(["cashbarber", "manual"]),
+          valorManual: z.number().min(0).optional(),
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await saveRecorrenciaFonte(
+          tenantId,
+          input.empresaSlug,
+          input.fonte,
+          input.valorManual
+        );
+        // Se mudou para 'cashbarber', sincronizar imediatamente com o CashBarber
+        if (input.fonte === "cashbarber") {
+          try {
+            await sincronizarFaturamentoCashbarber(
+              tenantId,
+              input.empresaSlug,
+              input.mes,
+              input.ano,
+              "manual"
+            );
+          } catch {
+            // Falha na sync não impede salvar a preferência
+          }
+        }
+        // Se mudou para 'manual' e tem valor, distribuir nos dias
+        if (input.fonte === "manual" && input.valorManual !== undefined && input.valorManual > 0) {
+          const diasDoMes = new Date(input.ano, input.mes, 0).getDate();
+          const hoje = new Date();
+          const diaHoje =
+            hoje.getFullYear() === input.ano && hoje.getMonth() + 1 === input.mes
+              ? hoje.getDate()
+              : diasDoMes;
+          const valorDiario = input.valorManual / diaHoje;
+          for (let dia = 1; dia <= diasDoMes; dia++) {
+            const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+            const valorDia = dia <= diaHoje ? valorDiario : 0;
+            const existing = await getFaturamentoByDataEmpresaTenant(dataStr, input.empresaSlug, tenantId);
+            await upsertFaturamento({
+              tenantId,
+              empresaSlug: input.empresaSlug,
+              data: dataStr,
+              cat1: existing ? String(existing.cat1) : "0",
+              cat2: existing ? String(existing.cat2) : "0",
+              cat3: existing ? String(existing.cat3) : "0",
+              cat4: existing ? String(existing.cat4) : "0",
+              cat5: existing ? String(existing.cat5) : "0",
+              cat6: existing ? String(existing.cat6) : "0",
+              cat7: existing ? String(existing.cat7) : "0",
+              cat8: existing ? String(existing.cat8) : "0",
+              cat9: String(valorDia),
+              observacao: existing?.observacao ?? null,
+              lancadoPor: existing?.lancadoPor ?? "sistema",
+            });
+          }
+        }
+        return { ok: true, fonte: input.fonte };
+      }),
+
     sincronizarDpotePorEmpresa: protectedProcedure
       .input(
         z.object({

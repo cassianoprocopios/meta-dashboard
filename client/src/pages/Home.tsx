@@ -134,6 +134,21 @@ export default function Home() {
       toast.error(`Erro ao sincronizar com CashBarber: ${err.message}`);
     },
   });
+  const { refetch: refetchConfigsDpote } = trpc.cashbarber.listarConfigsDpote.useQuery();
+  const salvarRecorrenciaFonteMutation = trpc.cashbarber.salvarRecorrenciaFonte.useMutation({
+    onSuccess: (data) => {
+      if (data.fonte === "cashbarber") {
+        toast.success("↻ Fonte alterada para CashBarber API. Sincronizando...");
+      } else {
+        toast.success("✏️ Fonte alterada para Manual.");
+      }
+      refetchConfigsDpote();
+      refetchFat();
+    },
+    onError: (err) => {
+      toast.error(`Erro ao salvar fonte de Recorrência: ${err.message}`);
+    },
+  });
   const salvarRecorrenciaManualMutation = trpc.faturamento.salvarRecorrenciaManual.useMutation({
     onSuccess: (data) => {
       toast.success(
@@ -212,11 +227,20 @@ export default function Home() {
   const { data: configsDpote = [] } = trpc.cashbarber.listarConfigsDpote.useQuery();
   // Mapa slug → config Dpote para acesso rápido
   const dpoteConfigMap = useMemo(() => {
-    const m: Record<string, { valorAssinaturas: number | null; temHistorico: boolean }> = {};
+    const m: Record<string, {
+      valorAssinaturas: number | null;
+      temHistorico: boolean;
+      recorrenciaFonte: "cashbarber" | "manual";
+      recorrenciaValorManual: number | null;
+      recorrenciaManualAtualizadoEm: Date | null;
+    }> = {};
     for (const c of configsDpote) {
       m[c.empresaSlug] = {
         valorAssinaturas: c.dpoteValorAssinaturas,
         temHistorico: !!(c.dpoteHistoricoId),
+        recorrenciaFonte: c.recorrenciaFonte ?? "cashbarber",
+        recorrenciaValorManual: c.recorrenciaValorManual ?? null,
+        recorrenciaManualAtualizadoEm: c.recorrenciaManualAtualizadoEm ?? null,
       };
     }
     return m;
@@ -1926,47 +1950,27 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Linha de Recorrência Dpote — exibida sempre para gerentes/admin (permite entrada manual) */}
+                  {/* Linha de Recorrência Dpote */}
                   {(s.recorrenciaMes > 0 || isGerente) && (() => {
                     const dpoteCfg = dpoteConfigMap[s.emp.slug];
                     const valorBruto = dpoteCfg?.valorAssinaturas;
-                    const fonteAuto = dpoteCfg?.temHistorico;
+                    const fonteAtual = dpoteCfg?.recorrenciaFonte ?? "cashbarber";
                     const isEditandoEsta = recorrenciaManualSlug === s.emp.slug;
                     const diasDoMes = new Date(ano, mes, 0).getDate();
                     const diaHoje = (new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes)
                       ? new Date().getDate() : diasDoMes;
                     const valorManualNum = parseFloat(recorrenciaManualValor.replace(",", ".")) || 0;
-                    // valorManualNum é o total APURADO até hoje
-                    // valorDiário = total apurado / dias decorridos
                     const previewDiario = valorManualNum > 0 && diaHoje > 0 ? valorManualNum / diaHoje : 0;
-                    // Projeção mensal = valorDiário × total de dias do mês
                     const previewProjecaoMensal = previewDiario * diasDoMes;
+                    const isSavingFonte = salvarRecorrenciaFonteMutation.isPending;
                     return (
                       <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
-                        {/* Linha principal: ícone + rótulo + valor calculado com tooltip da fórmula */}
+                        {/* Linha principal: ícone + rótulo + valor */}
                         <div className="flex items-center justify-between gap-2 px-3 py-2">
                           <div className="flex items-center gap-1.5">
                             <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
                             <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
-                            {isGerente && (
-                              <button
-                                onClick={() => {
-                                  if (isEditandoEsta) {
-                                    setRecorrenciaManualSlug(null);
-                                    setRecorrenciaManualValor("");
-                                  } else {
-                                    setRecorrenciaManualSlug(s.emp.slug);
-                                    setRecorrenciaManualValor("");
-                                  }
-                                }}
-                                className="p-0.5 rounded text-violet-400/60 hover:text-violet-300 hover:bg-violet-500/20 transition-colors"
-                                title="Informar Recorrência manualmente"
-                              >
-                                <Pencil className="w-3 h-3" />
-                              </button>
-                            )}
                           </div>
-                          {/* Tooltip com fórmula completa do cálculo */}
                           {valorBruto ? (
                             <UITooltip>
                               <UITooltipTrigger asChild>
@@ -1974,10 +1978,7 @@ export default function Home() {
                                   {fmt(s.recorrenciaMes)}
                                 </span>
                               </UITooltipTrigger>
-                              <UITooltipContent
-                                side="top"
-                                className="max-w-xs bg-slate-900 border border-violet-500/30 text-violet-100 px-3 py-2.5 rounded-xl shadow-xl"
-                              >
+                              <UITooltipContent side="top" className="max-w-xs bg-slate-900 border border-violet-500/30 text-violet-100 px-3 py-2.5 rounded-xl shadow-xl">
                                 <p className="text-[11px] font-semibold text-violet-300 mb-1.5">Fórmula do cálculo Dpote</p>
                                 <div className="space-y-1 text-[11px] text-violet-200/80">
                                   <div className="flex items-center gap-1.5">
@@ -1988,11 +1989,7 @@ export default function Home() {
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-violet-400 font-mono">× Proporção fichas desta filial</span>
                                     <span className="text-violet-500">=</span>
-                                    <span className="font-semibold text-white">
-                                      {valorBruto > 0
-                                        ? `${((s.recorrenciaMes / valorBruto) * 100).toFixed(1)}%`
-                                        : "—"}
-                                    </span>
+                                    <span className="font-semibold text-white">{valorBruto > 0 ? `${((s.recorrenciaMes / valorBruto) * 100).toFixed(1)}%` : "—"}</span>
                                   </div>
                                   <div className="mt-1.5 pt-1.5 border-t border-violet-500/30 flex items-center gap-1.5">
                                     <span className="text-violet-300 font-mono font-semibold">= Faturamento Recorrência</span>
@@ -2006,54 +2003,98 @@ export default function Home() {
                             <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
                           )}
                         </div>
-                        {/* Linha de detalhe: fonte do cálculo */}
-                        {valorBruto && (
-                          <div className="flex items-center justify-between gap-2 px-3 pb-2">
-                            <div className="flex items-center gap-1.5">
-                              {fonteAuto ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                  CashBarber API
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-500/15 px-1.5 py-0.5 rounded-md">
-                                  Manual
-                                </span>
-                              )}
+
+                        {/* Seletor de fonte — visível para gerentes/admin quando há configuração Dpote */}
+                        {isGerente && valorBruto && (
+                          <div className="px-3 pb-2.5">
+                            {/* Toggle CashBarber / Manual */}
+                            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-violet-500/20">
+                              <button
+                                onClick={() => {
+                                  if (fonteAtual !== "cashbarber" && !isSavingFonte) {
+                                    salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "cashbarber", mes, ano });
+                                  }
+                                }}
+                                disabled={isSavingFonte}
+                                className={`flex-1 flex items-center justify-center gap-1.5 h-6 rounded-md text-[10px] font-semibold transition-all ${
+                                  fonteAtual === "cashbarber"
+                                    ? "bg-emerald-500/25 text-emerald-300 shadow-sm"
+                                    : "text-slate-400 hover:text-slate-300"
+                                }`}
+                              >
+                                {isSavingFonte && fonteAtual === "manual" ? (
+                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="w-2.5 h-2.5" />
+                                )}
+                                CashBarber API
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (fonteAtual !== "manual" && !isSavingFonte) {
+                                    // Ao mudar para manual, abrir painel de entrada
+                                    setRecorrenciaManualSlug(s.emp.slug);
+                                    setRecorrenciaManualValor("");
+                                    salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "manual", mes, ano });
+                                  } else if (fonteAtual === "manual") {
+                                    // Já está em manual: toggle do painel de edição
+                                    if (isEditandoEsta) {
+                                      setRecorrenciaManualSlug(null);
+                                      setRecorrenciaManualValor("");
+                                    } else {
+                                      setRecorrenciaManualSlug(s.emp.slug);
+                                      setRecorrenciaManualValor("");
+                                    }
+                                  }
+                                }}
+                                disabled={isSavingFonte}
+                                className={`flex-1 flex items-center justify-center gap-1.5 h-6 rounded-md text-[10px] font-semibold transition-all ${
+                                  fonteAtual === "manual"
+                                    ? "bg-violet-500/30 text-violet-200 shadow-sm"
+                                    : "text-slate-400 hover:text-slate-300"
+                                }`}
+                              >
+                                {isSavingFonte && fonteAtual === "cashbarber" ? (
+                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                ) : (
+                                  <Pencil className="w-2.5 h-2.5" />
+                                )}
+                                Manual
+                                {fonteAtual === "manual" && dpoteCfg?.recorrenciaValorManual && (
+                                  <span className="ml-0.5 text-[9px] text-violet-300/70">({fmtFull(dpoteCfg.recorrenciaValorManual)})</span>
+                                )}
+                              </button>
                             </div>
-                            <div className="flex items-center gap-1 text-[10px] text-violet-300/70">
-                              <span title="Valor bruto de assinaturas do mês">
-                                {fmtFull(valorBruto)} assinaturas (100%)
-                              </span>
+                            {/* Informação de assinaturas */}
+                            <div className="mt-1 text-[9px] text-violet-400/60 text-right">
+                              {fmtFull(valorBruto)} assinaturas (100%)
                             </div>
                           </div>
                         )}
 
-                        {/* Painel inline de entrada manual de Recorrência */}
-                        {isEditandoEsta && isGerente && (
+                        {/* Badge de fonte para não-gerentes */}
+                        {!isGerente && valorBruto && (
+                          <div className="flex items-center gap-1.5 px-3 pb-2">
+                            {fonteAtual === "cashbarber" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                CashBarber API
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 bg-violet-500/15 px-1.5 py-0.5 rounded-md">
+                                <Pencil className="w-2.5 h-2.5" />
+                                Manual
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Painel inline de entrada manual de Recorrência (apenas quando fonte = manual) */}
+                        {isEditandoEsta && isGerente && fonteAtual === "manual" && (
                           <div className="border-t border-violet-500/20 px-3 py-3 bg-violet-500/5">
                             <p className="text-[11px] text-violet-300/80 mb-2 font-medium">
-                              Informe o valor total de Recorrência do mês. O sistema distribui proporcionalmente pelos dias já decorridos.
+                              Informe o valor total de Recorrência apurado até hoje. O sistema distribui pelos dias já decorridos.
                             </p>
-                            {/* Botão de sincronização com CashBarber */}
-                            <button
-                              onClick={() => {
-                                setSyncingRecorrenciaSlug(s.emp.slug);
-                                sincronizarDpotePorEmpresaMutation.mutate({
-                                  empresaSlug: s.emp.slug,
-                                  mes,
-                                  ano,
-                                });
-                              }}
-                              disabled={sincronizarDpotePorEmpresaMutation.isPending && syncingRecorrenciaSlug === s.emp.slug}
-                              className="w-full mb-2.5 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-400/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                              {sincronizarDpotePorEmpresaMutation.isPending && syncingRecorrenciaSlug === s.emp.slug ? (
-                                <><Loader2 className="w-3 h-3 animate-spin" /> Sincronizando com CashBarber...</>
-                              ) : (
-                                <><RefreshCw className="w-3 h-3" /> Sincronizar com CashBarber</>
-                              )}
-                            </button>
                             <div className="flex items-center gap-2">
                               <div className="relative flex-1">
                                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-semibold">R$</span>
@@ -2066,17 +2107,9 @@ export default function Home() {
                                   onChange={(e) => setRecorrenciaManualValor(e.target.value)}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" && valorManualNum > 0) {
-                                      salvarRecorrenciaManualMutation.mutate({
-                                        empresaSlug: s.emp.slug,
-                                        mes,
-                                        ano,
-                                        valorTotal: valorManualNum,
-                                      });
+                                      salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
                                     }
-                                    if (e.key === "Escape") {
-                                      setRecorrenciaManualSlug(null);
-                                      setRecorrenciaManualValor("");
-                                    }
+                                    if (e.key === "Escape") { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }
                                   }}
                                   className="pl-8 h-8 text-sm bg-slate-800/60 border-violet-500/30 text-violet-100 placeholder:text-violet-400/40 focus:border-violet-400 focus:ring-violet-400/20"
                                   autoFocus
@@ -2086,21 +2119,13 @@ export default function Home() {
                                 size="sm"
                                 onClick={() => {
                                   if (valorManualNum > 0) {
-                                    salvarRecorrenciaManualMutation.mutate({
-                                      empresaSlug: s.emp.slug,
-                                      mes,
-                                      ano,
-                                      valorTotal: valorManualNum,
-                                    });
+                                    salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
                                   }
                                 }}
                                 disabled={valorManualNum <= 0 || salvarRecorrenciaManualMutation.isPending}
                                 className="h-8 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white shrink-0"
                               >
-                                {salvarRecorrenciaManualMutation.isPending
-                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  : "Aplicar"
-                                }
+                                {salvarRecorrenciaManualMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Aplicar"}
                               </Button>
                               <button
                                 onClick={() => { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }}
@@ -2109,7 +2134,6 @@ export default function Home() {
                                 <XIcon className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            {/* Preview do valor diário calculado */}
                             {valorManualNum > 0 && (
                               <div className="mt-2 grid grid-cols-3 gap-2">
                                 <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
