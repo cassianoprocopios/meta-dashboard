@@ -157,6 +157,7 @@ export default function Home() {
       setRecorrenciaManualSlug(null);
       setRecorrenciaManualValor("");
       refetchFat();
+      refetchConfigsDpote(); // atualiza timestamp e valor manual no card
     },
     onError: (err) => {
       toast.error(`Erro ao salvar Recorrência: ${err.message}`);

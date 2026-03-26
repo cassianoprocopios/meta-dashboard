@@ -880,3 +880,8 @@
 ## Data/Hora da Última Atualização Manual no Card de Recorrência
 
 - [x] Exibir data e hora da última atualização manual no card de Recorrência (quando fonte = manual)
+
+## Timestamp da Última Atualização Manual de Recorrência
+
+- [x] Garantir que recorrenciaManualAtualizadoEm é gravado sempre que o valor manual é salvo via "Aplicar"
+- [x] refetchConfigsDpote chamado no onSuccess para atualizar o timestamp no card imediatamente

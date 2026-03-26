@@ -549,6 +549,9 @@ export const appRouter = router({
           }
         }
 
+        // Gravar o valor manual e o timestamp no cashbarberConfig para exibir no card
+        await saveRecorrenciaFonte(tenantId, empresaSlug, "manual", valorTotal);
+
         return {
           valorTotal,
           valorDiario: parseFloat(valorDiario.toFixed(2)),
