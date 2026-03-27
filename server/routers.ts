@@ -6,6 +6,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
+  listarColaboradores,
+  salvarColaborador,
+  toggleColaboradorAtivo,
+  deletarColaborador,
   getAllFaturamentosByTenant,
   upsertFaturamento,
   deleteFaturamento,
@@ -75,14 +79,6 @@ import {
   getDpoteSyncLogs,
   saveRecorrenciaFonte,
   getRecorrenciaFonte,
-  saveRecorrenciaValorCashbarber,
-  listarColaboradores,
-  upsertColaborador,
-  updateColaborador,
-  desativarColaborador,
-  listarFaturamentoColaboradores,
-  listarMetasColaboradores,
-  upsertMetaColaborador,
 } from "./db";
 import {
   cashbarberLogin,
@@ -100,7 +96,6 @@ import {
   cashbarberCalcularDpoteViaHistorico,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
-import { sincronizarColaboradoresPorEmpresa } from "./colaboradoresSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
 
 import { SignJWT, jwtVerify } from "jose";
@@ -162,8 +157,76 @@ async function getTenantIdFromCtx(ctx: any): Promise<number> {
   return 1; // fallback para o tenant original
 }
 
+// ─── PROFISSIONAIS ─────────────────────────────────────────────────────────
+const profissionaisRouter = router({
+  listar: protectedProcedure.query(async ({ ctx }) => {
+    const tenantId = await getTenantIdFromCtx(ctx);
+    const lista = await listarColaboradores(tenantId);
+    return lista.map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      apelido: c.apelido,
+      fotoUrl: c.fotoUrl,
+      cargo: c.cargo,
+      exibirNoRanking: c.exibirNoRanking === 1,
+      ativo: c.ativo === 1,
+      cashbarberProfissionalId: c.cashbarberProfissionalId,
+      empresaSlug: c.empresaSlug,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }));
+  }),
+
+  salvar: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().optional(),
+        nome: z.string().min(1),
+        apelido: z.string().nullable().optional(),
+        cargo: z.string().nullable().optional(),
+        fotoUrl: z.string().nullable().optional(),
+        exibirNoRanking: z.boolean().optional(),
+        ativo: z.boolean().optional(),
+        cashbarberProfissionalId: z.number().nullable().optional(),
+        empresaSlug: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const result = await salvarColaborador(tenantId, {
+        id: input.id,
+        nome: input.nome,
+        apelido: input.apelido ?? null,
+        cargo: input.cargo ?? "Barbeiro",
+        fotoUrl: input.fotoUrl ?? null,
+        exibirNoRanking: input.exibirNoRanking !== false ? 1 : 0,
+        ativo: input.ativo !== false ? 1 : 0,
+        cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
+        empresaSlug: input.empresaSlug ?? "barbiero-grupo",
+      });
+      return result;
+    }),
+
+  toggleAtivo: protectedProcedure
+    .input(z.object({ id: z.number(), ativo: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      await toggleColaboradorAtivo(tenantId, input.id, input.ativo);
+      return { ok: true };
+    }),
+
+  deletar: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      await deletarColaborador(tenantId, input.id);
+      return { ok: true };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
+  profissionais: profissionaisRouter,
 
   // ─── AUTH ─────────────────────────────────────────────────────────────────
   auth: router({
@@ -1969,7 +2032,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         recorrenciaFonte: ((c as any).recorrenciaFonte ?? "cashbarber") as "cashbarber" | "manual",
         recorrenciaValorManual: (c as any).recorrenciaValorManual ? parseFloat(String((c as any).recorrenciaValorManual)) : null,
         recorrenciaManualAtualizadoEm: (c as any).recorrenciaManualAtualizadoEm ?? null,
-        recorrenciaValorCashbarber: (c as any).recorrenciaValorCashbarber ? parseFloat(String((c as any).recorrenciaValorCashbarber)) : null,
       }));
     }),
 
@@ -2587,10 +2649,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               ano,
               "manual"
             );
-            // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
-            if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
-              await saveRecorrenciaValorCashbarber(tenantId, config.empresaSlug, resultado.recorrenciaValor);
-            }
             resultados.push({
               empresa: config.empresaSlug,
               recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
@@ -2639,10 +2697,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               input.ano,
               "manual"
             );
-            // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
-            if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
-              await saveRecorrenciaValorCashbarber(tenantId, config.empresaSlug, resultado.recorrenciaValor);
-            }
             resultados.push({
               empresa: config.empresaSlug,
               diasSincronizados: resultado.diasSincronizados,
@@ -2821,10 +2875,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             input.ano,
             "manual"
           );
-          // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
-          if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
-            await saveRecorrenciaValorCashbarber(tenantId, input.empresaSlug, resultado.recorrenciaValor);
-          }
           return {
             empresa: input.empresaSlug,
             recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
@@ -2864,224 +2914,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }));
       }),
   }),
-
-  // ─── TENANT INFO ──────────────────────────────────────────────────────────
-  tenant: router({
-    /** Retorna informações do tenant do utilizador logado (slug, nome, etc.) */
-    get: protectedProcedure.query(async ({ ctx }) => {
-      const tenantId = await getTenantIdFromCtx(ctx);
-      const tenant = await getTenantById(tenantId);
-      if (!tenant) return null;
-      return { id: tenant.id, slug: tenant.slug, nome: tenant.nome };
-    }),
-  }),
-
-  // ─── COLABORADORES ──────────────────────────────────────────────────────────
-  colaboradores: router({
-    /** Lista colaboradores de uma empresa */
-    listar: protectedProcedure
-      .input(z.object({ empresaSlug: z.string() }))
-      .query(async ({ input, ctx }) => {
-        const tenantId = await getTenantIdFromCtx(ctx);
-        return listarColaboradores(tenantId, input.empresaSlug);
-      }),
-
-    /** Cria ou atualiza um colaborador manualmente */
-    salvar: protectedProcedure
-      .input(z.object({
-        id: z.number().optional(),
-        empresaSlug: z.string(),
-        nome: z.string().min(1),
-        apelido: z.string().optional(),
-        fotoUrl: z.string().optional(),
-        cargo: z.string().optional(),
-        cashbarberProfissionalId: z.number().nullable().optional(),
-        exibirNoRanking: z.number().optional(),
-        ativo: z.number().optional(),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        const tenantId = await getTenantIdFromCtx(ctx);
-        if (input.id) {
-          await updateColaborador(input.id, {
-            nome: input.nome,
-            apelido: input.apelido,
-            fotoUrl: input.fotoUrl,
-            cargo: input.cargo,
-            cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
-            exibirNoRanking: input.exibirNoRanking ?? 1,
-            ativo: input.ativo ?? 1,
-          });
-          return { id: input.id };
-        }
-        const id = await upsertColaborador({
-          tenantId,
-          empresaSlug: input.empresaSlug,
-          nome: input.nome,
-          apelido: input.apelido,
-          fotoUrl: input.fotoUrl,
-          cargo: input.cargo ?? "barbeiro",
-          cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
-          exibirNoRanking: input.exibirNoRanking ?? 1,
-          ativo: 1,
-        });
-        return { id };
-      }),
-
-    /** Desativa (remove do ranking) um colaborador */
-    desativar: protectedProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await desativarColaborador(input.id);
-        return { success: true };
-      }),
-
-    /** Sincroniza colaboradores e faturamento de uma empresa via CashBarber Rel. 13 */
-    sincronizar: protectedProcedure
-      .input(z.object({ empresaSlug: z.string() }))
-      .mutation(async ({ input, ctx }) => {
-        const tenantId = await getTenantIdFromCtx(ctx);
-        const configs = await listCashbarberConfigs(tenantId);
-        const config = configs.find((c) => c.empresaSlug === input.empresaSlug);
-        if (!config || !config.cbEmail || !config.cbSenha) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Configuração CashBarber não encontrada para esta empresa." });
-        }
-        const resultado = await sincronizarColaboradoresPorEmpresa({
-          tenantId,
-          empresaSlug: input.empresaSlug,
-          cbEmail: config.cbEmail,
-          cbSenha: config.cbSenha,
-          cbFilialId: config.cbFilialId,
-        });
-        return resultado;
-      }),
-
-    /** Lista metas de colaboradores de uma empresa num mês/ano */
-    listarMetas: protectedProcedure
-      .input(z.object({ empresaSlug: z.string(), mes: z.number(), ano: z.number() }))
-      .query(async ({ input, ctx }) => {
-        const tenantId = await getTenantIdFromCtx(ctx);
-        return listarMetasColaboradores(tenantId, input.empresaSlug, input.mes, input.ano);
-      }),
-
-    /** Salva/atualiza a meta de um colaborador */
-    salvarMeta: protectedProcedure
-      .input(z.object({
-        colaboradorId: z.number(),
-        empresaSlug: z.string(),
-        mes: z.number(),
-        ano: z.number(),
-        metaProdutos: z.number().min(0),
-        metaAtendimentos: z.number().optional(),
-        bonificacaoMeta: z.number().optional(),
-        bonificacaoSuperMeta: z.number().optional(),
-        superMetaPct: z.number().optional(),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        const tenantId = await getTenantIdFromCtx(ctx);
-        await upsertMetaColaborador({
-          tenantId,
-          colaboradorId: input.colaboradorId,
-          empresaSlug: input.empresaSlug,
-          mes: input.mes,
-          ano: input.ano,
-          metaProdutos: String(input.metaProdutos),
-          metaAtendimentos: input.metaAtendimentos ?? 0,
-          bonificacaoMeta: String(input.bonificacaoMeta ?? 0),
-          bonificacaoSuperMeta: String(input.bonificacaoSuperMeta ?? 0),
-          superMetaPct: String(input.superMetaPct ?? 120),
-        });
-        return { success: true };
-      }),
-
-    /** Ranking público: faturamento + metas do mês vigente para todas as empresas de um tenant */
-    rankingPublico: publicProcedure
-      .input(z.object({ tenantSlug: z.string(), mes: z.number().optional(), ano: z.number().optional() }))
-      .query(async ({ input }) => {
-        // Buscar tenant pelo slug
-        const { getTenantBySlug } = await import("./db");
-        const tenant = await getTenantBySlug(input.tenantSlug);
-        if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado." });
-
-        const hoje = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-        const mes = input.mes ?? (hoje.getMonth() + 1);
-        const ano = input.ano ?? hoje.getFullYear();
-
-        // Buscar todas as empresas do tenant
-        const empresasList = await getEmpresasByTenant(tenant.id);
-
-        const resultado: Array<{
-          empresaSlug: string;
-          empresaNome: string;
-          colaboradores: Array<{
-            id: number;
-            nome: string;
-            apelido: string | null;
-            fotoUrl: string | null;
-            totalServicos: number;
-            totalProdutos: number;
-            totalGeral: number;
-            metaProdutos: number;
-            bonificacaoMeta: number;
-            bonificacaoSuperMeta: number;
-            superMetaPct: number;
-            posicao: number;
-            percentualMeta: number;
-            atingiuMeta: boolean;
-            atingiuSuperMeta: boolean;
-            ultimaSyncEm: Date | null;
-          }>;
-        }> = [];
-
-        for (const empresa of empresasList) {
-          if (!empresa.ativo) continue;
-          const faturamentos = await listarFaturamentoColaboradores(tenant.id, empresa.slug, mes, ano);
-          const metas = await listarMetasColaboradores(tenant.id, empresa.slug, mes, ano);
-          const metasMap = new Map(metas.map((m) => [m.colaboradorId, m]));
-
-          const colaboradoresList = faturamentos
-            .filter((f) => f.exibirNoRanking === 1)
-            .map((f, idx) => {
-              const meta = metasMap.get(f.colaboradorId);
-              const totalServicos = parseFloat(String(f.totalServicos ?? 0));
-              const totalProdutos = parseFloat(String(f.totalProdutos ?? 0));
-              // totalGeral = serviços + produtos (Relatório 15)
-              const totalGeral = parseFloat(String(f.totalGeral ?? 0)) || (totalServicos + totalProdutos);
-              const metaProdutos = parseFloat(String(meta?.metaProdutos ?? 0));
-              const bonificacaoMeta = parseFloat(String(meta?.bonificacaoMeta ?? 0));
-              const bonificacaoSuperMeta = parseFloat(String(meta?.bonificacaoSuperMeta ?? 0));
-              const superMetaPct = parseFloat(String(meta?.superMetaPct ?? 120));
-              // Percentual baseado no total geral vs meta
-              const percentualMeta = metaProdutos > 0 ? (totalGeral / metaProdutos) * 100 : 0;
-              return {
-                id: f.colaboradorId,
-                nome: f.nomeColaborador,
-                apelido: f.apelido,
-                fotoUrl: f.fotoUrl,
-                totalServicos,
-                totalProdutos,
-                totalGeral,
-                metaProdutos,
-                bonificacaoMeta,
-                bonificacaoSuperMeta,
-                superMetaPct,
-                posicao: idx + 1,
-                percentualMeta,
-                atingiuMeta: metaProdutos > 0 && totalGeral >= metaProdutos,
-                atingiuSuperMeta: metaProdutos > 0 && totalGeral >= metaProdutos * (superMetaPct / 100),
-                ultimaSyncEm: f.ultimaSyncEm,
-              };
-            });
-
-          resultado.push({
-            empresaSlug: empresa.slug,
-            empresaNome: empresa.nome,
-            colaboradores: colaboradoresList,
-          });
-        }
-
-        return { mes, ano, empresas: resultado };
-      }),
-  }),
 });
-export type AppRouter = typeof appRouter;
 
+export type AppRouter = typeof appRouter;

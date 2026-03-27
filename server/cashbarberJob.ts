@@ -6,19 +6,12 @@
  */
 
 import * as cron from "node-cron";
-import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant, recalcularERedistribuirDpotePorTenant } from "./cashbarberSincronizador";
-import { sincronizarColaboradoresPorEmpresa } from "./colaboradoresSincronizador";
+import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 
-// ─── Intervalos de execução ─────────────────────────────────────────────────
+// ─── Intervalo fixo: a cada hora ─────────────────────────────────────────────
 
 /** Expressão cron para execução a cada hora (no minuto 0 de cada hora) */
 const CRON_CADA_HORA = "0 0 * * * *";
-
-/** Expressão cron para execução noturna às 02:00 (recalcula Dpote com dados do dia) */
-const CRON_NOTURNO_DPOTE = "0 0 2 * * *";
-
-/** Expressão cron para sincronização de colaboradores às 03:00 */
-const CRON_NOTURNO_COLABORADORES = "0 0 3 * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -34,8 +27,6 @@ interface JobStatus {
 
 const jobsAtivos = new Map<string, JobStatus>();
 let jobMestre: cron.ScheduledTask | null = null;
-let jobNoturno: cron.ScheduledTask | null = null;
-let jobColaboradores: cron.ScheduledTask | null = null;
 
 /**
  * Chave única para identificar um job por empresa
@@ -282,70 +273,5 @@ export async function inicializarJobsCashbarber(): Promise<void> {
     await recarregarJobsCashbarber();
   });
 
-  // Job noturno: recalcula o valor total da Recorrência Dpote via CashBarber às 02:00
-  // e redistribui pelos dias decorridos do mês vigente.
-  // Garante que, ao final de cada dia, o valor de cat9 reflita exatamente o total apurado.
-  jobNoturno = cron.schedule(CRON_NOTURNO_DPOTE, async () => {
-    console.log("[CashBarber Dpote Noturno] Iniciando recalculo noturno da Recorrência Dpote...");
-    try {
-      // Coletar todos os tenants únicos com Dpote configurado
-      const configs = await listAllActiveCashbarberConfigs();
-      const tenants = Array.from(new Set(configs.filter((c) => c.dpoteFilialNome).map((c) => c.tenantId)));
-
-      for (const tenantId of tenants) {
-        try {
-          const resultados = await recalcularERedistribuirDpotePorTenant(tenantId);
-          const resumo = resultados
-            .filter((r) => r.fonte === "api")
-            .map((r) => `${r.empresaSlug}: R$ ${r.valorTotal.toFixed(2)} (÷${r.diasDecorridos} dias = R$ ${r.valorDiario.toFixed(2)}/dia)`)
-            .join(" | ");
-          if (resumo) {
-            console.log(`[CashBarber Dpote Noturno] Tenant ${tenantId}: ${resumo}`);
-          }
-          const ignorados = resultados.filter((r) => r.fonte === "ignorado_manual").map((r) => r.empresaSlug);
-          if (ignorados.length > 0) {
-            console.log(`[CashBarber Dpote Noturno] Tenant ${tenantId}: ignorados (fonte=manual): ${ignorados.join(", ")}`);
-          }
-        } catch (errTenant) {
-          const msg = errTenant instanceof Error ? errTenant.message : String(errTenant);
-          console.error(`[CashBarber Dpote Noturno] Erro no tenant ${tenantId}:`, msg);
-        }
-      }
-      console.log("[CashBarber Dpote Noturno] Recalculo noturno concluído.");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("[CashBarber Dpote Noturno] Erro geral:", msg);
-    }
-  });
-
-  // Job de colaboradores: sincroniza faturamento de produtos por barbeiro às 03:00
-  jobColaboradores = cron.schedule(CRON_NOTURNO_COLABORADORES, async () => {
-    console.log("[CashBarber Colaboradores] Iniciando sincronização noturna de colaboradores...");
-    try {
-      const configs = await listAllActiveCashbarberConfigs();
-      let totalAtualizados = 0;
-      for (const config of configs) {
-        if (!config.cbEmail || !config.cbSenha) continue;
-        try {
-          const res = await sincronizarColaboradoresPorEmpresa({
-            tenantId: config.tenantId,
-            empresaSlug: config.empresaSlug,
-            cbEmail: config.cbEmail,
-            cbSenha: config.cbSenha,
-            cbFilialId: config.cbFilialId,
-          });
-          totalAtualizados += res.faturamentosAtualizados;
-          console.log(`[CashBarber Colaboradores] ${config.empresaSlug}: ${res.faturamentosAtualizados} colaboradores atualizados`);
-        } catch (errEmpresa) {
-          const msg = errEmpresa instanceof Error ? errEmpresa.message : String(errEmpresa);
-          console.error(`[CashBarber Colaboradores] Erro em ${config.empresaSlug}:`, msg);
-        }
-      }
-      console.log(`[CashBarber Colaboradores] Sincronização concluída: ${totalAtualizados} colaboradores atualizados no total.`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("[CashBarber Colaboradores] Erro geral:", msg);
-    }
-  });
-  console.log("[CashBarber Job] Sistema inicializado com sucesso (job noturno Dpote: 02:00 | job colaboradores: 03:00)");
+  console.log("[CashBarber Job] Sistema inicializado com sucesso");
 }

@@ -15,17 +15,6 @@
  *   (o ID é armazenado em cashbarberConfig.dpoteHistoricoId).
  */
 
-/**
- * Retorna a data atual no fuso horário do Brasil (UTC-3).
- * Evita erros de "dia errado" quando o servidor roda em UTC e o job executa após 21:00 BRT.
- */
-function hojeNoBrasil(): Date {
-  const agora = new Date();
-  // UTC-3: subtrair 3 horas do UTC para obter a data correta no Brasil
-  const offsetMs = 3 * 60 * 60 * 1000;
-  return new Date(agora.getTime() - offsetMs);
-}
-
 import {
   getCashbarberConfig,
   listCashbarberMapeamento,
@@ -38,8 +27,6 @@ import {
   saveDpoteHistoricoId,
   getDpoteHistoricoId,
   getAllFaturamentosByTenant,
-  getRecorrenciaFonte,
-  saveRecorrenciaValorCashbarber,
 } from "./db";
 import {
   cashbarberLogin,
@@ -182,7 +169,7 @@ export async function sincronizarFaturamentoCashbarber(
   if (dpoteFilialNome) {
     try {
       // Calcular com atendimentos do dia 1 ao dia atual (ou último dia do mês)
-      const hoje = hojeNoBrasil();
+      const hoje = new Date();
       const ehMesAtualDpote = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
       const ultimoDiaDpote = ehMesAtualDpote ? hoje.getDate() : new Date(ano, mes, 0).getDate();
       const dataInicialDpote = `${ano}-${String(mes).padStart(2, "0")}-01`;
@@ -262,7 +249,7 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 6. Determinar o período: do dia 1 ao último dia do mês
   //    Se for o mês atual, vai até hoje; se for mês passado, vai até o último dia
-  const hoje = hojeNoBrasil();
+  const hoje = new Date();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
   const ultimoDia = ehMesAtual
     ? hoje.getDate()
@@ -323,23 +310,18 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_decorridos_até_hoje.
-      // Isso garante que a soma dos dias lançados seja igual ao total do CashBarber.
+      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_do_mês.
       // Dias futuros (ainda não aconteceram) recebem "0".
-      // Ex: R$ 107.024 até o dia 26 = R$ 107.024 ÷ 26 = R$ 4.116,31/dia; dias futuros = R$ 0.
+      // Ex: R$ 73.171 em 31 dias = R$ 2.360/dia; dias futuros = R$ 0.
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        const hoje2 = hojeNoBrasil();
+        const totalDiasMes = new Date(ano, mes, 0).getDate();
+        const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
+        // Verificar se o dia é futuro (maior que hoje no mês atual)
+        const hoje2 = new Date();
         const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
         const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
-        if (diaFuturo) {
-          cat9 = "0";
-        } else {
-          // Dividir pelo número de dias decorridos até hoje (ou total do mês se meses passados)
-          const diasDecorridos = ehMesAtualSync ? hoje2.getDate() : new Date(ano, mes, 0).getDate();
-          const valorDiario = Math.round((recorrenciaValor / diasDecorridos) * 100) / 100;
-          cat9 = String(valorDiario);
-        }
+        cat9 = diaFuturo ? "0" : String(valorDiario);
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
         cat9 = existente?.cat9 ?? "0";
@@ -389,10 +371,12 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 9a. Registrar no log do Dpote (se a recorrência foi atualizada)
   if (recorrenciaAtualizada) {
-    const hoje3 = hojeNoBrasil();
-    const ehMesAtualLog = mes === hoje3.getMonth() + 1 && ano === hoje3.getFullYear();
-    const diasDecorridosLog = ehMesAtualLog ? hoje3.getDate() : new Date(ano, mes, 0).getDate();
-    const valorDiarioNovo = recorrenciaValor / diasDecorridosLog;
+    // Calcular valor anterior: soma do cat5 atual no banco antes da sync
+    // (aproximação: buscar todos os registros do mês e somar cat5 antes do upsert)
+    // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
+    // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
+    const totalDiasMes = new Date(ano, mes, 0).getDate();
+    const valorDiarioNovo = recorrenciaValor / totalDiasMes;
     // Registrar o log de sincronização do Dpote
     try {
       await insertDpoteSyncLog({
@@ -490,7 +474,7 @@ export async function aplicarDpoteParaTenant(
   }
 
   // Calcular período
-  const hoje = hojeNoBrasil();
+  const hoje = new Date();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
   const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(ano, mes, 0).getDate();
   const dataInicial = `${ano}-${String(mes).padStart(2, "0")}-01`;
@@ -506,7 +490,7 @@ export async function aplicarDpoteParaTenant(
   const naoEncontrados: string[] = [];
 
   // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
-  const hojeAplic = hojeNoBrasil();
+  const hojeAplic = new Date();
   const ehMesAtualAplic = mes === hojeAplic.getMonth() + 1 && ano === hojeAplic.getFullYear();
   const diaVigenteAplic = hojeAplic.getDate();
 
@@ -519,10 +503,8 @@ export async function aplicarDpoteParaTenant(
       continue;
     }
 
-    // Valor diário = total ÷ dias decorridos até hoje (garante soma = total CashBarber)
-    // Para meses passados: divide pelo total de dias do mês
-    const diasDecorridosAplic = ehMesAtualAplic ? diaVigenteAplic : totalDiasMes;
-    const valorDiario = Math.round((filial.valorDistribuido / diasDecorridosAplic) * 100) / 100;
+    // Valor diário = total ÷ dias do mês
+    const valorDiario = Math.round((filial.valorDistribuido / totalDiasMes) * 100) / 100;
 
     for (let dia = 1; dia <= totalDiasMes; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -591,186 +573,8 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia ÷ ${diasDecorridosAplic} dias = R$ ${filial.valorDistribuido.toFixed(2)} total | previsão ${mesProximo}/${anoProximo}: R$ ${valorDiarioPrevisao.toFixed(2)}/dia`);
+    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (dias passados/hoje), R$ ${valorDiarioPrevisao.toFixed(2)}/dia (previsão ${mesProximo}/${anoProximo})`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };
-}
-
-/**
- * Resultado do recálculo noturno do Dpote
- */
-export interface ResultadoRecalculoDpote {
-  empresaSlug: string;
-  valorTotal: number;
-  valorDiario: number;
-  diasDecorridos: number;
-  diasAtualizados: number;
-  fonte: "api" | "ignorado_manual";
-}
-
-/**
- * Recalcula o valor total da Recorrência Dpote via API do CashBarber e redistribui
- * pelos dias decorridos do mês vigente para todas as empresas de um tenant.
- *
- * Regras:
- * - Só atualiza empresas com recorrenciaFonte = "cashbarber" (respeita escolha manual)
- * - Busca o valor total via histórico Dpote salvo no banco
- * - Calcula: valorDiario = valorTotal / diasDecorridos
- * - Atualiza cat9 nos dias 1 a diaHoje; dias futuros ficam com "0"
- * - Salva o novo valorTotal em recorrenciaValorCashbarber
- * - Registra no log de sincronizações Dpote
- *
- * @param tenantId - ID do tenant
- * @param mes - Mês (1-12), padrão = mês atual
- * @param ano - Ano, padrão = ano atual
- */
-export async function recalcularERedistribuirDpotePorTenant(
-  tenantId: number,
-  mes?: number,
-  ano?: number
-): Promise<ResultadoRecalculoDpote[]> {
-  const agora = hojeNoBrasil();
-  const mesAlvo = mes ?? agora.getMonth() + 1;
-  const anoAlvo = ano ?? agora.getFullYear();
-  const ehMesAtual = mesAlvo === agora.getMonth() + 1 && anoAlvo === agora.getFullYear();
-  const diaHoje = agora.getDate();
-  const diasDecorridos = ehMesAtual ? diaHoje : new Date(anoAlvo, mesAlvo, 0).getDate();
-  const totalDiasMes = new Date(anoAlvo, mesAlvo, 0).getDate();
-  const mesSigla = `${anoAlvo}-${String(mesAlvo).padStart(2, "0")}`;
-
-  const configs = await listCashbarberConfigs(tenantId);
-  const resultados: ResultadoRecalculoDpote[] = [];
-
-  // Encontrar config com Dpote configurado para fazer login
-  const configComDpote = configs.find((c) => c.dpoteFilialNome && c.cbEmail);
-  if (!configComDpote) {
-    console.warn(`[CashBarber Dpote Noturno] Nenhuma empresa do tenant ${tenantId} com Dpote configurado.`);
-    return resultados;
-  }
-
-  // Login único para todas as filiais do tenant
-  const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
-
-  // Buscar ou criar histórico Dpote do mês
-  let historicoId = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
-  let dadosApi = historicoId ? await cashbarberBuscarValorAssinaturas(token, historicoId) : null;
-
-  if (!dadosApi) {
-    try {
-      const novoId = await cashbarberCriarHistoricoDpote(token);
-      await saveDpoteHistoricoId(tenantId, configComDpote.empresaSlug, novoId, mesSigla);
-      historicoId = novoId;
-      await new Promise((r) => setTimeout(r, 2000));
-      dadosApi = await cashbarberBuscarValorAssinaturas(token, novoId);
-    } catch (err) {
-      console.warn(`[CashBarber Dpote Noturno] Falha ao criar histórico Dpote:`, err);
-    }
-  }
-
-  if (!dadosApi) {
-    console.warn(`[CashBarber Dpote Noturno] Sem dados da API para ${mesSigla}. Abortando.`);
-    return resultados;
-  }
-
-  const valorAssinaturas = dadosApi.valorAssinaturas;
-
-  // Calcular distribuição por filial via fichas ponderadas
-  const dataInicial = `${anoAlvo}-${String(mesAlvo).padStart(2, "0")}-01`;
-  const dataFinal = `${anoAlvo}-${String(mesAlvo).padStart(2, "0")}-${String(diasDecorridos).padStart(2, "0")}`;
-  const distribuicao = await cashbarberCalcularDpotePorFichas(token, dataInicial, dataFinal, valorAssinaturas, 100);
-
-  for (const config of configs) {
-    if (!config.dpoteFilialNome) continue;
-
-    // Respeitar a escolha do gerente: não sobrescrever fonte manual
-    const fonteConfig = await getRecorrenciaFonte(tenantId, config.empresaSlug);
-    if (fonteConfig?.recorrenciaFonte === "manual") {
-      console.log(`[CashBarber Dpote Noturno] ${config.empresaSlug}: fonte = manual, ignorando.`);
-      resultados.push({
-        empresaSlug: config.empresaSlug,
-        valorTotal: 0,
-        valorDiario: 0,
-        diasDecorridos,
-        diasAtualizados: 0,
-        fonte: "ignorado_manual",
-      });
-      continue;
-    }
-
-    // Encontrar valor desta filial na distribuição
-    const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
-    const filial = distribuicao.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
-    if (!filial) {
-      console.warn(`[CashBarber Dpote Noturno] Filial "${config.dpoteFilialNome}" não encontrada na distribuição.`);
-      continue;
-    }
-
-    const valorTotal = filial.valorDistribuido;
-    const valorDiario = Math.round((valorTotal / diasDecorridos) * 100) / 100;
-
-    // Redistribuir cat9 nos dias do mês
-    let diasAtualizados = 0;
-    for (let dia = 1; dia <= totalDiasMes; dia++) {
-      const dataStr = `${anoAlvo}-${String(mesAlvo).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-      const diaFuturo = ehMesAtual && dia > diaHoje;
-      const cat9 = diaFuturo ? "0" : String(valorDiario);
-
-      const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
-      await upsertFaturamento({
-        tenantId,
-        empresaSlug: config.empresaSlug,
-        data: dataStr,
-        cat1: existente?.cat1 ?? "0",
-        cat2: existente?.cat2 ?? "0",
-        cat3: existente?.cat3 ?? "0",
-        cat4: existente?.cat4 ?? "0",
-        cat6: existente?.cat6 ?? "0",
-        cat7: existente?.cat7 ?? "0",
-        cat8: existente?.cat8 ?? "0",
-        cat9,
-        sincronizadoCB: existente?.sincronizadoCB ?? 1,
-        observacao: existente?.observacao ?? undefined,
-        lancadoPor: existente?.lancadoPor ?? undefined,
-      });
-
-      if (!diaFuturo) diasAtualizados++;
-    }
-
-    // Salvar o valor total calculado pelo CashBarber
-    await saveRecorrenciaValorCashbarber(tenantId, config.empresaSlug, valorTotal);
-
-    // Registrar no log de sincronizações Dpote
-    try {
-      await insertDpoteSyncLog({
-        tenantId,
-        empresaSlug: config.empresaSlug,
-        mes: mesAlvo,
-        ano: anoAlvo,
-        valorAnterior: 0,
-        valorNovo: valorTotal,
-        diasAtualizados,
-        fonte: "api",
-        tipoExecucao: "automatico",
-        erro: null,
-      });
-    } catch (errLog) {
-      console.warn(`[CashBarber Dpote Noturno] Falha ao registrar log para ${config.empresaSlug}:`, errLog);
-    }
-
-    console.log(
-      `[CashBarber Dpote Noturno] ${config.empresaSlug}: R$ ${valorTotal.toFixed(2)} total ÷ ${diasDecorridos} dias = R$ ${valorDiario.toFixed(2)}/dia | ${diasAtualizados} dias atualizados`
-    );
-
-    resultados.push({
-      empresaSlug: config.empresaSlug,
-      valorTotal,
-      valorDiario,
-      diasDecorridos,
-      diasAtualizados,
-      fonte: "api",
-    });
-  }
-
-  return resultados;
 }

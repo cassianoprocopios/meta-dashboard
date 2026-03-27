@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/DashboardLayout";
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -753,7 +752,49 @@ export default function AdminPanel() {
   const usuariosAtivos = usuarios.filter((u: any) => u.ativo).length;
 
   return (
-    <DashboardLayout>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-sm sm:text-base font-bold text-slate-800 leading-tight">Painel Administrativo</h1>
+              <p className="text-xs text-slate-500 hidden sm:block">{user?.name || "Administrador"}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <a
+              href="/"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <BarChart2 className="w-4 h-4" />
+              Dashboard
+            </a>
+            <a href="/" className="sm:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" title="Dashboard">
+              <BarChart2 className="w-4 h-4" />
+            </a>
+            {empresas.length === 0 && (
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium"
+              >
+                <Shield className="w-4 h-4" />
+                Guia de configuração
+              </button>
+            )}
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Cards de Resumo */}
@@ -1192,6 +1233,6 @@ export default function AdminPanel() {
           }}
         />
       )}
-    </DashboardLayout>
+    </div>
   );
 }

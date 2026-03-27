@@ -1,10 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -20,140 +19,126 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
-  Scissors,
   Plus,
-  Edit2,
-  Eye,
-  EyeOff,
-  Link2,
-  UserX,
+  Pencil,
+  Trash2,
   Search,
-  RefreshCw,
+  Scissors,
   CheckCircle2,
   AlertCircle,
+  Eye,
+  EyeOff,
+  UserCheck,
+  Users,
+  Link2,
 } from "lucide-react";
 
-interface ColaboradorForm {
+const CARGOS = [
+  "Barbeiro",
+  "Barbeira",
+  "Recepcionista",
+  "Gerente",
+  "Sócio",
+  "Assistente",
+  "Outro",
+];
+
+type Profissional = {
+  id: number;
+  nome: string;
+  apelido: string | null;
+  fotoUrl: string | null;
+  cargo: string | null;
+  exibirNoRanking: boolean;
+  ativo: boolean;
+  cashbarberProfissionalId: number | null;
+  empresaSlug: string;
+};
+
+type FormData = {
   id?: number;
   nome: string;
   apelido: string;
   cargo: string;
   cashbarberProfissionalId: string;
-  exibirNoRanking: number;
-  ativo: number;
-}
+  exibirNoRanking: boolean;
+  ativo: boolean;
+};
 
-const FORM_VAZIO: ColaboradorForm = {
+const emptyForm: FormData = {
   nome: "",
   apelido: "",
-  cargo: "barbeiro",
+  cargo: "Barbeiro",
   cashbarberProfissionalId: "",
-  exibirNoRanking: 1,
-  ativo: 1,
+  exibirNoRanking: true,
+  ativo: true,
 };
 
 export default function Profissionais() {
-  const { user } = useAuth();
-
-  const [empresaSlug, setEmpresaSlug] = useState<string>("");
   const [busca, setBusca] = useState("");
-  const [dialogAberto, setDialogAberto] = useState(false);
-  const [form, setForm] = useState<ColaboradorForm>(FORM_VAZIO);
-  const [desativarId, setDesativarId] = useState<number | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [form, setForm] = useState<FormData>(emptyForm);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const empresasQuery = trpc.empresa.listar.useQuery(undefined, { enabled: !!user });
-  const empresas = empresasQuery.data ?? [];
-  const empresaAtual = empresaSlug || empresas[0]?.slug || "";
+  const utils = trpc.useUtils();
 
-  const colaboradoresQuery = trpc.colaboradores.listar.useQuery(
-    { empresaSlug: empresaAtual },
-    { enabled: !!empresaAtual }
-  );
-  const colaboradores = colaboradoresQuery.data ?? [];
+  const { data: profissionais = [], isLoading } = trpc.profissionais.listar.useQuery();
 
-  // Filtrar por busca
-  const colaboradoresFiltrados = useMemo(() => {
-    if (!busca.trim()) return colaboradores;
-    const q = busca.toLowerCase();
-    return colaboradores.filter(
-      (c) =>
-        c.nome.toLowerCase().includes(q) ||
-        (c.apelido ?? "").toLowerCase().includes(q) ||
-        (c.cargo ?? "").toLowerCase().includes(q)
-    );
-  }, [colaboradores, busca]);
-
-  const totalAtivos = colaboradores.filter((c) => c.ativo).length;
-  const totalComCB = colaboradores.filter((c) => c.cashbarberProfissionalId).length;
-  const totalSemCB = colaboradores.filter((c) => !c.cashbarberProfissionalId && c.ativo).length;
-
-  const salvarMutation = trpc.colaboradores.salvar.useMutation({
+  const salvar = trpc.profissionais.salvar.useMutation({
     onSuccess: () => {
+      utils.profissionais.listar.invalidate();
+      setModalAberto(false);
+      setForm(emptyForm);
       toast.success(form.id ? "Profissional atualizado!" : "Profissional cadastrado!");
-      setDialogAberto(false);
-      setForm(FORM_VAZIO);
-      colaboradoresQuery.refetch();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error("Erro ao salvar: " + err.message),
   });
 
-  const desativarMutation = trpc.colaboradores.desativar.useMutation({
+  const toggleAtivo = trpc.profissionais.toggleAtivo.useMutation({
+    onSuccess: () => utils.profissionais.listar.invalidate(),
+    onError: (err) => toast.error("Erro: " + err.message),
+  });
+
+  const deletar = trpc.profissionais.deletar.useMutation({
     onSuccess: () => {
-      toast.success("Profissional desativado.");
-      setDesativarId(null);
-      colaboradoresQuery.refetch();
+      utils.profissionais.listar.invalidate();
+      setConfirmDeleteId(null);
+      toast.success("Profissional removido.");
     },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const toggleRankingMutation = trpc.colaboradores.salvar.useMutation({
-    onSuccess: () => colaboradoresQuery.refetch(),
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error("Erro ao remover: " + err.message),
   });
 
   const abrirNovo = () => {
-    setForm(FORM_VAZIO);
-    setDialogAberto(true);
+    setForm(emptyForm);
+    setModalAberto(true);
   };
 
-  const abrirEditar = (col: (typeof colaboradores)[0]) => {
+  const abrirEditar = (p: Profissional) => {
     setForm({
-      id: col.id,
-      nome: col.nome,
-      apelido: col.apelido ?? "",
-      cargo: col.cargo ?? "barbeiro",
-      cashbarberProfissionalId: col.cashbarberProfissionalId
-        ? String(col.cashbarberProfissionalId)
-        : "",
-      exibirNoRanking: col.exibirNoRanking,
-      ativo: col.ativo,
+      id: p.id,
+      nome: p.nome,
+      apelido: p.apelido ?? "",
+      cargo: p.cargo ?? "Barbeiro",
+      cashbarberProfissionalId: p.cashbarberProfissionalId?.toString() ?? "",
+      exibirNoRanking: p.exibirNoRanking,
+      ativo: p.ativo,
     });
-    setDialogAberto(true);
+    setModalAberto(true);
   };
 
   const handleSalvar = () => {
     if (!form.nome.trim()) {
-      toast.error("Nome é obrigatório.");
+      toast.error("O nome é obrigatório.");
       return;
     }
-    salvarMutation.mutate({
+    salvar.mutate({
       id: form.id,
-      empresaSlug: empresaAtual,
       nome: form.nome.trim(),
-      apelido: form.apelido.trim() || undefined,
-      cargo: form.cargo.trim() || undefined,
+      apelido: form.apelido.trim() || null,
+      cargo: form.cargo,
       cashbarberProfissionalId: form.cashbarberProfissionalId
         ? parseInt(form.cashbarberProfissionalId)
         : null,
@@ -162,444 +147,394 @@ export default function Profissionais() {
     });
   };
 
-  const handleToggleRanking = (col: (typeof colaboradores)[0]) => {
-    toggleRankingMutation.mutate({
-      id: col.id,
-      empresaSlug: empresaAtual,
-      nome: col.nome,
-      exibirNoRanking: col.exibirNoRanking === 1 ? 0 : 1,
-    });
-  };
+  const filtrados = profissionais.filter((p) => {
+    const q = busca.toLowerCase();
+    return (
+      p.nome.toLowerCase().includes(q) ||
+      (p.apelido ?? "").toLowerCase().includes(q) ||
+      (p.cargo ?? "").toLowerCase().includes(q)
+    );
+  });
 
-  const isAdmin = user?.role === "admin" || user?.perfil === "gerente";
+  const totalAtivos = profissionais.filter((p) => p.ativo).length;
+  const totalVinculados = profissionais.filter((p) => p.cashbarberProfissionalId).length;
+  const totalSemId = profissionais.filter((p) => p.ativo && !p.cashbarberProfissionalId).length;
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="p-6 space-y-6">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Scissors className="w-6 h-6 text-primary" />
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Scissors className="w-6 h-6 text-blue-400" />
               Profissionais
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie os profissionais e vincule-os ao CashBarber
+            <p className="text-white/50 text-sm mt-1">
+              Gerencie os profissionais e vincule ao CashBarber para sincronização automática
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {empresas.length > 1 && (
-              <Select value={empresaAtual} onValueChange={setEmpresaSlug}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {empresas.map((e) => (
-                    <SelectItem key={e.slug} value={e.slug}>
-                      {e.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => colaboradoresQuery.refetch()}
-              disabled={colaboradoresQuery.isFetching}
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${colaboradoresQuery.isFetching ? "animate-spin" : ""}`}
-              />
-            </Button>
-            {isAdmin && (
-              <Button size="sm" onClick={abrirNovo}>
-                <Plus className="w-4 h-4 mr-1" />
-                Novo Profissional
-              </Button>
-            )}
-          </div>
+          <Button
+            onClick={abrirNovo}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Profissional
+          </Button>
         </div>
 
         {/* Cards de resumo */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground">Ativos</p>
-              <p className="text-2xl font-bold">{totalAtivos}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-green-500" /> Vinculados CB
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {totalComCB}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-orange-500" /> Sem ID CB
-              </p>
-              <p className="text-2xl font-bold text-orange-500">{totalSemCB}</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-white/50 text-xs">Total Ativos</p>
+              <p className="text-white text-xl font-bold">{totalAtivos}</p>
+            </div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+              <Link2 className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <p className="text-white/50 text-xs">Vinculados ao CashBarber</p>
+              <p className="text-white text-xl font-bold">{totalVinculados}</p>
+            </div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-orange-400" />
+            </div>
+            <div>
+              <p className="text-white/50 text-xs">Sem ID CashBarber</p>
+              <p className="text-white text-xl font-bold">{totalSemId}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Barra de busca */}
+        {/* Busca */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <Input
             placeholder="Buscar por nome, apelido ou cargo..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30"
           />
         </div>
 
-        {/* Lista de profissionais */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Scissors className="w-4 h-4" />
-              Profissionais
-              {empresaAtual && (
-                <Badge variant="secondary" className="ml-auto">
-                  {colaboradoresFiltrados.length} resultado(s)
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {colaboradoresQuery.isLoading ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 opacity-40" />
-                Carregando...
-              </div>
-            ) : colaboradoresFiltrados.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Scissors className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="font-medium">Nenhum profissional encontrado.</p>
-                {isAdmin && (
-                  <p className="text-xs mt-1">
-                    Clique em "Novo Profissional" para cadastrar.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {colaboradoresFiltrados.map((col) => {
-                  const nome = col.apelido || col.nome;
-                  const iniciais = nome
-                    .split(" ")
-                    .map((p) => p[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase();
-                  const temCB = !!col.cashbarberProfissionalId;
-
-                  return (
-                    <div
-                      key={col.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                        col.ativo
-                          ? "bg-card hover:bg-muted/30"
-                          : "bg-muted/20 opacity-50"
-                      }`}
-                    >
-                      {/* Avatar */}
-                      <div className="relative shrink-0">
-                        {col.fotoUrl ? (
-                          <img
-                            src={col.fotoUrl}
-                            alt={nome}
-                            className="w-11 h-11 rounded-full object-cover border"
-                          />
-                        ) : (
-                          <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20">
-                            {iniciais}
-                          </div>
-                        )}
-                        {/* Indicador de status CashBarber */}
-                        <div
-                          className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${
-                            temCB ? "bg-green-500" : "bg-orange-400"
-                          }`}
-                          title={
-                            temCB
-                              ? `Vinculado ao CashBarber (ID: ${col.cashbarberProfissionalId})`
-                              : "Sem ID do CashBarber"
-                          }
-                        />
-                      </div>
-
-                      {/* Dados */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold truncate">{col.nome}</p>
-                          {col.apelido && col.apelido !== col.nome && (
-                            <span className="text-xs text-muted-foreground">
-                              ({col.apelido})
-                            </span>
-                          )}
-                          {!col.ativo && (
-                            <Badge variant="secondary" className="text-xs">
-                              Inativo
-                            </Badge>
-                          )}
+        {/* Tabela de profissionais */}
+        {isLoading ? (
+          <div className="text-center py-12 text-white/40">Carregando...</div>
+        ) : filtrados.length === 0 ? (
+          <div className="text-center py-12 text-white/40">
+            {busca ? "Nenhum profissional encontrado." : "Nenhum profissional cadastrado."}
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Profissional
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Apelido (Ranking)
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Cargo
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    ID CashBarber
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Ranking
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="text-right px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((p, idx) => (
+                  <tr
+                    key={p.id}
+                    className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                      !p.ativo ? "opacity-50" : ""
+                    } ${idx % 2 === 0 ? "" : "bg-white/[0.02]"}`}
+                  >
+                    {/* Nome */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {p.nome.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                          {col.cargo && (
-                            <span className="text-xs text-muted-foreground capitalize">
-                              {col.cargo}
-                            </span>
-                          )}
-                          {temCB ? (
-                            <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                              <Link2 className="w-3 h-3" />
-                              CB #{col.cashbarberProfissionalId}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-orange-500 flex items-center gap-1">
-                              <Link2 className="w-3 h-3" />
-                              Sem ID CashBarber
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-white font-medium">{p.nome}</span>
                       </div>
-
-                      {/* Ações */}
-                      {isAdmin && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          {/* Toggle ranking */}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            title={
-                              col.exibirNoRanking
-                                ? "Ocultar do ranking"
-                                : "Exibir no ranking"
-                            }
-                            onClick={() => handleToggleRanking(col)}
-                          >
-                            {col.exibirNoRanking ? (
-                              <Eye className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <EyeOff className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </Button>
-                          {/* Editar */}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            title="Editar profissional"
-                            onClick={() => abrirEditar(col)}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          {/* Desativar */}
-                          {col.ativo ? (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              title="Desativar profissional"
-                              onClick={() => setDesativarId(col.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <UserX className="w-4 h-4" />
-                            </Button>
-                          ) : null}
+                    </td>
+                    {/* Apelido */}
+                    <td className="px-4 py-3">
+                      {p.apelido ? (
+                        <span className="text-blue-300 font-medium">{p.apelido}</span>
+                      ) : (
+                        <span className="text-white/30 text-sm italic">Igual ao nome</span>
+                      )}
+                    </td>
+                    {/* Cargo */}
+                    <td className="px-4 py-3">
+                      <Badge
+                        variant="outline"
+                        className="border-white/20 text-white/70 text-xs"
+                      >
+                        {p.cargo ?? "—"}
+                      </Badge>
+                    </td>
+                    {/* ID CashBarber */}
+                    <td className="px-4 py-3">
+                      {p.cashbarberProfissionalId ? (
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                          <span className="text-green-300 font-mono text-sm">
+                            #{p.cashbarberProfissionalId}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <AlertCircle className="w-4 h-4 text-orange-400 shrink-0" />
+                          <span className="text-orange-300 text-sm">Não vinculado</span>
                         </div>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Nota sobre ID CashBarber */}
-        {totalSemCB > 0 && (
-          <div className="flex items-start gap-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/5 text-sm">
-            <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-orange-600 dark:text-orange-400">
-                {totalSemCB} profissional(is) sem ID do CashBarber
-              </p>
-              <p className="text-muted-foreground text-xs mt-0.5">
-                Para sincronizar serviços e produtos via CashBarber, edite cada profissional e
-                informe o ID. Acesse: CashBarber → Relatório → Financeiro/Vendas → selecione o
-                profissional para localizar o ID.
-              </p>
-            </div>
+                    </td>
+                    {/* Exibir no Ranking */}
+                    <td className="px-4 py-3">
+                      {p.exibirNoRanking ? (
+                        <div className="flex items-center gap-1.5 text-blue-300 text-sm">
+                          <Eye className="w-4 h-4" />
+                          Visível
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-white/30 text-sm">
+                          <EyeOff className="w-4 h-4" />
+                          Oculto
+                        </div>
+                      )}
+                    </td>
+                    {/* Status */}
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => toggleAtivo.mutate({ id: p.id, ativo: !p.ativo })}
+                        className="flex items-center gap-1.5 text-sm"
+                      >
+                        {p.ativo ? (
+                          <span className="flex items-center gap-1.5 text-green-400">
+                            <UserCheck className="w-4 h-4" />
+                            Ativo
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-white/30">
+                            <UserCheck className="w-4 h-4" />
+                            Inativo
+                          </span>
+                        )}
+                      </button>
+                    </td>
+                    {/* Ações */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => abrirEditar(p)}
+                          className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8 p-0"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setConfirmDeleteId(p.id)}
+                          className="text-red-400/60 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
-      {/* Dialog de cadastro/edição */}
-      <Dialog
-        open={dialogAberto}
-        onOpenChange={(o) => {
-          if (!o) {
-            setDialogAberto(false);
-            setForm(FORM_VAZIO);
-          }
-        }}
-      >
-        <DialogContent className="max-w-md">
+      {/* Modal de cadastro/edição */}
+      <Dialog open={modalAberto} onOpenChange={setModalAberto}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Scissors className="w-4 h-4" />
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Scissors className="w-5 h-5 text-blue-400" />
               {form.id ? "Editar Profissional" : "Novo Profissional"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             {/* Nome */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Nome completo <span className="text-destructive">*</span>
-              </label>
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
+                Nome Completo <span className="text-red-400">*</span>
+              </Label>
               <Input
-                placeholder="Ex: João Silva"
                 value={form.nome}
                 onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                placeholder="Ex: Cleison Santos"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
 
             {/* Apelido */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
                 Apelido{" "}
-                <span className="text-muted-foreground text-xs">(exibido no ranking)</span>
-              </label>
+                <span className="text-white/40 font-normal">(nome exibido no ranking)</span>
+              </Label>
               <Input
-                placeholder="Ex: João"
                 value={form.apelido}
                 onChange={(e) => setForm({ ...form, apelido: e.target.value })}
+                placeholder="Ex: Clei (deixe vazio para usar o nome completo)"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+              <p className="text-white/30 text-xs">
+                Se preenchido, este nome aparecerá no ranking público em vez do nome completo.
+              </p>
             </div>
 
             {/* Cargo */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">Cargo</label>
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">Cargo</Label>
               <Select
                 value={form.cargo}
                 onValueChange={(v) => setForm({ ...form, cargo: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="barbeiro">Barbeiro</SelectItem>
-                  <SelectItem value="cabeleireiro">Cabeleireiro</SelectItem>
-                  <SelectItem value="manicure">Manicure</SelectItem>
-                  <SelectItem value="esteticista">Esteticista</SelectItem>
-                  <SelectItem value="recepcionista">Recepcionista</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
+                <SelectContent className="bg-slate-800 border-white/10">
+                  {CARGOS.map((c) => (
+                    <SelectItem key={c} value={c} className="text-white hover:bg-white/10">
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             {/* ID CashBarber */}
-            <div>
-              <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-                <Link2 className="w-3.5 h-3.5 text-primary" />
-                ID do Profissional no CashBarber
-              </label>
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
+                ID do Profissional no CashBarber{" "}
+                <span className="text-white/40 font-normal">(opcional)</span>
+              </Label>
               <Input
                 type="number"
-                min={1}
-                placeholder="Ex: 12345"
                 value={form.cashbarberProfissionalId}
                 onChange={(e) =>
                   setForm({ ...form, cashbarberProfissionalId: e.target.value })
                 }
+                placeholder="Ex: 42"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Acesse CashBarber → Relatório → Financeiro/Vendas → selecione o profissional.
-                O ID aparece na URL ou nos filtros.
+              <p className="text-white/30 text-xs">
+                Encontre em: CashBarber → Minha Empresa → Listagem Profissionais → coluna ID.
               </p>
             </div>
 
-            {/* Exibir no ranking */}
-            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+            {/* Exibir no Ranking */}
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
               <div>
-                <p className="text-sm font-medium">Exibir no ranking público</p>
-                <p className="text-xs text-muted-foreground">
-                  Aparece no placar visível para a equipe
+                <p className="text-white text-sm font-medium">Exibir no Ranking Público</p>
+                <p className="text-white/40 text-xs">
+                  Quando ativo, aparece no placar de faturamento
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setForm({
-                    ...form,
-                    exibirNoRanking: form.exibirNoRanking === 1 ? 0 : 1,
-                  })
-                }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  form.exibirNoRanking === 1 ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    form.exibirNoRanking === 1 ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
+              <Switch
+                checked={form.exibirNoRanking}
+                onCheckedChange={(v) => setForm({ ...form, exibirNoRanking: v })}
+              />
+            </div>
+
+            {/* Ativo */}
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+              <div>
+                <p className="text-white text-sm font-medium">Profissional Ativo</p>
+                <p className="text-white/40 text-xs">
+                  Desative para ocultar sem excluir o histórico
+                </p>
+              </div>
+              <Switch
+                checked={form.ativo}
+                onCheckedChange={(v) => setForm({ ...form, ativo: v })}
+              />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
-              variant="outline"
-              onClick={() => {
-                setDialogAberto(false);
-                setForm(FORM_VAZIO);
-              }}
+              variant="ghost"
+              onClick={() => setModalAberto(false)}
+              className="text-white/60 hover:text-white hover:bg-white/10"
             >
               Cancelar
             </Button>
-            <Button onClick={handleSalvar} disabled={salvarMutation.isPending}>
-              {salvarMutation.isPending
-                ? "Salvando..."
-                : form.id
-                ? "Salvar alterações"
-                : "Cadastrar"}
+            <Button
+              onClick={handleSalvar}
+              disabled={salvar.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {salvar.isPending ? "Salvando..." : form.id ? "Salvar Alterações" : "Cadastrar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Confirmação de desativação */}
-      <AlertDialog
-        open={desativarId !== null}
-        onOpenChange={(o) => !o && setDesativarId(null)}
+      {/* Modal de confirmação de exclusão */}
+      <Dialog
+        open={confirmDeleteId !== null}
+        onOpenChange={() => setConfirmDeleteId(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Desativar profissional?</AlertDialogTitle>
-            <AlertDialogDescription>
-              O profissional será removido do ranking e não aparecerá nas sincronizações.
-              Esta ação pode ser revertida editando o profissional.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => desativarId && desativarMutation.mutate({ id: desativarId })}
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-400" />
+              Confirmar Exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-white/60 text-sm py-2">
+            Tem certeza que deseja remover este profissional? Esta ação não pode ser
+            desfeita. O histórico de faturamento será mantido.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDeleteId(null)}
+              className="text-white/60 hover:text-white hover:bg-white/10"
             >
-              Desativar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => confirmDeleteId && deletar.mutate({ id: confirmDeleteId })}
+              disabled={deletar.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deletar.isPending ? "Removendo..." : "Remover"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

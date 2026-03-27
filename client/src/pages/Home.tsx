@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -14,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
   ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw, Repeat2,
-  Pencil, Scissors,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -70,6 +69,7 @@ function LogoutButton() {
 export default function Home() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [, navigate] = useLocation();
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano] = useState(hoje.getFullYear());
@@ -92,6 +92,7 @@ export default function Home() {
   const empresaVinculada = user?.empresaVinculada ?? null;
   // Super-admin: utilizador sem tenantId é o owner do sistema
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [syncingCashbarber, setSyncingCashbarber] = useState(false);
 
   const sincronizarTodasMutation = trpc.cashbarber.sincronizarTodas.useMutation({
@@ -233,7 +234,6 @@ export default function Home() {
       recorrenciaFonte: "cashbarber" | "manual";
       recorrenciaValorManual: number | null;
       recorrenciaManualAtualizadoEm: Date | null;
-      recorrenciaValorCashbarber: number | null;
     }> = {};
     for (const c of configsDpote) {
       m[c.empresaSlug] = {
@@ -242,7 +242,6 @@ export default function Home() {
         recorrenciaFonte: c.recorrenciaFonte ?? "cashbarber",
         recorrenciaValorManual: c.recorrenciaValorManual ?? null,
         recorrenciaManualAtualizadoEm: c.recorrenciaManualAtualizadoEm ?? null,
-        recorrenciaValorCashbarber: (c as any).recorrenciaValorCashbarber ?? null,
       };
     }
     return m;
@@ -440,22 +439,11 @@ export default function Home() {
         catTotals[8] += parseFloat(r.cat9 || "0");
       });
 
-      // Recorrência Dpote: usa o valor total armazenado no banco (calculado pelo CashBarber ou informado manualmente).
-      // Isso evita a divergência causada por dias futuros com cat9 = 0 na soma parcial.
-      const dpoteCfgCalc = dpoteConfigMap[emp.slug];
-      const recorrenciaMes = (() => {
-        if (dpoteCfgCalc) {
-          const fonte = dpoteCfgCalc.recorrenciaFonte ?? "cashbarber";
-          if (fonte === "manual" && dpoteCfgCalc.recorrenciaValorManual && dpoteCfgCalc.recorrenciaValorManual > 0) {
-            return dpoteCfgCalc.recorrenciaValorManual;
-          }
-          if (fonte === "cashbarber" && dpoteCfgCalc.recorrenciaValorCashbarber && dpoteCfgCalc.recorrenciaValorCashbarber > 0) {
-            return dpoteCfgCalc.recorrenciaValorCashbarber;
-          }
-        }
-        // Fallback: soma de cat9 dos dias já lançados (comportamento anterior)
-        return rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
-      })();
+      // Recorrência Dpote: soma de cat9 de todos os dias (distribuído diariamente, um valor por dia)
+      const recorrenciaMes = rows.reduce(
+        (acc: number, r: any) => acc + parseFloat(r.cat9 || "0"),
+        0
+      );
 
       return {
         emp,
@@ -495,7 +483,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosFiltrados, metasData, dpoteConfigMap]);
+  }, [empresasVisiveis, faturamentosFiltrados, metasData]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
@@ -731,10 +719,324 @@ export default function Home() {
 
   const loading = loadingEmpresas || loadingFat || loadingMetas;
 
-    return (
-    <DashboardLayout>
-      {/* Barra de abas de navegação interna */}
-      <div className="bg-card border-b border-border sticky top-0 z-30">
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-sm sm:text-base font-bold text-foreground leading-tight">Meta Dashboard</h1>
+                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
+                  {empresaVinculada
+                    ? empresasData.find((e) => e.slug === empresaVinculada)?.nome ?? empresaVinculada
+                    : "Todas as Unidades"}
+                </p>
+              </div>
+            </div>
+
+            {/* Ações desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              <select
+                value={mes}
+                onChange={(e) => { setMes(Number(e.target.value)); setSemanaIdx(0); }}
+                className="text-sm border border-border rounded-xl px-3 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {MESES.map((m, i) => (
+                  <option key={i} value={i + 1}>{m} {ano}</option>
+                ))}
+              </select>
+              {/* Filtro de período: Mensal / Semanal */}
+              {activeTab === "dashboard" && (
+                <div className="flex items-center rounded-xl border border-border overflow-hidden text-sm">
+                  <button
+                    onClick={() => setPeriodoFiltro("mensal")}
+                    className={`px-3 py-1.5 transition-colors ${
+                      periodoFiltro === "mensal"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    Mensal
+                  </button>
+                  <button
+                    onClick={() => setPeriodoFiltro("semanal")}
+                    className={`px-3 py-1.5 transition-colors ${
+                      periodoFiltro === "semanal"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    Semanal
+                  </button>
+                </div>
+              )}
+              {/* Navegação de semanas */}
+              {activeTab === "dashboard" && periodoFiltro === "semanal" && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSemanaIdx((i) => Math.max(0, i - 1))}
+                    disabled={semanaIdx === 0}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-xs font-medium text-foreground min-w-[110px] text-center">
+                    {semanaAtual?.label ?? ""}
+                  </span>
+                  <button
+                    onClick={() => setSemanaIdx((i) => Math.min(semanasMes.length - 1, i + 1))}
+                    disabled={semanaIdx >= semanasMes.length - 1}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              {isSuperAdmin && (
+                <>
+                  <button onClick={() => setShowSuperAdmin(true)} className="flex items-center gap-1.5 text-sm text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors font-medium">
+                    <Shield className="w-4 h-4" /> Super Admin
+                  </button>
+                  <a href="/admin" className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium">
+                    <Users className="w-4 h-4" /> Admin
+                  </a>
+                  <a href="/dev" className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-50 transition-colors font-medium">
+                    <Building2 className="w-4 h-4" /> Dev Panel
+                  </a>
+                </>
+              )}
+              {isAdmin && !isSuperAdmin && (
+                <a href="/admin-panel" className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors font-medium">
+                  <Shield className="w-4 h-4" /> Painel Admin
+                </a>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setSyncingCashbarber(true);
+                    sincronizarTodasMutation.mutate({ mes, ano });
+                  }}
+                  disabled={syncingCashbarber}
+                  title="Sincronizar dados do CashBarber agora"
+                  className="flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingCashbarber
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingCashbarber ? "Sincronizando..." : "Sync CB"}
+                </button>
+              )}
+              {isGerente && (
+                <button
+                  onClick={() => {
+                    setSyncingDpote(true);
+                    sincronizarDpoteMutation.mutate();
+                  }}
+                  disabled={syncingDpote}
+                  title="Atualizar Recorrência (Dpote) agora"
+                  className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 px-3 py-1.5 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingDpote
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Repeat2 className="w-4 h-4" />}
+                  {syncingDpote ? "Atualizando..." : "Sync Dpote"}
+                </button>
+              )}
+
+              {podeLancarFaturamento && (
+                <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
+                  <Plus className="w-4 h-4" /> Novo Lançamento
+                </Button>
+              )}
+              {/* Botão de alternância de tema */}
+              {toggleTheme && (
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              )}
+              {user && (
+                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border">
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs font-semibold text-foreground leading-none">{user.name ?? user.email}</span>
+                    <span className="text-xs text-muted-foreground leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
+                  </div>
+                  <LogoutButton />
+                </div>
+              )}
+              {!user && (
+                <a href={getLoginUrl()} className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
+                  <LogIn className="w-4 h-4" /> Entrar
+                </a>
+              )}
+            </div>
+
+            {/* Ações mobile */}
+            <div className="flex md:hidden items-center gap-2">
+              {podeLancarFaturamento && (
+                <button
+                  onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
+                  className="p-2 rounded-xl bg-blue-600 text-white"
+                  title="Novo Lançamento"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              )}
+              {toggleTheme && (
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
+                  title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              )}
+              <LogoutButton />
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
+              >
+                {mobileMenuOpen ? <XIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Menu mobile expandido */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-border py-3 space-y-1">
+              {/* Seletor de mês */}
+              <div className="px-1 pb-2">
+                <label className="text-xs text-muted-foreground font-medium mb-1 block">Mês de referência</label>
+                <select
+                  value={mes}
+                  onChange={(e) => { setMes(Number(e.target.value)); setSemanaIdx(0); setMobileMenuOpen(false); }}
+                  className="w-full text-sm border border-border rounded-xl px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {MESES.map((m, i) => (
+                    <option key={i} value={i + 1}>{m} {ano}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Filtro de período mobile */}
+              {activeTab === "dashboard" && (
+                <div className="px-1 pb-2">
+                  <label className="text-xs text-muted-foreground font-medium mb-1 block">Período</label>
+                  <div className="flex items-center rounded-xl border border-border overflow-hidden text-sm">
+                    <button
+                      onClick={() => setPeriodoFiltro("mensal")}
+                      className={`flex-1 py-2 transition-colors ${
+                        periodoFiltro === "mensal"
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "bg-background text-muted-foreground"
+                      }`}
+                    >
+                      Mensal
+                    </button>
+                    <button
+                      onClick={() => setPeriodoFiltro("semanal")}
+                      className={`flex-1 py-2 transition-colors ${
+                        periodoFiltro === "semanal"
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "bg-background text-muted-foreground"
+                      }`}
+                    >
+                      Semanal
+                    </button>
+                  </div>
+                  {periodoFiltro === "semanal" && (
+                    <div className="flex items-center justify-between mt-2">
+                      <button
+                        onClick={() => setSemanaIdx((i) => Math.max(0, i - 1))}
+                        disabled={semanaIdx === 0}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-medium text-foreground">{semanaAtual?.label ?? ""}</span>
+                      <button
+                        onClick={() => setSemanaIdx((i) => Math.min(semanasMes.length - 1, i + 1))}
+                        disabled={semanaIdx >= semanasMes.length - 1}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent disabled:opacity-30"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Info do usuário */}
+              {user && (
+                <div className="px-1 py-2 border-b border-border mb-1">
+                  <p className="text-sm font-semibold text-foreground">{user.name ?? user.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{(user as any).perfil ?? user.role}</p>
+                </div>
+              )}
+              {isSuperAdmin && (
+                <>
+                  <button onClick={() => { setShowSuperAdmin(true); setMobileMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-purple-600 hover:bg-purple-50 transition-colors font-medium">
+                    <Shield className="w-4 h-4" /> Super Admin
+                  </button>
+                  <a href="/admin" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+                    <Users className="w-4 h-4" /> Admin
+                  </a>
+                  <a href="/dev" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium">
+                    <Building2 className="w-4 h-4" /> Dev Panel
+                  </a>
+                </>
+              )}
+              {isAdmin && !isSuperAdmin && (
+                <a href="/admin-panel" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+                  <Shield className="w-4 h-4" /> Painel Admin
+                </a>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setSyncingCashbarber(true);
+                    sincronizarTodasMutation.mutate({ mes, ano });
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={syncingCashbarber}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-emerald-600 hover:bg-emerald-50 transition-colors font-medium disabled:opacity-50"
+                >
+                  {syncingCashbarber
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingCashbarber ? "Sincronizando CashBarber..." : "Sincronizar CashBarber"}
+                </button>
+              )}
+              {isGerente && (
+                <button
+                  onClick={() => {
+                    setSyncingDpote(true);
+                    sincronizarDpoteMutation.mutate();
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={syncingDpote}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors font-medium disabled:opacity-50"
+                >
+                  {syncingDpote
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Repeat2 className="w-4 h-4" />}
+                  {syncingDpote ? "Atualizando Dpote..." : "Sincronizar Dpote"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Tabs com scroll horizontal em mobile */}
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 py-2 overflow-x-auto scrollbar-none -mx-1 px-1">
             {tabsVisiveis.map((tab) => {
@@ -755,31 +1057,32 @@ export default function Home() {
                 lancamentos: <Calendar className="w-4 h-4" />,
                 metas: <Target className="w-4 h-4" />,
                 bonificacao: <CheckCircle2 className="w-4 h-4" />,
-                historico: <BarChart className="w-4 h-4" />,
+                historico: <Trophy className="w-4 h-4" />,
                 usuarios: <Users className="w-4 h-4" />,
                 empresas: <Building2 className="w-4 h-4" />,
                 auditoria: <Shield className="w-4 h-4" />,
                 ia: <Sparkles className="w-4 h-4" />,
-                dpote: <Zap className="w-4 h-4" />,
+                dpote: <Repeat2 className="w-4 h-4" />,
               };
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
-                  {icons[tab]}
-                  {labels[tab]}
+                  {icons[tab]} <span className="hidden sm:inline">{labels[tab]}</span>
+                  <span className="sm:hidden">{labels[tab].split(" ")[0]}</span>
                 </button>
               );
             })}
           </div>
         </div>
       </div>
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading && activeTab === "dashboard" && (
           <div className="flex items-center justify-center py-16">
@@ -2574,6 +2877,6 @@ export default function Home() {
           <SuperAdmin onBack={() => setShowSuperAdmin(false)} />
         </div>
       )}
-    </DashboardLayout>
+    </div>
   );
 }
