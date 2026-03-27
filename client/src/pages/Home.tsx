@@ -254,6 +254,11 @@ export default function Home() {
     { mes: mesAnterior, ano: anoAnterior },
     { enabled: activeTab === "dashboard" }
   );
+  // Ranking de profissionais do mês atual
+  const { data: rankingProfissionais = [], isLoading: loadingRanking } = trpc.profissionais.ranking.useQuery(
+    { mes, ano },
+    { enabled: activeTab === "dashboard", staleTime: 60_000 }
+  );
   // Empresas do utilizador (múltiplas unidades)
   const { data: userEmpresasSlugs = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
     { userId: user?.id ?? 0 },
@@ -2196,6 +2201,87 @@ export default function Home() {
               })}
             </div>
 
+            {/* ─── RANKING DE PROFISSIONAIS ─────────────────────────────── */}
+            {(rankingProfissionais.length > 0 || loadingRanking) && (
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-yellow-500/15 flex items-center justify-center">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground text-sm">Ranking de Profissionais</h3>
+                      <p className="text-xs text-muted-foreground">{MESES[mes - 1]} {ano} — por faturamento total</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-primary h-7 px-2"
+                    onClick={() => navigate("/ranking")}
+                  >
+                    Ver completo →
+                  </Button>
+                </div>
+                {loadingRanking ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : rankingProfissionais.some(p => p.temDados) ? (
+                  <div className="space-y-2.5">
+                    {rankingProfissionais.slice(0, 5).map((p, idx) => {
+                      const nome = p.apelido ?? p.nome;
+                      const iniciais = nome.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
+                      const maxGeral = rankingProfissionais[0]?.totalGeral ?? 1;
+                      const pctBar = maxGeral > 0 ? Math.round((p.totalGeral / maxGeral) * 100) : 0;
+                      const medalhas = ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"];
+                      return (
+                        <div key={p.id} className="flex items-center gap-3">
+                          <div className="w-6 text-center shrink-0">
+                            {idx < 3
+                              ? <span className="text-base">{medalhas[idx]}</span>
+                              : <span className="text-xs font-bold text-muted-foreground">{idx + 1}º</span>
+                            }
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                            <span className="text-[10px] font-bold text-primary">{iniciais}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-foreground truncate">{nome}</span>
+                              <span className="text-xs font-semibold text-foreground shrink-0 ml-2">{fmt(p.totalGeral)}</span>
+                            </div>
+                            <div className="relative h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                              <div
+                                className="absolute top-0 left-0 h-full rounded-full"
+                                style={{
+                                  width: `${pctBar}%`,
+                                  background: idx === 0 ? '#eab308' : idx === 1 ? '#94a3b8' : idx === 2 ? '#b45309' : '#3b82f6',
+                                  opacity: 0.8,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {rankingProfissionais.length > 5 && (
+                      <p className="text-xs text-muted-foreground text-center pt-1">
+                        +{rankingProfissionais.length - 5} profissionais —{" "}
+                        <button className="text-primary underline" onClick={() => navigate("/ranking")}>ver todos</button>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Sem dados de faturamento para {MESES[mes - 1]} {ano}.</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Vá em <button className="text-primary underline" onClick={() => navigate("/profissionais")}>Profissionais</button> e clique em "Sincronizar CashBarber".
+                    </p>
+                  </div>
+                )}
+              </Card>
+            )}
             {/* Alertas */}
             {alertas.length > 0 && (
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
