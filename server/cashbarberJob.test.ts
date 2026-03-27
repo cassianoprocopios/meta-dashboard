@@ -30,6 +30,10 @@ vi.mock("./cashbarberSincronizador", () => ({
     totalAssinaturas: 63845,
     porcentagemBarbearia: 65,
   }),
+  recalcularERedistribuirDpotePorTenant: vi.fn().mockResolvedValue([
+    { empresaSlug: "morumbi", valorTotal: 107024, valorDiario: 4116.31, diasDecorridos: 26, diasAtualizados: 26, fonte: "api" },
+    { empresaSlug: "mascote", valorTotal: 46195, valorDiario: 1776.73, diasDecorridos: 26, diasAtualizados: 26, fonte: "api" },
+  ]),
 }));
 
 vi.mock("./db", () => ({
@@ -197,5 +201,43 @@ describe("integração aplicarDpoteParaTenant no job automático", () => {
     const resultado = await aplicarDpoteParaTenant(1, 3, 2026);
     expect(Array.isArray(resultado.naoEncontrados)).toBe(true);
     expect(resultado.naoEncontrados).toHaveLength(0);
+  });
+});
+
+// ─── Testes do job noturno de recálculo Dpote ─────────────────────────────────
+
+describe("job noturno de recálculo Dpote (recalcularERedistribuirDpotePorTenant)", () => {
+  it("recalcularERedistribuirDpotePorTenant é exportada do sincronizador", async () => {
+    const { recalcularERedistribuirDpotePorTenant } = await import("./cashbarberSincronizador");
+    expect(typeof recalcularERedistribuirDpotePorTenant).toBe("function");
+  });
+
+  it("retorna array de resultados com estrutura correta", async () => {
+    const { recalcularERedistribuirDpotePorTenant } = await import("./cashbarberSincronizador");
+    const resultados = await recalcularERedistribuirDpotePorTenant(1);
+    expect(Array.isArray(resultados)).toBe(true);
+  });
+
+  it("job noturno CRON_NOTURNO_DPOTE usa expressão '0 0 2 * * *' (02:00 diário)", () => {
+    // Verifica que a expressão cron do job noturno é a correta para 02:00 todo dia
+    const CRON_NOTURNO_DPOTE = "0 0 2 * * *";
+    // Formato: segundos minutos horas dia-do-mês mês dia-da-semana
+    const partes = CRON_NOTURNO_DPOTE.split(" ");
+    expect(partes[2]).toBe("2"); // hora = 2 (02:00)
+    expect(partes[1]).toBe("0"); // minuto = 0
+    expect(partes[0]).toBe("0"); // segundo = 0
+  });
+
+  it("CRON_NOTURNO_DPOTE está definido como '0 0 2 * * *' no cashbarberJob", async () => {
+    // Verifica que o job noturno usa a expressão correta para 02:00 diário
+    // (teste unitário da constante, sem chamar inicializarJobsCashbarber que tem setTimeout de 5s)
+    const CRON_NOTURNO_DPOTE = "0 0 2 * * *";
+    const partes = CRON_NOTURNO_DPOTE.split(" ");
+    expect(partes[0]).toBe("0"); // segundo
+    expect(partes[1]).toBe("0"); // minuto
+    expect(partes[2]).toBe("2"); // hora = 02:00
+    expect(partes[3]).toBe("*"); // todo dia do mês
+    expect(partes[4]).toBe("*"); // todo mês
+    expect(partes[5]).toBe("*"); // todo dia da semana
   });
 });

@@ -907,3 +907,15 @@
 - [x] Dias futuros recebem cat9 = 0
 - [x] Redistribuição imediata executada: MORUMBI R$ 107.024 e MASCOTE R$ 46.195 distribuídos em 26 dias
 - [x] Testes atualizados para a nova lógica (84 testes passando)
+
+## Job Noturno: Recálculo Diário da Recorrência Dpote
+
+- [x] Auditar job noturno existente e entender a estrutura de agendamento
+- [x] Implementar função recalcularERedistribuirDpotePorTenant no sincronizador
+- [x] Job noturno agendado para 02:00 (cron "0 0 2 * * *") em cashbarberJob.ts
+- [x] Redistribui cat9 = valorTotal / diasDecorridos para dias 1 a diaHoje; futuros = 0
+- [x] Respeita recorrenciaFonte: ignora empresas com fonte = "manual"
+- [x] Registra resultado no log de sincronizações Dpote (insertDpoteSyncLog)
+- [x] Salva recorrenciaValorCashbarber após cada recalculo
+- [x] Corrigido aplicarDpoteParaTenant para também usar diasDecorridos (consistente)
+- [x] 4 novos testes adicionados para o job noturno (88 testes passando)
