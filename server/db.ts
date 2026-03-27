@@ -1431,9 +1431,24 @@ export async function getRecorrenciaFonte(tenantId: number, empresaSlug: string)
       recorrenciaFonte: cashbarberConfig.recorrenciaFonte,
       recorrenciaValorManual: cashbarberConfig.recorrenciaValorManual,
       recorrenciaManualAtualizadoEm: cashbarberConfig.recorrenciaManualAtualizadoEm,
+      recorrenciaValorCashbarber: (cashbarberConfig as any).recorrenciaValorCashbarber,
     })
     .from(cashbarberConfig)
     .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)))
     .limit(1);
   return rows[0] ?? null;
+}
+
+/** Salva o último valor total de Recorrência calculado pelo CashBarber */
+export async function saveRecorrenciaValorCashbarber(
+  tenantId: number,
+  empresaSlug: string,
+  valor: number
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(cashbarberConfig)
+    .set({ recorrenciaValorCashbarber: String(valor) } as any)
+    .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
 }

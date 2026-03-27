@@ -75,6 +75,7 @@ import {
   getDpoteSyncLogs,
   saveRecorrenciaFonte,
   getRecorrenciaFonte,
+  saveRecorrenciaValorCashbarber,
 } from "./db";
 import {
   cashbarberLogin,
@@ -1960,6 +1961,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         recorrenciaFonte: ((c as any).recorrenciaFonte ?? "cashbarber") as "cashbarber" | "manual",
         recorrenciaValorManual: (c as any).recorrenciaValorManual ? parseFloat(String((c as any).recorrenciaValorManual)) : null,
         recorrenciaManualAtualizadoEm: (c as any).recorrenciaManualAtualizadoEm ?? null,
+        recorrenciaValorCashbarber: (c as any).recorrenciaValorCashbarber ? parseFloat(String((c as any).recorrenciaValorCashbarber)) : null,
       }));
     }),
 
@@ -2577,6 +2579,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               ano,
               "manual"
             );
+            // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
+            if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
+              await saveRecorrenciaValorCashbarber(tenantId, config.empresaSlug, resultado.recorrenciaValor);
+            }
             resultados.push({
               empresa: config.empresaSlug,
               recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,
@@ -2625,6 +2631,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               input.ano,
               "manual"
             );
+            // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
+            if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
+              await saveRecorrenciaValorCashbarber(tenantId, config.empresaSlug, resultado.recorrenciaValor);
+            }
             resultados.push({
               empresa: config.empresaSlug,
               diasSincronizados: resultado.diasSincronizados,
@@ -2803,6 +2813,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             input.ano,
             "manual"
           );
+          // Persistir o valor calculado pelo CashBarber para exibição correta no dashboard
+          if (resultado.recorrenciaAtualizada && resultado.recorrenciaValor) {
+            await saveRecorrenciaValorCashbarber(tenantId, input.empresaSlug, resultado.recorrenciaValor);
+          }
           return {
             empresa: input.empresaSlug,
             recorrenciaAtualizada: resultado.recorrenciaAtualizada ?? false,

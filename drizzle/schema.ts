@@ -239,6 +239,8 @@ export const cashbarberConfig = mysqlTable("cashbarberConfig", {
   recorrenciaValorManual: decimal("recorrenciaValorManual", { precision: 12, scale: 2 }),
   /** Data/hora em que o valor manual foi salvo */
   recorrenciaManualAtualizadoEm: timestamp("recorrenciaManualAtualizadoEm"),
+  /** Último valor total de Recorrência calculado pelo CashBarber (total mensal da filial) */
+  recorrenciaValorCashbarber: decimal("recorrenciaValorCashbarber", { precision: 12, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -885,3 +885,10 @@
 
 - [x] Garantir que recorrenciaManualAtualizadoEm é gravado sempre que o valor manual é salvo via "Aplicar"
 - [x] refetchConfigsDpote chamado no onSuccess para atualizar o timestamp no card imediatamente
+
+## Bug: Valor Dpote por Filial Divergente no Dashboard
+
+- [x] Auditar cálculo de distribuição Dpote por filial (sincronizador vs. exibição no dashboard)
+- [x] Corrigir divergência: recorrenciaMes agora usa recorrenciaValorCashbarber (total mensal da filial) em vez da soma parcial dos dias
+- [x] Coluna recorrenciaValorCashbarber adicionada no banco e no schema Drizzle
+- [x] Procedures sincronizarDpote, sincronizarTodas e sincronizarDpotePorEmpresa salvam o valor calculado após cada sync
