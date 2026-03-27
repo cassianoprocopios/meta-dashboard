@@ -930,3 +930,8 @@
 - [ ] Investigar por que o job automático não recalculou o Dpote no dia 27/03
 - [ ] Verificar logs do job e identificar se houve erro ou skip
 - [ ] Corrigir e disparar recalculo manual para 27/03
+
+## Divergência Dashboard vs Banco - Dpote
+- [ ] Identificar por que o valor do Dpote correto no banco não aparece no dashboard
+- [ ] Verificar a query/procedure que alimenta os cards do dashboard
+- [ ] Corrigir o cálculo ou a query para refletir os valores reais do banco

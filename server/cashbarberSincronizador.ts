@@ -473,17 +473,31 @@ export async function aplicarDpoteParaTenant(
   // porcentagemBarbearia não é mais usada no cálculo (distribuição é 100%)
   const porcentagemBarbearia = 100;
 
-  // Tentar buscar valor de assinaturas automaticamente via API do CashBarber
+  // Sempre criar um novo histórico para obter o valor mais atualizado das assinaturas
+  // Isso garante que o job automático sempre use o valor mais recente do CashBarber
   const token = await cashbarberLogin(configComDpote.cbEmail, configComDpote.cbSenha);
   const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
-  const historicoIdSalvo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
 
-  if (historicoIdSalvo) {
-    const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+  try {
+    const novoHistoricoId = await cashbarberCriarHistoricoDpote(token);
+    const dadosApi = await cashbarberBuscarValorAssinaturas(token, novoHistoricoId);
     if (dadosApi) {
       valorAssinaturas = dadosApi.valorAssinaturas;
-      console.log(`[CashBarber Dpote] Valor assinaturas buscado via API: R$ ${valorAssinaturas} (histórico #${historicoIdSalvo})`);
+      // Salvar o novo histórico ID no banco para referência e para a aba Dpote
+      await saveDpoteHistoricoId(tenantId, configComDpote.empresaSlug, novoHistoricoId, mesSigla, valorAssinaturas);
+      console.log(`[CashBarber Dpote] Novo histórico #${novoHistoricoId}: R$ ${valorAssinaturas} assinaturas`);
     }
+  } catch (err) {
+    // Fallback: usar histórico salvo se falhar ao criar novo
+    const historicoIdSalvo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
+    if (historicoIdSalvo) {
+      const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+      if (dadosApi) {
+        valorAssinaturas = dadosApi.valorAssinaturas;
+        console.log(`[CashBarber Dpote] Fallback histórico #${historicoIdSalvo}: R$ ${valorAssinaturas} assinaturas`);
+      }
+    }
+    console.warn(`[CashBarber Dpote] Falha ao criar novo histórico, usando fallback:`, err);
   }
 
   // Calcular período
@@ -498,7 +512,7 @@ export async function aplicarDpoteParaTenant(
     token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
   );
 
-   const totalDiasMes = new Date(ano, mes, 0).getDate();
+  const totalDiasMes = new Date(ano, mes, 0).getDate();
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
   const naoEncontrados: string[] = [];
   // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
