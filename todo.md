@@ -892,3 +892,7 @@
 - [ ] Adicionar dica visual indicando que apelido é o nome exibido no ranking
 - [ ] Garantir que cargo tenha opções predefinidas (Barbeiro, Barbeira, Recepcionista, Gerente, Sócio)
 - [ ] Exibir apelido em destaque no card do profissional
+
+## Melhoria: Ranking Público
+
+- [x] Adicionar botão de retorno ao dashboard na página RankingPublico
