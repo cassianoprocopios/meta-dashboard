@@ -1,0 +1,46 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  data,\n  ROUND(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0), 2) as operacional,\n  ROUND(COALESCE(cat9,0), 2) as recorrencia,\n  ROUND(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0), 2) as total,\n  sincronizadoCB,\n  updatedAt\nFROM faturamentos\nWHERE data IN ('2026-03-26', '2026-03-27')\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nORDER BY empresaSlug, data;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  data,\n  ROUND(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0), 2) as operacional,\n  ROUND(COALESCE(cat9,0), 2) as recorrencia,\n  ROUND(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0), 2) as total,\n  sincronizadoCB,\n  updatedAt\nFROM faturamentos\nWHERE data IN ('2026-03-26', '2026-03-27')\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nORDER BY empresaSlug, data;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-26",
+      "operacional": "1324.52",
+      "recorrencia": "1711.33",
+      "total": "3035.85",
+      "sincronizadoCB": "1",
+      "updatedAt": "2026-03-27 16:30:51"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-27",
+      "operacional": "406.41",
+      "recorrencia": "1711.33",
+      "total": "2117.74",
+      "sincronizadoCB": "1",
+      "updatedAt": "2026-03-27 16:30:51"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-26",
+      "operacional": "2650.00",
+      "recorrencia": "3963.93",
+      "total": "6613.93",
+      "sincronizadoCB": "1",
+      "updatedAt": "2026-03-27 16:35:15"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-27",
+      "operacional": "1165.20",
+      "recorrencia": "3963.93",
+      "total": "5129.13",
+      "sincronizadoCB": "1",
+      "updatedAt": "2026-03-27 16:35:15"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\toperacional\trecorrencia\ttotal\tsincronizadoCB\tupdatedAt\nMASCOTE\t2026-03-26\t1324.52\t1711.33\t3035.85\t1\t2026-03-27 16:30:51\nMASCOTE\t2026-03-27\t406.41\t1711.33\t2117.74\t1\t2026-03-27 16:30:51\nMORUMBI\t2026-03-26\t2650.00\t3963.93\t6613.93\t1\t2026-03-27 16:35:15\nMORUMBI\t2026-03-27\t1165.20\t3963.93\t5129.13\t1\t2026-03-27 16:35:15\n",
+  "stderr": "",
+  "execution_time_ms": 75
+}

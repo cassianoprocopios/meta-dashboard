@@ -1,0 +1,26 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  ROUND(SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)), 2) as total_operacional,\n  ROUND(SUM(COALESCE(cat9,0)), 2) as total_recorrencia,\n  ROUND(SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)), 2) as total_geral,\n  MAX(updatedAt) as ultima_atualizacao\nFROM faturamentos\nWHERE data BETWEEN '2026-03-01' AND '2026-03-27'\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  ROUND(SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)), 2) as total_operacional,\n  ROUND(SUM(COALESCE(cat9,0)), 2) as total_recorrencia,\n  ROUND(SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)), 2) as total_geral,\n  MAX(updatedAt) as ultima_atualizacao\nFROM faturamentos\nWHERE data BETWEEN '2026-03-01' AND '2026-03-27'\n  AND empresaSlug IN ('MASCOTE', 'MORUMBI')\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "dias": "27",
+      "total_operacional": "32430.25",
+      "total_recorrencia": "46131.12",
+      "total_geral": "78561.37",
+      "ultima_atualizacao": "2026-03-27 16:53:41"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "dias": "27",
+      "total_operacional": "69177.65",
+      "total_recorrencia": "107089.02",
+      "total_geral": "176266.67",
+      "ultima_atualizacao": "2026-03-27 16:53:43"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias\ttotal_operacional\ttotal_recorrencia\ttotal_geral\tultima_atualizacao\nMASCOTE\t27\t32430.25\t46131.12\t78561.37\t2026-03-27 16:53:41\nMORUMBI\t27\t69177.65\t107089.02\t176266.67\t2026-03-27 16:53:43\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

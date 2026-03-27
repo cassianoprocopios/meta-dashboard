@@ -925,3 +925,8 @@
 - [x] Ressincronizar Morumbi com lógica corrigida do Dpote (dias realizados)
 - [x] Verificar divergência no faturamento da Morumbi março/2026
 - [x] Confirmar que o job automático horário usa a lógica corrigida do Dpote
+
+## Job Automático Dpote - Não Recalculou 27/03
+- [ ] Investigar por que o job automático não recalculou o Dpote no dia 27/03
+- [ ] Verificar logs do job e identificar se houve erro ou skip
+- [ ] Corrigir e disparar recalculo manual para 27/03

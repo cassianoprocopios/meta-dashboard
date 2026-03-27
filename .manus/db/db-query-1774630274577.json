@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT empresaSlug, dpoteHistoricoId, dpoteHistoricoMes, dpoteValorAssinaturas, dpotePorcentagemBarbearia\nFROM cashbarberConfig\nWHERE tenantId = 1 AND empresaSlug IN ('MASCOTE', 'MORUMBI');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, dpoteHistoricoId, dpoteHistoricoMes, dpoteValorAssinaturas, dpotePorcentagemBarbearia\nFROM cashbarberConfig\nWHERE tenantId = 1 AND empresaSlug IN ('MASCOTE', 'MORUMBI');\n",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "dpoteHistoricoId": "68704",
+      "dpoteHistoricoMes": "2026-03",
+      "dpoteValorAssinaturas": "153219.40",
+      "dpotePorcentagemBarbearia": "65.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "dpoteHistoricoId": "68704",
+      "dpoteHistoricoMes": "2026-03",
+      "dpoteValorAssinaturas": "153219.40",
+      "dpotePorcentagemBarbearia": "65.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpoteHistoricoId\tdpoteHistoricoMes\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\nMORUMBI\t68704\t2026-03\t153219.40\t65.00\nMASCOTE\t68704\t2026-03\t153219.40\t65.00\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}
