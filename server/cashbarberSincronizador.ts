@@ -15,6 +15,17 @@
  *   (o ID é armazenado em cashbarberConfig.dpoteHistoricoId).
  */
 
+/**
+ * Retorna a data atual no fuso horário do Brasil (UTC-3).
+ * Evita erros de "dia errado" quando o servidor roda em UTC e o job executa após 21:00 BRT.
+ */
+function hojeNoBrasil(): Date {
+  const agora = new Date();
+  // UTC-3: subtrair 3 horas do UTC para obter a data correta no Brasil
+  const offsetMs = 3 * 60 * 60 * 1000;
+  return new Date(agora.getTime() - offsetMs);
+}
+
 import {
   getCashbarberConfig,
   listCashbarberMapeamento,
@@ -171,7 +182,7 @@ export async function sincronizarFaturamentoCashbarber(
   if (dpoteFilialNome) {
     try {
       // Calcular com atendimentos do dia 1 ao dia atual (ou último dia do mês)
-      const hoje = new Date();
+      const hoje = hojeNoBrasil();
       const ehMesAtualDpote = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
       const ultimoDiaDpote = ehMesAtualDpote ? hoje.getDate() : new Date(ano, mes, 0).getDate();
       const dataInicialDpote = `${ano}-${String(mes).padStart(2, "0")}-01`;
@@ -251,7 +262,7 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 6. Determinar o período: do dia 1 ao último dia do mês
   //    Se for o mês atual, vai até hoje; se for mês passado, vai até o último dia
-  const hoje = new Date();
+  const hoje = hojeNoBrasil();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
   const ultimoDia = ehMesAtual
     ? hoje.getDate()
@@ -318,7 +329,7 @@ export async function sincronizarFaturamentoCashbarber(
       // Ex: R$ 107.024 até o dia 26 = R$ 107.024 ÷ 26 = R$ 4.116,31/dia; dias futuros = R$ 0.
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        const hoje2 = new Date();
+        const hoje2 = hojeNoBrasil();
         const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
         const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
         if (diaFuturo) {
@@ -378,7 +389,7 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 9a. Registrar no log do Dpote (se a recorrência foi atualizada)
   if (recorrenciaAtualizada) {
-    const hoje3 = new Date();
+    const hoje3 = hojeNoBrasil();
     const ehMesAtualLog = mes === hoje3.getMonth() + 1 && ano === hoje3.getFullYear();
     const diasDecorridosLog = ehMesAtualLog ? hoje3.getDate() : new Date(ano, mes, 0).getDate();
     const valorDiarioNovo = recorrenciaValor / diasDecorridosLog;
@@ -479,7 +490,7 @@ export async function aplicarDpoteParaTenant(
   }
 
   // Calcular período
-  const hoje = new Date();
+  const hoje = hojeNoBrasil();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
   const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(ano, mes, 0).getDate();
   const dataInicial = `${ano}-${String(mes).padStart(2, "0")}-01`;
@@ -495,7 +506,7 @@ export async function aplicarDpoteParaTenant(
   const naoEncontrados: string[] = [];
 
   // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
-  const hojeAplic = new Date();
+  const hojeAplic = hojeNoBrasil();
   const ehMesAtualAplic = mes === hojeAplic.getMonth() + 1 && ano === hojeAplic.getFullYear();
   const diaVigenteAplic = hojeAplic.getDate();
 
@@ -619,7 +630,7 @@ export async function recalcularERedistribuirDpotePorTenant(
   mes?: number,
   ano?: number
 ): Promise<ResultadoRecalculoDpote[]> {
-  const agora = new Date();
+  const agora = hojeNoBrasil();
   const mesAlvo = mes ?? agora.getMonth() + 1;
   const anoAlvo = ano ?? agora.getFullYear();
   const ehMesAtual = mesAlvo === agora.getMonth() + 1 && anoAlvo === agora.getFullYear();

@@ -919,3 +919,11 @@
 - [x] Salva recorrenciaValorCashbarber após cada recalculo
 - [x] Corrigido aplicarDpoteParaTenant para também usar diasDecorridos (consistente)
 - [x] 4 novos testes adicionados para o job noturno (88 testes passando)
+
+## Bug: Divergência cat9 vs Total Dpote
+
+- [x] Auditar valores reais de cat9 no banco vs recorrenciaValorCashbarber
+- [x] Causa: servidor roda em UTC; após 21:00 BRT o servidor já está no dia seguinte UTC, fazendo diasDecorridos = totalDiasMes = 31
+- [x] Correção: função hojeNoBrasil() (UTC-3) usada em todos os cálculos de data do sincronizador
+- [x] Redistribuição imediata executada: MORUMBI R$ 4.116,31/dia × 26 = R$ 107.024 | MASCOTE R$ 1.776,73/dia × 26 = R$ 46.195
+- [x] 88 testes passando
