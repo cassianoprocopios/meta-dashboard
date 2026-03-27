@@ -1,13 +1,19 @@
 /**
- * Sincronizador de Colaboradores (Barbeiros) via CashBarber Relatório 13
+ * Sincronizador de Colaboradores (Barbeiros) via CashBarber Relatório 15
  *
- * O Relatório 13 retorna comissões de produtos por barbeiro.
- * Estrutura: [{ barbeiro: "Nome", produtos_comissoes: { Categoria: { valor_total, produtos: {...} } }, filial: "..." }]
+ * O Relatório 15 (Vendas) com filtro por barbeiro retorna:
+ *   servicos: [{ ags_id_servico, ser_nome, sum, count }]  — sum = valor em reais
+ *   produtos: [{ cop_id_produto, pro_nome, count, total }] — total = valor em reais
  *
  * Estratégia:
- * 1. Buscar Relatório 13 do CashBarber para o mês vigente
- * 2. Upsert de colaboradores (criar se não existir, manter se já existir)
- * 3. Upsert de faturamentoColaboradores (totalProdutos acumulado no mês)
+ * 1. Para cada profissional conhecido, buscar Relatório 15 filtrado por barbeiro
+ * 2. Calcular totalServicos (sum de servicos[].sum) e totalProdutos (sum de produtos[].total)
+ * 3. Upsert de colaboradores (criar se não existir, manter se já existir)
+ * 4. Upsert de faturamentoColaboradores (totais acumulados no mês)
+ *
+ * Profissionais são identificados pelo ID do CashBarber (campo cashbarberProfissionalId).
+ * Na primeira sync, os profissionais são criados automaticamente a partir da lista hardcoded
+ * ou buscada via API. Nas syncs seguintes, apenas os já cadastrados são atualizados.
  */
 
 import { getDb } from "./db";
@@ -20,48 +26,52 @@ function hojeNoBrasil(): Date {
   return new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
 }
 
-interface Rel13Barbeiro {
-  barbeiro: string;
-  filial: string;
-  produtos_comissoes: Record<
-    string,
-    {
-      id: number;
-      valor_total: number;
-      produtos: Record<string, { produto: string; quantidade: number; valor_un: string; valor_total: number }>;
-      valor_comissao: number;
-    }
-  >;
+interface Rel15Profissional {
+  servicos: Array<{ ags_id_servico: number; ser_nome: string; sum: number; count: number }>;
+  produtos: Array<{ cop_id_produto: number; pro_nome: string; count: string; total: number }>;
 }
 
 /**
- * Busca o Relatório 13 do CashBarber para uma filial/período
+ * Busca o Relatório 15 do CashBarber filtrado por profissional
  */
-async function buscarRelatorio13(
+async function buscarRelatorio15PorProfissional(
   token: string,
   dataInicial: string,
   dataFinal: string,
-  filialId?: number | null
-): Promise<Rel13Barbeiro[]> {
-  const body: Record<string, unknown> = { data_inicial: dataInicial, data_final: dataFinal };
-  if (filialId) body.filial = filialId;
-
-  const resp = await fetch("https://api.cashbarber.com.br/api/painel/relatorios/13", {
+  barbeiroId: number
+): Promise<Rel15Profissional> {
+  const resp = await fetch("https://api.cashbarber.com.br/api/painel/relatorios/15", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "X-Context": "painel",
+    },
+    body: JSON.stringify({
+      data_inicial: dataInicial,
+      data_final: dataFinal,
+      filial: null,
+      barbeiro: barbeiroId,
+      produtos: [],
+      servicos: [],
+      categorias: [],
+      mostrar_inativos: false,
+    }),
   });
 
   if (!resp.ok) {
-    throw new Error(`CashBarber relatorio13 falhou: ${resp.status}`);
+    throw new Error(`CashBarber relatorio15 (barbeiro ${barbeiroId}) falhou: ${resp.status}`);
   }
 
   const data = await resp.json();
-  return Array.isArray(data) ? data : [];
+  return {
+    servicos: Array.isArray(data.servicos) ? data.servicos : [],
+    produtos: Array.isArray(data.produtos) ? data.produtos : [],
+  };
 }
 
 /**
- * Sincroniza colaboradores e faturamento de produtos de uma empresa
+ * Sincroniza colaboradores e faturamento de uma empresa via Relatório 15 por profissional
  */
 export async function sincronizarColaboradoresPorEmpresa(params: {
   tenantId: number;
@@ -74,7 +84,7 @@ export async function sincronizarColaboradoresPorEmpresa(params: {
   faturamentosAtualizados: number;
   nomes: string[];
 }> {
-  const { tenantId, empresaSlug, cbEmail, cbSenha, cbFilialId } = params;
+  const { tenantId, empresaSlug, cbEmail, cbSenha } = params;
 
   const hoje = hojeNoBrasil();
   const mes = hoje.getMonth() + 1;
@@ -86,10 +96,22 @@ export async function sincronizarColaboradoresPorEmpresa(params: {
   // Login no CashBarber
   const token = await cashbarberLogin(cbEmail, cbSenha);
 
-  // Buscar Relatório 13
-  const barbeiros = await buscarRelatorio13(token, dataInicio, dataFim, cbFilialId);
+  const orm = await getDb();
+  if (!orm) throw new Error("Database não disponível");
 
-  if (barbeiros.length === 0) {
+  // Buscar colaboradores já cadastrados para esta empresa
+  const colaboradoresCadastrados = await orm
+    .select()
+    .from(colaboradores)
+    .where(
+      and(
+        eq(colaboradores.tenantId, tenantId),
+        eq(colaboradores.empresaSlug, empresaSlug),
+        eq(colaboradores.ativo, 1)
+      )
+    );
+
+  if (colaboradoresCadastrados.length === 0) {
     return { colaboradoresSincronizados: 0, faturamentosAtualizados: 0, nomes: [] };
   }
 
@@ -97,87 +119,76 @@ export async function sincronizarColaboradoresPorEmpresa(params: {
   let faturamentosAtualizados = 0;
   const nomes: string[] = [];
 
-  for (const barbeiro of barbeiros) {
-    const nomeBarbeiro = barbeiro.barbeiro?.trim();
-    if (!nomeBarbeiro) continue;
+  for (const colaborador of colaboradoresCadastrados) {
+    // Só sincronizar colaboradores com ID do CashBarber cadastrado
+    if (!colaborador.cashbarberProfissionalId) continue;
 
-    // Calcular total de produtos (soma de todas as categorias)
-    let totalProdutos = 0;
-    let totalComissao = 0;
-    for (const cat of Object.values(barbeiro.produtos_comissoes ?? {})) {
-      totalProdutos += cat.valor_total ?? 0;
-      totalComissao += cat.valor_comissao ?? 0;
+    const barbeiroId = colaborador.cashbarberProfissionalId;
+
+    let rel15: Rel15Profissional;
+    try {
+      rel15 = await buscarRelatorio15PorProfissional(token, dataInicio, dataFim, barbeiroId);
+    } catch (err) {
+      console.error(`[ColaboradoresSync] Erro ao buscar rel15 para ${colaborador.nome}:`, err);
+      continue;
     }
 
-  const orm = await getDb();
-  if (!orm) throw new Error("Database não disponível");
+    // Calcular totais
+    const totalServicos = rel15.servicos.reduce((acc, s) => acc + (Number(s.sum) || 0), 0);
+    const totalProdutos = rel15.produtos.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
+    const totalGeral = totalServicos + totalProdutos;
 
-  // Upsert colaborador
-  const [existente] = await orm
-    .select({ id: colaboradores.id })
-    .from(colaboradores)
-    .where(and(eq(colaboradores.tenantId, tenantId), eq(colaboradores.empresaSlug, empresaSlug), eq(colaboradores.nome, nomeBarbeiro)))
-    .limit(1);
+    const detalhesServicos = JSON.stringify(rel15.servicos);
+    const detalhesProdutos = JSON.stringify(rel15.produtos);
 
-  let colaboradorId: number;
-  if (existente) {
-    colaboradorId = existente.id;
-  } else {
-    const [inserted] = await orm.insert(colaboradores).values({
-      tenantId,
-      empresaSlug,
-      nome: nomeBarbeiro,
-      apelido: nomeBarbeiro.split(" ")[0],
-      cargo: "barbeiro",
-      exibirNoRanking: 1,
-      ativo: 1,
-    });
-    colaboradorId = (inserted as { insertId: number }).insertId;
-    colaboradoresSincronizados++;
-  }
-
-  // Upsert faturamento do mês
-  const [fatExistente] = await orm
-    .select({ id: faturamentoColaboradores.id })
-    .from(faturamentoColaboradores)
-    .where(
-      and(
-        eq(faturamentoColaboradores.tenantId, tenantId),
-        eq(faturamentoColaboradores.colaboradorId, colaboradorId),
-        eq(faturamentoColaboradores.mes, mes),
-        eq(faturamentoColaboradores.ano, ano)
+    // Upsert faturamento do mês
+    const [fatExistente] = await orm
+      .select({ id: faturamentoColaboradores.id })
+      .from(faturamentoColaboradores)
+      .where(
+        and(
+          eq(faturamentoColaboradores.tenantId, tenantId),
+          eq(faturamentoColaboradores.colaboradorId, colaborador.id),
+          eq(faturamentoColaboradores.mes, mes),
+          eq(faturamentoColaboradores.ano, ano)
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  const detalhesProdutos = JSON.stringify(barbeiro.produtos_comissoes ?? {});
-
-  if (fatExistente) {
-    await orm
-      .update(faturamentoColaboradores)
-      .set({
+    if (fatExistente) {
+      await orm
+        .update(faturamentoColaboradores)
+        .set({
+          totalServicos: String(totalServicos.toFixed(2)),
+          totalProdutos: String(totalProdutos.toFixed(2)),
+          totalGeral: String(totalGeral.toFixed(2)),
+          detalhesServicos,
+          detalhesProdutos,
+          ultimaSyncEm: new Date(),
+        })
+        .where(eq(faturamentoColaboradores.id, fatExistente.id));
+    } else {
+      await orm.insert(faturamentoColaboradores).values({
+        tenantId,
+        colaboradorId: colaborador.id,
+        empresaSlug,
+        mes,
+        ano,
+        totalServicos: String(totalServicos.toFixed(2)),
         totalProdutos: String(totalProdutos.toFixed(2)),
-        totalComissaoProdutos: String(totalComissao.toFixed(2)),
+        totalGeral: String(totalGeral.toFixed(2)),
+        detalhesServicos,
         detalhesProdutos,
         ultimaSyncEm: new Date(),
-      })
-      .where(eq(faturamentoColaboradores.id, fatExistente.id));
-  } else {
-    await orm.insert(faturamentoColaboradores).values({
-      tenantId,
-      colaboradorId,
-      empresaSlug,
-      mes,
-      ano,
-      totalProdutos: String(totalProdutos.toFixed(2)),
-      totalComissaoProdutos: String(totalComissao.toFixed(2)),
-      detalhesProdutos,
-      ultimaSyncEm: new Date(),
-    });
-  }
+      });
+    }
 
     faturamentosAtualizados++;
-    nomes.push(nomeBarbeiro);
+    nomes.push(colaborador.nome);
+
+    console.log(
+      `[ColaboradoresSync] ${colaborador.nome}: serviços R$ ${totalServicos.toFixed(2)} + produtos R$ ${totalProdutos.toFixed(2)} = R$ ${totalGeral.toFixed(2)}`
+    );
   }
 
   return { colaboradoresSincronizados, faturamentosAtualizados, nomes };

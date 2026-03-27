@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { Trophy, Medal, Star, TrendingUp, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
@@ -44,7 +44,9 @@ interface Colaborador {
   nome: string;
   apelido: string | null;
   fotoUrl: string | null;
+  totalServicos: number;
   totalProdutos: number;
+  totalGeral: number;
   metaProdutos: number;
   bonificacaoMeta: number;
   bonificacaoSuperMeta: number;
@@ -66,6 +68,9 @@ function ColaboradorCard({ col, pos }: { col: Colaborador; pos: number }) {
     : col.atingiuMeta
     ? "bg-gradient-to-br from-green-900/60 to-emerald-900/40 border-green-500/40"
     : "bg-white/5 border-white/10";
+
+  const faltaMeta = col.metaProdutos > 0 ? col.metaProdutos - col.totalGeral : 0;
+  const faltaSuperMeta = col.metaProdutos > 0 ? (col.metaProdutos * col.superMetaPct / 100) - col.totalGeral : 0;
 
   return (
     <div
@@ -97,7 +102,7 @@ function ColaboradorCard({ col, pos }: { col: Colaborador; pos: number }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <p className="font-semibold text-white truncate">{nome}</p>
-            <p className="text-sm font-bold text-white shrink-0">{fmtBRL(col.totalProdutos)}</p>
+            <p className="text-sm font-bold text-white shrink-0">{fmtBRL(col.totalGeral)}</p>
           </div>
           {col.metaProdutos > 0 && (
             <>
@@ -121,41 +126,58 @@ function ColaboradorCard({ col, pos }: { col: Colaborador; pos: number }) {
 
       {/* Detalhes expandidos */}
       {expandido && (
-        <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-white/5 rounded-lg p-2">
-            <p className="text-white/50 mb-0.5">Faturamento</p>
-            <p className="font-bold text-white">{fmtBRL(col.totalProdutos)}</p>
+        <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+          {/* Breakdown serviços + produtos */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="bg-white/5 rounded-lg p-2">
+              <p className="text-white/50 mb-0.5">Serviços</p>
+              <p className="font-bold text-blue-300">{fmtBRL(col.totalServicos)}</p>
+            </div>
+            <div className="bg-white/5 rounded-lg p-2">
+              <p className="text-white/50 mb-0.5">Produtos</p>
+              <p className="font-bold text-purple-300">{fmtBRL(col.totalProdutos)}</p>
+            </div>
+            <div className="bg-white/5 rounded-lg p-2">
+              <p className="text-white/50 mb-0.5">Total</p>
+              <p className="font-bold text-white">{fmtBRL(col.totalGeral)}</p>
+            </div>
           </div>
-          <div className="bg-white/5 rounded-lg p-2">
-            <p className="text-white/50 mb-0.5">Meta</p>
-            <p className="font-bold text-white">{col.metaProdutos > 0 ? fmtBRL(col.metaProdutos) : "—"}</p>
-          </div>
-          {col.bonificacaoMeta > 0 && (
-            <div className="bg-green-900/30 rounded-lg p-2">
-              <p className="text-green-400/70 mb-0.5">Bonif. Meta</p>
-              <p className="font-bold text-green-400">{fmtBRL(col.bonificacaoMeta)}</p>
+
+          {/* Bonificações */}
+          {(col.bonificacaoMeta > 0 || col.bonificacaoSuperMeta > 0) && (
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {col.bonificacaoMeta > 0 && (
+                <div className="bg-green-900/30 rounded-lg p-2">
+                  <p className="text-green-400/70 mb-0.5">Bonif. Meta</p>
+                  <p className="font-bold text-green-400">{fmtBRL(col.bonificacaoMeta)}</p>
+                </div>
+              )}
+              {col.bonificacaoSuperMeta > 0 && (
+                <div className="bg-yellow-900/30 rounded-lg p-2">
+                  <p className="text-yellow-400/70 mb-0.5">⭐ Super Meta ({col.superMetaPct}%)</p>
+                  <p className="font-bold text-yellow-400">{fmtBRL(col.bonificacaoSuperMeta)}</p>
+                </div>
+              )}
             </div>
           )}
-          {col.bonificacaoSuperMeta > 0 && (
-            <div className="bg-yellow-900/30 rounded-lg p-2">
-              <p className="text-yellow-400/70 mb-0.5">⭐ Super Meta ({col.superMetaPct}%)</p>
-              <p className="font-bold text-yellow-400">{fmtBRL(col.bonificacaoSuperMeta)}</p>
-            </div>
-          )}
-          {col.atingiuMeta && !col.atingiuSuperMeta && (
-            <div className="col-span-2 bg-green-900/20 rounded-lg p-2 text-center">
-              <p className="text-green-400 font-medium">🎉 Meta atingida!</p>
-              <p className="text-green-400/70 text-xs">Falta {fmtBRL(col.metaProdutos * col.superMetaPct / 100 - col.totalProdutos)} para a Super Meta</p>
-            </div>
-          )}
+
+          {/* Status */}
           {col.atingiuSuperMeta && (
-            <div className="col-span-2 bg-yellow-900/20 rounded-lg p-2 text-center">
+            <div className="bg-yellow-900/20 rounded-lg p-2 text-center text-xs">
               <p className="text-yellow-400 font-medium">⭐ Super Meta atingida!</p>
             </div>
           )}
+          {col.atingiuMeta && !col.atingiuSuperMeta && (
+            <div className="bg-green-900/20 rounded-lg p-2 text-center text-xs">
+              <p className="text-green-400 font-medium">🎉 Meta atingida!</p>
+              {faltaSuperMeta > 0 && (
+                <p className="text-green-400/70 text-xs">Falta {fmtBRL(faltaSuperMeta)} para a Super Meta</p>
+              )}
+            </div>
+          )}
           {!col.atingiuMeta && col.metaProdutos > 0 && (
-            <div className="col-span-2 bg-white/5 rounded-lg p-2 text-center">
-              <p className="text-white/60">Falta {fmtBRL(col.metaProdutos - col.totalProdutos)} para a meta</p>
+            <div className="bg-white/5 rounded-lg p-2 text-center text-xs">
+              <p className="text-white/60">Falta {fmtBRL(faltaMeta)} para a meta</p>
             </div>
           )}
         </div>
@@ -183,13 +205,15 @@ export default function RankingPublico() {
   const empresas = data?.empresas ?? [];
   const empresaAtual = empresas[empresaIdx];
 
-  // Ordenar por totalProdutos desc
+  // Ordenar por totalGeral desc (serviços + produtos)
   const colaboradoresOrdenados = useMemo(() => {
     if (!empresaAtual) return [];
-    return [...empresaAtual.colaboradores].sort((a, b) => b.totalProdutos - a.totalProdutos);
+    return [...empresaAtual.colaboradores].sort((a, b) => b.totalGeral - a.totalGeral);
   }, [empresaAtual]);
 
-  const totalFaturamento = colaboradoresOrdenados.reduce((s, c) => s + c.totalProdutos, 0);
+  const totalFaturamento = colaboradoresOrdenados.reduce((s, c) => s + c.totalGeral, 0);
+  const totalServicos = colaboradoresOrdenados.reduce((s, c) => s + c.totalServicos, 0);
+  const totalProdutos = colaboradoresOrdenados.reduce((s, c) => s + c.totalProdutos, 0);
   const lider = colaboradoresOrdenados[0];
 
   return (
@@ -254,14 +278,18 @@ export default function RankingPublico() {
             {empresaAtual && (
               <>
                 {/* Stats do mês */}
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-3 gap-2">
                   <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-                    <p className="text-xs text-white/50 mb-1">Total Produtos</p>
-                    <p className="text-lg font-bold text-white">{fmtBRL(totalFaturamento)}</p>
+                    <p className="text-xs text-white/50 mb-1">Serviços</p>
+                    <p className="text-base font-bold text-blue-300">{fmtBRL(totalServicos)}</p>
                   </div>
                   <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-                    <p className="text-xs text-white/50 mb-1">Participantes</p>
-                    <p className="text-lg font-bold text-white">{colaboradoresOrdenados.length}</p>
+                    <p className="text-xs text-white/50 mb-1">Produtos</p>
+                    <p className="text-base font-bold text-purple-300">{fmtBRL(totalProdutos)}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p className="text-xs text-white/50 mb-1">Total</p>
+                    <p className="text-base font-bold text-white">{fmtBRL(totalFaturamento)}</p>
                   </div>
                 </div>
 
@@ -275,12 +303,12 @@ export default function RankingPublico() {
                         const nome = c.apelido || c.nome;
                         return (
                           <div className="flex flex-col items-center gap-1 flex-1">
-                            <div className="w-12 h-12 rounded-full bg-slate-400/30 flex items-center justify-center text-lg font-bold border-2 border-slate-400/50">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-sm font-bold text-white border-2 border-slate-400/50">
                               {nome.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-xs text-white/70 truncate w-full text-center">{nome}</p>
-                            <p className="text-xs font-medium text-slate-300">{fmtBRL(c.totalProdutos)}</p>
-                            <div className="w-full bg-slate-400/30 rounded-t-lg h-16 flex items-center justify-center">
+                            <p className="text-xs text-white/70 truncate max-w-[80px] text-center">{nome}</p>
+                            <p className="text-xs font-bold text-white">{fmtBRL(c.totalGeral)}</p>
+                            <div className="bg-slate-600/50 rounded-t-lg w-full h-16 flex items-center justify-center">
                               <span className="text-2xl">🥈</span>
                             </div>
                           </div>
@@ -292,12 +320,12 @@ export default function RankingPublico() {
                         const nome = c.apelido || c.nome;
                         return (
                           <div className="flex flex-col items-center gap-1 flex-1">
-                            <div className="w-14 h-14 rounded-full bg-yellow-400/30 flex items-center justify-center text-xl font-bold border-2 border-yellow-400/60">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-base font-bold text-white border-2 border-yellow-400/70 shadow-lg shadow-yellow-500/20">
                               {nome.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-xs text-white/80 truncate w-full text-center font-medium">{nome}</p>
-                            <p className="text-xs font-bold text-yellow-300">{fmtBRL(c.totalProdutos)}</p>
-                            <div className="w-full bg-yellow-400/20 rounded-t-lg h-24 flex items-center justify-center border border-yellow-400/30">
+                            <p className="text-xs text-yellow-300 truncate max-w-[80px] text-center font-medium">{nome}</p>
+                            <p className="text-xs font-bold text-yellow-300">{fmtBRL(c.totalGeral)}</p>
+                            <div className="bg-yellow-600/40 rounded-t-lg w-full h-24 flex items-center justify-center">
                               <span className="text-3xl">🥇</span>
                             </div>
                           </div>
@@ -309,12 +337,12 @@ export default function RankingPublico() {
                         const nome = c.apelido || c.nome;
                         return (
                           <div className="flex flex-col items-center gap-1 flex-1">
-                            <div className="w-12 h-12 rounded-full bg-amber-700/30 flex items-center justify-center text-lg font-bold border-2 border-amber-700/50">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-700 to-amber-900 flex items-center justify-center text-sm font-bold text-white border-2 border-amber-700/50">
                               {nome.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-xs text-white/60 truncate w-full text-center">{nome}</p>
-                            <p className="text-xs font-medium text-amber-600">{fmtBRL(c.totalProdutos)}</p>
-                            <div className="w-full bg-amber-700/20 rounded-t-lg h-12 flex items-center justify-center">
+                            <p className="text-xs text-white/70 truncate max-w-[80px] text-center">{nome}</p>
+                            <p className="text-xs font-bold text-white">{fmtBRL(c.totalGeral)}</p>
+                            <div className="bg-amber-800/40 rounded-t-lg w-full h-12 flex items-center justify-center">
                               <span className="text-2xl">🥉</span>
                             </div>
                           </div>
@@ -325,35 +353,29 @@ export default function RankingPublico() {
                 )}
 
                 {/* Lista completa */}
-                <div className="mt-5 space-y-2">
-                  <p className="text-xs text-white/40 uppercase tracking-wider font-medium mb-3">Classificação Completa</p>
-                  {colaboradoresOrdenados.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Trophy className="w-10 h-10 mx-auto mb-3 text-white/20" />
-                      <p className="text-white/40">Nenhum dado disponível para este mês.</p>
-                      <p className="text-white/30 text-xs mt-1">Sincronize o CashBarber no painel admin.</p>
-                    </div>
-                  ) : (
-                    colaboradoresOrdenados.map((col, idx) => (
-                      <ColaboradorCard key={col.id} col={col} pos={idx + 1} />
-                    ))
-                  )}
+                <div className="mt-5 space-y-3">
+                  <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
+                    Classificação — {colaboradoresOrdenados.length} participantes
+                  </p>
+                  {colaboradoresOrdenados.map((col, idx) => (
+                    <ColaboradorCard key={col.id} col={col} pos={idx + 1} />
+                  ))}
                 </div>
 
-                {/* Rodapé */}
-                <div className="mt-6 text-center text-xs text-white/20">
-                  <p>Atualizado automaticamente a cada 5 min</p>
-                  {colaboradoresOrdenados[0]?.ultimaSyncEm && (
-                    <p>Última sync: {new Date(colaboradoresOrdenados[0].ultimaSyncEm).toLocaleString("pt-BR")}</p>
-                  )}
-                </div>
+                {/* Última atualização */}
+                {lider?.ultimaSyncEm && (
+                  <p className="text-center text-xs text-white/30 mt-6">
+                    Atualizado em {new Date(lider.ultimaSyncEm).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                  </p>
+                )}
               </>
             )}
 
-            {empresas.length === 0 && !rankingQuery.isLoading && (
-              <div className="text-center py-20">
+            {empresaAtual && colaboradoresOrdenados.length === 0 && (
+              <div className="text-center py-16">
                 <Trophy className="w-12 h-12 mx-auto mb-3 text-white/20" />
-                <p className="text-white/40">Nenhuma empresa encontrada.</p>
+                <p className="text-white/40">Nenhum dado disponível para este mês.</p>
+                <p className="text-white/30 text-xs mt-1">Aguarde a sincronização automática ou peça ao gerente para sincronizar.</p>
               </div>
             )}
           </>

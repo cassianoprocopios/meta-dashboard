@@ -2865,6 +2865,17 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       }),
   }),
 
+  // ─── TENANT INFO ──────────────────────────────────────────────────────────
+  tenant: router({
+    /** Retorna informações do tenant do utilizador logado (slug, nome, etc.) */
+    get: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const tenant = await getTenantById(tenantId);
+      if (!tenant) return null;
+      return { id: tenant.id, slug: tenant.slug, nome: tenant.nome };
+    }),
+  }),
+
   // ─── COLABORADORES ──────────────────────────────────────────────────────────
   colaboradores: router({
     /** Lista colaboradores de uma empresa */
@@ -2884,6 +2895,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         apelido: z.string().optional(),
         fotoUrl: z.string().optional(),
         cargo: z.string().optional(),
+        cashbarberProfissionalId: z.number().nullable().optional(),
         exibirNoRanking: z.number().optional(),
         ativo: z.number().optional(),
       }))
@@ -2895,6 +2907,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             apelido: input.apelido,
             fotoUrl: input.fotoUrl,
             cargo: input.cargo,
+            cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
             exibirNoRanking: input.exibirNoRanking ?? 1,
             ativo: input.ativo ?? 1,
           });
@@ -2907,6 +2920,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           apelido: input.apelido,
           fotoUrl: input.fotoUrl,
           cargo: input.cargo ?? "barbeiro",
+          cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
           exibirNoRanking: input.exibirNoRanking ?? 1,
           ativo: 1,
         });
@@ -3003,7 +3017,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             nome: string;
             apelido: string | null;
             fotoUrl: string | null;
+            totalServicos: number;
             totalProdutos: number;
+            totalGeral: number;
             metaProdutos: number;
             bonificacaoMeta: number;
             bonificacaoSuperMeta: number;
@@ -3026,26 +3042,32 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             .filter((f) => f.exibirNoRanking === 1)
             .map((f, idx) => {
               const meta = metasMap.get(f.colaboradorId);
-              const totalProdutos = parseFloat(String(f.totalProdutos));
+              const totalServicos = parseFloat(String(f.totalServicos ?? 0));
+              const totalProdutos = parseFloat(String(f.totalProdutos ?? 0));
+              // totalGeral = serviços + produtos (Relatório 15)
+              const totalGeral = parseFloat(String(f.totalGeral ?? 0)) || (totalServicos + totalProdutos);
               const metaProdutos = parseFloat(String(meta?.metaProdutos ?? 0));
               const bonificacaoMeta = parseFloat(String(meta?.bonificacaoMeta ?? 0));
               const bonificacaoSuperMeta = parseFloat(String(meta?.bonificacaoSuperMeta ?? 0));
               const superMetaPct = parseFloat(String(meta?.superMetaPct ?? 120));
-              const percentualMeta = metaProdutos > 0 ? (totalProdutos / metaProdutos) * 100 : 0;
+              // Percentual baseado no total geral vs meta
+              const percentualMeta = metaProdutos > 0 ? (totalGeral / metaProdutos) * 100 : 0;
               return {
                 id: f.colaboradorId,
                 nome: f.nomeColaborador,
                 apelido: f.apelido,
                 fotoUrl: f.fotoUrl,
+                totalServicos,
                 totalProdutos,
+                totalGeral,
                 metaProdutos,
                 bonificacaoMeta,
                 bonificacaoSuperMeta,
                 superMetaPct,
                 posicao: idx + 1,
                 percentualMeta,
-                atingiuMeta: metaProdutos > 0 && totalProdutos >= metaProdutos,
-                atingiuSuperMeta: metaProdutos > 0 && totalProdutos >= metaProdutos * (superMetaPct / 100),
+                atingiuMeta: metaProdutos > 0 && totalGeral >= metaProdutos,
+                atingiuSuperMeta: metaProdutos > 0 && totalGeral >= metaProdutos * (superMetaPct / 100),
                 ultimaSyncEm: f.ultimaSyncEm,
               };
             });

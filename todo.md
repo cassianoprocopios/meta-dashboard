@@ -950,3 +950,9 @@
 - [x] Job noturno às 03:00 para sincronização automática de colaboradores
 - [x] Sidebar atualizada com links: Dashboard, Colaboradores, Ranking Público, Histórico
 - [x] 88 testes passando
+
+## Integração: Faturamento Diário por Profissional (Relatório Financeiro/Vendas)
+
+- [ ] Mapear endpoint do relatório financeiro/vendas por profissional no CashBarber
+- [ ] Atualizar sincronizador para usar o novo endpoint com faturamento real por profissional
+- [ ] Popular colaboradores com dados reais de serviços + produtos

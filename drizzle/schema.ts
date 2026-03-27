@@ -317,7 +317,7 @@ export type DpoteSyncLog = typeof dpoteSyncLog.$inferSelect;
 export type InsertDpoteSyncLog = typeof dpoteSyncLog.$inferInsert;
 
 // ─── COLABORADORES (BARBEIROS) ────────────────────────────────────────────────
-// Cadastro de colaboradores por empresa, sincronizados do CashBarber (Relatório 13)
+// Cadastro de colaboradores por empresa, sincronizados do CashBarber (Relatório 15)
 export const colaboradores = mysqlTable("colaboradores", {
   id: int("id").autoincrement().primaryKey(),
   tenantId: int("tenantId").notNull(),
@@ -330,6 +330,8 @@ export const colaboradores = mysqlTable("colaboradores", {
   fotoUrl: text("fotoUrl"),
   /** Cargo: barbeiro, recepcionista, gerente */
   cargo: varchar("cargo", { length: 64 }).default("barbeiro"),
+  /** ID do profissional no CashBarber (usado para filtrar Relatório 15) */
+  cashbarberProfissionalId: int("cashbarberProfissionalId"),
   /** Se aparece no ranking público */
   exibirNoRanking: int("exibirNoRanking").notNull().default(1),
   /** Se está ativo na empresa */
@@ -366,7 +368,7 @@ export type MetaColaborador = typeof metasColaboradores.$inferSelect;
 export type InsertMetaColaborador = typeof metasColaboradores.$inferInsert;
 
 // ─── FATURAMENTO DE COLABORADORES (SINCRONIZADO DO CASHBARBER) ───────────────
-// Faturamento acumulado de produtos por colaborador no mês (Relatório 13)
+// Faturamento acumulado por colaborador no mês via Relatório 15 (serviços + produtos)
 export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
   id: int("id").autoincrement().primaryKey(),
   tenantId: int("tenantId").notNull(),
@@ -374,11 +376,15 @@ export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
   empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
   mes: int("mes").notNull(),
   ano: int("ano").notNull(),
+  /** Faturamento total de serviços no período (R$) */
+  totalServicos: decimal("totalServicos", { precision: 12, scale: 2 }).notNull().default("0"),
   /** Faturamento total de produtos no período (R$) */
   totalProdutos: decimal("totalProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
-  /** Comissão total de produtos (R$) */
-  totalComissaoProdutos: decimal("totalComissaoProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
-  /** Detalhes por categoria de produto (JSON) */
+  /** Faturamento total geral (serviços + produtos) no período (R$) */
+  totalGeral: decimal("totalGeral", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Detalhes de serviços (JSON array do Relatório 15) */
+  detalhesServicos: text("detalhesServicos"),
+  /** Detalhes de produtos (JSON array do Relatório 15) */
   detalhesProdutos: text("detalhesProdutos"),
   /** Data/hora da última sincronização */
   ultimaSyncEm: timestamp("ultimaSyncEm").defaultNow().notNull(),

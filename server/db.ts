@@ -1524,8 +1524,10 @@ export async function listarFaturamentoColaboradores(
       empresaSlug: faturamentoColaboradores.empresaSlug,
       mes: faturamentoColaboradores.mes,
       ano: faturamentoColaboradores.ano,
+      totalServicos: faturamentoColaboradores.totalServicos,
       totalProdutos: faturamentoColaboradores.totalProdutos,
-      totalComissaoProdutos: faturamentoColaboradores.totalComissaoProdutos,
+      totalGeral: faturamentoColaboradores.totalGeral,
+      detalhesServicos: faturamentoColaboradores.detalhesServicos,
       detalhesProdutos: faturamentoColaboradores.detalhesProdutos,
       ultimaSyncEm: faturamentoColaboradores.ultimaSyncEm,
       createdAt: faturamentoColaboradores.createdAt,
@@ -1546,7 +1548,7 @@ export async function listarFaturamentoColaboradores(
         eq(colaboradores.ativo, 1)
       )
     )
-    .orderBy(desc(faturamentoColaboradores.totalProdutos));
+    .orderBy(desc(faturamentoColaboradores.totalGeral));
 }
 
 /** Busca a meta de um colaborador num mês/ano */
