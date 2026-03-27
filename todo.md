@@ -945,3 +945,14 @@
 - [ ] Redesenhar ranking de profissionais com visual premium
 - [ ] Atualizar paleta de cores e tipografia (Space Grotesk + Inter)
 - [ ] Atualizar index.css com novos tokens de design premium
+
+## Notificação Push — Meta Diária Atingida
+
+- [x] Adicionar tipo "meta_diaria_atingida" no enum do schema drizzle
+- [x] Atualizar função registrarEventoNotificado para aceitar novo tipo
+- [x] Criar função verificarMetaDiariaParaTenant() no cashbarberJob.ts
+- [x] Integrar verificação no job horário (após executarAplicacaoDpote)
+- [x] Criar procedure tRPC testarMetaDiaria no router de notificações
+- [x] Adicionar botão "Meta Diária" na sidebar (Ações Rápidas)
+- [x] Executar migração do banco (SQL direto para ALTER TABLE)
+- [ ] Testar notificação end-to-end (aguardando dados reais do job)

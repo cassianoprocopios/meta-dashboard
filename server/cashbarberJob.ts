@@ -96,6 +96,97 @@ async function executarAplicacaoDpote(tenantId: number): Promise<void> {
 }
 
 /**
+ * Verifica se alguma empresa do tenant atingiu 100% da meta diária esperada
+ * e envia notificação push caso ainda não tenha sido notificado hoje.
+ *
+ * Lógica:
+ *  - Meta esperada até hoje = (metaMensal / diasUteis) * diasPassadosNoMes
+ *  - Se totalRealizado >= metaEsperadaHoje → notificar (1x por empresa por dia)
+ *  - Chave anti-duplicata: "meta_diaria_atingida:{slug}:{YYYY-MM-DD}"
+ */
+export async function verificarMetaDiariaParaTenant(tenantId: number): Promise<void> {
+  const agora = new Date();
+  const mes = agora.getMonth() + 1;
+  const ano = agora.getFullYear();
+  const diaHoje = agora.getDate();
+  const dataHoje = `${ano}-${String(mes).padStart(2, "0")}-${String(diaHoje).padStart(2, "0")}`;
+
+  try {
+    const {
+      getEmpresasByTenant,
+      getMetasByMesAndTenant,
+      getAllFaturamentosByTenant,
+      eventoJaNotificado,
+      registrarEventoNotificado,
+    } = await import("./db");
+    const { notifyOwner } = await import("./_core/notification");
+
+    const [empresas, metasMes, faturamentosMes] = await Promise.all([
+      getEmpresasByTenant(tenantId),
+      getMetasByMesAndTenant(tenantId, mes, ano),
+      getAllFaturamentosByTenant(tenantId, mes, ano),
+    ]);
+
+    for (const empresa of empresas) {
+      if (!empresa.ativo) continue;
+
+      // Buscar meta desta empresa
+      const meta = metasMes.find((m) => m.empresaSlug === empresa.slug);
+      if (!meta || Number(meta.metaMensal) <= 0) continue;
+
+      const metaMensal = Number(meta.metaMensal);
+      const diasUteis = meta.diasUteis ?? 26;
+
+      // Meta esperada até hoje: proporcional aos dias passados no mês
+      // Usa dias corridos (diaHoje) como proxy para dias trabalhados
+      const totalDiasMes = new Date(ano, mes, 0).getDate();
+      const metaEsperadaHoje = (metaMensal / totalDiasMes) * diaHoje;
+
+      // Somar faturamento realizado desta empresa no mês (apenas dias passados, excluindo previstos)
+      const fatsEmpresa = faturamentosMes.filter(
+        (f) => f.empresaSlug === empresa.slug && f.data <= dataHoje
+      );
+      const totalRealizado = fatsEmpresa.reduce((acc, f) => {
+        return acc + [
+          Number(f.cat1), Number(f.cat2), Number(f.cat3),
+          Number(f.cat4), Number(f.cat5), Number(f.cat6),
+          Number(f.cat7), Number(f.cat8), Number(f.cat9),
+        ].reduce((a, b) => a + b, 0);
+      }, 0);
+
+      // Verificar se atingiu 100% da meta esperada até hoje
+      if (totalRealizado < metaEsperadaHoje) continue;
+
+      // Chave única por empresa por dia (evita duplicata no mesmo dia)
+      const chave = `meta_diaria_atingida:${empresa.slug}:${dataHoje}`;
+      const jaNotificado = await eventoJaNotificado(tenantId, chave);
+      if (jaNotificado) continue;
+
+      const pct = metaEsperadaHoje > 0 ? ((totalRealizado / metaEsperadaHoje) * 100).toFixed(1) : "100.0";
+      const fmtBRL = (v: number) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+
+      const mensagem =
+        `🎯 ${empresa.nome} atingiu a meta diária! ` +
+        `Realizado: ${fmtBRL(totalRealizado)} (${pct}% da meta esperada de ${fmtBRL(metaEsperadaHoje)} para o dia ${diaHoje}/${mes}).`;
+
+      await notifyOwner({
+        title: `🎯 Meta diária atingida: ${empresa.nome}`,
+        content: mensagem,
+      });
+
+      await registrarEventoNotificado(tenantId, chave, "meta_diaria_atingida", empresa.slug, mensagem);
+
+      console.log(`[CashBarber Job] Notificação enviada: ${empresa.nome} atingiu meta diária (${pct}%)`);
+    }
+  } catch (err) {
+    // Falha na verificação não deve interromper o job
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[CashBarber Job] Falha ao verificar meta diária para tenant ${tenantId}:`, msg);
+  }
+}
+
+/**
  * Agenda o job horário de uma empresa
  */
 function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
@@ -131,6 +222,8 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       .at(-1);
     if (ultimaEmpresa?.empresaSlug === empresaSlug) {
       await executarAplicacaoDpote(tenantId);
+      // Após atualizar os dados, verificar se alguma empresa atingiu a meta diária
+      await verificarMetaDiariaParaTenant(tenantId);
     }
   });
 

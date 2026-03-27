@@ -290,8 +290,16 @@ export default function Home() {
       }
     },
   });
-
-  // Empresas visíveis para este usuário
+  // Mutation para verificar meta diária e notificar gerente
+  const testarMetaDiariaMutation = trpc.notificacoes.testarMetaDiaria.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.mensagem);
+    },
+    onError: () => {
+      toast.error("Erro ao verificar meta diária. Tente novamente.");
+    },
+  });
+  // Empresas visíveis para este usuárioo
   const empresasVisiveis = useMemo(() => {
     if (isAdmin) return empresasData;
     // Se tem userEmpresas definidas, usar essas
@@ -748,6 +756,8 @@ export default function Home() {
           onSyncDpote={() => { setSyncingDpote(true); sincronizarDpoteMutation.mutate(); }}
           syncingCB={syncingCashbarber}
           syncingDpote={syncingDpote}
+          onTestarMetaDiaria={() => testarMetaDiariaMutation.mutate()}
+          testingMetaDiaria={testarMetaDiariaMutation.isPending}
         />
       )}
       {/* Conteúdo principal */}

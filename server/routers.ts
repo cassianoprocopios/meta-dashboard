@@ -1926,6 +1926,18 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
         return getEventosNotificados(tenantId, input.limit ?? 20);
       }),
+
+    /**
+     * Dispara manualmente a verificação de meta diária para o tenant do usuário.
+     * Útil para testar sem esperar o próximo ciclo do job horário.
+     */
+    testarMetaDiaria: protectedProcedure.mutation(async ({ ctx }) => {
+      const tenantId = ctx.user.tenantId;
+      if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const { verificarMetaDiariaParaTenant } = await import("./cashbarberJob");
+      await verificarMetaDiariaParaTenant(tenantId);
+      return { ok: true, mensagem: "Verificação de meta diária executada. Confira as notificações." };
+    }),
   }),
 
   // ─── CASHBARBER ───────────────────────────────────────────────────────────

@@ -72,6 +72,8 @@ interface AppSidebarProps {
   onSyncDpote?: () => void;
   syncingCB?: boolean;
   syncingDpote?: boolean;
+  onTestarMetaDiaria?: () => void;
+  testingMetaDiaria?: boolean;
 }
 
 export default function AppSidebar({
@@ -88,6 +90,8 @@ export default function AppSidebar({
   onSyncDpote,
   syncingCB,
   syncingDpote,
+  onTestarMetaDiaria,
+  testingMetaDiaria,
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
@@ -409,6 +413,27 @@ export default function AppSidebar({
                   <span className="text-xs font-medium truncate block">Sync Dpote</span>
                   <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
                     Recalcular recorrência
+                  </p>
+                </div>
+              )}
+            </button>
+            <button
+              onClick={onTestarMetaDiaria}
+              disabled={testingMetaDiaria}
+              title={collapsed ? "Verificar Meta Diária" : undefined}
+              className={`
+                w-full flex items-center gap-2.5 rounded-xl transition-all duration-150 border border-transparent
+                ${collapsed ? "justify-center p-2" : "px-2.5 py-2"}
+                text-white/40 hover:text-amber-400 hover:bg-amber-500/[0.07] hover:border-amber-500/20
+                disabled:opacity-40 disabled:cursor-not-allowed
+              `}
+            >
+              <Target className={`w-4 h-4 flex-shrink-0 ${testingMetaDiaria ? "animate-pulse text-amber-400" : ""}`} />
+              {!collapsed && (
+                <div className="flex-1 text-left min-w-0">
+                  <span className="text-xs font-medium truncate block">Meta Diária</span>
+                  <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
+                    Verificar e notificar gerente
                   </p>
                 </div>
               )}
