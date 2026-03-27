@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
   ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw, Repeat2,
-  Pencil,
+  Pencil, Scissors,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -829,6 +829,16 @@ export default function Home() {
                   <Shield className="w-4 h-4" /> Painel Admin
                 </a>
               )}
+              {isGerente && (
+                <a href="/profissionais" className="flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 px-3 py-1.5 rounded-xl hover:bg-amber-50 transition-colors font-medium">
+                  <Scissors className="w-4 h-4" /> Profissionais
+                </a>
+              )}
+              {isGerente && (
+                <a href="/ranking" className="flex items-center gap-1.5 text-sm text-yellow-600 hover:text-yellow-700 px-3 py-1.5 rounded-xl hover:bg-yellow-50 transition-colors font-medium">
+                  <Trophy className="w-4 h-4" /> Ranking
+                </a>
+              )}
               {isAdmin && (
                 <button
                   onClick={() => {
@@ -1009,6 +1019,16 @@ export default function Home() {
               {isAdmin && !isSuperAdmin && (
                 <a href="/admin-panel" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium">
                   <Shield className="w-4 h-4" /> Painel Admin
+                </a>
+              )}
+              {isGerente && (
+                <a href="/profissionais" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-amber-600 hover:bg-amber-50 transition-colors font-medium">
+                  <Scissors className="w-4 h-4" /> Profissionais
+                </a>
+              )}
+              {isGerente && (
+                <a href="/ranking" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-yellow-600 hover:bg-yellow-50 transition-colors font-medium">
+                  <Trophy className="w-4 h-4" /> Ranking
                 </a>
               )}
               {isAdmin && (
