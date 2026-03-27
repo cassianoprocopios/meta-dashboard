@@ -12,6 +12,7 @@ import DevPanel from "./pages/DevPanel";
 import AdminPanel from "./pages/AdminPanel";
 import HistoricoAcuracia from "./pages/HistoricoAcuracia";
 import ColaboradoresMetas from "./pages/ColaboradoresMetas";
+import Profissionais from "./pages/Profissionais";
 import RankingPublico from "./pages/RankingPublico";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -60,6 +61,7 @@ function Router() {
       <Route path={"/dev"} component={DevPanel} />
       <Route path={"/admin-panel"} component={AdminPanel} />
       <Route path={"/historico-acuracia"} component={HistoricoAcuracia} />
+      <Route path={"/profissionais"} component={Profissionais} />
       <Route path={"/colaboradores"} component={ColaboradoresMetas} />
       <Route path={"/ranking"} component={RankingPublico} />
       <Route path={"/ranking/:tenantSlug"} component={RankingPublico} />

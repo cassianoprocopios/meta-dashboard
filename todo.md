@@ -956,3 +956,14 @@
 - [ ] Mapear endpoint do relatório financeiro/vendas por profissional no CashBarber
 - [ ] Atualizar sincronizador para usar o novo endpoint com faturamento real por profissional
 - [ ] Popular colaboradores com dados reais de serviços + produtos
+
+## Aba Profissionais
+
+- [x] Criar página Profissionais.tsx com listagem de colaboradores por empresa
+- [x] Formulário de cadastro de novo profissional (nome, apelido, cargo, ID CashBarber)
+- [x] Formulário de edição inline de profissional existente
+- [x] Botão de ativar/desativar profissional (exibir/ocultar do ranking)
+- [x] Indicador visual de vínculo com CashBarber (ID configurado ou não)
+- [x] Adicionar rota /profissionais no App.tsx
+- [x] Adicionar item "Profissionais" na sidebar do DashboardLayout
+- [x] Seletor de empresa (quando há múltiplas empresas)

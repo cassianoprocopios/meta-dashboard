@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Trophy, BarChart2 } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Trophy, BarChart2, Scissors } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -29,7 +29,8 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Users, label: "Colaboradores", path: "/colaboradores" },
+  { icon: Scissors, label: "Profissionais", path: "/profissionais" },
+  { icon: Users, label: "Metas", path: "/colaboradores" },
   { icon: Trophy, label: "Ranking Público", path: "/ranking" },
   { icon: BarChart2, label: "Histórico", path: "/historico-acuracia" },
 ];
