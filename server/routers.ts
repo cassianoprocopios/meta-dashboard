@@ -12,6 +12,7 @@ import {
   deletarColaborador,
   listarRankingPorPeriodo,
   listarPeriodosComDados,
+  upsertFaturamentoColaborador,
   getAllFaturamentosByTenant,
   upsertFaturamento,
   deleteFaturamento,
@@ -257,6 +258,53 @@ const profissionaisRouter = router({
     const tenantId = await getTenantIdFromCtx(ctx);
     return listarPeriodosComDados(tenantId);
   }),
+
+  sincronizarFaturamento: protectedProcedure
+    .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada.' });
+      }
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1);
+      if (comId.length === 0) {
+        return { sincronizados: 0, erros: 0, mensagem: 'Nenhum profissional com ID do CashBarber configurado.' };
+      }
+      const dataInicial = `${input.ano}-${String(input.mes).padStart(2, '0')}-01`;
+      const ultimoDia = new Date(input.ano, input.mes, 0).getDate();
+      const dataFinal = `${input.ano}-${String(input.mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+      let sincronizados = 0;
+      let erros = 0;
+      for (const col of comId) {
+        try {
+          const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
+          const totalServicos = relatorio.servicos.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+          const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+          const totalGeral = totalServicos + totalProdutos;
+          await upsertFaturamentoColaborador({
+            tenantId,
+            colaboradorId: col.id,
+            empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+            mes: input.mes,
+            ano: input.ano,
+            totalServicos,
+            totalProdutos,
+            totalGeral,
+            detalhesServicos: JSON.stringify(relatorio.servicos.slice(0, 20)),
+          });
+          sincronizados++;
+        } catch (e) {
+          console.error(`[Profissionais] Erro ao sincronizar ${col.nome}:`, e);
+          erros++;
+        }
+      }
+      return { sincronizados, erros, mensagem: `${sincronizados} profissional(is) sincronizado(s), ${erros} erro(s).` };
+    }),
 });
 
 export const appRouter = router({

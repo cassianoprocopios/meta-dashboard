@@ -1563,3 +1563,57 @@ export async function listarPeriodosComDados(tenantId: number): Promise<Array<{ 
     .orderBy(desc(faturamentoColaboradores.ano), desc(faturamentoColaboradores.mes));
   return rows;
 }
+
+/** Insere ou atualiza o faturamento de um colaborador para um período específico */
+export async function upsertFaturamentoColaborador(input: {
+  tenantId: number;
+  colaboradorId: number;
+  empresaSlug?: string;
+  mes: number;
+  ano: number;
+  totalServicos: number;
+  totalProdutos: number;
+  totalGeral: number;
+  detalhesServicos?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) return;
+
+  const existing = await db
+    .select({ id: faturamentoColaboradores.id })
+    .from(faturamentoColaboradores)
+    .where(
+      and(
+        eq(faturamentoColaboradores.tenantId, input.tenantId),
+        eq(faturamentoColaboradores.colaboradorId, input.colaboradorId),
+        eq(faturamentoColaboradores.mes, input.mes),
+        eq(faturamentoColaboradores.ano, input.ano)
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db
+      .update(faturamentoColaboradores)
+      .set({
+        totalServicos: String(input.totalServicos),
+        totalProdutos: String(input.totalProdutos),
+        totalGeral: String(input.totalGeral),
+        detalhesServicos: input.detalhesServicos ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(faturamentoColaboradores.id, existing[0].id));
+  } else {
+    await db.insert(faturamentoColaboradores).values({
+      tenantId: input.tenantId,
+      colaboradorId: input.colaboradorId,
+      empresaSlug: input.empresaSlug ?? "barbiero-grupo",
+      mes: input.mes,
+      ano: input.ano,
+      totalServicos: String(input.totalServicos),
+      totalProdutos: String(input.totalProdutos),
+      totalGeral: String(input.totalGeral),
+      detalhesServicos: input.detalhesServicos ?? null,
+    });
+  }
+}

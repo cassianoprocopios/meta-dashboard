@@ -192,10 +192,12 @@ export async function cashbarberRelatorio15(
   token: string,
   dataInicial: string,
   dataFinal: string,
-  filialId?: number | null
+  filialId?: number | null,
+  barbeiroId?: number | null
 ): Promise<CashbarberRelatorio15> {
   const body: Record<string, unknown> = { data_inicial: dataInicial, data_final: dataFinal };
   if (filialId) body.filial = filialId;
+  if (barbeiroId) body.barbeiro = barbeiroId;
 
   const resp = await fetch("https://api.cashbarber.com.br/api/painel/relatorios/15", {
     method: "POST",

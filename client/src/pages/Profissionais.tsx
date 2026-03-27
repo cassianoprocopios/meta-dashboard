@@ -34,7 +34,10 @@ import {
   UserCheck,
   Users,
   Link2,
+  RefreshCw,
+  Trophy,
 } from "lucide-react";
+import { useLocation } from "wouter";
 
 const CARGOS = [
   "Barbeiro",
@@ -78,10 +81,14 @@ const emptyForm: FormData = {
 };
 
 export default function Profissionais() {
+  const [, setLocation] = useLocation();
   const [busca, setBusca] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const hoje = new Date();
+  const [syncMes, setSyncMes] = useState(hoje.getMonth() + 1);
+  const [syncAno, setSyncAno] = useState(hoje.getFullYear());
 
   const utils = trpc.useUtils();
 
@@ -100,6 +107,13 @@ export default function Profissionais() {
   const toggleAtivo = trpc.profissionais.toggleAtivo.useMutation({
     onSuccess: () => utils.profissionais.listar.invalidate(),
     onError: (err) => toast.error("Erro: " + err.message),
+  });
+
+  const sincronizar = trpc.profissionais.sincronizarFaturamento.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.mensagem);
+    },
+    onError: (err) => toast.error("Erro na sincronização: " + err.message),
   });
 
   const deletar = trpc.profissionais.deletar.useMutation({
@@ -174,13 +188,52 @@ export default function Profissionais() {
               Gerencie os profissionais e vincule ao CashBarber para sincronização automática
             </p>
           </div>
-          <Button
-            onClick={abrirNovo}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Profissional
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1">
+              <select
+                value={syncMes}
+                onChange={(e) => setSyncMes(Number(e.target.value))}
+                className="bg-transparent text-white/70 text-sm border-none outline-none cursor-pointer"
+              >
+                {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => (
+                  <option key={i+1} value={i+1} className="bg-gray-900">{m}</option>
+                ))}
+              </select>
+              <select
+                value={syncAno}
+                onChange={(e) => setSyncAno(Number(e.target.value))}
+                className="bg-transparent text-white/70 text-sm border-none outline-none cursor-pointer"
+              >
+                {[hoje.getFullYear(), hoje.getFullYear()-1, hoje.getFullYear()-2].map((y) => (
+                  <option key={y} value={y} className="bg-gray-900">{y}</option>
+                ))}
+              </select>
+            </div>
+            <Button
+              onClick={() => sincronizar.mutate({ mes: syncMes, ano: syncAno })}
+              disabled={sincronizar.isPending}
+              variant="outline"
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${sincronizar.isPending ? 'animate-spin' : ''}`} />
+              {sincronizar.isPending ? 'Sincronizando...' : 'Sincronizar CashBarber'}
+            </Button>
+            <Button
+              onClick={() => setLocation('/ranking')}
+              variant="outline"
+              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+            >
+              <Trophy className="w-4 h-4 mr-2" />
+              Ver Ranking
+            </Button>
+            <Button
+              onClick={abrirNovo}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Profissional
+            </Button>
+          </div>
         </div>
 
         {/* Cards de resumo */}
