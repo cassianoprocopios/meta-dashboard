@@ -892,3 +892,10 @@
 - [x] Corrigir divergência: recorrenciaMes agora usa recorrenciaValorCashbarber (total mensal da filial) em vez da soma parcial dos dias
 - [x] Coluna recorrenciaValorCashbarber adicionada no banco e no schema Drizzle
 - [x] Procedures sincronizarDpote, sincronizarTodas e sincronizarDpotePorEmpresa salvam o valor calculado após cada sync
+
+## Bug: Valor Dpote por Filial Não Corresponde ao CashBarber
+
+- [x] Investigar por que Morumbi (R$ 107.024) e Mascote (R$ 46.195) do CashBarber divergem do dashboard
+- [x] Causa: recorrenciaValorCashbarber estava null no banco (campo criado mas nunca populado)
+- [x] Valores calculados e salvos: MORUMBI=107024, MASCOTE=46195 (proporcional por fichas sobre R$ 153.219,40)
+- [x] Sincronizador já salva o valor após cada sync; dashboard usa esse valor diretamente
