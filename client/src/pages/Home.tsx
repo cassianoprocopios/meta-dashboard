@@ -30,6 +30,7 @@ import SuperAdmin from "@/pages/SuperAdmin";
 import TenantBloqueado from "@/pages/TenantBloqueado";
 import DpoteDistribuicao from "@/pages/DpoteDistribuicao";
 import { useTheme } from "@/contexts/ThemeContext";
+import AppSidebar from "@/components/AppSidebar";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
@@ -67,7 +68,7 @@ function LogoutButton() {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
   const hoje = new Date();
@@ -724,8 +725,33 @@ export default function Home() {
 
   const loading = loadingEmpresas || loadingFat || loadingMetas;
 
+  const handleLogout = () => {
+    trpc.auth.logoutApp.useMutation;
+    window.location.href = "/api/oauth/logout";
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar lateral */}
+      {isAuthenticated && (
+        <AppSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          tabsVisiveis={tabsVisiveis}
+          isAdmin={isAdmin}
+          isGerente={isGerente}
+          isRecepcionista={isRecepcionista}
+          userName={user?.name ?? user?.email ?? undefined}
+          userRole={(user as any)?.perfil ?? user?.role}
+          onLogout={() => { window.location.href = "/api/oauth/logout"; }}
+          onSyncCB={() => { setSyncingCashbarber(true); sincronizarTodasMutation.mutate({ mes, ano }); }}
+          onSyncDpote={() => { setSyncingDpote(true); sincronizarDpoteMutation.mutate(); }}
+          syncingCB={syncingCashbarber}
+          syncingDpote={syncingDpote}
+        />
+      )}
+      {/* Conteúdo principal */}
+      <div className="flex-1 min-w-0 flex flex-col">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1058,55 +1084,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Tabs com scroll horizontal em mobile */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 py-2 overflow-x-auto scrollbar-none -mx-1 px-1">
-            {tabsVisiveis.map((tab) => {
-              const labels: Record<Tab, string> = {
-                dashboard: "Dashboard",
-                lancamentos: "Lançamentos",
-                metas: "Metas",
-                bonificacao: "Bonificação",
-                historico: "Histórico",
-                usuarios: "Usuários",
-                empresas: "Empresas",
-                auditoria: "Auditoria",
-                ia: "Análise IA",
-                dpote: "Dpote",
-              };
-              const icons: Record<Tab, React.ReactNode> = {
-                dashboard: <TrendingUp className="w-4 h-4" />,
-                lancamentos: <Calendar className="w-4 h-4" />,
-                metas: <Target className="w-4 h-4" />,
-                bonificacao: <CheckCircle2 className="w-4 h-4" />,
-                historico: <Trophy className="w-4 h-4" />,
-                usuarios: <Users className="w-4 h-4" />,
-                empresas: <Building2 className="w-4 h-4" />,
-                auditoria: <Shield className="w-4 h-4" />,
-                ia: <Sparkles className="w-4 h-4" />,
-                dpote: <Repeat2 className="w-4 h-4" />,
-              };
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                    activeTab === tab
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  {icons[tab]} <span className="hidden sm:inline">{labels[tab]}</span>
-                  <span className="sm:hidden">{labels[tab].split(" ")[0]}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-full overflow-x-hidden">
         {loading && activeTab === "dashboard" && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
@@ -2911,8 +2891,8 @@ export default function Home() {
             mesAnteriorLabel={MESES[mesAnterior - 1]}
           />
         )}
-      </main>
-
+       </main>
+      </div>{/* end flex-1 content */}
       {/* Modal de lançamento */}
       {showFaturamentoForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
