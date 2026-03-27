@@ -927,3 +927,26 @@
 - [x] Correção: função hojeNoBrasil() (UTC-3) usada em todos os cálculos de data do sincronizador
 - [x] Redistribuição imediata executada: MORUMBI R$ 4.116,31/dia × 26 = R$ 107.024 | MASCOTE R$ 1.776,73/dia × 26 = R$ 46.195
 - [x] 88 testes passando
+
+## Painel de Metas e Ranking de Colaboradores
+
+- [ ] Auditar API CashBarber: listar colaboradores/barbeiros por filial com faturamento
+- [ ] Schema: tabelas colaboradores, metasColaboradores, faturamentoColaboradores
+- [ ] Sincronizador CashBarber → faturamento diário por colaborador (relatório 15 por barbeiro)
+- [ ] Procedure tRPC: listar colaboradores, metas, faturamento acumulado e ranking
+- [ ] Painel admin: configurar meta mensal por colaborador (CRUD)
+- [ ] Página pública /ranking/:tenantSlug acessível sem login (mobile-first)
+- [ ] Ranking com posição, foto, nome, faturamento acumulado, progresso vs meta, badge de destaque
+- [ ] Job automático de sincronização de colaboradores (junto ao job horário existente)
+- [ ] Testes unitários para o sincronizador de colaboradores
+
+## Painel de Metas e Ranking de Colaboradores
+
+- [x] Tabelas no banco: colaboradores, metasColaboradores, faturamentoColaboradores
+- [x] Sincronizador CashBarber → colaboradores (Relatório 13 - produtos por barbeiro)
+- [x] Procedures tRPC: listar, salvar, sincronizar, salvarMeta, rankingPublico
+- [x] Painel admin /colaboradores: gerenciar colaboradores e metas mensais por empresa
+- [x] Página pública /ranking: ranking por celular sem login, com pódio e progresso de meta
+- [x] Job noturno às 03:00 para sincronização automática de colaboradores
+- [x] Sidebar atualizada com links: Dashboard, Colaboradores, Ranking Público, Histórico
+- [x] 88 testes passando

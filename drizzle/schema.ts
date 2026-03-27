@@ -315,3 +315,75 @@ export const dpoteSyncLog = mysqlTable("dpoteSyncLog", {
 });
 export type DpoteSyncLog = typeof dpoteSyncLog.$inferSelect;
 export type InsertDpoteSyncLog = typeof dpoteSyncLog.$inferInsert;
+
+// ─── COLABORADORES (BARBEIROS) ────────────────────────────────────────────────
+// Cadastro de colaboradores por empresa, sincronizados do CashBarber (Relatório 13)
+export const colaboradores = mysqlTable("colaboradores", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** Nome do colaborador conforme retornado pelo CashBarber */
+  nome: varchar("nome", { length: 128 }).notNull(),
+  /** Apelido/nome curto para exibição no ranking */
+  apelido: varchar("apelido", { length: 64 }),
+  /** URL da foto de perfil (opcional) */
+  fotoUrl: text("fotoUrl"),
+  /** Cargo: barbeiro, recepcionista, gerente */
+  cargo: varchar("cargo", { length: 64 }).default("barbeiro"),
+  /** Se aparece no ranking público */
+  exibirNoRanking: int("exibirNoRanking").notNull().default(1),
+  /** Se está ativo na empresa */
+  ativo: int("ativo").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Colaborador = typeof colaboradores.$inferSelect;
+export type InsertColaborador = typeof colaboradores.$inferInsert;
+
+// ─── METAS DE COLABORADORES ───────────────────────────────────────────────────
+// Meta mensal de faturamento de produtos por colaborador
+export const metasColaboradores = mysqlTable("metasColaboradores", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  colaboradorId: int("colaboradorId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  /** Meta de faturamento total de produtos (R$) */
+  metaProdutos: decimal("metaProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Meta de quantidade de atendimentos (opcional) */
+  metaAtendimentos: int("metaAtendimentos").default(0),
+  /** Bonificação ao atingir a meta (R$) */
+  bonificacaoMeta: decimal("bonificacaoMeta", { precision: 10, scale: 2 }).default("0"),
+  /** Bonificação ao atingir a super meta (R$) */
+  bonificacaoSuperMeta: decimal("bonificacaoSuperMeta", { precision: 10, scale: 2 }).default("0"),
+  /** Percentual para super meta (ex: 120 = 120% da meta) */
+  superMetaPct: decimal("superMetaPct", { precision: 5, scale: 2 }).default("120"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type MetaColaborador = typeof metasColaboradores.$inferSelect;
+export type InsertMetaColaborador = typeof metasColaboradores.$inferInsert;
+
+// ─── FATURAMENTO DE COLABORADORES (SINCRONIZADO DO CASHBARBER) ───────────────
+// Faturamento acumulado de produtos por colaborador no mês (Relatório 13)
+export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  colaboradorId: int("colaboradorId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  /** Faturamento total de produtos no período (R$) */
+  totalProdutos: decimal("totalProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Comissão total de produtos (R$) */
+  totalComissaoProdutos: decimal("totalComissaoProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Detalhes por categoria de produto (JSON) */
+  detalhesProdutos: text("detalhesProdutos"),
+  /** Data/hora da última sincronização */
+  ultimaSyncEm: timestamp("ultimaSyncEm").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type FaturamentoColaborador = typeof faturamentoColaboradores.$inferSelect;
+export type InsertFaturamentoColaborador = typeof faturamentoColaboradores.$inferInsert;

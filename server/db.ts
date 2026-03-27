@@ -1452,3 +1452,165 @@ export async function saveRecorrenciaValorCashbarber(
     .set({ recorrenciaValorCashbarber: String(valor) } as any)
     .where(and(eq(cashbarberConfig.tenantId, tenantId), eq(cashbarberConfig.empresaSlug, empresaSlug)));
 }
+
+// ─── COLABORADORES ────────────────────────────────────────────────────────────
+import {
+  colaboradores,
+  faturamentoColaboradores,
+  metasColaboradores,
+  Colaborador,
+  InsertColaborador,
+  FaturamentoColaborador,
+  MetaColaborador,
+  InsertMetaColaborador,
+} from "../drizzle/schema";
+
+/** Lista todos os colaboradores de uma empresa */
+export async function listarColaboradores(tenantId: number, empresaSlug: string): Promise<Colaborador[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(colaboradores)
+    .where(and(eq(colaboradores.tenantId, tenantId), eq(colaboradores.empresaSlug, empresaSlug)))
+    .orderBy(colaboradores.nome);
+}
+
+/** Upsert de colaborador (cria ou atualiza) */
+export async function upsertColaborador(data: InsertColaborador): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const [existente] = await db
+    .select({ id: colaboradores.id })
+    .from(colaboradores)
+    .where(and(eq(colaboradores.tenantId, data.tenantId), eq(colaboradores.empresaSlug, data.empresaSlug!), eq(colaboradores.nome, data.nome)))
+    .limit(1);
+  if (existente) {
+    await db.update(colaboradores).set(data).where(eq(colaboradores.id, existente.id));
+    return existente.id;
+  }
+  const [r] = await db.insert(colaboradores).values(data);
+  return (r as { insertId: number }).insertId;
+}
+
+/** Atualiza dados de um colaborador */
+export async function updateColaborador(id: number, data: Partial<InsertColaborador>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(colaboradores).set(data).where(eq(colaboradores.id, id));
+}
+
+/** Remove (desativa) um colaborador */
+export async function desativarColaborador(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(colaboradores).set({ ativo: 0 }).where(eq(colaboradores.id, id));
+}
+
+/** Busca o faturamento de todos os colaboradores de uma empresa num mês/ano */
+export async function listarFaturamentoColaboradores(
+  tenantId: number,
+  empresaSlug: string,
+  mes: number,
+  ano: number
+): Promise<(FaturamentoColaborador & { nomeColaborador: string; apelido: string | null; fotoUrl: string | null; exibirNoRanking: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: faturamentoColaboradores.id,
+      tenantId: faturamentoColaboradores.tenantId,
+      colaboradorId: faturamentoColaboradores.colaboradorId,
+      empresaSlug: faturamentoColaboradores.empresaSlug,
+      mes: faturamentoColaboradores.mes,
+      ano: faturamentoColaboradores.ano,
+      totalProdutos: faturamentoColaboradores.totalProdutos,
+      totalComissaoProdutos: faturamentoColaboradores.totalComissaoProdutos,
+      detalhesProdutos: faturamentoColaboradores.detalhesProdutos,
+      ultimaSyncEm: faturamentoColaboradores.ultimaSyncEm,
+      createdAt: faturamentoColaboradores.createdAt,
+      updatedAt: faturamentoColaboradores.updatedAt,
+      nomeColaborador: colaboradores.nome,
+      apelido: colaboradores.apelido,
+      fotoUrl: colaboradores.fotoUrl,
+      exibirNoRanking: colaboradores.exibirNoRanking,
+    })
+    .from(faturamentoColaboradores)
+    .innerJoin(colaboradores, eq(faturamentoColaboradores.colaboradorId, colaboradores.id))
+    .where(
+      and(
+        eq(faturamentoColaboradores.tenantId, tenantId),
+        eq(faturamentoColaboradores.empresaSlug, empresaSlug),
+        eq(faturamentoColaboradores.mes, mes),
+        eq(faturamentoColaboradores.ano, ano),
+        eq(colaboradores.ativo, 1)
+      )
+    )
+    .orderBy(desc(faturamentoColaboradores.totalProdutos));
+}
+
+/** Busca a meta de um colaborador num mês/ano */
+export async function getMetaColaborador(
+  colaboradorId: number,
+  mes: number,
+  ano: number
+): Promise<MetaColaborador | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db
+    .select()
+    .from(metasColaboradores)
+    .where(
+      and(
+        eq(metasColaboradores.colaboradorId, colaboradorId),
+        eq(metasColaboradores.mes, mes),
+        eq(metasColaboradores.ano, ano)
+      )
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+/** Lista todas as metas de colaboradores de uma empresa num mês/ano */
+export async function listarMetasColaboradores(
+  tenantId: number,
+  empresaSlug: string,
+  mes: number,
+  ano: number
+): Promise<MetaColaborador[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(metasColaboradores)
+    .where(
+      and(
+        eq(metasColaboradores.tenantId, tenantId),
+        eq(metasColaboradores.empresaSlug, empresaSlug),
+        eq(metasColaboradores.mes, mes),
+        eq(metasColaboradores.ano, ano)
+      )
+    );
+}
+
+/** Upsert de meta de colaborador */
+export async function upsertMetaColaborador(data: InsertMetaColaborador): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const [existente] = await db
+    .select({ id: metasColaboradores.id })
+    .from(metasColaboradores)
+    .where(
+      and(
+        eq(metasColaboradores.colaboradorId, data.colaboradorId),
+        eq(metasColaboradores.mes, data.mes),
+        eq(metasColaboradores.ano, data.ano)
+      )
+    )
+    .limit(1);
+  if (existente) {
+    await db.update(metasColaboradores).set(data).where(eq(metasColaboradores.id, existente.id));
+  } else {
+    await db.insert(metasColaboradores).values(data);
+  }
+}

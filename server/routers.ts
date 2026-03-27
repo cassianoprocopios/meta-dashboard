@@ -76,6 +76,13 @@ import {
   saveRecorrenciaFonte,
   getRecorrenciaFonte,
   saveRecorrenciaValorCashbarber,
+  listarColaboradores,
+  upsertColaborador,
+  updateColaborador,
+  desativarColaborador,
+  listarFaturamentoColaboradores,
+  listarMetasColaboradores,
+  upsertMetaColaborador,
 } from "./db";
 import {
   cashbarberLogin,
@@ -93,6 +100,7 @@ import {
   cashbarberCalcularDpoteViaHistorico,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
+import { sincronizarColaboradoresPorEmpresa } from "./colaboradoresSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
 
 import { SignJWT, jwtVerify } from "jose";
@@ -2856,5 +2864,202 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }));
       }),
   }),
+
+  // ─── COLABORADORES ──────────────────────────────────────────────────────────
+  colaboradores: router({
+    /** Lista colaboradores de uma empresa */
+    listar: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return listarColaboradores(tenantId, input.empresaSlug);
+      }),
+
+    /** Cria ou atualiza um colaborador manualmente */
+    salvar: protectedProcedure
+      .input(z.object({
+        id: z.number().optional(),
+        empresaSlug: z.string(),
+        nome: z.string().min(1),
+        apelido: z.string().optional(),
+        fotoUrl: z.string().optional(),
+        cargo: z.string().optional(),
+        exibirNoRanking: z.number().optional(),
+        ativo: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        if (input.id) {
+          await updateColaborador(input.id, {
+            nome: input.nome,
+            apelido: input.apelido,
+            fotoUrl: input.fotoUrl,
+            cargo: input.cargo,
+            exibirNoRanking: input.exibirNoRanking ?? 1,
+            ativo: input.ativo ?? 1,
+          });
+          return { id: input.id };
+        }
+        const id = await upsertColaborador({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          nome: input.nome,
+          apelido: input.apelido,
+          fotoUrl: input.fotoUrl,
+          cargo: input.cargo ?? "barbeiro",
+          exibirNoRanking: input.exibirNoRanking ?? 1,
+          ativo: 1,
+        });
+        return { id };
+      }),
+
+    /** Desativa (remove do ranking) um colaborador */
+    desativar: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await desativarColaborador(input.id);
+        return { success: true };
+      }),
+
+    /** Sincroniza colaboradores e faturamento de uma empresa via CashBarber Rel. 13 */
+    sincronizar: protectedProcedure
+      .input(z.object({ empresaSlug: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const configs = await listCashbarberConfigs(tenantId);
+        const config = configs.find((c) => c.empresaSlug === input.empresaSlug);
+        if (!config || !config.cbEmail || !config.cbSenha) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Configuração CashBarber não encontrada para esta empresa." });
+        }
+        const resultado = await sincronizarColaboradoresPorEmpresa({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          cbEmail: config.cbEmail,
+          cbSenha: config.cbSenha,
+          cbFilialId: config.cbFilialId,
+        });
+        return resultado;
+      }),
+
+    /** Lista metas de colaboradores de uma empresa num mês/ano */
+    listarMetas: protectedProcedure
+      .input(z.object({ empresaSlug: z.string(), mes: z.number(), ano: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        return listarMetasColaboradores(tenantId, input.empresaSlug, input.mes, input.ano);
+      }),
+
+    /** Salva/atualiza a meta de um colaborador */
+    salvarMeta: protectedProcedure
+      .input(z.object({
+        colaboradorId: z.number(),
+        empresaSlug: z.string(),
+        mes: z.number(),
+        ano: z.number(),
+        metaProdutos: z.number().min(0),
+        metaAtendimentos: z.number().optional(),
+        bonificacaoMeta: z.number().optional(),
+        bonificacaoSuperMeta: z.number().optional(),
+        superMetaPct: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        await upsertMetaColaborador({
+          tenantId,
+          colaboradorId: input.colaboradorId,
+          empresaSlug: input.empresaSlug,
+          mes: input.mes,
+          ano: input.ano,
+          metaProdutos: String(input.metaProdutos),
+          metaAtendimentos: input.metaAtendimentos ?? 0,
+          bonificacaoMeta: String(input.bonificacaoMeta ?? 0),
+          bonificacaoSuperMeta: String(input.bonificacaoSuperMeta ?? 0),
+          superMetaPct: String(input.superMetaPct ?? 120),
+        });
+        return { success: true };
+      }),
+
+    /** Ranking público: faturamento + metas do mês vigente para todas as empresas de um tenant */
+    rankingPublico: publicProcedure
+      .input(z.object({ tenantSlug: z.string(), mes: z.number().optional(), ano: z.number().optional() }))
+      .query(async ({ input }) => {
+        // Buscar tenant pelo slug
+        const { getTenantBySlug } = await import("./db");
+        const tenant = await getTenantBySlug(input.tenantSlug);
+        if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado." });
+
+        const hoje = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+        const mes = input.mes ?? (hoje.getMonth() + 1);
+        const ano = input.ano ?? hoje.getFullYear();
+
+        // Buscar todas as empresas do tenant
+        const empresasList = await getEmpresasByTenant(tenant.id);
+
+        const resultado: Array<{
+          empresaSlug: string;
+          empresaNome: string;
+          colaboradores: Array<{
+            id: number;
+            nome: string;
+            apelido: string | null;
+            fotoUrl: string | null;
+            totalProdutos: number;
+            metaProdutos: number;
+            bonificacaoMeta: number;
+            bonificacaoSuperMeta: number;
+            superMetaPct: number;
+            posicao: number;
+            percentualMeta: number;
+            atingiuMeta: boolean;
+            atingiuSuperMeta: boolean;
+            ultimaSyncEm: Date | null;
+          }>;
+        }> = [];
+
+        for (const empresa of empresasList) {
+          if (!empresa.ativo) continue;
+          const faturamentos = await listarFaturamentoColaboradores(tenant.id, empresa.slug, mes, ano);
+          const metas = await listarMetasColaboradores(tenant.id, empresa.slug, mes, ano);
+          const metasMap = new Map(metas.map((m) => [m.colaboradorId, m]));
+
+          const colaboradoresList = faturamentos
+            .filter((f) => f.exibirNoRanking === 1)
+            .map((f, idx) => {
+              const meta = metasMap.get(f.colaboradorId);
+              const totalProdutos = parseFloat(String(f.totalProdutos));
+              const metaProdutos = parseFloat(String(meta?.metaProdutos ?? 0));
+              const bonificacaoMeta = parseFloat(String(meta?.bonificacaoMeta ?? 0));
+              const bonificacaoSuperMeta = parseFloat(String(meta?.bonificacaoSuperMeta ?? 0));
+              const superMetaPct = parseFloat(String(meta?.superMetaPct ?? 120));
+              const percentualMeta = metaProdutos > 0 ? (totalProdutos / metaProdutos) * 100 : 0;
+              return {
+                id: f.colaboradorId,
+                nome: f.nomeColaborador,
+                apelido: f.apelido,
+                fotoUrl: f.fotoUrl,
+                totalProdutos,
+                metaProdutos,
+                bonificacaoMeta,
+                bonificacaoSuperMeta,
+                superMetaPct,
+                posicao: idx + 1,
+                percentualMeta,
+                atingiuMeta: metaProdutos > 0 && totalProdutos >= metaProdutos,
+                atingiuSuperMeta: metaProdutos > 0 && totalProdutos >= metaProdutos * (superMetaPct / 100),
+                ultimaSyncEm: f.ultimaSyncEm,
+              };
+            });
+
+          resultado.push({
+            empresaSlug: empresa.slug,
+            empresaNome: empresa.nome,
+            colaboradores: colaboradoresList,
+          });
+        }
+
+        return { mes, ano, empresas: resultado };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;
+

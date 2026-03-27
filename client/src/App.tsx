@@ -11,6 +11,8 @@ import TenantRegister from "./pages/TenantRegister";
 import DevPanel from "./pages/DevPanel";
 import AdminPanel from "./pages/AdminPanel";
 import HistoricoAcuracia from "./pages/HistoricoAcuracia";
+import ColaboradoresMetas from "./pages/ColaboradoresMetas";
+import RankingPublico from "./pages/RankingPublico";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -58,6 +60,9 @@ function Router() {
       <Route path={"/dev"} component={DevPanel} />
       <Route path={"/admin-panel"} component={AdminPanel} />
       <Route path={"/historico-acuracia"} component={HistoricoAcuracia} />
+      <Route path={"/colaboradores"} component={ColaboradoresMetas} />
+      <Route path={"/ranking"} component={RankingPublico} />
+      <Route path={"/ranking/:tenantSlug"} component={RankingPublico} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
