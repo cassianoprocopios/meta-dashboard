@@ -385,8 +385,11 @@ export async function sincronizarFaturamentoCashbarber(
     // (aproximação: buscar todos os registros do mês e somar cat5 antes do upsert)
     // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
     // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
-    const totalDiasMes = new Date(ano, mes, 0).getDate();
-    const valorDiarioNovo = recorrenciaValor / totalDiasMes;
+    // Calcular valor diário real: dividido pelos dias realizados (não pelos 31 do mês)
+    const hoje3 = new Date();
+    const ehMesAtualLog = mes === hoje3.getMonth() + 1 && ano === hoje3.getFullYear();
+    const diasRealizadosLog = ehMesAtualLog ? hoje3.getDate() : new Date(ano, mes, 0).getDate();
+    const valorDiarioNovo = recorrenciaValor / diasRealizadosLog;
     // Registrar o log de sincronização do Dpote
     try {
       await insertDpoteSyncLog({
@@ -401,7 +404,7 @@ export async function sincronizarFaturamentoCashbarber(
         tipoExecucao: origem === "auto" ? "automatico" : "manual",
         erro: errosMsgs.length > 0 ? errosMsgs.slice(0, 3).join("; ") : null,
       });
-      console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia (total: R$ ${recorrenciaValor.toFixed(2)})`);
+      console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia × ${diasRealizadosLog} dias = R$ ${recorrenciaValor.toFixed(2)} total`);
     } catch (errLog) {
       console.warn(`[CashBarber] Falha ao registrar DpoteSyncLog para ${empresaSlug}:`, errLog);
     }
@@ -495,15 +498,15 @@ export async function aplicarDpoteParaTenant(
     token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
   );
 
-  const totalDiasMes = new Date(ano, mes, 0).getDate();
+   const totalDiasMes = new Date(ano, mes, 0).getDate();
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
   const naoEncontrados: string[] = [];
-
   // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
   const hojeAplic = new Date();
   const ehMesAtualAplic = mes === hojeAplic.getMonth() + 1 && ano === hojeAplic.getFullYear();
   const diaVigenteAplic = hojeAplic.getDate();
-
+  // Dias realizados: para mês atual = dias até hoje; para meses passados = total do mês
+  const diasRealizadosAplic = ehMesAtualAplic ? diaVigenteAplic : totalDiasMes;
   for (const config of configs) {
     if (!config.dpoteFilialNome) continue;
     const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
@@ -512,10 +515,9 @@ export async function aplicarDpoteParaTenant(
       naoEncontrados.push(config.empresaSlug);
       continue;
     }
-
-    // Valor diário = total ÷ dias do mês
-    const valorDiario = Math.round((filial.valorDistribuido / totalDiasMes) * 100) / 100;
-
+    // Valor diário = total ÷ dias JA REALIZADOS (até hoje para mês atual)
+    // Garante que a soma até hoje = valor total do Dpote
+    const valorDiario = Math.round((filial.valorDistribuido / diasRealizadosAplic) * 100) / 100;
     for (let dia = 1; dia <= totalDiasMes; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
@@ -583,7 +585,7 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia (dias passados/hoje), R$ ${valorDiarioPrevisao.toFixed(2)}/dia (previsão ${mesProximo}/${anoProximo})`);
+    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia × ${diasRealizadosAplic} dias = R$ ${filial.valorDistribuido.toFixed(2)} total | previsão ${mesProximo}/${anoProximo}: R$ ${valorDiarioPrevisao.toFixed(2)}/dia`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };

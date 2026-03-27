@@ -1,0 +1,16 @@
+{
+  "query": "\nSELECT \n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)) as total_operacional,\n  SUM(COALESCE(cat9,0)) as total_recorrencia,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral,\n  COUNT(*) as dias_com_dados\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI'\n  AND data LIKE '2026-03-%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)) as total_operacional,\n  SUM(COALESCE(cat9,0)) as total_recorrencia,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral,\n  COUNT(*) as dias_com_dados\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI'\n  AND data LIKE '2026-03-%';\n",
+  "rows": [
+    {
+      "total_operacional": "69177.65",
+      "total_recorrencia": "107026.11",
+      "total_geral": "176203.76",
+      "dias_com_dados": "31"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_operacional\ttotal_recorrencia\ttotal_geral\tdias_com_dados\n69177.65\t107026.11\t176203.76\t31\n",
+  "stderr": "",
+  "execution_time_ms": 122
+}

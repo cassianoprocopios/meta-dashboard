@@ -920,3 +920,8 @@
 - [ ] Corrigir sincronização CashBarber: valor de produtos não está entrando no faturamento operacional da Mascote
 - [ ] Investigar qual categoria (cat1-cat5) deve receber os produtos e se o mapeamento está correto
 - [ ] Verificar se o Relatório 15 do CashBarber retorna produtos separados e se estão sendo somados
+
+## Sincronização Morumbi + Job Automático
+- [x] Ressincronizar Morumbi com lógica corrigida do Dpote (dias realizados)
+- [x] Verificar divergência no faturamento da Morumbi março/2026
+- [x] Confirmar que o job automático horário usa a lógica corrigida do Dpote
