@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   accessLogs,
@@ -9,6 +9,9 @@ import {
   CashbarberConfig,
   CashbarberMapeamento,
   colaboradores,
+  faturamentoColaboradores,
+  FaturamentoColaborador,
+  InsertFaturamentoColaborador,
   dpoteSyncLog,
   InsertDpoteSyncLog,
   categorias,
@@ -1506,4 +1509,57 @@ export async function deletarColaborador(tenantId: number, id: number) {
   await db
     .delete(colaboradores)
     .where(and(eq(colaboradores.id, id), eq(colaboradores.tenantId, tenantId)));
+}
+
+/** Retorna ranking de profissionais por faturamento num período (mês/ano) */
+export async function listarRankingPorPeriodo(
+  tenantId: number,
+  mes: number,
+  ano: number
+): Promise<Array<{
+  colaboradorId: number;
+  totalServicos: number;
+  totalProdutos: number;
+  totalGeral: number;
+}>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      colaboradorId: faturamentoColaboradores.colaboradorId,
+      totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
+      totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
+      totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+    })
+    .from(faturamentoColaboradores)
+    .where(
+      and(
+        eq(faturamentoColaboradores.tenantId, tenantId),
+        eq(faturamentoColaboradores.mes, mes),
+        eq(faturamentoColaboradores.ano, ano)
+      )
+    )
+    .groupBy(faturamentoColaboradores.colaboradorId)
+    .orderBy(desc(sql`SUM(${faturamentoColaboradores.totalGeral})`));
+  return rows.map((r) => ({
+    colaboradorId: r.colaboradorId,
+    totalServicos: Number(r.totalServicos),
+    totalProdutos: Number(r.totalProdutos),
+    totalGeral: Number(r.totalGeral),
+  }));
+}
+
+/** Retorna os períodos (mês/ano) que têm dados de faturamento de colaboradores */
+export async function listarPeriodosComDados(tenantId: number): Promise<Array<{ mes: number; ano: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .selectDistinct({
+      mes: faturamentoColaboradores.mes,
+      ano: faturamentoColaboradores.ano,
+    })
+    .from(faturamentoColaboradores)
+    .where(eq(faturamentoColaboradores.tenantId, tenantId))
+    .orderBy(desc(faturamentoColaboradores.ano), desc(faturamentoColaboradores.mes));
+  return rows;
 }

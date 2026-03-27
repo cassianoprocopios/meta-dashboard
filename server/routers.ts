@@ -10,6 +10,8 @@ import {
   salvarColaborador,
   toggleColaboradorAtivo,
   deletarColaborador,
+  listarRankingPorPeriodo,
+  listarPeriodosComDados,
   getAllFaturamentosByTenant,
   upsertFaturamento,
   deleteFaturamento,
@@ -222,6 +224,39 @@ const profissionaisRouter = router({
       await deletarColaborador(tenantId, input.id);
       return { ok: true };
     }),
+
+  ranking: protectedProcedure
+    .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const [profissionais, faturamentos] = await Promise.all([
+        listarColaboradores(tenantId),
+        listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+      ]);
+      const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
+      return profissionais
+        .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1)
+        .map((p) => {
+          const fat = faturamentoMap.get(p.id);
+          return {
+            id: p.id,
+            nome: p.nome,
+            apelido: p.apelido,
+            fotoUrl: p.fotoUrl,
+            cargo: p.cargo,
+            totalServicos: fat?.totalServicos ?? 0,
+            totalProdutos: fat?.totalProdutos ?? 0,
+            totalGeral: fat?.totalGeral ?? 0,
+            temDados: !!fat,
+          };
+        })
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+    }),
+
+  periodos: protectedProcedure.query(async ({ ctx }) => {
+    const tenantId = await getTenantIdFromCtx(ctx);
+    return listarPeriodosComDados(tenantId);
+  }),
 });
 
 export const appRouter = router({

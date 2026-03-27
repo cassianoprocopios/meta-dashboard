@@ -331,3 +331,24 @@ export const colaboradores = mysqlTable("colaboradores", {
 });
 export type Colaborador = typeof colaboradores.$inferSelect;
 export type InsertColaborador = typeof colaboradores.$inferInsert;
+
+// Faturamento mensal por profissional (sincronizado do CashBarber)
+export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  colaboradorId: int("colaboradorId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  totalProdutos: decimal("totalProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalComissaoProdutos: decimal("totalComissaoProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
+  detalhesProdutos: text("detalhesProdutos"),
+  totalServicos: decimal("totalServicos", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalGeral: decimal("totalGeral", { precision: 12, scale: 2 }).notNull().default("0"),
+  detalhesServicos: text("detalhesServicos"),
+  ultimaSyncEm: timestamp("ultimaSyncEm").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type FaturamentoColaborador = typeof faturamentoColaboradores.$inferSelect;
+export type InsertFaturamentoColaborador = typeof faturamentoColaboradores.$inferInsert;

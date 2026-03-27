@@ -896,3 +896,22 @@
 ## Melhoria: Ranking Público
 
 - [x] Adicionar botão de retorno ao dashboard na página RankingPublico
+
+## Filtros de Data no Ranking
+
+- [ ] Criar procedure tRPC profissionais.ranking com filtro mês/ano e dados de faturamento
+- [ ] Criar função db listarRankingPorPeriodo que agrega faturamento por profissional
+- [ ] Atualizar RankingPublico com seletor de mês/ano
+- [ ] Ordenar ranking por faturamento total (serviços + produtos)
+- [ ] Exibir valores de faturamento nos cards do ranking
+- [ ] Indicador de período atual vs período selecionado
+
+## Filtros de Data no Ranking (concluído)
+
+- [x] Criar procedure tRPC ranking por período com dados de faturamento por profissional
+- [x] Criar procedure tRPC periodos para listar períodos com dados
+- [x] Adicionar funções listarRankingPorPeriodo e listarPeriodosComDados no db.ts
+- [x] Reescrever página RankingPublico com filtros de mês/ano e seletor de navegação
+- [x] Exibir faturamento real (serviços + produtos) por profissional no ranking
+- [x] Pódio visual top 3 com barra de progresso e breakdown serviços/produtos
+- [x] Aviso quando não há dados de faturamento para o período selecionado
