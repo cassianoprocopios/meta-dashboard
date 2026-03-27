@@ -956,3 +956,6 @@
 - [x] Adicionar botão "Meta Diária" na sidebar (Ações Rápidas)
 - [x] Executar migração do banco (SQL direto para ALTER TABLE)
 - [ ] Testar notificação end-to-end (aguardando dados reais do job)
+
+## Ranking de Profissionais — Exclusão de Categorias
+- [x] Excluir Avulso/Clube, Caixinha e Bar do cálculo de totalServicos/totalGeral no ranking

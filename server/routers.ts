@@ -283,7 +283,12 @@ const profissionaisRouter = router({
       for (const col of comId) {
         try {
           const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
-          const totalServicos = relatorio.servicos.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+          // Categorias excluídas do ranking: Avulso/Clube, Caixinha e Bar
+          const CATEGORIAS_EXCLUIDAS_RANKING = /avulso|clube|caixinha|bar/i;
+          const servicosRanking = relatorio.servicos.filter(
+            (s: any) => !CATEGORIAS_EXCLUIDAS_RANKING.test(s.ser_nome ?? '')
+          );
+          const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
           await upsertFaturamentoColaborador({
@@ -295,7 +300,8 @@ const profissionaisRouter = router({
             totalServicos,
             totalProdutos,
             totalGeral,
-            detalhesServicos: JSON.stringify(relatorio.servicos.slice(0, 20)),
+            // Salvar apenas os serviços válidos (excluídas as categorias ignoradas)
+            detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
           });
           sincronizados++;
         } catch (e) {
