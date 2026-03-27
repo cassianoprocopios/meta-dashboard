@@ -915,3 +915,8 @@
 - [x] Exibir faturamento real (serviços + produtos) por profissional no ranking
 - [x] Pódio visual top 3 com barra de progresso e breakdown serviços/produtos
 - [x] Aviso quando não há dados de faturamento para o período selecionado
+
+## Divergência Faturamento Mascote - Produtos
+- [ ] Corrigir sincronização CashBarber: valor de produtos não está entrando no faturamento operacional da Mascote
+- [ ] Investigar qual categoria (cat1-cat5) deve receber os produtos e se o mapeamento está correto
+- [ ] Verificar se o Relatório 15 do CashBarber retorna produtos separados e se estão sendo somados

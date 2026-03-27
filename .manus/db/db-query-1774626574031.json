@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT \n  SUM(COALESCE(cat1,0)) as total_cat1,\n  SUM(COALESCE(cat2,0)) as total_cat2,\n  SUM(COALESCE(cat3,0)) as total_cat3,\n  SUM(COALESCE(cat4,0)) as total_cat4,\n  SUM(COALESCE(cat5,0)) as total_cat5,\n  SUM(COALESCE(cat6,0)) as total_cat6,\n  SUM(COALESCE(cat7,0)) as total_cat7,\n  SUM(COALESCE(cat8,0)) as total_cat8,\n  SUM(COALESCE(cat9,0)) as total_cat9,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral,\n  COUNT(*) as dias_lancados,\n  SUM(CASE WHEN data <= '2026-03-27' THEN COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0) ELSE 0 END) as total_realizado\nFROM faturamentos\nWHERE empresaSlug = 'MASCOTE'\n  AND data LIKE '2026-03-%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  SUM(COALESCE(cat1,0)) as total_cat1,\n  SUM(COALESCE(cat2,0)) as total_cat2,\n  SUM(COALESCE(cat3,0)) as total_cat3,\n  SUM(COALESCE(cat4,0)) as total_cat4,\n  SUM(COALESCE(cat5,0)) as total_cat5,\n  SUM(COALESCE(cat6,0)) as total_cat6,\n  SUM(COALESCE(cat7,0)) as total_cat7,\n  SUM(COALESCE(cat8,0)) as total_cat8,\n  SUM(COALESCE(cat9,0)) as total_cat9,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral,\n  COUNT(*) as dias_lancados,\n  SUM(CASE WHEN data <= '2026-03-27' THEN COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0) ELSE 0 END) as total_realizado\nFROM faturamentos\nWHERE empresaSlug = 'MASCOTE'\n  AND data LIKE '2026-03-%';\n",
+  "rows": [
+    {
+      "total_cat1": "15778.50",
+      "total_cat2": "8207.40",
+      "total_cat3": "4203.10",
+      "total_cat4": "242.00",
+      "total_cat5": "0.00",
+      "total_cat6": "0.00",
+      "total_cat7": "0.00",
+      "total_cat8": "0.00",
+      "total_cat9": "46195.11",
+      "total_geral": "74626.11",
+      "dias_lancados": "31",
+      "total_realizado": "74626.11"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_cat1\ttotal_cat2\ttotal_cat3\ttotal_cat4\ttotal_cat5\ttotal_cat6\ttotal_cat7\ttotal_cat8\ttotal_cat9\ttotal_geral\tdias_lancados\ttotal_realizado\n15778.50\t8207.40\t4203.10\t242.00\t0.00\t0.00\t0.00\t0.00\t46195.11\t74626.11\t31\t74626.11\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

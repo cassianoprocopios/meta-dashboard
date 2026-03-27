@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  dpoteValorAssinaturas,\n  dpotePorcentagemBarbearia,\n  dpoteFilialNome,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm\nFROM cashbarberConfigs\nWHERE tenantId = (SELECT id FROM tenants LIMIT 1)\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  dpoteValorAssinaturas,\n  dpotePorcentagemBarbearia,\n  dpoteFilialNome,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm\nFROM cashbarberConfigs\nWHERE tenantId = (SELECT id FROM tenants LIMIT 1)\nORDER BY empresaSlug;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 2: Table 'manh2fxvkecbuwjelbl3u8.cashbarberConfigs' doesn't exist"
+  ]
+}

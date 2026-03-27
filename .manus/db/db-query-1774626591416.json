@@ -1,0 +1,76 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "accessLogs"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "avecConfig"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "avecMapeamento"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "avecSyncLog"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "bonificacoes"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "cashbarberConfig"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "cashbarberMapeamento"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "cashbarberSyncLog"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "categorias"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "colaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "dpoteSyncLog"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "empresas"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "faturamentoColaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "faturamentos"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "faturamentos_old"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "metas"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "metasColaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "notificacaoEventos"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "tenants"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "userEmpresas"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_MANH2fxvkecBuwjELBL3u8\n__drizzle_migrations\naccessLogs\navecConfig\navecMapeamento\navecSyncLog\nbonificacoes\ncashbarberConfig\ncashbarberMapeamento\ncashbarberSyncLog\ncategorias\ncolaboradores\ndpoteSyncLog\nempresas\nfaturamentoColaboradores\nfaturamentos\nfaturamentos_old\nmetas\nmetasColaboradores\nnotificacaoEventos\ntenants\nuserEmpresas\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

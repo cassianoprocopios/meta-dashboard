@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  dpoteValorAssinaturas,\n  dpotePorcentagemBarbearia,\n  dpoteFilialNome,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm\nFROM cashbarberConfig\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  dpoteValorAssinaturas,\n  dpotePorcentagemBarbearia,\n  dpoteFilialNome,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm\nFROM cashbarberConfig\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "dpoteValorAssinaturas": "153219.40",
+      "dpotePorcentagemBarbearia": "65.00",
+      "dpoteFilialNome": "Mascote",
+      "recorrenciaFonte": "manual",
+      "recorrenciaValorManual": "46195.00",
+      "recorrenciaManualAtualizadoEm": "2026-03-27 15:46:34"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "dpoteValorAssinaturas": "153219.40",
+      "dpotePorcentagemBarbearia": "65.00",
+      "dpoteFilialNome": "Morumbi",
+      "recorrenciaFonte": "cashbarber",
+      "recorrenciaValorManual": "NULL",
+      "recorrenciaManualAtualizadoEm": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\tdpoteFilialNome\trecorrenciaFonte\trecorrenciaValorManual\trecorrenciaManualAtualizadoEm\nMASCOTE\t153219.40\t65.00\tMascote\tmanual\t46195.00\t2026-03-27 15:46:34\nMORUMBI\t153219.40\t65.00\tMorumbi\tcashbarber\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

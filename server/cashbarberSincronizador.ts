@@ -65,7 +65,7 @@ export interface ResultadoSincronizacao {
 function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Set<string> {
   const cats = new Set<string>();
   for (const m of mapeamento) {
-    if (m.metaCategoria && m.metaCategoria.match(/^cat[1-5]$/)) {
+    if (m.metaCategoria && m.metaCategoria.match(/^cat[1-9]$/)) {
       cats.add(m.metaCategoria);
     }
   }
@@ -299,6 +299,9 @@ export async function sincronizarFaturamentoCashbarber(
       const cat4 = categoriasMapeadas.has("cat4")
         ? String(faturamentoCB.cat4)
         : existente?.cat4 ?? "0";
+      const cat5 = categoriasMapeadas.has("cat5")
+        ? String(faturamentoCB.cat5)
+        : existente?.cat5 ?? "0";
       const cat6 = categoriasMapeadas.has("cat6")
         ? String(faturamentoCB.cat6)
         : existente?.cat6 ?? "0";
@@ -310,18 +313,24 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_do_mês.
+      // Regra: o valor total apurado no Dpote é distribuído igualmente pelos dias
+      // JÁ REALIZADOS até o dia vigente (não pelos 31 dias do mês).
+      // Isso garante que o total acumulado até hoje = valor total do Dpote.
       // Dias futuros (ainda não aconteceram) recebem "0".
-      // Ex: R$ 73.171 em 31 dias = R$ 2.360/dia; dias futuros = R$ 0.
+      // Ex: Dpote = R$ 46.206 com 27 dias realizados → R$ 1.711,33/dia
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        const totalDiasMes = new Date(ano, mes, 0).getDate();
-        const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
-        // Verificar se o dia é futuro (maior que hoje no mês atual)
         const hoje2 = new Date();
         const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
         const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
-        cat9 = diaFuturo ? "0" : String(valorDiario);
+        if (diaFuturo) {
+          cat9 = "0";
+        } else {
+          // Dividir pelo número de dias realizados (até hoje para mês atual, ou total do mês para meses passados)
+          const diasRealizados = ehMesAtualSync ? hoje2.getDate() : new Date(ano, mes, 0).getDate();
+          const valorDiario = Math.round((recorrenciaValor / diasRealizados) * 100) / 100;
+          cat9 = String(valorDiario);
+        }
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
         cat9 = existente?.cat9 ?? "0";
@@ -337,6 +346,7 @@ export async function sincronizarFaturamentoCashbarber(
         cat2,
         cat3,
         cat4,
+        cat5,
         cat6,
         cat7,
         cat8,

@@ -1,0 +1,22 @@
+{
+  "query": "\nSELECT \n  SUM(COALESCE(cat1,0)) as avulso_clube,\n  SUM(COALESCE(cat2,0)) as servico_extra,\n  SUM(COALESCE(cat3,0)) as auxiliar,\n  SUM(COALESCE(cat4,0)) as keune,\n  SUM(COALESCE(cat5,0)) as don_alcides,\n  SUM(COALESCE(cat6,0)) as caixinha,\n  SUM(COALESCE(cat7,0)) as barbiero,\n  SUM(COALESCE(cat8,0)) as bar,\n  SUM(COALESCE(cat9,0)) as recorrencia,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral\nFROM faturamentos\nWHERE empresaSlug = 'MASCOTE'\n  AND data LIKE '2026-03-%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  SUM(COALESCE(cat1,0)) as avulso_clube,\n  SUM(COALESCE(cat2,0)) as servico_extra,\n  SUM(COALESCE(cat3,0)) as auxiliar,\n  SUM(COALESCE(cat4,0)) as keune,\n  SUM(COALESCE(cat5,0)) as don_alcides,\n  SUM(COALESCE(cat6,0)) as caixinha,\n  SUM(COALESCE(cat7,0)) as barbiero,\n  SUM(COALESCE(cat8,0)) as bar,\n  SUM(COALESCE(cat9,0)) as recorrencia,\n  SUM(COALESCE(cat1,0)+COALESCE(cat2,0)+COALESCE(cat3,0)+COALESCE(cat4,0)+COALESCE(cat5,0)+COALESCE(cat6,0)+COALESCE(cat7,0)+COALESCE(cat8,0)+COALESCE(cat9,0)) as total_geral\nFROM faturamentos\nWHERE empresaSlug = 'MASCOTE'\n  AND data LIKE '2026-03-%';\n",
+  "rows": [
+    {
+      "avulso_clube": "15778.50",
+      "servico_extra": "8207.40",
+      "auxiliar": "4230.10",
+      "keune": "242.00",
+      "don_alcides": "0.00",
+      "caixinha": "35.00",
+      "barbiero": "3591.55",
+      "bar": "345.70",
+      "recorrencia": "40244.04",
+      "total_geral": "72674.29"
+    }
+  ],
+  "messages": [],
+  "stdout": "avulso_clube\tservico_extra\tauxiliar\tkeune\tdon_alcides\tcaixinha\tbarbiero\tbar\trecorrencia\ttotal_geral\n15778.50\t8207.40\t4230.10\t242.00\t0.00\t35.00\t3591.55\t345.70\t40244.04\t72674.29\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

@@ -1,0 +1,66 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  tipo,\n  cbId,\n  cbNome,\n  metaCategoria\nFROM cashbarberMapeamento\nWHERE empresaSlug = 'MASCOTE'\nORDER BY tipo, cbNome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  tipo,\n  cbId,\n  cbNome,\n  metaCategoria\nFROM cashbarberMapeamento\nWHERE empresaSlug = 'MASCOTE'\nORDER BY tipo, cbNome;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbId": "13295",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat3"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbId": "22518",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbId": "605",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbId": "607",
+      "cbNome": "Bar",
+      "metaCategoria": "cat8"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbId": "606",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat7"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbId": "632",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat6"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbId": "19096",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat5"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbId": "17206",
+      "cbNome": "Keune",
+      "metaCategoria": "cat4"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttipo\tcbId\tcbNome\tmetaCategoria\nMASCOTE\tservico_categoria\t13295\tAuxiliar\tcat3\nMASCOTE\tservico_categoria\t22518\tAVULSO/CLUBE\tcat1\nMASCOTE\tservico_categoria\t605\tSERVIÇO EXTRA\tcat2\nMASCOTE\tproduto_categoria\t607\tBar\tcat8\nMASCOTE\tproduto_categoria\t606\tBarbiero\tcat7\nMASCOTE\tproduto_categoria\t632\tCaixinha\tcat6\nMASCOTE\tproduto_categoria\t19096\tDon Alcides\tcat5\nMASCOTE\tproduto_categoria\t17206\tKeune\tcat4\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

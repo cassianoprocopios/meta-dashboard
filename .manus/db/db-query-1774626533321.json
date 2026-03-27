@@ -1,0 +1,17 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(*) as total_lancamentos,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5) as total_valor,\n  MIN(data) as primeiro_dia,\n  MAX(data) as ultimo_dia\nFROM faturamentos\nWHERE empresaSlug = 'mascote'\n  AND data LIKE '2026-03-%'\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(*) as total_lancamentos,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5) as total_valor,\n  MIN(data) as primeiro_dia,\n  MAX(data) as ultimo_dia\nFROM faturamentos\nWHERE empresaSlug = 'mascote'\n  AND data LIKE '2026-03-%'\nGROUP BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "total_lancamentos": "31",
+      "total_valor": "28431.00",
+      "primeiro_dia": "2026-03-01",
+      "ultimo_dia": "2026-03-31"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_lancamentos\ttotal_valor\tprimeiro_dia\tultimo_dia\nMASCOTE\t31\t28431.00\t2026-03-01\t2026-03-31\n",
+  "stderr": "",
+  "execution_time_ms": 70
+}
