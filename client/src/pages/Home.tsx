@@ -731,10 +731,55 @@ export default function Home() {
 
   const loading = loadingEmpresas || loadingFat || loadingMetas;
 
-  return (
+    return (
     <DashboardLayout>
-
-
+      {/* Barra de abas de navegação interna */}
+      <div className="bg-card border-b border-border sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 py-2 overflow-x-auto scrollbar-none -mx-1 px-1">
+            {tabsVisiveis.map((tab) => {
+              const labels: Record<Tab, string> = {
+                dashboard: "Dashboard",
+                lancamentos: "Lançamentos",
+                metas: "Metas",
+                bonificacao: "Bonificação",
+                historico: "Histórico",
+                usuarios: "Usuários",
+                empresas: "Empresas",
+                auditoria: "Auditoria",
+                ia: "Análise IA",
+                dpote: "Dpote",
+              };
+              const icons: Record<Tab, React.ReactNode> = {
+                dashboard: <TrendingUp className="w-4 h-4" />,
+                lancamentos: <Calendar className="w-4 h-4" />,
+                metas: <Target className="w-4 h-4" />,
+                bonificacao: <CheckCircle2 className="w-4 h-4" />,
+                historico: <BarChart className="w-4 h-4" />,
+                usuarios: <Users className="w-4 h-4" />,
+                empresas: <Building2 className="w-4 h-4" />,
+                auditoria: <Shield className="w-4 h-4" />,
+                ia: <Sparkles className="w-4 h-4" />,
+                dpote: <Zap className="w-4 h-4" />,
+              };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    activeTab === tab
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {icons[tab]}
+                  {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading && activeTab === "dashboard" && (
           <div className="flex items-center justify-center py-16">

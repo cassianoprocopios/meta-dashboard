@@ -974,3 +974,8 @@
 - [x] Migrar página Home para usar DashboardLayout (remover header próprio)
 - [x] Extrair conteúdo do dashboard para componente separado
 - [x] Garantir consistência visual em todas as telas
+
+## Bug: Navegação de abas removida junto com o header
+
+- [x] Restaurar barra de abas interna no Home.tsx (integrada ao DashboardLayout)
+- [x] Garantir que Lançamentos, Metas, Bonificação e demais abas são acessíveis
