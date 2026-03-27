@@ -374,7 +374,8 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", mes, ano, "auto");
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
-    const valorDiario = String(Math.round((5000 / totalDias) * 100) / 100);
+    // Nova lógica: dividir pelos dias decorridos até hoje (não pelo total do mês)
+    const valorDiario = String(Math.round((5000 / diaHoje) * 100) / 100);
 
     // Dias 1 até hoje: devem ter cat9 = valor diário
     for (let dia = 1; dia <= diaHoje; dia++) {
@@ -413,8 +414,9 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
       })
       .reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
 
-    const valorDiario = Math.round((5000 / totalDias) * 100) / 100;
-    const esperado = valorDiario * diaHoje;
+    // Nova lógica: dividir pelos dias decorridos até hoje
+    const valorDiario = Math.round((5000 / diaHoje) * 100) / 100;
+    const esperado = valorDiario * diaHoje; // deve ser ≈ 5000
 
     // Tolerância de R$ 1 por arredondamento
     expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 1);

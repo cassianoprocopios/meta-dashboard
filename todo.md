@@ -899,3 +899,11 @@
 - [x] Causa: recorrenciaValorCashbarber estava null no banco (campo criado mas nunca populado)
 - [x] Valores calculados e salvos: MORUMBI=107024, MASCOTE=46195 (proporcional por fichas sobre R$ 153.219,40)
 - [x] Sincronizador já salva o valor após cada sync; dashboard usa esse valor diretamente
+
+## Redistribuição Diária do Dpote
+
+- [x] Redistribuir recorrenciaValorCashbarber nos lançamentos diários de cat9 do dia 1 até o dia vigente
+- [x] Nova fórmula: valorDiario = recorrenciaValor / diasDecorridos (garante soma = total CashBarber)
+- [x] Dias futuros recebem cat9 = 0
+- [x] Redistribuição imediata executada: MORUMBI R$ 107.024 e MASCOTE R$ 46.195 distribuídos em 26 dias
+- [x] Testes atualizados para a nova lógica (84 testes passando)

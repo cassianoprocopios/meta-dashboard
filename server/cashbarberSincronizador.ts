@@ -310,18 +310,23 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_do_mês.
+      // Regra: dias passados e o dia vigente recebem valor_total ÷ dias_decorridos_até_hoje.
+      // Isso garante que a soma dos dias lançados seja igual ao total do CashBarber.
       // Dias futuros (ainda não aconteceram) recebem "0".
-      // Ex: R$ 73.171 em 31 dias = R$ 2.360/dia; dias futuros = R$ 0.
+      // Ex: R$ 107.024 até o dia 26 = R$ 107.024 ÷ 26 = R$ 4.116,31/dia; dias futuros = R$ 0.
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        const totalDiasMes = new Date(ano, mes, 0).getDate();
-        const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
-        // Verificar se o dia é futuro (maior que hoje no mês atual)
         const hoje2 = new Date();
         const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
         const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
-        cat9 = diaFuturo ? "0" : String(valorDiario);
+        if (diaFuturo) {
+          cat9 = "0";
+        } else {
+          // Dividir pelo número de dias decorridos até hoje (ou total do mês se meses passados)
+          const diasDecorridos = ehMesAtualSync ? hoje2.getDate() : new Date(ano, mes, 0).getDate();
+          const valorDiario = Math.round((recorrenciaValor / diasDecorridos) * 100) / 100;
+          cat9 = String(valorDiario);
+        }
       } else {
         // Dpote falhou: preservar valor existente (ou "0" se novo registro)
         cat9 = existente?.cat9 ?? "0";
@@ -371,12 +376,10 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 9a. Registrar no log do Dpote (se a recorrência foi atualizada)
   if (recorrenciaAtualizada) {
-    // Calcular valor anterior: soma do cat5 atual no banco antes da sync
-    // (aproximação: buscar todos os registros do mês e somar cat5 antes do upsert)
-    // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
-    // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
-    const totalDiasMes = new Date(ano, mes, 0).getDate();
-    const valorDiarioNovo = recorrenciaValor / totalDiasMes;
+    const hoje3 = new Date();
+    const ehMesAtualLog = mes === hoje3.getMonth() + 1 && ano === hoje3.getFullYear();
+    const diasDecorridosLog = ehMesAtualLog ? hoje3.getDate() : new Date(ano, mes, 0).getDate();
+    const valorDiarioNovo = recorrenciaValor / diasDecorridosLog;
     // Registrar o log de sincronização do Dpote
     try {
       await insertDpoteSyncLog({
