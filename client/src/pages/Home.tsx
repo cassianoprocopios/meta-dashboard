@@ -1185,116 +1185,131 @@ export default function Home() {
               </Card>
             )}
 
-            {/* KPIs Gerais */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
-                  {periodoFiltro === "semanal" && semanaAtual
-                    ? `Faturado — ${semanaAtual.label}`
-                    : "Faturado no Mês"}
-                </p>
+            {/* ===== KPIs EXECUTIVOS — NOVA HIERARQUIA VISUAL ===== */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
 
-                {/* Valor realizado em destaque */}
-                <p className="text-2xl font-bold mt-1">{fmt(totalGeralRealizado)}</p>
-                <p className="text-xs opacity-70 mt-0.5">realizado</p>
-
-                {/* Soma realizado + previsto (só aparece quando há previstos) */}
-                {totalGeralPrevisto > 0 && (
-                  <div className="mt-2 pt-2 border-t border-white/20">
-                    <p className="text-xs opacity-70">Com previstos</p>
-                    <p className="text-lg font-bold text-amber-200">{fmt(totalGeral)}</p>
-                    <p className="text-xs text-amber-300/80">
-                      +{fmt(totalGeralPrevisto)} em {statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0)} dia{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""} previsto{statsPorEmpresa.reduce((s, e) => s + e.diasPrevistos, 0) !== 1 ? "s" : ""}
-                    </p>
+              {/* KPI 1: Faturamento Total — card hero principal */}
+              <div className="sm:col-span-2 xl:col-span-2 relative overflow-hidden rounded-2xl p-6"
+                style={{ background: 'linear-gradient(135deg, #3730a3 0%, #4c1d95 100%)' }}>
+                {/* Glow decorativo */}
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10 pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-label text-white/60 tracking-widest text-[11px]">FATURAMENTO {periodoFiltro === "semanal" && semanaAtual ? semanaAtual.label.toUpperCase() : "DO MÊS"}</span>
+                    {comparativoMesAnterior.variacaoTotal !== null && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        comparativoMesAnterior.variacaoTotal >= 0
+                          ? 'bg-emerald-400/20 text-emerald-300'
+                          : 'bg-red-400/20 text-red-300'
+                      }`}>
+                        {comparativoMesAnterior.variacaoTotal >= 0 ? '↑' : '↓'}
+                        {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                      </span>
+                    )}
                   </div>
-                )}
-
-                {/* Comparativo com mês anterior (baseado em realizados) */}
-                {comparativoMesAnterior.variacaoTotal !== null && totalGeralPrevisto === 0 && (
-                  <p className={`text-xs mt-1 flex items-center gap-1 ${
-                    comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
-                  }`}>
-                    {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
-                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})
+                  <p className="font-display text-4xl sm:text-5xl text-white leading-none tracking-tight">
+                    {fmt(totalGeralRealizado)}
                   </p>
-                )}
-                {comparativoMesAnterior.variacaoTotal !== null && totalGeralPrevisto > 0 && (
-                  <p className={`text-xs mt-1 flex items-center gap-1 ${
-                    comparativoMesAnterior.variacaoTotal >= 0 ? "text-emerald-200" : "text-red-200"
-                  }`}>
-                    {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
-                    {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
+                  <p className="text-white/50 text-sm mt-1">
+                    {totalGeralPrevisto > 0
+                      ? <span className="text-amber-300/80">+ {fmt(totalGeralPrevisto)} previsto → {fmt(totalGeral)}</span>
+                      : `${faturamentosFiltrados.length} dias lançados`
+                    }
                   </p>
-                )}
-                {comparativoMesAnterior.variacaoTotal === null && totalGeralPrevisto === 0 && (
-                  <p className="text-xs opacity-70 mt-1">{faturamentosFiltrados.length} dias lançados</p>
-                )}
-              </Card>
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white">
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Meta Mensal Total</p>
-                <p className="text-2xl font-bold mt-1">{fmt(metaTotalGeral)}</p>
-                {metaQuinzenalTotal > 0 && (
-                  <p className="text-xs opacity-70 mt-1">Quinzenal: {fmt(metaQuinzenalTotal)}</p>
-                )}
-              </Card>
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progresso Geral</p>
-                <p className="text-2xl font-bold mt-1 text-foreground">
-                  {metaTotalGeral > 0 ? `${pct(totalGeralRealizado, metaTotalGeral)}%` : "—"}
-                </p>
-                {metaTotalGeral > 0 && (
-                  <>
-                    {/* Barra de progresso: realizado (azul/verde) */}
-                    <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(pct(totalGeralRealizado, metaTotalGeral), 100)}%`,
-                          backgroundColor: pct(totalGeralRealizado, metaTotalGeral) >= 100 ? "#10b981" : "#3b82f6",
-                        }}
-                      />
+                  {/* Mini barras por unidade */}
+                  {statsPorEmpresa.length > 0 && (
+                    <div className="mt-4 space-y-1.5">
+                      {statsPorEmpresa.map((e: any) => (
+                        <div key={e.emp?.slug ?? e.nome} className="flex items-center gap-2">
+                          <span className="text-white/60 text-xs w-20 truncate">{e.emp?.nome ?? e.nome}</span>
+                          <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-white/40"
+                              style={{ width: `${totalGeralRealizado > 0 ? Math.min((e.totalRealizado / totalGeralRealizado) * 100, 100) : 0}%` }} />
+                          </div>
+                          <span className="text-white/70 text-xs font-medium">{fmt(e.totalRealizado)}</span>
+                        </div>
+                      ))}
                     </div>
-                    {/* Barra secundária: previsto (só aparece quando há previstos) */}
-                    {totalGeralPrevisto > 0 && (
-                      <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all bg-amber-300"
-                          style={{ width: `${Math.min(pct(totalGeral, metaTotalGeral), 100)}%` }}
-                        />
+                  )}
+                </div>
+              </div>
+
+              {/* KPI 2: Progresso da Meta */}
+              {metaTotalGeral > 0 && (() => {
+                const pctMeta = pct(totalGeralRealizado, metaTotalGeral);
+                const atingiu = totalGeralRealizado >= metaTotalGeral;
+                const projecaoTotal = statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0);
+                const projecaoAtinge = projecaoTotal >= metaTotalGeral;
+                return (
+                  <div className="rounded-2xl p-5 bg-card border border-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-label text-muted-foreground tracking-widest text-[11px]">META DO MÊS</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        atingiu ? 'bg-emerald-500/15 text-emerald-400'
+                        : pctMeta >= 80 ? 'bg-amber-500/15 text-amber-400'
+                        : 'bg-red-500/15 text-red-400'
+                      }`}>{pctMeta}%</span>
+                    </div>
+                    <p className="font-display text-3xl text-foreground leading-none">{fmt(metaTotalGeral)}</p>
+                    <p className="text-muted-foreground text-xs mt-1">meta mensal total</p>
+                    {/* Barra de progresso premium */}
+                    <div className="mt-4">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(pctMeta, 100)}%`,
+                            background: atingiu ? '#10b981' : pctMeta >= 80 ? '#f59e0b' : '#6366f1'
+                          }} />
                       </div>
-                    )}
-                    {totalGeralPrevisto > 0 && (
-                      <p className="text-xs text-amber-500 mt-1">
-                        {pct(totalGeral, metaTotalGeral)}% com previstos
-                      </p>
-                    )}
-                  </>
+                      {projecaoTotal > 0 && (
+                        <p className={`text-xs mt-2 font-medium ${
+                          projecaoAtinge ? 'text-emerald-400' : 'text-amber-400'
+                        }`}>
+                          Projeção: {fmt(projecaoTotal)} {projecaoAtinge ? '✓' : `(−${fmt(metaTotalGeral - projecaoTotal)})`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* KPI 3: Falta para Meta / Atingida */}
+              <div className="rounded-2xl p-5 bg-card border border-border/50">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-label text-muted-foreground tracking-widest text-[11px]">
+                    {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0 ? 'META' : 'FALTA PARA META'}
+                  </span>
+                  {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0
+                    ? <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">✓ Atingida</span>
+                    : null
+                  }
+                </div>
+                {metaTotalGeral > 0 ? (
+                  totalGeralRealizado >= metaTotalGeral ? (
+                    <>
+                      <p className="font-display text-3xl text-emerald-400 leading-none">Meta!</p>
+                      <p className="text-emerald-400/70 text-xs mt-1">parabéns pela conquista</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-display text-3xl text-foreground leading-none">{fmt(metaTotalGeral - totalGeralRealizado)}</p>
+                      <p className="text-muted-foreground text-xs mt-1">restante para atingir</p>
+                      {metaQuinzenalTotal > 0 && (
+                        <div className="mt-3 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span className="text-xs text-amber-400 font-medium">
+                            Quinzenal: {fmt(metaQuinzenalTotal)}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : (
+                  <p className="font-display text-3xl text-muted-foreground leading-none">—</p>
                 )}
-              </Card>
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Falta para Meta</p>
-                <p className={`text-2xl font-bold mt-1 ${totalGeralRealizado >= metaTotalGeral ? "text-emerald-400" : "text-foreground"}`}>
-                  {metaTotalGeral > 0
-                    ? totalGeralRealizado >= metaTotalGeral
-                      ? "Atingida!"
-                      : fmt(metaTotalGeral - totalGeralRealizado)
-                    : "—"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {metaTotalGeral > 0 && totalGeralRealizado < metaTotalGeral ? "restante (realizado)" : ""}
-                </p>
-                {/* Projeção consolidada com previstos */}
-                {(() => {
-                  const projecaoTotal = statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0);
-                  if (projecaoTotal <= 0 || metaTotalGeral <= 0) return null;
-                  const atingeMeta = projecaoTotal >= metaTotalGeral;
-                  return (
-                    <p className={`text-xs font-semibold mt-1 ${atingeMeta ? "text-emerald-400" : "text-amber-400"}`}>
-                      Projeção: {fmt(projecaoTotal)} ({atingeMeta ? "✓ atinge meta" : `falta ${fmt(metaTotalGeral - projecaoTotal)}`})
-                    </p>
-                  );
-                })()}
-              </Card>
+              </div>
+
             </div>
 
             {/* Card Resumo de Previstos — aparece apenas quando há lançamentos futuros */}
@@ -1800,425 +1815,377 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Cards por Empresa */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* ===== CARDS POR UNIDADE — DESIGN PREMIUM ===== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {statsPorEmpresa.map((s) => {
                 const metaDiaAtualMensal = s.diasUteisRestantes > 0 ? s.metaDiariaDinamicaMensal : s.metaDiariaMensal;
-                const metaDiaAtualQuinzenal = s.diasUteisRestantesQuinzenal > 0 ? s.metaDiariaDinamicaQuinzenal : s.metaDiariaQuinzenal;
                 const menorQueMeta = s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && s.mediaDiaria < metaDiaAtualMensal;
-                const menorQueMetaQ = s.diasLancadosQuinzenal > 0 && metaDiaAtualQuinzenal > 0 && (s.totalQuinzenal / Math.max(s.diasLancadosQuinzenal, 1)) < metaDiaAtualQuinzenal;
+                const atingiuMeta = s.totalRealizado >= s.metaMensal && s.metaMensal > 0;
+                const pctMensal = s.metaMensal > 0 ? Math.min(Math.round((s.totalRealizado / s.metaMensal) * 100), 100) : 0;
+                const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
+                const variacaoMes = comp && comp.totalAnterior > 0
+                  ? ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100
+                  : null;
+                const dpoteCfg = dpoteConfigMap[s.emp.slug];
+                const valorBruto = dpoteCfg?.valorAssinaturas;
+                const fonteAtual = dpoteCfg?.recorrenciaFonte ?? "cashbarber";
+                const isEditandoEsta = recorrenciaManualSlug === s.emp.slug;
+                const valorManualNum = parseFloat(recorrenciaManualValor.replace(',', '.')) || 0;
+                const isSavingFonte = salvarRecorrenciaFonteMutation.isPending;
+                const diasDoMes = new Date(ano, mes, 0).getDate();
+                const diaHoje = (new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes)
+                  ? new Date().getDate() : diasDoMes;
+                const previewDiario = valorManualNum > 0 ? valorManualNum / Math.max(diaHoje, 1) : 0;
+                const previewProjecaoMensal = valorManualNum > 0 ? (valorManualNum / Math.max(diaHoje, 1)) * diasDoMes : 0;
 
                 return (
-                <Card key={s.emp.slug} className="p-5 border-0 shadow-sm rounded-2xl bg-card overflow-hidden relative">
-                  <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ backgroundColor: s.emp.cor }} />
+                  <div key={s.emp.slug} className="rounded-2xl overflow-hidden border border-border/30 bg-card shadow-sm flex flex-col">
 
-                  {/* Cabeçalho */}
-                  <div className="flex items-center gap-2 mb-4 mt-1">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.emp.cor + "20" }}>
-                      <Building2 className="w-4 h-4" style={{ color: s.emp.cor }} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{s.emp.nome}</h3>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className="text-xs text-muted-foreground">{s.diasRealizados} dias realizados</p>
-                        {s.diasPrevistos > 0 && (
-                          <span className="text-xs font-medium text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
-                            +{s.diasPrevistos} previsto{s.diasPrevistos > 1 ? "s" : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="ml-auto text-right">
-                      <div className="flex items-end gap-1 justify-end">
-                        <p className="text-xl font-bold text-foreground">{fmt(s.totalRealizado)}</p>
-                        {s.totalPrevisto > 0 && (
-                          <p className="text-xs font-semibold text-amber-400 mb-0.5">+{fmt(s.totalPrevisto)} prev.</p>
-                        )}
-                      </div>
-                      {(() => {
-                        const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
-                        if (!comp || comp.totalAnterior === 0) return <p className="text-xs text-muted-foreground">faturado no mês</p>;
-                        const variacao = ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100;
-                        return (
-                          <p className={`text-xs font-semibold ${variacao >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                            {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}% vs {MESES[mesAnterior - 1]}
-                          </p>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Progresso Mensal */}
-                  {s.metaMensal > 0 && (
-                    <div className="mb-3">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground font-medium">
-                          Meta Mensal: {fmt(s.metaMensal)}
-                          {s.metaEsperadaAteHoje > 0 && s.metaEsperadaAteHoje < s.metaMensal && (
-                            <span className="text-muted-foreground/60 ml-1">(esperado até hoje: {fmt(s.metaEsperadaAteHoje)})</span>
-                          )}
-                        </span>
-                        <span className="font-bold" style={{ color: s.emp.cor }}>{s.progressoMensal.toFixed(0)}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(s.progressoMensal, 100)}%`, backgroundColor: s.emp.cor }} />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {s.diasUteisDecorridos} de {s.diasUteis} dias úteis decorridos
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Super Meta */}
-                  {s.superMeta > 0 && (
-                    <div className="mb-3">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-amber-500 font-medium flex items-center gap-1">
-                          ★ Super Meta: {fmt(s.superMeta)}
-                        </span>
-                        <span className={`font-bold ${s.totalRealizado >= s.superMeta ? "text-amber-400" : "text-amber-600"}`}>
-                          {s.superMeta > 0 ? ((s.totalRealizado / s.superMeta) * 100).toFixed(0) : 0}%
-                        </span>
-                      </div>
-                      <div className="h-2 bg-amber-500/20 rounded-full overflow-hidden border border-amber-500/30">
-                        <div
-                          className={`h-full rounded-full transition-all ${s.totalRealizado >= s.superMeta ? "bg-amber-400" : "bg-amber-300"}`}
-                          style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%` }}
-                        />
-                      </div>
-                      {s.totalRealizado >= s.superMeta ? (
-                        <p className="text-xs text-amber-400 mt-0.5 font-semibold">★ Super meta atingida! Parabéns!</p>
-                      ) : (
-                        <p className="text-xs text-amber-500/70 mt-0.5">Falta {fmt(s.superMeta - s.totalRealizado)} para a super meta</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Progresso Quinzenal */}
-                  {s.metaQuinzenal > 0 && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-purple-500 font-medium">Meta Quinzenal: {fmt(s.metaQuinzenal)}</span>
-                        <span className="font-bold text-purple-600">{s.progressoQuinzenal.toFixed(0)}%</span>
-                      </div>
-                      <div className="h-2 bg-purple-500/20 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all bg-purple-400" style={{ width: `${s.progressoQuinzenal}%` }} />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{fmt(s.totalQuinzenal)} faturados até dia 15</p>
-                    </div>
-                  )}
-
-                  {/* Grid de métricas */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Média diária real */}
-                    <div className="bg-muted rounded-xl p-2.5">
-                      <p className="text-xs text-muted-foreground">Média Diária</p>
-                      <p className="text-sm font-bold text-foreground">{fmt(s.mediaDiaria)}</p>
-                      {s.diasPrevistos > 0 && <p className="text-xs text-amber-400 mt-0.5">só realizados</p>}
-                    </div>
-
-                    {/* Maior e menor dia (apenas realizados) */}
-                    {s.maiorDia > 0 && (
-                      <div className="bg-muted rounded-xl p-2.5">
-                        <p className="text-xs text-muted-foreground">Maior / Menor Dia</p>
-                        <p className="text-sm font-bold text-emerald-400">{fmt(s.maiorDia)}</p>
-                        <p className="text-xs text-red-400">{fmt(s.menorDia)}</p>
-                        {s.diasPrevistos > 0 && <p className="text-xs text-amber-400 mt-0.5">só realizados</p>}
-                      </div>
-                    )}
-
-                    {/* Meta/dia mensal dinâmica */}
-                    <div className={`rounded-xl p-2.5 ${menorQueMeta ? "bg-orange-500/15" : "bg-emerald-500/15"}`}>
-                      <p className={`text-xs font-medium ${menorQueMeta ? "text-orange-400" : "text-emerald-400"}`}>
-                        Precisa/Dia (Mensal)
-                      </p>
-                      <p className={`text-sm font-bold ${menorQueMeta ? "text-orange-300" : "text-emerald-300"}`}>
-                        {metaDiaAtualMensal > 0 ? fmt(metaDiaAtualMensal) : "—"}
-                      </p>
-                      {s.diasUteisRestantes > 0 && s.metaMensal > 0 && (
-                        <p className="text-xs mt-0.5" style={{ color: menorQueMeta ? "#c2410c" : "#059669" }}>
-                          {s.diasUteisRestantes}d úteis restantes
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Meta/dia quinzenal dinâmica */}
-                    {s.metaQuinzenal > 0 && (
-                      <div className={`rounded-xl p-2.5 ${menorQueMetaQ ? "bg-orange-500/15" : "bg-purple-500/15"}`}>
-                        <p className={`text-xs font-medium ${menorQueMetaQ ? "text-orange-400" : "text-purple-400"}`}>
-                          Precisa/Dia (Quinz.)
-                        </p>
-                        <p className={`text-sm font-bold ${menorQueMetaQ ? "text-orange-300" : "text-purple-300"}`}>
-                          {metaDiaAtualQuinzenal > 0 ? fmt(metaDiaAtualQuinzenal) : "—"}
-                        </p>
-                        {s.diasUteisRestantesQuinzenal > 0 && (
-                          <p className={`text-xs mt-0.5 ${menorQueMetaQ ? "text-orange-400" : "text-purple-400"}`}>
-                            {s.diasUteisRestantesQuinzenal}d até dia 15
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Projeção final */}
-                    <div className="bg-muted rounded-xl p-2.5">
-                      <p className="text-xs text-muted-foreground">Projeção Final</p>
-                      <p className={`text-sm font-bold ${s.projecaoFinal >= s.metaMensal && s.metaMensal > 0 ? "text-emerald-400" : "text-foreground"}`}>
-                        {s.projecaoFinal > 0 ? fmt(s.projecaoFinal) : "—"}
-                      </p>
-                      {/* Legenda: mostra composição da projeção quando há previstos */}
-                      {s.totalPrevisto > 0 && s.projecaoFinal > 0 && (
-                        <p className="text-[10px] text-amber-400 mt-0.5">
-                          incl. {fmt(s.totalPrevisto)} previsto
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Linha de Recorrência Dpote */}
-                  {(s.recorrenciaMes > 0 || isGerente) && (() => {
-                    const dpoteCfg = dpoteConfigMap[s.emp.slug];
-                    const valorBruto = dpoteCfg?.valorAssinaturas;
-                    const fonteAtual = dpoteCfg?.recorrenciaFonte ?? "cashbarber";
-                    const isEditandoEsta = recorrenciaManualSlug === s.emp.slug;
-                    const diasDoMes = new Date(ano, mes, 0).getDate();
-                    const diaHoje = (new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes)
-                      ? new Date().getDate() : diasDoMes;
-                    const valorManualNum = parseFloat(recorrenciaManualValor.replace(",", ".")) || 0;
-                    const previewDiario = valorManualNum > 0 && diaHoje > 0 ? valorManualNum / diaHoje : 0;
-                    const previewProjecaoMensal = previewDiario * diasDoMes;
-                    const isSavingFonte = salvarRecorrenciaFonteMutation.isPending;
-                    return (
-                      <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 overflow-hidden">
-                        {/* Linha principal: ícone + rótulo + valor */}
-                        <div className="flex items-center justify-between gap-2 px-3 py-2">
-                          <div className="flex items-center gap-1.5">
-                            <Repeat2 className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
-                            <span className="text-xs font-semibold text-violet-400">Recorrência (Dpote)</span>
+                    {/* ── CABEÇALHO: barra colorida + nome + faturamento ── */}
+                    <div className="relative px-5 pt-5 pb-4"
+                      style={{ borderTop: `3px solid ${s.emp.cor}` }}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: s.emp.cor + '18', border: `1px solid ${s.emp.cor}40` }}>
+                            <Building2 className="w-5 h-5" style={{ color: s.emp.cor }} />
                           </div>
-                          {valorBruto ? (
-                            <UITooltip>
-                              <UITooltipTrigger asChild>
-                                <span className="text-sm font-bold text-violet-300 cursor-help underline decoration-dotted decoration-violet-400/50 underline-offset-2">
-                                  {fmt(s.recorrenciaMes)}
+                          <div>
+                            <h3 className="font-display font-bold text-foreground text-base leading-tight">{s.emp.nome}</h3>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-muted-foreground">{s.diasRealizados} dias</span>
+                              {s.diasPrevistos > 0 && (
+                                <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
+                                  +{s.diasPrevistos} prev.
                                 </span>
-                              </UITooltipTrigger>
-                              <UITooltipContent side="top" className="max-w-xs bg-slate-900 border border-violet-500/30 text-violet-100 px-3 py-2.5 rounded-xl shadow-xl">
-                                <p className="text-[11px] font-semibold text-violet-300 mb-1.5">Fórmula do cálculo Dpote</p>
-                                <div className="space-y-1 text-[11px] text-violet-200/80">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-violet-400 font-mono">Assinaturas (100%)</span>
-                                    <span className="text-violet-500">=</span>
-                                    <span className="font-semibold text-white">{fmtFull(valorBruto)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-violet-400 font-mono">× Proporção fichas desta filial</span>
-                                    <span className="text-violet-500">=</span>
-                                    <span className="font-semibold text-white">{valorBruto > 0 ? `${((s.recorrenciaMes / valorBruto) * 100).toFixed(1)}%` : "—"}</span>
-                                  </div>
-                                  <div className="mt-1.5 pt-1.5 border-t border-violet-500/30 flex items-center gap-1.5">
-                                    <span className="text-violet-300 font-mono font-semibold">= Faturamento Recorrência</span>
-                                    <span className="text-violet-500">=</span>
-                                    <span className="font-bold text-violet-200">{fmtFull(s.recorrenciaMes)}</span>
-                                  </div>
-                                </div>
-                              </UITooltipContent>
-                            </UITooltip>
-                          ) : (
-                            <span className="text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                              )}
+                              {variacaoMes !== null && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                                  variacaoMes >= 0
+                                    ? 'bg-emerald-500/15 text-emerald-400'
+                                    : 'bg-red-500/15 text-red-400'
+                                }`}>
+                                  {variacaoMes >= 0 ? '↑' : '↓'}{Math.abs(variacaoMes).toFixed(1)}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-display text-2xl font-bold text-foreground leading-none">{fmt(s.totalRealizado)}</p>
+                          {s.totalPrevisto > 0 && (
+                            <p className="text-[11px] text-amber-400 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
                           )}
                         </div>
+                      </div>
 
-                        {/* Seletor de fonte — visível para gerentes/admin quando há configuração Dpote */}
-                        {isGerente && valorBruto && (
-                          <div className="px-3 pb-2.5">
-                            {/* Toggle CashBarber / Manual */}
-                            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-violet-500/20">
-                              <button
-                                onClick={() => {
-                                  if (fonteAtual !== "cashbarber" && !isSavingFonte) {
-                                    salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "cashbarber", mes, ano });
-                                  }
-                                }}
-                                disabled={isSavingFonte}
-                                className={`flex-1 flex items-center justify-center gap-1.5 h-6 rounded-md text-[10px] font-semibold transition-all ${
-                                  fonteAtual === "cashbarber"
-                                    ? "bg-emerald-500/25 text-emerald-300 shadow-sm"
-                                    : "text-slate-400 hover:text-slate-300"
-                                }`}
-                              >
-                                {isSavingFonte && fonteAtual === "manual" ? (
-                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                                ) : (
-                                  <RefreshCw className="w-2.5 h-2.5" />
-                                )}
-                                CashBarber API
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (fonteAtual !== "manual" && !isSavingFonte) {
-                                    // Ao mudar para manual, abrir painel de entrada
-                                    setRecorrenciaManualSlug(s.emp.slug);
-                                    setRecorrenciaManualValor("");
-                                    salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "manual", mes, ano });
-                                  } else if (fonteAtual === "manual") {
-                                    // Já está em manual: toggle do painel de edição
-                                    if (isEditandoEsta) {
-                                      setRecorrenciaManualSlug(null);
-                                      setRecorrenciaManualValor("");
-                                    } else {
-                                      setRecorrenciaManualSlug(s.emp.slug);
-                                      setRecorrenciaManualValor("");
-                                    }
-                                  }
-                                }}
-                                disabled={isSavingFonte}
-                                className={`flex-1 flex items-center justify-center gap-1.5 h-6 rounded-md text-[10px] font-semibold transition-all ${
-                                  fonteAtual === "manual"
-                                    ? "bg-violet-500/30 text-violet-200 shadow-sm"
-                                    : "text-slate-400 hover:text-slate-300"
-                                }`}
-                              >
-                                {isSavingFonte && fonteAtual === "cashbarber" ? (
-                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                                ) : (
-                                  <Pencil className="w-2.5 h-2.5" />
-                                )}
-                                Manual
-                                {fonteAtual === "manual" && dpoteCfg?.recorrenciaValorManual && (
-                                  <span className="ml-0.5 text-[9px] text-violet-300/70">({fmtFull(dpoteCfg.recorrenciaValorManual)})</span>
-                                )}
-                              </button>
-                            </div>
-                            {/* Data/hora da última atualização manual + informação de assinaturas */}
-                            <div className="mt-1 flex items-center justify-between gap-1">
-                              {fonteAtual === "manual" && dpoteCfg?.recorrenciaManualAtualizadoEm ? (
-                                <span className="inline-flex items-center gap-1 text-[9px] text-violet-400/70">
-                                  <Clock className="w-2.5 h-2.5 flex-shrink-0" />
-                                  Atualizado em{" "}
-                                  {new Date(dpoteCfg.recorrenciaManualAtualizadoEm).toLocaleString("pt-BR", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              ) : (
-                                <span />
-                              )}
-                              <span className="text-[9px] text-violet-400/60">
-                                {fmtFull(valorBruto)} assinaturas (100%)
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Badge de fonte para não-gerentes */}
-                        {!isGerente && valorBruto && (
-                          <div className="flex items-center gap-1.5 px-3 pb-2">
-                            {fonteAtual === "cashbarber" ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                CashBarber API
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 bg-violet-500/15 px-1.5 py-0.5 rounded-md">
-                                <Pencil className="w-2.5 h-2.5" />
-                                Manual
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Painel inline de entrada manual de Recorrência (apenas quando fonte = manual) */}
-                        {isEditandoEsta && isGerente && fonteAtual === "manual" && (
-                          <div className="border-t border-violet-500/20 px-3 py-3 bg-violet-500/5">
-                            <p className="text-[11px] text-violet-300/80 mb-2 font-medium">
-                              Informe o valor total de Recorrência apurado até hoje. O sistema distribui pelos dias já decorridos.
-                            </p>
+                      {/* Barra de progresso meta mensal */}
+                      {s.metaMensal > 0 && (
+                        <div className="mt-4">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-[11px] font-label text-muted-foreground tracking-wide">META MENSAL</span>
                             <div className="flex items-center gap-2">
-                              <div className="relative flex-1">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-semibold">R$</span>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  placeholder="0,00"
-                                  value={recorrenciaManualValor}
-                                  onChange={(e) => setRecorrenciaManualValor(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" && valorManualNum > 0) {
-                                      salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
-                                    }
-                                    if (e.key === "Escape") { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }
-                                  }}
-                                  className="pl-8 h-8 text-sm bg-slate-800/60 border-violet-500/30 text-violet-100 placeholder:text-violet-400/40 focus:border-violet-400 focus:ring-violet-400/20"
-                                  autoFocus
-                                />
-                              </div>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  if (valorManualNum > 0) {
-                                    salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
-                                  }
-                                }}
-                                disabled={valorManualNum <= 0 || salvarRecorrenciaManualMutation.isPending}
-                                className="h-8 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white shrink-0"
-                              >
-                                {salvarRecorrenciaManualMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Aplicar"}
-                              </Button>
-                              <button
-                                onClick={() => { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }}
-                                className="h-8 w-8 flex items-center justify-center rounded text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors shrink-0"
-                              >
-                                <XIcon className="w-3.5 h-3.5" />
-                              </button>
+                              <span className="text-[11px] text-muted-foreground">{fmt(s.metaMensal)}</span>
+                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                atingiuMeta ? 'bg-emerald-500/20 text-emerald-400'
+                                : pctMensal >= 80 ? 'bg-amber-500/15 text-amber-400'
+                                : 'bg-red-500/15 text-red-400'
+                              }`}>{pctMensal}%</span>
                             </div>
-                            {valorManualNum > 0 && (
-                              <div className="mt-2 grid grid-cols-3 gap-2">
-                                <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Diário (média)</p>
-                                  <p className="text-[11px] font-bold text-violet-300">{fmtFull(previewDiario)}</p>
-                                </div>
-                                <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">Apurado até dia {diaHoje}</p>
-                                  <p className="text-[11px] font-bold text-emerald-300">{fmtFull(valorManualNum)}</p>
-                                </div>
-                                <div className="rounded-lg bg-slate-500/10 px-2 py-1.5 text-center">
-                                  <p className="text-[9px] text-slate-400/70 uppercase tracking-wide">Projeção Mensal</p>
-                                  <p className="text-[11px] font-bold text-slate-300">{fmtFull(previewProjecaoMensal)}</p>
-                                </div>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${pctMensal}%`,
+                                backgroundColor: atingiuMeta ? '#10b981' : pctMensal >= 80 ? '#f59e0b' : s.emp.cor
+                              }} />
+                          </div>
+                          {/* Meta esperada hoje */}
+                          {s.metaMensal > 0 && (() => {
+                            const diasUteisTotal = 26;
+                            const diasDecorridos = Math.min(s.diasRealizados, diasUteisTotal);
+                            const metaEsperadaHoje = diasUteisTotal > 0 ? (s.metaMensal / diasUteisTotal) * diasDecorridos : 0;
+                            const pctEsperado = s.metaMensal > 0 ? Math.min((metaEsperadaHoje / s.metaMensal) * 100, 100) : 0;
+                            return (
+                              <div className="flex justify-between mt-1">
+                                <span className="text-[10px] text-muted-foreground/60">
+                                  Esperado hoje: {fmt(metaEsperadaHoje)} ({pctEsperado.toFixed(0)}%)
+                                </span>
+                                {s.projecaoFinal > 0 && (
+                                  <span className={`text-[10px] font-medium ${
+                                    s.projecaoFinal >= s.metaMensal ? 'text-emerald-400' : 'text-amber-400'
+                                  }`}>
+                                    Proj: {fmt(s.projecaoFinal)}
+                                  </span>
+                                )}
                               </div>
-                            )}
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ── MÉTRICAS OPERACIONAIS ── */}
+                    <div className="px-5 py-3 border-t border-border/30 grid grid-cols-3 gap-3">
+                      {/* Média diária */}
+                      <div className="text-center">
+                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">MÉDIA/DIA</p>
+                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : 'text-foreground'}`}>
+                          {fmt(s.mediaDiaria)}
+                        </p>
+                        {menorQueMeta && metaDiaAtualMensal > 0 && (
+                          <p className="text-[10px] text-orange-400/70 mt-0.5">
+                            precisa {fmt(metaDiaAtualMensal)}
+                          </p>
+                        )}
+                      </div>
+                      {/* Maior dia */}
+                      <div className="text-center border-x border-border/30">
+                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">MAIOR DIA</p>
+                        <p className="font-display text-base font-bold text-emerald-400">{s.maiorDia > 0 ? fmt(s.maiorDia) : '—'}</p>
+                        {s.menorDia > 0 && (
+                          <p className="text-[10px] text-red-400/80 mt-0.5">mín {fmt(s.menorDia)}</p>
+                        )}
+                      </div>
+                      {/* Dias úteis restantes */}
+                      <div className="text-center">
+                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">DIAS REST.</p>
+                        <p className="font-display text-base font-bold text-foreground">
+                          {s.diasUteisRestantes > 0 ? s.diasUteisRestantes : '—'}
+                        </p>
+                        {s.diasUteisRestantes > 0 && metaDiaAtualMensal > 0 && (
+                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                            {fmt(metaDiaAtualMensal)}/dia
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── METAS ADICIONAIS (Quinzenal + Super Meta) ── */}
+                    {(s.metaQuinzenal > 0 || s.superMeta > 0) && (
+                      <div className="px-5 py-3 border-t border-border/30 flex gap-3">
+                        {s.metaQuinzenal > 0 && (
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-label text-[10px] text-muted-foreground tracking-widest">QUINZENAL</span>
+                              <span className={`text-[10px] font-bold ${s.progressoQuinzenal >= 100 ? 'text-emerald-400' : 'text-purple-400'}`}>
+                                {Math.round(s.progressoQuinzenal)}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-purple-500 transition-all"
+                                style={{ width: `${Math.min(s.progressoQuinzenal, 100)}%` }} />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
+                          </div>
+                        )}
+                        {s.superMeta > 0 && (
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-label text-[10px] text-amber-400/80 tracking-widest">★ SUPER</span>
+                              <span className="text-[10px] font-bold text-amber-400">
+                                {Math.round((s.totalRealizado / s.superMeta) * 100)}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-amber-500 transition-all"
+                                style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%` }} />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
                           </div>
                         )}
                       </div>
-                    );
-                  })()}
+                    )}
 
-                  {/* Indicador de status mensal - sempre visível para análise */}
-                  {s.mediaDiaria > 0 && (
-                    <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl ${
-                      s.totalRealizado >= s.metaMensal && s.metaMensal > 0
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : s.mediaDiaria >= metaDiaAtualMensal
-                        ? "bg-emerald-500/15 text-emerald-400"
-                        : "bg-orange-500/15 text-orange-400"
-                    }`}>
-                      {s.totalRealizado >= s.metaMensal && s.metaMensal > 0
-                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> Meta mensal atingida! Projeção: {fmt(s.projecaoFinal)}</>
-                        : s.mediaDiaria >= metaDiaAtualMensal
-                        ? <><CheckCircle2 className="w-3.5 h-3.5" /> No caminho certo para a meta mensal</>
-                        : <><TrendingDown className="w-3.5 h-3.5" /> Precisa de +{fmt(metaDiaAtualMensal - s.mediaDiaria)}/dia para atingir a meta</>
-                      }
-                    </div>
-                  )}
-                </Card>
+                    {/* ── RECORRÊNCIA DPOTE ── */}
+                    {(s.recorrenciaMes > 0 || isGerente) && (() => {
+                      return (
+                        <div className="px-5 py-3 border-t border-border/30 bg-violet-500/5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                                <RefreshCw className="w-3 h-3 text-violet-400" />
+                              </div>
+                              <div>
+                                <p className="font-label text-[10px] text-violet-400/70 tracking-widest">RECORRÊNCIA</p>
+                                <div className="flex items-center gap-1.5">
+                                  {valorBruto && fonteAtual === "cashbarber" ? (
+                                    <UITooltip>
+                                      <UITooltipTrigger asChild>
+                                        <span className="font-display text-sm font-bold text-violet-300 cursor-help border-b border-dotted border-violet-400/40">
+                                          {fmt(s.recorrenciaMes)}
+                                        </span>
+                                      </UITooltipTrigger>
+                                      <UITooltipContent side="top" className="bg-slate-900 border-violet-500/30 text-xs max-w-xs">
+                                        <div className="space-y-1 font-mono text-[11px]">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-violet-400">Total assinaturas:</span>
+                                            <span className="font-semibold text-white">{fmtFull(valorBruto)}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-violet-400">Proporção fichas:</span>
+                                            <span className="font-semibold text-white">{valorBruto > 0 ? `${((s.recorrenciaMes / valorBruto) * 100).toFixed(1)}%` : "—"}</span>
+                                          </div>
+                                          <div className="pt-1 border-t border-violet-500/30 flex items-center gap-1.5">
+                                            <span className="text-violet-300 font-semibold">= Recorrência filial:</span>
+                                            <span className="font-bold text-violet-200">{fmtFull(s.recorrenciaMes)}</span>
+                                          </div>
+                                        </div>
+                                      </UITooltipContent>
+                                    </UITooltip>
+                                  ) : (
+                                    <span className="font-display text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                                  )}
+                                  {fonteAtual === "cashbarber" ? (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
+                                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                                      API
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-violet-400 bg-violet-500/15 px-1.5 py-0.5 rounded-md">
+                                      <Pencil className="w-2 h-2" />
+                                      Manual
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            {/* Botões de fonte — apenas gerente */}
+                            {isGerente && valorBruto && (
+                              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-violet-500/20">
+                                <button
+                                  onClick={() => {
+                                    if (fonteAtual !== "cashbarber" && !isSavingFonte) {
+                                      salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "cashbarber", mes, ano });
+                                    }
+                                  }}
+                                  disabled={isSavingFonte}
+                                  className={`flex items-center justify-center gap-1 h-6 px-2 rounded-md text-[10px] font-semibold transition-all ${
+                                    fonteAtual === "cashbarber"
+                                      ? "bg-emerald-500/25 text-emerald-300 shadow-sm"
+                                      : "text-slate-400 hover:text-slate-300"
+                                  }`}
+                                >
+                                  <RefreshCw className="w-2.5 h-2.5" />
+                                  CB
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (fonteAtual !== "manual" && !isSavingFonte) {
+                                      setRecorrenciaManualSlug(s.emp.slug);
+                                      setRecorrenciaManualValor("");
+                                      salvarRecorrenciaFonteMutation.mutate({ empresaSlug: s.emp.slug, fonte: "manual", mes, ano });
+                                    } else if (fonteAtual === "manual") {
+                                      if (isEditandoEsta) {
+                                        setRecorrenciaManualSlug(null);
+                                        setRecorrenciaManualValor("");
+                                      } else {
+                                        setRecorrenciaManualSlug(s.emp.slug);
+                                        setRecorrenciaManualValor("");
+                                      }
+                                    }
+                                  }}
+                                  disabled={isSavingFonte}
+                                  className={`flex items-center justify-center gap-1 h-6 px-2 rounded-md text-[10px] font-semibold transition-all ${
+                                    fonteAtual === "manual"
+                                      ? "bg-violet-500/30 text-violet-200 shadow-sm"
+                                      : "text-slate-400 hover:text-slate-300"
+                                  }`}
+                                >
+                                  <Pencil className="w-2.5 h-2.5" />
+                                  Man.
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {/* Painel de entrada manual */}
+                          {isEditandoEsta && isGerente && fonteAtual === "manual" && (
+                            <div className="mt-3 pt-3 border-t border-violet-500/20">
+                              <p className="text-[11px] text-violet-300/80 mb-2">
+                                Informe o valor total de Recorrência apurado até hoje.
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
+                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-semibold">R$</span>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0,00"
+                                    value={recorrenciaManualValor}
+                                    onChange={(e) => setRecorrenciaManualValor(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" && valorManualNum > 0) {
+                                        salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
+                                      }
+                                      if (e.key === "Escape") { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }
+                                    }}
+                                    className="pl-8 h-8 text-sm bg-slate-800/60 border-violet-500/30 text-violet-100 placeholder:text-violet-400/40 focus:border-violet-400"
+                                    autoFocus
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (valorManualNum > 0) {
+                                      salvarRecorrenciaManualMutation.mutate({ empresaSlug: s.emp.slug, mes, ano, valorTotal: valorManualNum });
+                                    }
+                                  }}
+                                  disabled={valorManualNum <= 0 || salvarRecorrenciaManualMutation.isPending}
+                                  className="h-8 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white shrink-0"
+                                >
+                                  {salvarRecorrenciaManualMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Aplicar"}
+                                </Button>
+                                <button
+                                  onClick={() => { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }}
+                                  className="h-8 w-8 flex items-center justify-center rounded text-slate-400 hover:text-slate-200 shrink-0"
+                                >
+                                  <XIcon className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              {valorManualNum > 0 && (
+                                <div className="mt-2 grid grid-cols-3 gap-2">
+                                  <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
+                                    <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Diário</p>
+                                    <p className="text-[11px] font-bold text-violet-300">{fmtFull(previewDiario)}</p>
+                                  </div>
+                                  <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5 text-center">
+                                    <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">Até dia {diaHoje}</p>
+                                    <p className="text-[11px] font-bold text-emerald-300">{fmtFull(valorManualNum)}</p>
+                                  </div>
+                                  <div className="rounded-lg bg-slate-500/10 px-2 py-1.5 text-center">
+                                    <p className="text-[9px] text-slate-400/70 uppercase tracking-wide">Projeção</p>
+                                    <p className="text-[11px] font-bold text-slate-300">{fmtFull(previewProjecaoMensal)}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* ── STATUS FINAL ── */}
+                    {s.mediaDiaria > 0 && (
+                      <div className={`px-5 py-2.5 flex items-center gap-2 text-xs font-semibold ${
+                        atingiuMeta
+                          ? 'bg-emerald-500/15 text-emerald-300'
+                          : s.mediaDiaria >= metaDiaAtualMensal
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-orange-500/10 text-orange-400'
+                      }`}>
+                        {atingiuMeta
+                          ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Meta mensal atingida! Projeção: {fmt(s.projecaoFinal)}</>
+                          : s.mediaDiaria >= metaDiaAtualMensal
+                          ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> No caminho certo para a meta</>
+                          : <><TrendingDown className="w-3.5 h-3.5 shrink-0" /> Precisa +{fmt(metaDiaAtualMensal - s.mediaDiaria)}/dia para a meta</>
+                        }
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
-
             {/* ─── RANKING DE PROFISSIONAIS ─────────────────────────────── */}
             {(rankingProfissionais.length > 0 || loadingRanking) && (
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
@@ -2245,9 +2212,9 @@ export default function Home() {
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                   </div>
-                ) : rankingProfissionais.some(p => p.temDados) ? (
+                ) : rankingProfissionais.some((p: any) => p.temDados) ? (
                   <div className="space-y-2.5">
-                    {rankingProfissionais.slice(0, 5).map((p, idx) => {
+                    {rankingProfissionais.slice(0, 5).map((p: any, idx: number) => {
                       const nome = p.apelido ?? p.nome;
                       const iniciais = nome.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
                       const maxGeral = rankingProfissionais[0]?.totalGeral ?? 1;

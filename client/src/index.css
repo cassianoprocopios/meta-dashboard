@@ -79,59 +79,74 @@
 }
 
 .dark {
-  /* Azul-índigo profundo — elegante e profissional */
-  --primary: oklch(0.60 0.22 265);
-  --primary-foreground: oklch(0.98 0.002 265);
-  --sidebar-primary: oklch(0.60 0.22 265);
-  --sidebar-primary-foreground: oklch(0.98 0.002 265);
+  /* === PALETA PREMIUM DARK — Barbiero Dashboard === */
+  /* Primary: Indigo vibrante — ações, destaques, CTAs */
+  --primary: oklch(0.62 0.24 264);
+  --primary-foreground: oklch(0.98 0.002 264);
+  --sidebar-primary: oklch(0.62 0.24 264);
+  --sidebar-primary-foreground: oklch(0.98 0.002 264);
 
-  /* Fundo principal: cinza-azulado muito escuro */
-  --background: oklch(0.115 0.012 265);
-  /* Fundo de cards: ligeiramente mais claro */
-  --card: oklch(0.165 0.014 265);
-  /* Fundo de popovers/dropdowns */
-  --popover: oklch(0.165 0.014 265);
+  /* Fundo principal: preto-azulado profundo */
+  --background: oklch(0.095 0.014 264);
+  /* Cards: superfície elevada sutil */
+  --card: oklch(0.145 0.016 264);
+  /* Popovers/dropdowns */
+  --popover: oklch(0.155 0.016 264);
 
   /* Texto principal: branco suave */
-  --foreground: oklch(0.92 0.004 265);
-  --card-foreground: oklch(0.92 0.004 265);
-  --popover-foreground: oklch(0.92 0.004 265);
+  --foreground: oklch(0.94 0.003 264);
+  --card-foreground: oklch(0.94 0.003 264);
+  --popover-foreground: oklch(0.94 0.003 264);
 
-  /* Secundário: card elevado */
-  --secondary: oklch(0.21 0.015 265);
-  --secondary-foreground: oklch(0.78 0.006 265);
+  /* Secundário: card elevado para hover */
+  --secondary: oklch(0.19 0.016 264);
+  --secondary-foreground: oklch(0.80 0.006 264);
 
   /* Muted: elementos de baixo contraste */
-  --muted: oklch(0.21 0.015 265);
-  --muted-foreground: oklch(0.60 0.010 265);
+  --muted: oklch(0.19 0.016 264);
+  --muted-foreground: oklch(0.58 0.010 264);
 
-  /* Accent: azul-índigo suave para hover */
-  --accent: oklch(0.25 0.018 265);
-  --accent-foreground: oklch(0.92 0.004 265);
+  /* Accent: hover e seleção */
+  --accent: oklch(0.22 0.018 264);
+  --accent-foreground: oklch(0.94 0.003 264);
 
-  /* Destrutivo */
-  --destructive: oklch(0.65 0.22 25);
+  /* Destrutivo: vermelho para alertas críticos */
+  --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
 
-  /* Bordas e inputs: quase invisíveis, apenas sutis */
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.60 0.22 265);
+  /* Bordas: sutis, quase invisíveis */
+  --border: oklch(1 0 0 / 7%);
+  --input: oklch(1 0 0 / 9%);
+  --ring: oklch(0.62 0.24 264);
 
-  /* Gráficos: azul-índigo em gradiente */
-  --chart-1: oklch(0.72 0.18 265);
-  --chart-2: oklch(0.60 0.22 265);
-  --chart-3: oklch(0.50 0.20 265);
-  --chart-4: oklch(0.42 0.18 265);
-  --chart-5: oklch(0.35 0.15 265);
+  /* Gráficos: gradiente indigo → violeta → verde */
+  --chart-1: oklch(0.72 0.20 264);
+  --chart-2: oklch(0.65 0.22 290);
+  --chart-3: oklch(0.62 0.20 155);
+  --chart-4: oklch(0.70 0.18 45);
+  --chart-5: oklch(0.65 0.20 25);
 
-  /* Sidebar: mesma cor do card */
-  --sidebar: oklch(0.145 0.013 265);
-  --sidebar-foreground: oklch(0.92 0.004 265);
-  --sidebar-accent: oklch(0.21 0.015 265);
-  --sidebar-accent-foreground: oklch(0.92 0.004 265);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.60 0.22 265);
+  /* Sidebar: levemente mais escuro que o card */
+  --sidebar: oklch(0.118 0.015 264);
+  --sidebar-foreground: oklch(0.94 0.003 264);
+  --sidebar-accent: oklch(0.19 0.016 264);
+  --sidebar-accent-foreground: oklch(0.94 0.003 264);
+  --sidebar-border: oklch(1 0 0 / 7%);
+  --sidebar-ring: oklch(0.62 0.24 264);
+
+  /* === TOKENS SEMÂNTICOS PREMIUM === */
+  /* Sucesso: verde esmeralda */
+  --success: oklch(0.62 0.18 155);
+  --success-foreground: oklch(0.98 0 0);
+  /* Aviso: âmbar dourado */
+  --warning: oklch(0.72 0.18 75);
+  --warning-foreground: oklch(0.12 0.02 75);
+  /* Info: azul suave */
+  --info: oklch(0.65 0.18 220);
+  --info-foreground: oklch(0.98 0 0);
+  /* Ouro: rankings e destaques */
+  --gold: oklch(0.78 0.18 75);
+  --gold-foreground: oklch(0.12 0.02 75);
 }
 
 @layer base {
@@ -141,11 +156,27 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+  }
+  /* Números grandes: Space Grotesk para impacto visual */
+  .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Labels e labels de métricas */
+  .font-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
   h1 {
     @apply text-4xl font-bold;

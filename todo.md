@@ -935,3 +935,13 @@
 - [ ] Identificar por que o valor do Dpote correto no banco não aparece no dashboard
 - [ ] Verificar a query/procedure que alimenta os cards do dashboard
 - [ ] Corrigir o cálculo ou a query para refletir os valores reais do banco
+
+## Remodelagem UX/UI Dashboard (Alta Performance)
+- [ ] Redesenhar header: limpar botões técnicos, nova identidade visual premium
+- [ ] Redesenhar KPIs executivos: hierarquia visual clara, 3 números hero
+- [ ] Redesenhar seção de progresso de metas com barras visuais modernas
+- [ ] Redesenhar cards de unidades: resumo executivo, menos densidade
+- [ ] Implementar barra de alertas inteligentes no topo
+- [ ] Redesenhar ranking de profissionais com visual premium
+- [ ] Atualizar paleta de cores e tipografia (Space Grotesk + Inter)
+- [ ] Atualizar index.css com novos tokens de design premium
