@@ -838,6 +838,15 @@ export default function Home() {
                 </button>
               )}
               {isGerente && (
+                <a
+                  href="/profissionais"
+                  className="flex items-center gap-1.5 text-sm text-yellow-600 hover:text-yellow-700 px-3 py-1.5 rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-500/10 transition-colors font-medium"
+                  title="Gerenciar Profissionais e Ranking"
+                >
+                  <Users className="w-4 h-4" /> Profissionais
+                </a>
+              )}
+              {isGerente && (
                 <button
                   onClick={() => {
                     setSyncingDpote(true);
@@ -1018,6 +1027,15 @@ export default function Home() {
                     : <RefreshCw className="w-4 h-4" />}
                   {syncingCashbarber ? "Sincronizando CashBarber..." : "Sincronizar CashBarber"}
                 </button>
+              )}
+              {isGerente && (
+                <a
+                  href="/profissionais"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 transition-colors font-medium"
+                >
+                  <Users className="w-4 h-4" /> Profissionais
+                </a>
               )}
               {isGerente && (
                 <button
