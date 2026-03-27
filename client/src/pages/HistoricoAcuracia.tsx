@@ -1,3 +1,4 @@
+import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
@@ -97,46 +98,7 @@ export default function HistoricoAcuracia() {
   const CORES_EMPRESAS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <div className="border-b border-border/40 bg-card/60 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-muted-foreground hover:text-foreground"
-            onClick={() => navigate("/")}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Voltar
-          </Button>
-          <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center">
-              <Crosshair className="w-4 h-4 text-amber-500" />
-            </div>
-            <div>
-              <h1 className="font-semibold text-foreground text-sm leading-tight">Histórico de Acurácia</h1>
-              <p className="text-xs text-muted-foreground">Evolução das previsões de faturamento</p>
-            </div>
-          </div>
-          {/* Seletor de período */}
-          <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-0.5">
-            {OPCOES_MESES.map((m) => (
-              <button
-                key={m}
-                onClick={() => setQtdMeses(m)}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  qtdMeses === m
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {m}m
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+    <DashboardLayout>
 
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
         {isLoading ? (
@@ -352,6 +314,6 @@ export default function HistoricoAcuracia() {
           </>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -1,3 +1,4 @@
+import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -512,40 +513,7 @@ export default function DevPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800">Painel do Desenvolvedor</h1>
-              <p className="text-xs text-slate-500">Gestão de clientes e licenças</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => refetch()}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500"
-              title="Atualizar"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <a href="/" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Voltar
-            </a>
-            <Button
-              onClick={() => setShowCriar(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
-              size="sm"
-            >
-              <Plus className="w-4 h-4" /> Novo Cliente
-            </Button>
-          </div>
-        </div>
-      </header>
+    <DashboardLayout>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Cards de estatísticas */}
@@ -736,6 +704,6 @@ export default function DevPanel() {
           onSuccess={() => refetch()}
         />
       )}
-    </div>
+    </DashboardLayout>
   );
 }

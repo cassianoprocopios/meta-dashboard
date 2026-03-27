@@ -967,3 +967,10 @@
 - [x] Adicionar rota /profissionais no App.tsx
 - [x] Adicionar item "Profissionais" na sidebar do DashboardLayout
 - [x] Seletor de empresa (quando há múltiplas empresas)
+
+## Unificação de Navegação com Sidebar
+
+- [x] Atualizar DashboardLayout com menu completo e filtro por perfil
+- [x] Migrar página Home para usar DashboardLayout (remover header próprio)
+- [x] Extrair conteúdo do dashboard para componente separado
+- [x] Garantir consistência visual em todas as telas
