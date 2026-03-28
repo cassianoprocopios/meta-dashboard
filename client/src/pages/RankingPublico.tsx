@@ -4,6 +4,12 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -23,6 +29,9 @@ import {
   ChevronRight,
   AlertCircle,
   Clock,
+  ChevronDown,
+  Package,
+  Wrench,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -35,30 +44,161 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+type Profissional = {
+  id: number;
+  nome: string;
+  apelido?: string | null;
+  fotoUrl?: string | null;
+  cargo?: string | null;
+  totalServicos: number;
+  totalProdutos: number;
+  totalGeral: number;
+  temDados: boolean;
+  detalhesServicos?: string | null;
+};
+
+type ServicoDetalhe = {
+  ser_nome: string;
+  sum: number;
+};
+
+function parseDetalhes(json: string | null | undefined): ServicoDetalhe[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((s) => s && typeof s.ser_nome === "string" && typeof s.sum === "number");
+  } catch {
+    return [];
+  }
+}
+
+function ModalDetalhes({
+  profissional,
+  open,
+  onClose,
+}: {
+  profissional: Profissional | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!profissional) return null;
+  const nome = profissional.apelido ?? profissional.nome;
+  const servicos = parseDetalhes(profissional.detalhesServicos);
+  const totalServicosDetalhado = servicos.reduce((acc, s) => acc + s.sum, 0);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Wrench className="h-4 w-4 text-primary" />
+            Detalhamento — {nome}
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Resumo */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Serviços</p>
+            <p className="text-sm font-bold text-foreground">{formatCurrency(profissional.totalServicos)}</p>
+          </div>
+          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/10 p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Produtos</p>
+            <p className="text-sm font-bold text-foreground">{formatCurrency(profissional.totalProdutos)}</p>
+          </div>
+          <div className="rounded-lg bg-yellow-500/5 border border-yellow-500/10 p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Total</p>
+            <p className="text-sm font-bold text-foreground">{formatCurrency(profissional.totalGeral)}</p>
+          </div>
+        </div>
+
+        {/* Serviços contabilizados */}
+        {servicos.length > 0 ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Serviços contabilizados ({servicos.length})
+              </p>
+            </div>
+            <div className="space-y-1">
+              {servicos
+                .sort((a, b) => b.sum - a.sum)
+                .map((s, i) => {
+                  const pct = totalServicosDetalhado > 0 ? (s.sum / totalServicosDetalhado) * 100 : 0;
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{s.ser_nome}</p>
+                        <div className="w-full bg-muted rounded-full h-1 mt-1">
+                          <div
+                            className="h-1 rounded-full bg-primary"
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs font-semibold text-foreground shrink-0">{formatCurrency(s.sum)}</p>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-6 text-muted-foreground text-sm">
+            <Wrench className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            <p>Detalhamento de serviços não disponível.</p>
+            <p className="text-xs mt-1">Execute uma nova sincronização para gerar o detalhamento.</p>
+          </div>
+        )}
+
+        {/* Produtos (valor total, sem detalhamento por item) */}
+        {profissional.totalProdutos > 0 && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Package className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Produtos</p>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+              <Package className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              <p className="text-xs font-medium text-foreground flex-1">Total em produtos</p>
+              <p className="text-xs font-semibold text-emerald-600">{formatCurrency(profissional.totalProdutos)}</p>
+            </div>
+          </div>
+        )}
+
+        <p className="text-[10px] text-muted-foreground mt-3 pt-3 border-t">
+          Serviços excluídos do ranking: Corte de Cabelo, Barba, Corte Kids e Raspar na Máquina.
+        </p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function RankingPublico() {
   const [, setLocation] = useLocation();
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano, setAno] = useState(hoje.getFullYear());
+  const [profissionalSelecionado, setProfissionalSelecionado] = useState<Profissional | null>(null);
 
   const { data: rankingData, isLoading } = trpc.profissionais.ranking.useQuery(
     { mes, ano },
     { staleTime: 60_000 }
   );
-  const ranking = rankingData?.lista;
+  const ranking = rankingData?.lista as Profissional[] | undefined;
   const ultimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
   const { data: periodos } = trpc.profissionais.periodos.useQuery();
 
   const anosDisponiveis = useMemo(() => {
     const set = new Set<number>();
     (periodos ?? []).forEach((p: { mes: number; ano: number }) => set.add(p.ano));
-    // Sempre inclui o ano atual e os 2 anteriores
     [hoje.getFullYear(), hoje.getFullYear() - 1, hoje.getFullYear() - 2].forEach((y) => set.add(y));
     return Array.from(set).sort((a, b) => b - a);
   }, [periodos]);
 
   const total = ranking?.length ?? 0;
-  const temDadosNoMes = (ranking ?? []).some((p: { temDados: boolean }) => p.temDados);
+  const temDadosNoMes = (ranking ?? []).some((p) => p.temDados);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
 
   function navegarMes(direcao: -1 | 1) {
@@ -96,7 +236,7 @@ export default function RankingPublico() {
                 <h1 className="text-base font-semibold">Ranking de Profissionais</h1>
               </div>
             </div>
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
               {ultimaAtualizacao && (
                 <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
@@ -119,15 +259,9 @@ export default function RankingPublico() {
               Período de referência
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navegarMes(-1)}
-              >
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(-1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-
               <Select value={String(mes)} onValueChange={(v) => setMes(Number(v))}>
                 <SelectTrigger className="w-36 h-8 text-sm">
                   <SelectValue />
@@ -144,7 +278,6 @@ export default function RankingPublico() {
                   })}
                 </SelectContent>
               </Select>
-
               <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
                 <SelectTrigger className="w-24 h-8 text-sm">
                   <SelectValue />
@@ -155,17 +288,9 @@ export default function RankingPublico() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navegarMes(1)}
-                disabled={!podeAvancar}
-              >
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(1)} disabled={!podeAvancar}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
-
               {!isPeriodoAtual && (
                 <Button
                   variant="ghost"
@@ -186,7 +311,7 @@ export default function RankingPublico() {
               <div>
                 <p className="text-sm font-medium text-amber-600">Sem dados de faturamento para {MESES[mes - 1]} de {ano}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Execute a sincronização com o CashBarber para importar os dados deste período. Os profissionais são exibidos em ordem alfabética.
+                  Execute a sincronização com o CashBarber para importar os dados deste período.
                 </p>
               </div>
             </div>
@@ -215,14 +340,22 @@ export default function RankingPublico() {
             </div>
           ) : (
             <>
-              {/* Pódio top 3 (só quando tem dados reais) */}
+              {/* Pódio top 3 */}
               {temDadosNoMes && ranking && ranking.length >= 3 && (
                 <div className="mb-10">
                   <div className="flex items-end justify-center gap-4">
-                    <PodiumCard posicao={2} profissional={ranking[1]} height="h-28" bgColor="bg-slate-400/20 border-slate-400/40" iconColor="text-slate-400" />
-                    <PodiumCard posicao={1} profissional={ranking[0]} height="h-36" bgColor="bg-yellow-500/20 border-yellow-500/40" iconColor="text-yellow-500" />
-                    <PodiumCard posicao={3} profissional={ranking[2]} height="h-20" bgColor="bg-amber-700/20 border-amber-700/40" iconColor="text-amber-700" />
+                    <PodiumCard posicao={2} profissional={ranking[1]} height="h-28" bgColor="bg-slate-400/20 border-slate-400/40" iconColor="text-slate-400" onDetalhar={() => setProfissionalSelecionado(ranking[1])} />
+                    <PodiumCard posicao={1} profissional={ranking[0]} height="h-36" bgColor="bg-yellow-500/20 border-yellow-500/40" iconColor="text-yellow-500" onDetalhar={() => setProfissionalSelecionado(ranking[0])} />
+                    <PodiumCard posicao={3} profissional={ranking[2]} height="h-20" bgColor="bg-amber-700/20 border-amber-700/40" iconColor="text-amber-700" onDetalhar={() => setProfissionalSelecionado(ranking[2])} />
                   </div>
+                </div>
+              )}
+
+              {/* Dica de clique */}
+              {temDadosNoMes && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+                  <ChevronDown className="h-3 w-3" />
+                  Clique em qualquer profissional para ver o detalhamento dos serviços contabilizados
                 </div>
               )}
 
@@ -233,21 +366,25 @@ export default function RankingPublico() {
                   {temDadosNoMes ? `Ranking — ${MESES[mes - 1]} ${ano}` : `Profissionais — ${MESES[mes - 1]} ${ano} (sem dados)`}
                 </h2>
 
-                  {(ranking ?? []).map((p: { id: number; nome: string; apelido?: string | null; fotoUrl?: string | null; cargo?: string | null; totalServicos: number; totalProdutos: number; totalGeral: number; temDados: boolean }, idx: number) => {
+                {(ranking ?? []).map((p, idx) => {
                   const nome = p.apelido ?? p.nome;
                   const iniciais = nome.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
                   const posicao = idx + 1;
                   const isPodium = posicao <= 3 && temDadosNoMes;
                   const maxGeral = ranking?.[0]?.totalGeral ?? 1;
                   const pct = maxGeral > 0 ? Math.round((p.totalGeral / maxGeral) * 100) : 0;
+                  const temDetalhes = p.temDados && !!p.detalhesServicos;
 
                   return (
                     <div
                       key={p.id}
+                      onClick={() => p.temDados && setProfissionalSelecionado(p)}
                       className={`flex items-center gap-3 p-4 rounded-xl border transition-colors ${
-                        isPodium && posicao === 1 ? "bg-yellow-500/5 border-yellow-500/20"
-                        : isPodium && posicao === 2 ? "bg-slate-400/5 border-slate-400/20"
-                        : isPodium && posicao === 3 ? "bg-amber-700/5 border-amber-700/20"
+                        p.temDados ? "cursor-pointer" : ""
+                      } ${
+                        isPodium && posicao === 1 ? "bg-yellow-500/5 border-yellow-500/20 hover:bg-yellow-500/10"
+                        : isPodium && posicao === 2 ? "bg-slate-400/5 border-slate-400/20 hover:bg-slate-400/10"
+                        : isPodium && posicao === 3 ? "bg-amber-700/5 border-amber-700/20 hover:bg-amber-700/10"
                         : "bg-card border-border hover:bg-accent/30"
                       }`}
                     >
@@ -276,7 +413,12 @@ export default function RankingPublico() {
                       {/* Info + barra de progresso */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <p className="font-semibold text-foreground truncate">{nome}</p>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className="font-semibold text-foreground truncate">{nome}</p>
+                            {temDetalhes && (
+                              <Wrench className="h-3 w-3 text-muted-foreground shrink-0" />
+                            )}
+                          </div>
                           <div className="text-right shrink-0">
                             {p.temDados ? (
                               <p className="text-sm font-bold text-foreground">{formatCurrency(p.totalGeral)}</p>
@@ -309,8 +451,8 @@ export default function RankingPublico() {
                         )}
                       </div>
 
-                      {/* Badge top 3 */}
-                      {isPodium && (
+                      {/* Badge top 3 ou ícone de detalhe */}
+                      {isPodium ? (
                         <Badge variant="secondary" className={`shrink-0 text-xs hidden sm:flex items-center gap-1 ${
                           posicao === 1 ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
                           : posicao === 2 ? "bg-slate-400/10 text-slate-500 border-slate-400/20"
@@ -318,7 +460,9 @@ export default function RankingPublico() {
                         }`}>
                           {posicao === 1 ? <><Star className="h-3 w-3" /> 1º lugar</> : posicao === 2 ? "2º lugar" : "3º lugar"}
                         </Badge>
-                      )}
+                      ) : p.temDados ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 -rotate-90" />
+                      ) : null}
                     </div>
                   );
                 })}
@@ -340,22 +484,30 @@ export default function RankingPublico() {
           )}
         </div>
       </div>
+
+      {/* Modal de detalhamento */}
+      <ModalDetalhes
+        profissional={profissionalSelecionado}
+        open={!!profissionalSelecionado}
+        onClose={() => setProfissionalSelecionado(null)}
+      />
     </DashboardLayout>
   );
 }
 
 function PodiumCard({
-  posicao, profissional, height, bgColor, iconColor,
+  posicao, profissional, height, bgColor, iconColor, onDetalhar,
 }: {
   posicao: number;
-  profissional: { id: number; nome: string; apelido?: string | null; cargo?: string | null; fotoUrl?: string | null; totalGeral: number };
+  profissional: Profissional;
   height: string; bgColor: string; iconColor: string;
+  onDetalhar: () => void;
 }) {
   const nome = profissional.apelido ?? profissional.nome;
   const iniciais = nome.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 
   return (
-    <div className="flex flex-col items-center gap-1 w-28">
+    <div className="flex flex-col items-center gap-1 w-28 cursor-pointer" onClick={onDetalhar}>
       <div className="h-14 w-14 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
         {profissional.fotoUrl ? (
           <img src={profissional.fotoUrl} alt={nome} className="h-14 w-14 rounded-full object-cover" />

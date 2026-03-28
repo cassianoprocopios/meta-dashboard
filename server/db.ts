@@ -1522,6 +1522,7 @@ export async function listarRankingPorPeriodo(
     totalServicos: number;
     totalProdutos: number;
     totalGeral: number;
+    detalhesServicos: string | null;
   }>;
   ultimaAtualizacao: Date | null;
 }> {
@@ -1534,6 +1535,15 @@ export async function listarRankingPorPeriodo(
       totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
       totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
       ultimaSyncEm: sql<Date | null>`MAX(${faturamentoColaboradores.ultimaSyncEm})`,
+      // Pegar o detalhesServicos do registro mais recente (maior ultimaSyncEm)
+      detalhesServicos: sql<string | null>`(
+        SELECT detalhesServicos FROM faturamentoColaboradores fc2
+        WHERE fc2.tenantId = ${faturamentoColaboradores.tenantId}
+          AND fc2.colaboradorId = ${faturamentoColaboradores.colaboradorId}
+          AND fc2.mes = ${faturamentoColaboradores.mes}
+          AND fc2.ano = ${faturamentoColaboradores.ano}
+        ORDER BY fc2.ultimaSyncEm DESC LIMIT 1
+      )`,
     })
     .from(faturamentoColaboradores)
     .where(
@@ -1557,6 +1567,7 @@ export async function listarRankingPorPeriodo(
       totalServicos: Number(r.totalServicos),
       totalProdutos: Number(r.totalProdutos),
       totalGeral: Number(r.totalGeral),
+      detalhesServicos: r.detalhesServicos ?? null,
     })),
     ultimaAtualizacao,
   };

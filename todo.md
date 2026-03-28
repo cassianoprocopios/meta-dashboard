@@ -977,3 +977,8 @@
 - [x] Corrigir filtro no cashbarberJob.ts (job horário não usa ranking de profissionais)
 - [x] Corrigir filtro no script de recálculo direto
 - [x] Executar recálculo com critérios corretos
+
+## Detalhamento de Serviços no Ranking
+- [x] Expor detalhesServicos na procedure profissionais.ranking
+- [x] Criar modal de detalhamento ao clicar no card do profissional (RankingPublico.tsx)
+- [ ] Adicionar detalhamento também no card de ranking do Home.tsx (backlog)

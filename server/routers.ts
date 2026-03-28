@@ -249,6 +249,7 @@ const profissionaisRouter = router({
             totalProdutos: fat?.totalProdutos ?? 0,
             totalGeral: fat?.totalGeral ?? 0,
             temDados: !!fat,
+            detalhesServicos: fat?.detalhesServicos ?? null,
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
