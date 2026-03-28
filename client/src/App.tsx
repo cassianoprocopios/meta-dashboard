@@ -13,6 +13,7 @@ import AdminPanel from "./pages/AdminPanel";
 import HistoricoAcuracia from "./pages/HistoricoAcuracia";
 import Profissionais from "./pages/Profissionais";
 import RankingPublico from "./pages/RankingPublico";
+import RankingProfissional from "./pages/RankingProfissional";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -74,9 +75,15 @@ function App() {
       <ThemeProvider defaultTheme="dark" switchable={true}>
         <TooltipProvider>
           <Toaster />
-          <AuthGate>
-            <Router />
-          </AuthGate>
+          {/* Rota pública para profissionais (sem AuthGate) */}
+          <Switch>
+            <Route path="/pro" component={RankingProfissional} />
+            <Route>
+              <AuthGate>
+                <Router />
+              </AuthGate>
+            </Route>
+          </Switch>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

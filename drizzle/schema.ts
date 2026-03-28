@@ -328,6 +328,8 @@ export const colaboradores = mysqlTable("colaboradores", {
   exibirNoRanking: int("exibirNoRanking").notNull().default(1),
   ativo: int("ativo").notNull().default(1),
   cashbarberProfissionalId: int("cashbarberProfissionalId"),
+  /** PIN de 4 dígitos para acesso do profissional ao ranking */
+  pinAcesso: varchar("pinAcesso", { length: 4 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

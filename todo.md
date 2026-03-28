@@ -1040,3 +1040,12 @@
 ## Correção do Ranking - Filtro de Serviços
 - [x] Remover "Pezinho (acabamento)" do cálculo do ranking
 - [x] Recalcular todos os meses históricos com filtro corrigido
+
+## Novas Funcionalidades - Ranking
+- [ ] Incluir "Barba com Barboterapia" no ranking (remover da exclusão)
+- [ ] Recalcular dados históricos com novo filtro
+- [ ] Criar procedure backend para ranking diário (por data)
+- [ ] Criar procedure backend para ranking semanal (por semana)
+- [ ] Implementar acesso simplificado para profissionais (PIN de 4 dígitos)
+- [ ] Criar página mobile-first de ranking para profissionais
+- [ ] Adicionar abas diário/semanal/mensal na visão do profissional

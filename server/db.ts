@@ -1483,6 +1483,7 @@ export async function salvarColaborador(
       exibirNoRanking: data.exibirNoRanking ?? 1,
       ativo: data.ativo ?? 1,
       cashbarberProfissionalId: data.cashbarberProfissionalId ?? null,
+      pinAcesso: data.pinAcesso ?? null,
       createdAt: now,
       updatedAt: now,
     };

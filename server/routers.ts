@@ -163,6 +163,11 @@ async function getTenantIdFromCtx(ctx: any): Promise<number> {
   return 1; // fallback para o tenant original
 }
 
+// Versão pública (sem require auth) - sempre retorna tenant 1
+async function getTenantIdFromCtxPublic(_ctx: any): Promise<number> {
+  return 1;
+}
+
 // ─── PROFISSIONAIS ─────────────────────────────────────────────────────────
 const profissionaisRouter = router({
   listar: protectedProcedure.query(async ({ ctx }) => {
@@ -197,6 +202,7 @@ const profissionaisRouter = router({
         cashbarberProfissionalId: z.number().nullable().optional(),
         empresaSlug: z.string().optional(),
         categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
+        pinAcesso: z.string().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -212,6 +218,7 @@ const profissionaisRouter = router({
         cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
         empresaSlug: input.empresaSlug ?? "barbiero-grupo",
         categoriaRanking: input.categoriaRanking ?? 'barbeiro',
+        pinAcesso: input.pinAcesso ?? null,
       });
       return result;
     }),
@@ -315,7 +322,9 @@ const profissionaisRouter = router({
           const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
           // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
           // Todos os demais serviços + produtos são contabilizados
-          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba|pezinho)/i;
+          // Excluir: Corte de Cabelo, Corte Kids, Raspar na Máquina, Barba simples/completa, Pezinho
+          // INCLUIR: Barba com Barboterapia, Pigmentação Barba, Camulagem Barba, Hidratação Barba
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
           const servicosRanking = relatorio.servicos.filter(
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
@@ -398,7 +407,9 @@ const profissionaisRouter = router({
 
       // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
       // Todos os demais serviços + produtos são contabilizados
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba|pezinho)/i;
+      // Excluir: Corte de Cabelo, Corte Kids, Raspar na Máquina, Barba simples/completa, Pezinho
+          // INCLUIR: Barba com Barboterapia, Pigmentação Barba, Camulagem Barba, Hidratação Barba
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
       let sincronizados = 0;
       let erros = 0;
       for (const col of comId) {
@@ -3173,6 +3184,178 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           executadoEm: log.executadoEm,
         }));
       }),
+  }),
+
+  // ===== RANKING DIÁRIO E SEMANAL =====
+  rankingDiario: publicProcedure
+    .input(z.object({ data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada.' });
+      }
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const resultados = await Promise.all(
+        comId.map(async (col) => {
+          try {
+            const relatorio = await cashbarberRelatorio15(token, input.data, input.data, null, col.cashbarberProfissionalId);
+            const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+            const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            return {
+              id: col.id,
+              nome: col.nome,
+              apelido: col.apelido,
+              fotoUrl: col.fotoUrl,
+              cargo: col.cargo,
+              empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+              categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+              totalServicos,
+              totalProdutos,
+              totalGeral: totalServicos + totalProdutos,
+            };
+          } catch {
+            return {
+              id: col.id,
+              nome: col.nome,
+              apelido: col.apelido,
+              fotoUrl: col.fotoUrl,
+              cargo: col.cargo,
+              empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+              categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+              totalServicos: 0,
+              totalProdutos: 0,
+              totalGeral: 0,
+            };
+          }
+        })
+      );
+      return resultados.sort((a, b) => b.totalGeral - a.totalGeral);
+    }),
+
+  rankingSemanal: publicProcedure
+    .input(z.object({ dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada.' });
+      }
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const resultados = await Promise.all(
+        comId.map(async (col) => {
+          try {
+            const relatorio = await cashbarberRelatorio15(token, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
+            const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+            const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            return {
+              id: col.id,
+              nome: col.nome,
+              apelido: col.apelido,
+              fotoUrl: col.fotoUrl,
+              cargo: col.cargo,
+              empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+              categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+              totalServicos,
+              totalProdutos,
+              totalGeral: totalServicos + totalProdutos,
+            };
+          } catch {
+            return {
+              id: col.id,
+              nome: col.nome,
+              apelido: col.apelido,
+              fotoUrl: col.fotoUrl,
+              cargo: col.cargo,
+              empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+              categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+              totalServicos: 0,
+              totalProdutos: 0,
+              totalGeral: 0,
+            };
+          }
+        })
+      );
+      return resultados.sort((a, b) => b.totalGeral - a.totalGeral);
+    }),
+
+  // ===== LOGIN PROFISSIONAL (PIN) =====
+  loginProfissional: publicProcedure
+    .input(z.object({ pin: z.string().length(4) }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const profissional = colaboradoresList.find(
+        (c) => c.ativo === 1 && c.pinAcesso === input.pin
+      );
+      if (!profissional) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'PIN inválido.' });
+      }
+      // Gerar token JWT para o profissional
+      const token = await new SignJWT({
+        profissionalId: profissional.id,
+        nome: profissional.nome,
+        tenantId,
+        type: 'profissional',
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('7d')
+        .sign(JWT_SECRET);
+      // Setar cookie
+      const res = (ctx as any).res;
+      if (res) {
+        res.cookie('prof_session', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: '/',
+        });
+      }
+      return { ok: true, nome: profissional.nome, id: profissional.id };
+    }),
+
+  meProfissional: publicProcedure.query(async ({ ctx }) => {
+    const req = (ctx as any).req;
+    const cookieHeader = req?.headers?.cookie ?? '';
+    const cookies = parseCookieHeader(cookieHeader);
+    const token = cookies['prof_session'];
+    if (!token) return null;
+    try {
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      if (payload.type !== 'profissional') return null;
+      return {
+        profissionalId: payload.profissionalId as number,
+        nome: payload.nome as string,
+        tenantId: payload.tenantId as number,
+      };
+    } catch {
+      return null;
+    }
+  }),
+
+  logoutProfissional: publicProcedure.mutation(async ({ ctx }) => {
+    const res = (ctx as any).res;
+    if (res) {
+      res.clearCookie('prof_session', { path: '/' });
+    }
+    return { ok: true };
   }),
 });
 

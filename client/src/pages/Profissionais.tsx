@@ -71,6 +71,7 @@ type FormData = {
   exibirNoRanking: boolean;
   ativo: boolean;
   categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
+  pinAcesso: string;
 };
 
 const emptyForm: FormData = {
@@ -81,6 +82,7 @@ const emptyForm: FormData = {
   exibirNoRanking: true,
   ativo: true,
   categoriaRanking: 'barbeiro',
+  pinAcesso: "",
 };
 
 export default function Profissionais() {
@@ -143,6 +145,7 @@ export default function Profissionais() {
       exibirNoRanking: p.exibirNoRanking,
       ativo: p.ativo,
       categoriaRanking: p.categoriaRanking ?? 'barbeiro',
+      pinAcesso: (p as any).pinAcesso ?? "",
     });
     setModalAberto(true);
   };
@@ -163,6 +166,7 @@ export default function Profissionais() {
       exibirNoRanking: form.exibirNoRanking,
       ativo: form.ativo,
       categoriaRanking: form.categoriaRanking,
+      pinAcesso: form.pinAcesso.trim() || null,
     });
   };
 
@@ -550,6 +554,29 @@ export default function Profissionais() {
               />
               <p className="text-white/30 text-xs">
                 Encontre em: CashBarber → Minha Empresa → Listagem Profissionais → coluna ID.
+              </p>
+            </div>
+
+            {/* PIN de Acesso */}
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
+                PIN de Acesso{" "}
+                <span className="text-white/40 font-normal">(4 dígitos)</span>
+              </Label>
+              <Input
+                type="text"
+                maxLength={4}
+                value={form.pinAcesso}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  setForm({ ...form, pinAcesso: v });
+                }}
+                placeholder="Ex: 1234"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 tracking-widest text-center text-lg"
+              />
+              <p className="text-white/30 text-xs">
+                O profissional usa este PIN para acessar o ranking no celular em{" "}
+                <span className="text-blue-400">/pro</span>
               </p>
             </div>
 
