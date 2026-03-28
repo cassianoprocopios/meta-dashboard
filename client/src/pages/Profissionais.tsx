@@ -72,8 +72,8 @@ type FormData = {
   ativo: boolean;
   categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
   pinAcesso: string;
+  metaMensal: string;
 };
-
 const emptyForm: FormData = {
   nome: "",
   apelido: "",
@@ -83,7 +83,8 @@ const emptyForm: FormData = {
   ativo: true,
   categoriaRanking: 'barbeiro',
   pinAcesso: "",
-};
+  metaMensal: "",
+};;
 
 export default function Profissionais() {
   const [, setLocation] = useLocation();
@@ -145,11 +146,11 @@ export default function Profissionais() {
       exibirNoRanking: p.exibirNoRanking,
       ativo: p.ativo,
       categoriaRanking: p.categoriaRanking ?? 'barbeiro',
-      pinAcesso: (p as any).pinAcesso ?? "",
+       pinAcesso: (p as any).pinAcesso ?? "",
+      metaMensal: (p as any).metaMensal ? String((p as any).metaMensal) : "",
     });
     setModalAberto(true);
   };
-
   const handleSalvar = () => {
     if (!form.nome.trim()) {
       toast.error("O nome é obrigatório.");
@@ -167,6 +168,7 @@ export default function Profissionais() {
       ativo: form.ativo,
       categoriaRanking: form.categoriaRanking,
       pinAcesso: form.pinAcesso.trim() || null,
+      metaMensal: form.metaMensal ? parseFloat(form.metaMensal.replace(',', '.')) : null,
     });
   };
 
@@ -574,12 +576,31 @@ export default function Profissionais() {
                 placeholder="Ex: 1234"
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30 tracking-widest text-center text-lg"
               />
-              <p className="text-white/30 text-xs">
+               <p className="text-white/30 text-xs">
                 O profissional usa este PIN para acessar o ranking no celular em{" "}
                 <span className="text-blue-400">/pro</span>
               </p>
             </div>
-
+            {/* Meta Mensal Individual */}
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
+                Meta Mensal Individual{" "}
+                <span className="text-white/40 font-normal">(R$, opcional)</span>
+              </Label>
+              <Input
+                type="text"
+                value={form.metaMensal}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9.,]/g, '');
+                  setForm({ ...form, metaMensal: v });
+                }}
+                placeholder="Ex: 4000"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              />
+              <p className="text-white/30 text-xs">
+                Quando definida, o ranking exibe o % de atingimento da meta (ex: 89%)
+              </p>
+            </div>
             {/* Exibir no Ranking */}
             <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
               <div>

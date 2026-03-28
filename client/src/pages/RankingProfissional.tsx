@@ -317,7 +317,7 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
     return { mes: d.getMonth() + 1, ano: d.getFullYear() };
   }, [mesOffset]);
 
-  const { data: rankingData, isLoading } = trpc.ranking.useQuery({ mes, ano }, { staleTime: 60_000 });
+  const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000 });
   const ranking = rankingData?.lista ?? [];
   const ehMesAtual = mesOffset === 0;
 

@@ -368,3 +368,93 @@ export async function inicializarJobsCashbarber(): Promise<void> {
 
   console.log("[CashBarber Job] Sistema inicializado com sucesso");
 }
+
+// ─── Job de Notificação Diária do Ranking (21h) ───────────────────────────────
+
+async function enviarNotificacaoRankingDiario(): Promise<void> {
+  try {
+    const { listarColaboradores } = await import("./db");
+    const { notifyOwner } = await import("./_core/notification");
+    const { cashbarberLogin, cashbarberRelatorio15 } = await import("./cashbarber");
+
+    // Buscar todos os tenants com configs ativas
+    const configs = await listAllActiveCashbarberConfigs();
+    const tenantIds = [...new Set(configs.map((c) => c.tenantId))];
+
+    for (const tenantId of tenantIds) {
+      try {
+        const hoje = new Date();
+        const dataStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+        const colaboradores = await listarColaboradores(tenantId);
+        const configsTenant = configs.filter((c) => c.tenantId === tenantId);
+
+        const EXCLUIDOS = /^(corte de cabelo|barba$|barba completa|corte kids|raspar na m[áa]quina|pezinho)/i;
+        const resultados: Array<{ nome: string; total: number }> = [];
+
+        for (const empresa of configsTenant) {
+          if (!empresa.cbEmail || !empresa.cbSenha || !empresa.cbFilialId) continue;
+          try {
+            const token = await cashbarberLogin(empresa.cbEmail, empresa.cbSenha);
+            if (!token) continue;
+            const relatorio = await cashbarberRelatorio15(token, empresa.cbFilialId, dataStr, dataStr);
+            if (!relatorio?.data) continue;
+
+            for (const barbeiro of relatorio.data) {
+              const col = colaboradores.find(
+                (c) => c.cashbarberProfissionalId === String(barbeiro.bar_id) && c.ativo === 1 && c.exibirNoRanking === 1
+              );
+              if (!col) continue;
+              const totalServicos = (barbeiro.servicos ?? [])
+                .filter((s: any) => !EXCLUIDOS.test(s.ser_nome ?? ""))
+                .reduce((acc: number, s: any) => acc + (parseFloat(String(s.sum ?? 0)) || 0), 0);
+              const totalProdutos = (barbeiro.produtos ?? [])
+                .reduce((acc: number, p: any) => acc + (parseFloat(String(p.sum ?? 0)) || 0), 0);
+              const total = totalServicos + totalProdutos;
+              if (total > 0) {
+                const nomeExib = col.apelido || col.nome;
+                const idx = resultados.findIndex((r) => r.nome === nomeExib);
+                if (idx >= 0) {
+                  resultados[idx].total += total;
+                } else {
+                  resultados.push({ nome: nomeExib, total });
+                }
+              }
+            }
+          } catch {
+            // silenciar erros por empresa
+          }
+        }
+
+        if (resultados.length === 0) continue;
+        resultados.sort((a, b) => b.total - a.total);
+        const top3 = resultados.slice(0, 3);
+        const fmtBRL = (v: number) =>
+          v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+        const linhas = top3.map((r, i) => {
+          const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+          return `${medalha} ${r.nome}: ${fmtBRL(r.total)}`;
+        });
+
+        await notifyOwner({
+          title: `🏆 Top 3 do Dia — ${hoje.toLocaleDateString("pt-BR")}`,
+          content: linhas.join("\n") + `\n\n${resultados.length} profissionais com dados hoje.`,
+        });
+
+        console.log(`[Ranking Notif] Notificação enviada para tenant ${tenantId}: ${top3.map((r) => r.nome).join(", ")}`);
+      } catch (e) {
+        console.error(`[Ranking Notif] Erro para tenant ${tenantId}:`, e);
+      }
+    }
+  } catch (e) {
+    console.error("[Ranking Notif] Erro geral:", e);
+  }
+}
+
+// Agendar notificação diária às 21h (horário do servidor)
+cron.schedule("0 0 21 * * *", () => {
+  console.log("[Ranking Notif] Enviando notificação do top 3 do dia...");
+  enviarNotificacaoRankingDiario().catch((e) =>
+    console.error("[Ranking Notif] Erro:", e)
+  );
+});

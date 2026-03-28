@@ -64,6 +64,8 @@ type Profissional = {
   temDados: boolean;
   detalhesServicos?: string | null;
   detalhesProdutos?: string | null;
+  metaMensal?: number | null;
+  pctMeta?: number | null;
 };
 
 type ServicoDetalhe = { ser_nome: string; sum: number; count?: number };
@@ -302,6 +304,11 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar }: {
             {campo === "totalGeral" ? (
               <span className="text-xs text-muted-foreground">
                 Serv: {formatCurrency(p.totalServicos)} · Prod: {formatCurrency(p.totalProdutos)}
+                {p.pctMeta != null && (
+                  <span className={`ml-1.5 font-semibold ${
+                    p.pctMeta >= 100 ? 'text-emerald-500' : p.pctMeta >= 80 ? 'text-yellow-500' : 'text-red-400'
+                  }`}>· {p.pctMeta}% da meta</span>
+                )}
               </span>
             ) : (
               <span className="text-xs text-muted-foreground">

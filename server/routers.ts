@@ -203,6 +203,7 @@ const profissionaisRouter = router({
         empresaSlug: z.string().optional(),
         categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
         pinAcesso: z.string().nullable().optional(),
+        metaMensal: z.number().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -219,6 +220,7 @@ const profissionaisRouter = router({
         empresaSlug: input.empresaSlug ?? "barbiero-grupo",
         categoriaRanking: input.categoriaRanking ?? 'barbeiro',
         pinAcesso: input.pinAcesso ?? null,
+        metaMensal: input.metaMensal?.toString() ?? null,
       });
       return result;
     }),
@@ -278,6 +280,10 @@ const profissionaisRouter = router({
             temDados: !!fat,
             detalhesServicos: fat?.detalhesServicos ?? null,
             detalhesProdutos: fat?.detalhesProdutos ?? null,
+            metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
+            pctMeta: (p.metaMensal && fat?.totalGeral)
+              ? Math.round((fat.totalGeral / parseFloat(String(p.metaMensal))) * 100)
+              : null,
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
@@ -3295,6 +3301,40 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       return resultados.sort((a, b) => b.totalGeral - a.totalGeral);
     }),
 
+  // ===== RANKING MENSAL PÚBLICO (para tela de profissionais) =====
+  rankingMensal: publicProcedure
+    .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const [profissionais, { itens: faturamentos }] = await Promise.all([
+        listarColaboradores(tenantId),
+        listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+      ]);
+      const EXCLUIDOS_RANKING = /^(corte de cabelo|barba$|barba completa|corte kids|raspar na m[áa]quina|pezinho)/i;
+      const lista = profissionais
+        .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1)
+        .map((p) => {
+          const fat = faturamentos.find((f) => f.colaboradorId === p.id);
+          return {
+            id: p.id,
+            nome: p.nome,
+            apelido: p.apelido,
+            fotoUrl: p.fotoUrl,
+            empresaSlug: p.empresaSlug ?? 'barbiero-grupo',
+            categoriaRanking: (p.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+            totalServicos: fat?.totalServicos ?? 0,
+            totalProdutos: fat?.totalProdutos ?? 0,
+            totalGeral: fat?.totalGeral ?? 0,
+            temDados: !!fat,
+            metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
+            pctMeta: (p.metaMensal && fat?.totalGeral)
+              ? Math.round((fat.totalGeral / parseFloat(String(p.metaMensal))) * 100)
+              : null,
+          };
+        })
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+      return { lista };
+    }),
   // ===== LOGIN PROFISSIONAL (PIN) =====
   loginProfissional: publicProcedure
     .input(z.object({ pin: z.string().length(4) }))
