@@ -206,6 +206,7 @@ const profissionaisRouter = router({
         categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
         pinAcesso: z.string().nullable().optional(),
         metaMensal: z.number().nullable().optional(),
+        telefone: z.string().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -223,6 +224,7 @@ const profissionaisRouter = router({
         categoriaRanking: input.categoriaRanking ?? 'barbeiro',
         pinAcesso: input.pinAcesso ?? null,
         metaMensal: input.metaMensal?.toString() ?? null,
+        telefone: input.telefone ?? null,
       });
       return result;
     }),
@@ -255,6 +257,7 @@ const profissionaisRouter = router({
         fotoUrl: c.fotoUrl,
         empresaSlug: c.empresaSlug,
         pinAcesso: c.pinAcesso,
+        telefone: c.telefone ?? null,
         exibirNoRanking: c.exibirNoRanking === 1,
       }));
   }),

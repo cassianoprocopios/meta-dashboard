@@ -330,6 +330,8 @@ export const colaboradores = mysqlTable("colaboradores", {
   cashbarberProfissionalId: int("cashbarberProfissionalId"),
   /** PIN de 4 dígitos para acesso do profissional ao ranking */
   pinAcesso: varchar("pinAcesso", { length: 4 }),
+  /** Número de WhatsApp do profissional (ex: 5511999999999) */
+  telefone: varchar("telefone", { length: 32 }),
   /** Meta mensal individual em reais (null = sem meta definida) */
   metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

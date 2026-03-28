@@ -1484,6 +1484,7 @@ export async function salvarColaborador(
       ativo: data.ativo ?? 1,
       cashbarberProfissionalId: data.cashbarberProfissionalId ?? null,
       pinAcesso: data.pinAcesso ?? null,
+      telefone: data.telefone ?? null,
       createdAt: now,
       updatedAt: now,
     };
