@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Verificar se já existe a constraint\nSELECT CONSTRAINT_NAME \nFROM information_schema.TABLE_CONSTRAINTS \nWHERE TABLE_NAME = 'faturamentoColaboradores' \n  AND CONSTRAINT_TYPE = 'UNIQUE'\n  AND TABLE_SCHEMA = DATABASE();\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar se já existe a constraint\nSELECT CONSTRAINT_NAME \nFROM information_schema.TABLE_CONSTRAINTS \nWHERE TABLE_NAME = 'faturamentoColaboradores' \n  AND CONSTRAINT_TYPE = 'UNIQUE'\n  AND TABLE_SCHEMA = DATABASE();\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 109
+}
