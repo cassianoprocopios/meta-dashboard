@@ -12,8 +12,10 @@ import {
   Activity,
   Database,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 function formatRelativo(date: Date | string | null | undefined): string {
@@ -85,6 +87,7 @@ function nomeEmpresa(slug: string): string {
 }
 
 export default function SyncStatus() {
+  const [, setLocation] = useLocation();
   const { data, isLoading, refetch } = trpc.cashbarber.painelStatus.useQuery(undefined, {
     refetchInterval: 30000, // Atualizar a cada 30s automaticamente
   });
@@ -122,14 +125,25 @@ export default function SyncStatus() {
     <div className="space-y-6 p-1">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-400" />
-            Status da Sincronização
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Monitoramento dos jobs automáticos do CashBarber
-          </p>
+        <div className="flex items-start gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="mt-1 text-slate-400 hover:text-white hover:bg-slate-700 px-2"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Activity className="w-6 h-6 text-blue-400" />
+              Status da Sincronização
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Monitoramento dos jobs automáticos do CashBarber
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Button
