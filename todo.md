@@ -1001,3 +1001,14 @@
 - [x] Corrigir filtro nas procedures sincronizarFaturamento e recalcularRankingMes (routers.ts)
 - [x] Corrigir filtro no script de recálculo direto (scripts/recalcular-ranking-direto.mjs)
 - [x] Executar recálculo: 23 profissionais de Março/2026 atualizados
+
+## Reestruturação dos Rankings (4 categorias)
+- [x] Analisar profissionais atuais e identificar barbeiros, auxiliares e recepção
+- [x] Adicionar campo categoriaRanking (barbeiro/auxiliar/recepcao) na tabela colaboradores via SQL
+- [x] Popular categorias: 16 barbeiros, 5 auxiliares, 2 recepções
+- [x] Expor categoriaRanking e empresaSlug na query listarRankingPorPeriodo e procedure ranking
+- [x] Criar 4 abas na página RankingPublico.tsx: Barbeiros, Auxiliares, Por Unidade, Produtos
+- [x] Ranking de Produtos inclui recepção (ordenado por totalProdutos)
+- [x] Ranking por Unidade agrega faturamento de todos os profissionais por empresa
+- [x] Modal de detalhamento com rodapé listando itens excluídos
+- [x] Recalcular ranking: 23 profissionais de Março/2026 atualizados

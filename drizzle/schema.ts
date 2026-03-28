@@ -323,6 +323,8 @@ export const colaboradores = mysqlTable("colaboradores", {
   apelido: varchar("apelido", { length: 64 }),
   fotoUrl: text("fotoUrl"),
   cargo: varchar("cargo", { length: 64 }).default("Barbeiro"),
+  /** Categoria para separar os rankings: barbeiro | auxiliar | recepcao */
+  categoriaRanking: mysqlEnum("categoriaRanking", ["barbeiro", "auxiliar", "recepcao"]).default("barbeiro"),
   exibirNoRanking: int("exibirNoRanking").notNull().default(1),
   ativo: int("ativo").notNull().default(1),
   cashbarberProfissionalId: int("cashbarberProfissionalId"),

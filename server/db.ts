@@ -1519,6 +1519,11 @@ export async function listarRankingPorPeriodo(
 ): Promise<{
   itens: Array<{
     colaboradorId: number;
+    nome: string;
+    apelido: string | null;
+    fotoUrl: string | null;
+    empresaSlug: string;
+    categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
     totalServicos: number;
     totalProdutos: number;
     totalGeral: number;
@@ -1532,6 +1537,11 @@ export async function listarRankingPorPeriodo(
   const rows = await db
     .select({
       colaboradorId: faturamentoColaboradores.colaboradorId,
+      nome: colaboradores.nome,
+      apelido: colaboradores.apelido,
+      fotoUrl: colaboradores.fotoUrl,
+      empresaSlug: faturamentoColaboradores.empresaSlug,
+      categoriaRanking: colaboradores.categoriaRanking,
       totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
       totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
       totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
@@ -1556,6 +1566,7 @@ export async function listarRankingPorPeriodo(
       )`,
     })
     .from(faturamentoColaboradores)
+    .innerJoin(colaboradores, eq(colaboradores.id, faturamentoColaboradores.colaboradorId))
     .where(
       and(
         eq(faturamentoColaboradores.tenantId, tenantId),
@@ -1563,7 +1574,14 @@ export async function listarRankingPorPeriodo(
         eq(faturamentoColaboradores.ano, ano)
       )
     )
-    .groupBy(faturamentoColaboradores.colaboradorId)
+    .groupBy(
+      faturamentoColaboradores.colaboradorId,
+      colaboradores.nome,
+      colaboradores.apelido,
+      colaboradores.fotoUrl,
+      faturamentoColaboradores.empresaSlug,
+      colaboradores.categoriaRanking
+    )
     .orderBy(desc(sql`SUM(${faturamentoColaboradores.totalGeral})`));
   // A última atualização é o MAX global entre todos os colaboradores do período
   const ultimaAtualizacao = rows.reduce((max: Date | null, r) => {
@@ -1574,6 +1592,11 @@ export async function listarRankingPorPeriodo(
   return {
     itens: rows.map((r) => ({
       colaboradorId: r.colaboradorId,
+      nome: r.nome,
+      apelido: r.apelido ?? null,
+      fotoUrl: r.fotoUrl ?? null,
+      empresaSlug: r.empresaSlug,
+      categoriaRanking: (r.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
       totalServicos: Number(r.totalServicos),
       totalProdutos: Number(r.totalProdutos),
       totalGeral: Number(r.totalGeral),

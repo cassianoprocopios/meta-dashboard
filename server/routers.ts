@@ -245,6 +245,8 @@ const profissionaisRouter = router({
             apelido: p.apelido,
             fotoUrl: p.fotoUrl,
             cargo: p.cargo,
+            empresaSlug: p.empresaSlug ?? 'barbiero-grupo',
+            categoriaRanking: (p.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
             totalServicos: fat?.totalServicos ?? 0,
             totalProdutos: fat?.totalProdutos ?? 0,
             totalGeral: fat?.totalGeral ?? 0,
