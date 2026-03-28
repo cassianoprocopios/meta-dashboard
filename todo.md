@@ -970,3 +970,10 @@
 - [x] Adicionar MAX(ultimaSyncEm) na query listarRankingPorPeriodo no db.ts
 - [x] Expor ultimaAtualizacao na procedure profissionais.ranking
 - [x] Exibir data/hora formatada no header do ranking (RankingPublico.tsx e Home.tsx)
+
+## Correção do Filtro de Categorias do Ranking
+- [x] Excluir: Corte Cabelo, Barba e Corte Kids (todos os demais serviços + produtos são contabilizados)
+- [x] Corrigir filtro no routers.ts (procedure recalcularRankingMes e sincronizarFaturamento)
+- [x] Corrigir filtro no cashbarberJob.ts (job horário não usa ranking de profissionais)
+- [x] Corrigir filtro no script de recálculo direto
+- [x] Executar recálculo com critérios corretos

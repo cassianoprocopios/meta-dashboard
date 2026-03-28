@@ -284,10 +284,11 @@ const profissionaisRouter = router({
       for (const col of comId) {
         try {
           const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
-          // Categorias excluídas do ranking: Avulso/Clube, Caixinha e Bar
-          const CATEGORIAS_EXCLUIDAS_RANKING = /avulso|clube|caixinha|bar/i;
+          // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
+          // Todos os demais serviços + produtos são contabilizados
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba)/i;
           const servicosRanking = relatorio.servicos.filter(
-            (s: any) => !CATEGORIAS_EXCLUIDAS_RANKING.test(s.ser_nome ?? '')
+            (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
@@ -334,15 +335,16 @@ const profissionaisRouter = router({
       const dataInicial = `${ano}-${String(mes).padStart(2, '0')}-01`;
       const ultimoDia = new Date(ano, mes, 0).getDate();
       const dataFinal = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
-      // Categorias excluídas do ranking: Avulso/Clube, Caixinha e Bar
-      const CATEGORIAS_EXCLUIDAS_RANKING = /avulso|clube|caixinha|bar/i;
+      // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
+      // Todos os demais serviços + produtos são contabilizados
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba)/i;
       let sincronizados = 0;
       let erros = 0;
       for (const col of comId) {
         try {
           const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
           const servicosRanking = relatorio.servicos.filter(
-            (s: any) => !CATEGORIAS_EXCLUIDAS_RANKING.test(s.ser_nome ?? '')
+            (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
