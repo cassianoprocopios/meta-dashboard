@@ -89,14 +89,14 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
           return new Date(fAno, fMes - 1, fDia) <= hoje;
         });
 
-        // cat9 (Recorrência Dpote) excluído do total pois é exibido separadamente
-        const sumCatsExcludingCat9Bon = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8]
+        // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
+        const sumCatsBon = (f: any) =>
+          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
-        const totalMensal = fatsRealizados.reduce((s: number, f: any) => s + sumCatsExcludingCat9Bon(f), 0);
+        const totalMensal = fatsRealizados.reduce((s: number, f: any) => s + sumCatsBon(f), 0);
 
         const fatsQ = fatsRealizados.filter((f: any) => parseInt(f.data.split("-")[2]) <= 15);
-        const totalQuinzenal = fatsQ.reduce((s: number, f: any) => s + sumCatsExcludingCat9Bon(f), 0);
+        const totalQuinzenal = fatsQ.reduce((s: number, f: any) => s + sumCatsBon(f), 0);
 
         const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
         const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
@@ -143,11 +143,11 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
           return new Date(fAno, fMes - 1, fDia) <= hoje;
         });
 
-        // cat9 excluído do totalRealizado (histórico)
-        const sumCatsExcludingCat9Hist = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8]
+        // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
+        const sumCatsHist = (f: any) =>
+          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
-        const totalRealizado = fatsRealizados.reduce((s: number, f: any) => s + sumCatsExcludingCat9Hist(f), 0);
+        const totalRealizado = fatsRealizados.reduce((s: number, f: any) => s + sumCatsHist(f), 0);
 
         const metaMensal = parseFloat(String(meta?.metaMensal || "0"));
         const superMeta = parseFloat(String(meta?.superMeta || "0"));

@@ -114,18 +114,18 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     const hoje = new Date();
     const rowsRealizados = rows.filter((r) => new Date(r.data + "T00:00:00") <= hoje);
 
-    // cat9 (Recorrência Dpote) excluído do total pois é exibido separadamente
-    const sumCatsExcludingCat9 = (r: any) =>
-      [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
+    // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
+    const sumCats = (r: any) =>
+      [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
         .reduce((a: number, v: any) => a + parseFloat(String(v || 0)), 0);
-    const totalMensal = rowsRealizados.reduce((s: number, r) => s + sumCatsExcludingCat9(r), 0);
+    const totalMensal = rowsRealizados.reduce((s: number, r) => s + sumCats(r), 0);
 
     // Total quinzenal (dias 1-15, apenas realizados)
     const rowsQ = rowsRealizados.filter((r) => {
       const dia = parseInt(r.data.split("-")[2]);
       return dia <= 15;
     });
-    const totalQuinzenal = rowsQ.reduce((s: number, r) => s + sumCatsExcludingCat9(r), 0);
+    const totalQuinzenal = rowsQ.reduce((s: number, r) => s + sumCats(r), 0);
 
     const atingiuQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
     const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;

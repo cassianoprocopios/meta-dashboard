@@ -75,7 +75,16 @@ async function startServer() {
       } catch (err) {
         console.warn(`[CronSync] Falha ao aplicar Dpote:`, err);
       }
-      return res.json({ ok: true, mes, ano, resultados, timestamp: agora.toISOString() });
+      // Recalcular ranking dos profissionais
+      let rankingResult = { sincronizados: 0, erros: 0 };
+      try {
+        const { executarRecalculoRanking } = await import("../cashbarberJob");
+        rankingResult = await executarRecalculoRanking(1);
+        console.log(`[CronSync] Ranking recalculado: ${rankingResult.sincronizados} profissional(is)`);
+      } catch (err) {
+        console.warn(`[CronSync] Falha ao recalcular ranking:`, err);
+      }
+      return res.json({ ok: true, mes, ano, resultados, ranking: rankingResult, timestamp: agora.toISOString() });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[CronSync] Erro geral:", msg);

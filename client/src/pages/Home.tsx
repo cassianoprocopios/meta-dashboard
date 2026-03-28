@@ -377,14 +377,13 @@ export default function Home() {
       const rowsRealizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje);
       const rowsPrevistos = rows.filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje);
 
-      // Total geral (realizados + previstos) para exibir no card
-      // cat9 (Recorrência Dpote) é excluído do total principal pois é exibido separadamente
-      const sumCatsExcludingCat9 = (r: any) =>
-        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
+      // Total geral (realizados + previstos) para exibir no card — inclui cat9 (Recorrência Dpote)
+      const sumCats = (r: any) =>
+        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
-      const total = rows.reduce((s: number, r: any) => s + sumCatsExcludingCat9(r), 0);
+      const total = rows.reduce((s: number, r: any) => s + sumCats(r), 0);
       // Total apenas realizados (para cálculos de média, máximo, mínimo)
-      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => s + sumCatsExcludingCat9(r), 0);
+      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => s + sumCats(r), 0);
       const totalPrevisto = total - totalRealizado;
 
       const diasLancados = rows.length;
@@ -394,8 +393,8 @@ export default function Home() {
       // Média diária apenas sobre dias realizados
       const mediaDiaria = diasRealizados > 0 ? totalRealizado / diasRealizados : 0;
 
-      // Máximo e mínimo diário apenas sobre dias realizados (cat9 excluído)
-      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCatsExcludingCat9(r));
+      // Máximo e mínimo diário apenas sobre dias realizados (inclui cat9)
+      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCats(r));
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
 
@@ -424,7 +423,7 @@ export default function Home() {
       // Quinzenal: apenas realizados até dia 15
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsExcludingCat9(r), 0);
+      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
@@ -537,14 +536,14 @@ export default function Home() {
       const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set<number>();
       const rowsAtual = faturamentosFiltrados.filter((f: any) => f.empresaSlug === emp.slug);
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       const rowsAnterior = faturamentosAnteriorFiltrados.filter((f: any) => {
         if (f.empresaSlug !== emp.slug) return false;
         const dia = parseInt(f.data.split("-")[2]);
         return diasAtual.has(dia);
       });
       const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAnteriorMesmosDias += totalAnterior;
       porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
@@ -617,7 +616,7 @@ export default function Home() {
       rows.forEach((f: any) => {
         if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
         const dia = parseInt(f.data.split("-")[2]);
-        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8]
+        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
           .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
         mapa[dia] = (mapa[dia] ?? 0) + total;
       });
@@ -714,7 +713,7 @@ export default function Home() {
       // Quinzenal
       if (s.metaQuinzenal > 0 && mes === hoje.getMonth() + 1 && hoje.getDate() <= 15) {
         const totalQuinzenal = s.rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15)
-          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
+          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
         if (totalQuinzenal < s.metaQuinzenal * 0.8 && s.diasUteisRestantesQuinzenal === 0) {
           list.push({ tipo: "warning", msg: `${s.emp.nome}: Meta quinzenal não atingida (${fmt(totalQuinzenal)} de ${fmt(s.metaQuinzenal)}).` });

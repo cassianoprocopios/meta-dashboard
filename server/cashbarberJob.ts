@@ -506,6 +506,16 @@ cron.schedule("0 0 9 * * *", async () => {
         console.error("[CashBarber Job] Falha ao enviar notificação de erro:", notifErr);
       }
     }
+    // Recalcular ranking dos profissionais após o sync do faturamento
+    try {
+      const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+      for (const tenantId of tenantIds) {
+        const resultado = await executarRecalculoRanking(tenantId);
+        console.log(`[CashBarber Job] Ranking recalculado para tenant ${tenantId}: ${resultado.sincronizados} profissional(is)`);
+      }
+    } catch (rankErr) {
+      console.warn("[CashBarber Job] Falha ao recalcular ranking:", rankErr);
+    }
     console.log(`[CashBarber Job] Sync diário das 6h concluído. Erros: ${totalErros}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -521,3 +531,84 @@ cron.schedule("0 0 9 * * *", async () => {
     } catch { /* silenciar erro de notificação */ }
   }
 });
+
+// ─── Recalculo do Ranking dos Profissionais ────────────────────────────────────────────────
+// Função exportada para ser usada tanto pelo job diário das 6h quanto pelo
+// endpoint /api/internal/cron-sync, garantindo que o ranking seja sempre
+// atualizado junto com o faturamento.
+export async function executarRecalculoRanking(tenantId: number): Promise<{ sincronizados: number; erros: number }> {
+  const { listarColaboradores, upsertFaturamentoColaborador } = await import("./db");
+  const { cashbarberLogin, cashbarberRelatorio15, cashbarberRelatorio13 } = await import("./cashbarber");
+  const agora = new Date();
+  const mes = agora.getMonth() + 1;
+  const ano = agora.getFullYear();
+  const configs = await listAllActiveCashbarberConfigs();
+  const configsTenant = configs.filter((c) => c.tenantId === tenantId && c.sincAutoAtiva);
+  if (configsTenant.length === 0) return { sincronizados: 0, erros: 0 };
+  const configPrincipal = configsTenant[0];
+  if (!configPrincipal.cbEmail || !configPrincipal.cbSenha) return { sincronizados: 0, erros: 0 };
+  const token = await cashbarberLogin(configPrincipal.cbEmail, configPrincipal.cbSenha);
+  if (!token) return { sincronizados: 0, erros: 0 };
+  const colaboradoresList = await listarColaboradores(tenantId);
+  const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1);
+  if (comId.length === 0) return { sincronizados: 0, erros: 0 };
+  const dataInicial = `${ano}-${String(mes).padStart(2, "0")}-01`;
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  const dataFinal = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+  let mapaFilial: Map<string, string> = new Map();
+  try {
+    const rel13 = await cashbarberRelatorio13(token, dataInicial, dataFinal);
+    for (const item of rel13) {
+      if (item.barbeiro && item.filial) {
+        mapaFilial.set(item.barbeiro.toLowerCase().trim(), _filialParaEmpresaSlug(item.filial));
+      }
+    }
+  } catch (e) {
+    console.warn("[Ranking Job] Não foi possível buscar relatório 13:", e);
+  }
+  const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+  const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+  let sincronizados = 0;
+  let erros = 0;
+  for (const col of comId) {
+    try {
+      const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
+      const servicosRanking = (relatorio.servicos ?? []).filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ""));
+      const produtosRanking = (relatorio.produtos ?? []).filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ""));
+      const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+      const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+      const totalGeral = totalServicos + totalProdutos;
+      const nomeCB = (col.apelido ?? col.nome).toLowerCase().trim();
+      const slugCorreto = mapaFilial.get(nomeCB) ?? col.empresaSlug ?? "barbiero-grupo";
+      await upsertFaturamentoColaborador({
+        tenantId,
+        colaboradorId: col.id,
+        empresaSlug: slugCorreto,
+        mes,
+        ano,
+        totalServicos,
+        totalProdutos,
+        totalGeral,
+        detalhesServicos: JSON.stringify(
+          servicosRanking.slice(0, 20).map((s: any) => ({ ser_nome: s.ser_nome, sum: s.sum, count: s.count ?? 0 }))
+        ),
+        detalhesProdutos: JSON.stringify(
+          produtosRanking.filter((p: any) => p.total > 0).slice(0, 30).map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total, count: Number(p.count) || 0 }))
+        ),
+      });
+      sincronizados++;
+    } catch (e) {
+      console.error(`[Ranking Job] Erro ao recalcular ${col.nome}:`, e);
+      erros++;
+    }
+  }
+  console.log(`[Ranking Job] Recalculo concluído para tenant ${tenantId}: ${sincronizados} profissional(is), ${erros} erro(s)`);
+  return { sincronizados, erros };
+}
+
+function _filialParaEmpresaSlug(filial: string): string {
+  const f = filial.toLowerCase().trim();
+  if (f.includes("morumbi")) return "barbiero-morumbi";
+  if (f.includes("mascote")) return "barbiero-mascote";
+  return "barbiero-grupo";
+}

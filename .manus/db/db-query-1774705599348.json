@@ -1,0 +1,145 @@
+{
+  "query": "SELECT c.nome, c.apelido, c.empresaSlug, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.ultimaSyncEm \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE fc.mes = 3 AND fc.ano = 2026 \nORDER BY fc.totalGeral DESC \nLIMIT 15;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT c.nome, c.apelido, c.empresaSlug, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.ultimaSyncEm \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE fc.mes = 3 AND fc.ano = 2026 \nORDER BY fc.totalGeral DESC \nLIMIT 15;",
+  "rows": [
+    {
+      "nome": "Emerson",
+      "apelido": "Emerson",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "2259.40",
+      "totalProdutos": "1299.16",
+      "totalGeral": "3558.56",
+      "ultimaSyncEm": "2026-03-28 02:55:15"
+    },
+    {
+      "nome": "Samuel",
+      "apelido": "Samuel",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "2497.40",
+      "totalProdutos": "750.72",
+      "totalGeral": "3248.12",
+      "ultimaSyncEm": "2026-03-28 02:55:19"
+    },
+    {
+      "nome": "Cleison",
+      "apelido": "Cleison",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "2515.00",
+      "totalProdutos": "581.72",
+      "totalGeral": "3096.72",
+      "ultimaSyncEm": "2026-03-28 02:55:21"
+    },
+    {
+      "nome": "Karen",
+      "apelido": "Karen",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "2996.10",
+      "totalProdutos": "0.00",
+      "totalGeral": "2996.10",
+      "ultimaSyncEm": "2026-03-28 02:55:20"
+    },
+    {
+      "nome": "Kaleb",
+      "apelido": "Kaleb",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "2301.10",
+      "totalProdutos": "408.04",
+      "totalGeral": "2709.14",
+      "ultimaSyncEm": "2026-03-28 02:55:27"
+    },
+    {
+      "nome": "Vanilson",
+      "apelido": "Vanilson",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "2436.50",
+      "totalProdutos": "180.81",
+      "totalGeral": "2617.31",
+      "ultimaSyncEm": "2026-03-28 02:55:23"
+    },
+    {
+      "nome": "Edinho",
+      "apelido": "Edinho",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "1764.10",
+      "totalProdutos": "698.53",
+      "totalGeral": "2462.63",
+      "ultimaSyncEm": "2026-03-28 02:55:17"
+    },
+    {
+      "nome": "Dan",
+      "apelido": "Dan",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "1402.20",
+      "totalProdutos": "965.81",
+      "totalGeral": "2368.01",
+      "ultimaSyncEm": "2026-03-28 02:55:15"
+    },
+    {
+      "nome": "Vinicius",
+      "apelido": "Vinicius",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "2096.90",
+      "totalProdutos": "250.74",
+      "totalGeral": "2347.64",
+      "ultimaSyncEm": "2026-03-28 02:55:24"
+    },
+    {
+      "nome": "Fábio",
+      "apelido": "Fábio",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "1902.20",
+      "totalProdutos": "404.61",
+      "totalGeral": "2306.81",
+      "ultimaSyncEm": "2026-03-28 02:55:25"
+    },
+    {
+      "nome": "Christian",
+      "apelido": "Christian",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "1445.50",
+      "totalProdutos": "745.05",
+      "totalGeral": "2190.55",
+      "ultimaSyncEm": "2026-03-28 02:55:18"
+    },
+    {
+      "nome": "Adailton",
+      "apelido": "Adailton",
+      "empresaSlug": "barbiero-morumbi",
+      "totalServicos": "1420.30",
+      "totalProdutos": "663.65",
+      "totalGeral": "2083.95",
+      "ultimaSyncEm": "2026-03-28 02:55:14"
+    },
+    {
+      "nome": "Recepção Mascote",
+      "apelido": "Recepção Mascote",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "520.00",
+      "totalProdutos": "1355.51",
+      "totalGeral": "1875.51",
+      "ultimaSyncEm": "2026-03-28 02:55:24"
+    },
+    {
+      "nome": "Felipe",
+      "apelido": "Felipe",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "1337.50",
+      "totalProdutos": "296.68",
+      "totalGeral": "1634.18",
+      "ultimaSyncEm": "2026-03-28 02:55:28"
+    },
+    {
+      "nome": "Renan",
+      "apelido": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "642.30",
+      "totalProdutos": "940.26",
+      "totalGeral": "1582.56",
+      "ultimaSyncEm": "2026-03-28 02:55:26"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tapelido\tempresaSlug\ttotalServicos\ttotalProdutos\ttotalGeral\tultimaSyncEm\nEmerson\tEmerson\tbarbiero-morumbi\t2259.40\t1299.16\t3558.56\t2026-03-28 02:55:15\nSamuel\tSamuel\tbarbiero-morumbi\t2497.40\t750.72\t3248.12\t2026-03-28 02:55:19\nCleison\tCleison\tbarbiero-morumbi\t2515.00\t581.72\t3096.72\t2026-03-28 02:55:21\nKaren\tKaren\tbarbiero-mascote\t2996.10\t0.00\t2996.10\t2026-03-28 02:55:20\nKaleb\tKaleb\tbarbiero-morumbi\t2301.10\t408.04\t2709.14\t2026-03-28 02:55:27\nVanilson\tVanilson\tbarbiero-morumbi\t2436.50\t180.81\t2617.31\t2026-03-28 02:55:23\nEdinho\tEdinho\tbarbiero-mascote\t1764.10\t698.53\t2462.63\t2026-03-28 02:55:17\nDan\tDan\tbarbiero-morumbi\t1402.20\t965.81\t2368.01\t2026-03-28 02:55:15\nVinicius\tVinicius\tbarbiero-mascote\t2096.90\t250.74\t2347.64\t2026-03-28 02:55:24\nFábio\tFábio\tbarbiero-morumbi\t1902.20\t404.61\t2306.81\t2026-03-28 02:55:25\nChristian\tChristian\tbarbiero-morumbi\t1445.50\t745.05\t2190.55\t2026-03-28 02:55:18\nAdailton\tAdailton\tbarbiero-morumbi\t1420.30\t663.65\t2083.95\t2026-03-28 02:55:14\nRecepção Mascote\tRecepção Mascote\tbarbiero-mascote\t520.00\t1355.51\t1875.51\t2026-03-28 02:55:24\nFelipe\tFelipe\tbarbiero-mascote\t1337.50\t296.68\t1634.18\t2026-03-28 02:55:28\nRenan\tRenan\tbarbiero-mascote\t642.30\t940.26\t1582.56\t2026-03-28 02:55:26\n",
+  "stderr": "",
+  "execution_time_ms": 117
+}
