@@ -989,3 +989,9 @@
 - [x] Expor detalhesProdutos na query listarRankingPorPeriodo (db.ts) e procedure ranking
 - [x] Atualizar modal no RankingPublico.tsx para exibir breakdown de produtos por item
 - [x] Executar recálculo e popular detalhesProdutos para todos os 23 profissionais de Março/2026
+
+## Quantidade no Modal de Detalhamento do Ranking
+- [x] Verificar campos de quantidade na API CashBarber (count para serviços e produtos)
+- [x] Atualizar JSON salvo em detalhesServicos e detalhesProdutos para incluir campo count
+- [x] Atualizar modal RankingPublico.tsx para exibir quantidade (Nx) ao lado de cada item
+- [x] Executar recálculo: 23 profissionais de Março/2026 atualizados com dados de quantidade

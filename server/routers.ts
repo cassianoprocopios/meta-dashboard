@@ -304,13 +304,19 @@ const profissionaisRouter = router({
             totalServicos,
             totalProdutos,
             totalGeral,
-            // Salvar apenas os serviços válidos (excluídas as categorias ignoradas)
-            detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
-            // Salvar detalhamento de produtos por item
+            // Salvar apenas os serviços válidos (excluídas as categorias ignoradas) com quantidade
+            detalhesServicos: JSON.stringify(
+              servicosRanking.slice(0, 20).map((s: any) => ({
+                ser_nome: s.ser_nome,
+                sum: s.sum,
+                count: s.count ?? 0,
+              }))
+            ),
+            // Salvar detalhamento de produtos por item com quantidade
             detalhesProdutos: JSON.stringify(
               relatorio.produtos
                 .filter((p: any) => p.total > 0)
-                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total }))
+                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total, count: Number(p.count) || 0 }))
                 .slice(0, 30)
             ),
           });
@@ -367,12 +373,19 @@ const profissionaisRouter = router({
             totalServicos,
             totalProdutos,
             totalGeral,
-            detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
-            // Salvar detalhamento de produtos por item
+            // Salvar serviços válidos com quantidade
+            detalhesServicos: JSON.stringify(
+              servicosRanking.slice(0, 20).map((s: any) => ({
+                ser_nome: s.ser_nome,
+                sum: s.sum,
+                count: s.count ?? 0,
+              }))
+            ),
+            // Salvar detalhamento de produtos por item com quantidade
             detalhesProdutos: JSON.stringify(
               relatorio.produtos
                 .filter((p: any) => p.total > 0)
-                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total }))
+                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total, count: Number(p.count) || 0 }))
                 .slice(0, 30)
             ),
           });

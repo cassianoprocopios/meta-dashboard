@@ -61,11 +61,13 @@ type Profissional = {
 type ServicoDetalhe = {
   ser_nome: string;
   sum: number;
+  count?: number;
 };
 
 type ProdutoDetalhe = {
   pro_nome: string;
   sum: number;
+  count?: number;
 };
 
 function parseDetalhes(json: string | null | undefined): ServicoDetalhe[] {
@@ -149,7 +151,12 @@ function ModalDetalhes({
                   return (
                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{s.ser_nome}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-foreground truncate">{s.ser_nome}</p>
+                          {s.count != null && s.count > 0 && (
+                            <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{s.count}x</span>
+                          )}
+                        </div>
                         <div className="w-full bg-muted rounded-full h-1 mt-1">
                           <div
                             className="h-1 rounded-full bg-primary"
@@ -188,7 +195,12 @@ function ModalDetalhes({
                   return (
                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{p.pro_nome}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-foreground truncate">{p.pro_nome}</p>
+                          {p.count != null && p.count > 0 && (
+                            <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{p.count}x</span>
+                          )}
+                        </div>
                         <div className="w-full bg-muted rounded-full h-1 mt-1">
                           <div
                             className="h-1 rounded-full bg-emerald-500"
