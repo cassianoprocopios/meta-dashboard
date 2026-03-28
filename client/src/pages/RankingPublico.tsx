@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,10 @@ import {
   Wrench,
   Building2,
   Crown,
+  Sun,
+  CalendarDays,
+  CalendarRange,
+  RefreshCw,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -49,6 +53,7 @@ function formatCurrency(value: number) {
 
 type CategoriaRanking = "barbeiro" | "auxiliar" | "recepcao";
 type AbaRanking = "barbeiros" | "auxiliares" | "unidade" | "produtos" | "mascote" | "morumbi";
+type ModoVisualizacao = "mensal" | "diario" | "semanal";
 
 type Profissional = {
   id: number;
@@ -653,6 +658,26 @@ function PodiumCard({ posicao, profissional, height, bgColor, iconColor, campo, 
   );
 }
 
+// ─── Helpers de data ─────────────────────────────────────────────────────────
+function toDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+function inicioSemana(d: Date): Date {
+  const dia = new Date(d);
+  const dow = dia.getDay(); // 0=dom
+  dia.setDate(dia.getDate() - (dow === 0 ? 6 : dow - 1)); // segunda-feira
+  return dia;
+}
+function fimSemana(d: Date): Date {
+  const dia = inicioSemana(d);
+  dia.setDate(dia.getDate() + 6);
+  return dia;
+}
+function labelSemana(inicio: Date, fim: Date): string {
+  const opts: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit' };
+  return `${inicio.toLocaleDateString('pt-BR', opts)} – ${fim.toLocaleDateString('pt-BR', opts)}`;
+}
+
 // ─── Página Principal ────────────────────────────────────────────────────────
 export default function RankingPublico() {
   const [, setLocation] = useLocation();
@@ -661,17 +686,51 @@ export default function RankingPublico() {
   const [ano, setAno] = useState(hoje.getFullYear());
   const [profissionalSelecionado, setProfissionalSelecionado] = useState<Profissional | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<AbaRanking>("barbeiros");
+  const [modo, setModo] = useState<ModoVisualizacao>("mensal");
 
+  // Estado para data (modo diário)
+  const [dataDiaria, setDataDiaria] = useState<Date>(() => hoje);
+  const dataDiariaStr = useMemo(() => toDateStr(dataDiaria), [dataDiaria]);
+
+  // Estado para semana (modo semanal)
+  const [semanaRef, setSemanaRef] = useState<Date>(() => inicioSemana(hoje));
+  const semanaInicio = useMemo(() => semanaRef, [semanaRef]);
+  const semanaFim = useMemo(() => fimSemana(semanaRef), [semanaRef]);
+  const semanaInicioStr = useMemo(() => toDateStr(semanaInicio), [semanaInicio]);
+  const semanaFimStr = useMemo(() => toDateStr(semanaFim), [semanaFim]);
+
+  // Queries
   const { data: rankingData, isLoading } = trpc.profissionais.ranking.useQuery(
     { mes, ano },
-    { staleTime: 60_000 }
+    { staleTime: 60_000, enabled: modo === "mensal" }
   );
   const ranking = (rankingData?.lista ?? []) as Profissional[];
   const ultimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
+
+  const { data: rankingDiarioData, isLoading: isLoadingDiario, refetch: refetchDiario } = trpc.rankingDiario.useQuery(
+    { data: dataDiariaStr },
+    { staleTime: 120_000, enabled: modo === "diario" }
+  );
+  const rankingDiario = useMemo(() => (rankingDiarioData ?? []) as Profissional[], [rankingDiarioData]);
+
+  const { data: rankingSemanalData, isLoading: isLoadingSemanal, refetch: refetchSemanal } = trpc.rankingSemanal.useQuery(
+    { dataInicio: semanaInicioStr, dataFim: semanaFimStr },
+    { staleTime: 120_000, enabled: modo === "semanal" }
+  );
+  const rankingSemanal = useMemo(() => (rankingSemanalData ?? []) as Profissional[], [rankingSemanalData]);
+
+  // Ranking ativo conforme modo
+  const rankingAtivo: Profissional[] = modo === "diario" ? rankingDiario
+    : modo === "semanal" ? rankingSemanal
+    : ranking;
+  const isLoadingAtivo = modo === "diario" ? isLoadingDiario
+    : modo === "semanal" ? isLoadingSemanal
+    : isLoading;
+
   const { data: periodos } = trpc.profissionais.periodos.useQuery();
   const { data: historicoUnidades } = trpc.profissionais.historicoUnidades.useQuery(
     { ultimos: 6 },
-    { staleTime: 300_000, enabled: abaAtiva === "unidade" }
+    { staleTime: 300_000, enabled: abaAtiva === "unidade" && modo === "mensal" }
   );
 
   const anosDisponiveis = useMemo(() => {
@@ -682,18 +741,16 @@ export default function RankingPublico() {
   }, [periodos]);
 
   // Filtros por categoria
-  const barbeiros = useMemo(() => ranking.filter(p => p.categoriaRanking === "barbeiro"), [ranking]);
-  const auxiliares = useMemo(() => ranking.filter(p => p.categoriaRanking === "auxiliar"), [ranking]);
-  // Ranking de produtos: todos (incluindo recepção), ordenado por totalProdutos
+  const barbeiros = useMemo(() => rankingAtivo.filter(p => p.categoriaRanking === "barbeiro"), [rankingAtivo]);
+  const auxiliares = useMemo(() => rankingAtivo.filter(p => p.categoriaRanking === "auxiliar"), [rankingAtivo]);
   const rankingProdutos = useMemo(() =>
-    [...ranking].sort((a, b) => b.totalProdutos - a.totalProdutos),
-    [ranking]
+    [...rankingAtivo].sort((a, b) => b.totalProdutos - a.totalProdutos),
+    [rankingAtivo]
   );
-  // Rankings por unidade: barbeiros + auxiliares + recepção de cada unidade (ordenado por totalGeral)
-  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-mascote"), [ranking]);
-  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-morumbi"), [ranking]);
+  const barbeirosMAscote = useMemo(() => rankingAtivo.filter(p => p.empresaSlug === "barbiero-mascote"), [rankingAtivo]);
+  const barbeirosMoreumbi = useMemo(() => rankingAtivo.filter(p => p.empresaSlug === "barbiero-morumbi"), [rankingAtivo]);
 
-  const temDadosNoMes = ranking.some(p => p.temDados);
+  const temDadosNoMes = modo === "mensal" ? ranking.some(p => p.temDados) : rankingAtivo.some(p => p.totalGeral > 0);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
   const podeAvancar = !isPeriodoAtual;
 
@@ -707,6 +764,24 @@ export default function RankingPublico() {
     setAno(novoAno);
   }
 
+  const navegarDia = useCallback((direcao: -1 | 1) => {
+    setDataDiaria(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + direcao);
+      if (d > hoje) return prev;
+      return d;
+    });
+  }, [hoje]);
+
+  const navegarSemana = useCallback((direcao: -1 | 1) => {
+    setSemanaRef(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + direcao * 7);
+      if (d > hoje) return prev;
+      return d;
+    });
+  }, [hoje]);
+
   // Lista e campo para a aba ativa
   const listaAtiva = abaAtiva === "barbeiros" ? barbeiros
     : abaAtiva === "auxiliares" ? auxiliares
@@ -719,8 +794,8 @@ export default function RankingPublico() {
   const abas: { id: AbaRanking; label: string; icon: React.ReactNode; count: number }[] = [
     { id: "barbeiros", label: "Barbeiros", icon: <Scissors className="h-3.5 w-3.5" />, count: barbeiros.length },
     { id: "auxiliares", label: "Auxiliares", icon: <Star className="h-3.5 w-3.5" />, count: auxiliares.length },
-    { id: "mascote", label: "Mascote", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMAscote.filter(p => p.temDados).length },
-    { id: "morumbi", label: "Morumbi", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMoreumbi.filter(p => p.temDados).length },
+    { id: "mascote", label: "Mascote", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMAscote.filter(p => p.totalGeral > 0).length },
+    { id: "morumbi", label: "Morumbi", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMoreumbi.filter(p => p.totalGeral > 0).length },
     { id: "unidade", label: "Por Unidade", icon: <TrendingUp className="h-3.5 w-3.5" />, count: 0 },
     { id: "produtos", label: "Produtos", icon: <Package className="h-3.5 w-3.5" />, count: rankingProdutos.filter(p => p.totalProdutos > 0).length },
   ];
@@ -749,7 +824,37 @@ export default function RankingPublico() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {ultimaAtualizacao && (
+              {/* Seletor de modo de visualização */}
+              <div className="flex items-center rounded-lg border bg-muted/50 p-0.5 gap-0.5">
+                <button
+                  onClick={() => setModo("diario")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                    modo === "diario" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Sun className="h-3 w-3" />
+                  Diário
+                </button>
+                <button
+                  onClick={() => setModo("semanal")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                    modo === "semanal" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <CalendarDays className="h-3 w-3" />
+                  Semanal
+                </button>
+                <button
+                  onClick={() => setModo("mensal")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                    modo === "mensal" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <CalendarRange className="h-3 w-3" />
+                  Mensal
+                </button>
+              </div>
+              {modo === "mensal" && ultimaAtualizacao && (
                 <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   {new Date(ultimaAtualizacao).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
@@ -757,7 +862,7 @@ export default function RankingPublico() {
               )}
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                {ranking.length} profissional{ranking.length !== 1 ? "is" : ""}
+                {rankingAtivo.length} profissional{rankingAtivo.length !== 1 ? "is" : ""}
               </Badge>
             </div>
           </div>
@@ -791,54 +896,106 @@ export default function RankingPublico() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 p-4 rounded-xl border bg-card">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Calendar className="h-4 w-4 text-primary" />
-              Período de referência
+              {modo === "diario" ? "Data" : modo === "semanal" ? "Semana" : "Período de referência"}
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(-1)}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Select value={String(mes)} onValueChange={(v) => setMes(Number(v))}>
-                <SelectTrigger className="w-36 h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MESES.map((nome, idx) => {
-                    const m = idx + 1;
-                    const futuro = ano === hoje.getFullYear() && m > hoje.getMonth() + 1;
-                    return (
-                      <SelectItem key={m} value={String(m)} disabled={futuro}>{nome}</SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
-                <SelectTrigger className="w-24 h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {anosDisponiveis.map((y) => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(1)} disabled={!podeAvancar}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              {!isPeriodoAtual && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs text-primary"
-                  onClick={() => { setMes(hoje.getMonth() + 1); setAno(hoje.getFullYear()); }}
-                >
-                  Mês atual
+
+            {/* Seletor Mensal */}
+            {modo === "mensal" && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(-1)}>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-              )}
-            </div>
+                <Select value={String(mes)} onValueChange={(v) => setMes(Number(v))}>
+                  <SelectTrigger className="w-36 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MESES.map((nome, idx) => {
+                      const m = idx + 1;
+                      const futuro = ano === hoje.getFullYear() && m > hoje.getMonth() + 1;
+                      return (
+                        <SelectItem key={m} value={String(m)} disabled={futuro}>{nome}</SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
+                  <SelectTrigger className="w-24 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {anosDisponiveis.map((y) => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarMes(1)} disabled={!podeAvancar}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {!isPeriodoAtual && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs text-primary"
+                    onClick={() => { setMes(hoje.getMonth() + 1); setAno(hoje.getFullYear()); }}
+                  >
+                    Mês atual
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Seletor Diário */}
+            {modo === "diario" && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarDia(-1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <input
+                  type="date"
+                  value={dataDiariaStr}
+                  max={toDateStr(hoje)}
+                  onChange={(e) => { if (e.target.value) setDataDiaria(new Date(e.target.value + 'T12:00:00')); }}
+                  className="h-8 px-3 text-sm rounded-md border bg-background text-foreground"
+                />
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarDia(1)} disabled={dataDiariaStr >= toDateStr(hoje)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {dataDiariaStr !== toDateStr(hoje) && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" onClick={() => setDataDiaria(hoje)}>
+                    Hoje
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => refetchDiario()} title="Atualizar">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+
+            {/* Seletor Semanal */}
+            {modo === "semanal" && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarSemana(-1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium px-2">{labelSemana(semanaInicio, semanaFim)}</span>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navegarSemana(1)} disabled={semanaInicioStr >= toDateStr(inicioSemana(hoje))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {semanaInicioStr !== toDateStr(inicioSemana(hoje)) && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" onClick={() => setSemanaRef(inicioSemana(hoje))}>
+                    Semana atual
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => refetchSemanal()} title="Atualizar">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Aviso sem dados */}
-          {!isLoading && !temDadosNoMes && ranking.length > 0 && (
+          {/* Aviso sem dados mensal */}
+          {modo === "mensal" && !isLoading && !temDadosNoMes && ranking.length > 0 && (
             <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 mb-6">
               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
@@ -848,12 +1005,27 @@ export default function RankingPublico() {
             </div>
           )}
 
-          {isLoading ? (
+          {/* Banner informativo diário/semanal */}
+          {(modo === "diario" || modo === "semanal") && !isLoadingAtivo && (
+            <div className="flex items-center gap-2 p-3 rounded-xl border border-primary/20 bg-primary/5 mb-6">
+              <Clock className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                {modo === "diario"
+                  ? `Dados em tempo real do CashBarber para ${dataDiaria.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}`
+                  : `Dados em tempo real do CashBarber para a semana de ${labelSemana(semanaInicio, semanaFim)}`
+                }
+              </p>
+            </div>
+          )}
+
+          {isLoadingAtivo ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
               <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-              <p className="text-muted-foreground text-sm">Carregando ranking...</p>
+              <p className="text-muted-foreground text-sm">
+                {modo === "diario" ? "Buscando dados do dia..." : modo === "semanal" ? "Buscando dados da semana..." : "Carregando ranking..."}
+              </p>
             </div>
-          ) : abaAtiva === "unidade" ? (
+          ) : abaAtiva === "unidade" && modo === "mensal" ? (
             <RankingUnidade lista={ranking} historico={historicoUnidades ?? []} />
           ) : listaAtiva.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -874,7 +1046,7 @@ export default function RankingPublico() {
           ) : (
             <>
               {/* Pódio top 3 */}
-              {temDadosNoMes && listaAtiva.length >= 3 && (
+              {(temDadosNoMes || modo !== "mensal") && listaAtiva.length >= 3 && (
                 <div className="mb-10">
                   <div className="flex items-end justify-center gap-4">
                     <PodiumCard posicao={2} profissional={listaAtiva[1]} height="h-28" bgColor="bg-slate-400/20 border-slate-400/40" iconColor="text-slate-400" campo={campoAtivo} onDetalhar={() => setProfissionalSelecionado(listaAtiva[1])} />
@@ -885,7 +1057,7 @@ export default function RankingPublico() {
               )}
 
               {/* Dica */}
-              {temDadosNoMes && (
+              {(temDadosNoMes || modo !== "mensal") && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
                   <ChevronDown className="h-3 w-3" />
                   Clique em qualquer profissional para ver o detalhamento
@@ -895,11 +1067,19 @@ export default function RankingPublico() {
               {/* Label da aba */}
               <h2 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
-                {abaAtiva === "barbeiros" && `Barbeiros — ${MESES[mes - 1]} ${ano}`}
-                {abaAtiva === "auxiliares" && `Auxiliares — ${MESES[mes - 1]} ${ano}`}
-                {abaAtiva === "produtos" && `Ranking de Produtos — ${MESES[mes - 1]} ${ano}`}
-                {abaAtiva === "mascote" && `Barbeiros Mascote — ${MESES[mes - 1]} ${ano}`}
-                {abaAtiva === "morumbi" && `Barbeiros Morumbi — ${MESES[mes - 1]} ${ano}`}
+                {(() => {
+                  const periodo = modo === "diario"
+                    ? dataDiaria.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : modo === "semanal"
+                    ? labelSemana(semanaInicio, semanaFim)
+                    : `${MESES[mes - 1]} ${ano}`;
+                  if (abaAtiva === "barbeiros") return `Barbeiros — ${periodo}`;
+                  if (abaAtiva === "auxiliares") return `Auxiliares — ${periodo}`;
+                  if (abaAtiva === "produtos") return `Ranking de Produtos — ${periodo}`;
+                  if (abaAtiva === "mascote") return `Mascote — ${periodo}`;
+                  if (abaAtiva === "morumbi") return `Morumbi — ${periodo}`;
+                  return periodo;
+                })()}
               </h2>
 
               {/* Lista */}
@@ -910,7 +1090,7 @@ export default function RankingPublico() {
                     p={p}
                     idx={idx}
                     campo={campoAtivo}
-                    temDadosNoMes={temDadosNoMes}
+                    temDadosNoMes={temDadosNoMes || modo !== "mensal"}
                     onDetalhar={() => setProfissionalSelecionado(p)}
                   />
                 ))}
@@ -919,7 +1099,11 @@ export default function RankingPublico() {
               {/* Rodapé */}
               <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
-                  {temDadosNoMes
+                  {modo === "diario"
+                    ? `Faturamento de ${dataDiaria.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}`
+                    : modo === "semanal"
+                    ? `Semana de ${labelSemana(semanaInicio, semanaFim)}`
+                    : temDadosNoMes
                     ? `Faturamento de ${MESES[mes - 1]} de ${ano}`
                     : `Sem dados de faturamento para ${MESES[mes - 1]} de ${ano}`}
                 </p>

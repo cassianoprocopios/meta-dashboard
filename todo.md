@@ -1049,3 +1049,7 @@
 - [ ] Implementar acesso simplificado para profissionais (PIN de 4 dígitos)
 - [ ] Criar página mobile-first de ranking para profissionais
 - [ ] Adicionar abas diário/semanal/mensal na visão do profissional
+
+## Ranking Diário e Semanal no RankingPublico
+- [ ] Adicionar aba "Diário" com seletor de data e dados em tempo real do CashBarber
+- [ ] Adicionar aba "Semanal" com seletor de semana e dados em tempo real do CashBarber
