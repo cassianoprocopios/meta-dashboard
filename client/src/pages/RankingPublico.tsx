@@ -1203,7 +1203,9 @@ export default function RankingPublico() {
             </div>
           </div>
           <div style={{ fontSize: "12px", color: "#64748b", textAlign: "right" }}>
-            <div style={{ fontWeight: "600", color: "#94a3b8" }}>Barbiero</div>
+            <div style={{ fontWeight: "600", color: "#94a3b8" }}>
+              {abaAtiva === "mascote" ? "Barbiero Mascote" : abaAtiva === "morumbi" ? "Barbiero Morumbi" : "Barbiero"}
+            </div>
             <div>performancemeta.sbs</div>
           </div>
         </div>

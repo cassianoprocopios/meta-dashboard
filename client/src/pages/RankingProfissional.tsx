@@ -1,27 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function inicioSemana(): string {
-  const d = new Date();
-  const dia = d.getDay(); // 0=dom, 1=seg...
-  const diff = dia === 0 ? -6 : 1 - dia; // segunda-feira
-  d.setDate(d.getDate() + diff);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function fimSemana(): string {
-  const d = new Date();
-  const dia = d.getDay();
-  const diff = dia === 0 ? 0 : 7 - dia; // domingo
-  d.setDate(d.getDate() + diff);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
@@ -40,7 +25,7 @@ function formatarData(iso: string) {
 }
 
 function nomeMes(mes: number) {
-  return ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][mes - 1];
+  return ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][mes - 1];
 }
 
 // ─── Tela de Login por PIN ────────────────────────────────────────────────────
@@ -181,10 +166,159 @@ function RankingCard({
   );
 }
 
+// ─── Hook de exportação de imagem ─────────────────────────────────────────────
+function useExportarImagem() {
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [exportando, setExportando] = useState(false);
+
+  const exportar = useCallback(async (nomeArquivo: string) => {
+    if (!exportRef.current || exportando) return;
+    setExportando(true);
+    try {
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: "#0f172a",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement("a");
+      link.download = `${nomeArquivo}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      toast.success("Imagem gerada! Pronta para compartilhar.");
+    } catch (e) {
+      console.error("Erro ao exportar imagem:", e);
+      toast.error("Erro ao gerar imagem.");
+    } finally {
+      setExportando(false);
+    }
+  }, [exportando]);
+
+  return { exportRef, exportando, exportar };
+}
+
+// ─── Elemento de exportação (oculto) ─────────────────────────────────────────
+type RankingItem = {
+  id: number;
+  nome: string;
+  apelido?: string | null;
+  totalGeral: number;
+  totalServicos: number;
+  totalProdutos: number;
+};
+
+function ExportCard({
+  exportRef,
+  titulo,
+  subtitulo,
+  ranking,
+  meuNome,
+}: {
+  exportRef: React.RefObject<HTMLDivElement | null>;
+  titulo: string;
+  subtitulo: string;
+  ranking: RankingItem[];
+  meuNome: string;
+}) {
+  const top5 = ranking.slice(0, 5);
+  const medals = ["🥇", "🥈", "🥉", "4º", "5º"];
+  const bgColors = [
+    "rgba(251,191,36,0.15)",
+    "rgba(148,163,184,0.12)",
+    "rgba(180,83,9,0.12)",
+    "rgba(255,255,255,0.05)",
+    "rgba(255,255,255,0.05)",
+  ];
+  const borderColors = [
+    "rgba(251,191,36,0.4)",
+    "rgba(148,163,184,0.3)",
+    "rgba(180,83,9,0.3)",
+    "rgba(255,255,255,0.08)",
+    "rgba(255,255,255,0.08)",
+  ];
+
+  return (
+    <div
+      ref={exportRef}
+      style={{
+        position: "fixed",
+        top: "-9999px",
+        left: "-9999px",
+        width: "500px",
+        background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
+        padding: "28px",
+        borderRadius: "16px",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        color: "#ffffff",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+        <div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "#fbbf24", letterSpacing: "-0.5px" }}>🏆 {titulo}</div>
+          <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>{subtitulo}</div>
+        </div>
+        <div style={{ fontSize: "11px", color: "#64748b", textAlign: "right" }}>
+          <div style={{ fontWeight: "600", color: "#94a3b8" }}>Barbiero</div>
+          <div>performancemeta.sbs</div>
+        </div>
+      </div>
+
+      {/* Divisória */}
+      <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", marginBottom: "20px" }} />
+
+      {/* Top 5 */}
+      {top5.map((p, idx) => {
+        const nomeExibido = p.apelido || p.nome.split(" ")[0];
+        const isMe = p.nome === meuNome || p.apelido === meuNome;
+        return (
+          <div
+            key={p.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "10px 14px",
+              borderRadius: "10px",
+              background: isMe ? "rgba(59,130,246,0.2)" : bgColors[idx],
+              border: `1px solid ${isMe ? "rgba(59,130,246,0.5)" : borderColors[idx]}`,
+              marginBottom: idx < 4 ? "7px" : "0",
+            }}
+          >
+            <div style={{ fontSize: idx < 3 ? "20px" : "13px", fontWeight: "700", minWidth: "26px", textAlign: "center", color: idx >= 3 ? "#64748b" : undefined }}>
+              {medals[idx]}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: isMe ? "#93c5fd" : idx === 0 ? "#fbbf24" : "#f1f5f9" }}>
+                {nomeExibido}{isMe ? " (você)" : ""}
+              </div>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "1px" }}>
+                Serv: {formatarMoeda(p.totalServicos)}{p.totalProdutos > 0 ? ` · Prod: ${formatarMoeda(p.totalProdutos)}` : ""}
+              </div>
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "700", color: isMe ? "#93c5fd" : idx === 0 ? "#fbbf24" : "#e2e8f0" }}>
+              {formatarMoeda(p.totalGeral)}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Rodapé */}
+      <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: "10px", color: "#475569" }}>Barbeiros</div>
+        <div style={{ fontSize: "10px", color: "#475569" }}>
+          Gerado em {new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Aba Diário ───────────────────────────────────────────────────────────────
 function AbaDiario({ meuNome }: { meuNome: string }) {
   const [data, setData] = useState(hoje());
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000 });
+  const { exportRef, exportando, exportar } = useExportarImagem();
 
   const anterior = () => {
     const d = new Date(data + "T12:00:00");
@@ -200,6 +334,8 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
   };
 
   const ehHoje = data === hoje();
+  const [dia, mes, ano] = formatarData(data).split("/");
+  const subtitulo = ehHoje ? "Hoje" : `${dia}/${mes}/${ano}`;
 
   return (
     <div>
@@ -224,20 +360,42 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
       ) : !ranking || ranking.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para este dia</div>
       ) : (
-        <div className="space-y-2">
-          {ranking.map((p, i) => (
-            <RankingCard
-              key={p.id}
-              pos={i + 1}
-              nome={p.nome}
-              apelido={p.apelido}
-              totalGeral={p.totalGeral}
-              totalServicos={p.totalServicos}
-              totalProdutos={p.totalProdutos}
-              isMe={p.nome === meuNome || p.apelido === meuNome}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-2">
+            {ranking.map((p, i) => (
+              <RankingCard
+                key={p.id}
+                pos={i + 1}
+                nome={p.nome}
+                apelido={p.apelido}
+                totalGeral={p.totalGeral}
+                totalServicos={p.totalServicos}
+                totalProdutos={p.totalProdutos}
+                isMe={p.nome === meuNome || p.apelido === meuNome}
+              />
+            ))}
+          </div>
+          {/* Botão exportar */}
+          <button
+            onClick={() => exportar(`ranking-diario-${data}`)}
+            disabled={exportando}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+          >
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? "Gerando imagem..." : "Exportar para WhatsApp"}
+          </button>
+        </>
+      )}
+
+      {/* Elemento oculto para exportação */}
+      {ranking && ranking.length > 0 && (
+        <ExportCard
+          exportRef={exportRef}
+          titulo={`Ranking — ${subtitulo}`}
+          subtitulo={`Faturamento de ${formatarData(data)}`}
+          ranking={ranking}
+          meuNome={meuNome}
+        />
       )}
     </div>
   );
@@ -246,6 +404,7 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
 // ─── Aba Semanal ──────────────────────────────────────────────────────────────
 function AbaSemanal({ meuNome }: { meuNome: string }) {
   const [semanaOffset, setSemanaOffset] = useState(0);
+  const { exportRef, exportando, exportar } = useExportarImagem();
 
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
@@ -265,6 +424,7 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
   );
 
   const ehSemanaAtual = semanaOffset === 0;
+  const labelSemana = `${formatarData(dataInicio)} – ${formatarData(dataFim)}`;
 
   return (
     <div>
@@ -289,20 +449,42 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
       ) : !ranking || ranking.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para esta semana</div>
       ) : (
-        <div className="space-y-2">
-          {ranking.map((p, i) => (
-            <RankingCard
-              key={p.id}
-              pos={i + 1}
-              nome={p.nome}
-              apelido={p.apelido}
-              totalGeral={p.totalGeral}
-              totalServicos={p.totalServicos}
-              totalProdutos={p.totalProdutos}
-              isMe={p.nome === meuNome || p.apelido === meuNome}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-2">
+            {ranking.map((p, i) => (
+              <RankingCard
+                key={p.id}
+                pos={i + 1}
+                nome={p.nome}
+                apelido={p.apelido}
+                totalGeral={p.totalGeral}
+                totalServicos={p.totalServicos}
+                totalProdutos={p.totalProdutos}
+                isMe={p.nome === meuNome || p.apelido === meuNome}
+              />
+            ))}
+          </div>
+          {/* Botão exportar */}
+          <button
+            onClick={() => exportar(`ranking-semanal-${dataInicio}`)}
+            disabled={exportando}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+          >
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? "Gerando imagem..." : "Exportar para WhatsApp"}
+          </button>
+        </>
+      )}
+
+      {/* Elemento oculto para exportação */}
+      {ranking && ranking.length > 0 && (
+        <ExportCard
+          exportRef={exportRef}
+          titulo={`Ranking Semanal`}
+          subtitulo={`Semana de ${labelSemana}`}
+          ranking={ranking}
+          meuNome={meuNome}
+        />
       )}
     </div>
   );
@@ -311,6 +493,8 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
 // ─── Aba Mensal ───────────────────────────────────────────────────────────────
 function AbaMensal({ meuNome }: { meuNome: string }) {
   const [mesOffset, setMesOffset] = useState(0);
+  const { exportRef, exportando, exportar } = useExportarImagem();
+
   const { mes, ano } = useMemo(() => {
     const d = new Date();
     d.setMonth(d.getMonth() + mesOffset);
@@ -344,20 +528,42 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
       ) : ranking.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para este mês</div>
       ) : (
-        <div className="space-y-2">
-          {ranking.map((p, i) => (
-            <RankingCard
-              key={p.id}
-              pos={i + 1}
-              nome={p.nome}
-              apelido={p.apelido}
-              totalGeral={p.totalGeral}
-              totalServicos={p.totalServicos}
-              totalProdutos={p.totalProdutos}
-              isMe={p.nome === meuNome || p.apelido === meuNome}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-2">
+            {ranking.map((p, i) => (
+              <RankingCard
+                key={p.id}
+                pos={i + 1}
+                nome={p.nome}
+                apelido={p.apelido}
+                totalGeral={p.totalGeral}
+                totalServicos={p.totalServicos}
+                totalProdutos={p.totalProdutos}
+                isMe={p.nome === meuNome || p.apelido === meuNome}
+              />
+            ))}
+          </div>
+          {/* Botão exportar */}
+          <button
+            onClick={() => exportar(`ranking-${nomeMes(mes).toLowerCase()}-${ano}`)}
+            disabled={exportando}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+          >
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? "Gerando imagem..." : "Exportar para WhatsApp"}
+          </button>
+        </>
+      )}
+
+      {/* Elemento oculto para exportação */}
+      {ranking.length > 0 && (
+        <ExportCard
+          exportRef={exportRef}
+          titulo={`Ranking — ${nomeMes(mes)}`}
+          subtitulo={`Faturamento de ${nomeMes(mes)} de ${ano}`}
+          ranking={ranking}
+          meuNome={meuNome}
+        />
       )}
     </div>
   );
