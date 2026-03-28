@@ -1,0 +1,44 @@
+{
+  "query": "SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data IN ('2026-03-01','2026-03-02','2026-03-28') AND empresaSlug IN ('MASCOTE','MORUMBI') ORDER BY empresaSlug, data;\n\nSELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE','MORUMBI') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data IN ('2026-03-01','2026-03-02','2026-03-28') AND empresaSlug IN ('MASCOTE','MORUMBI') ORDER BY empresaSlug, data;\n\nSELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE','MORUMBI') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-01",
+      "cat9": "1757.04"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-02",
+      "cat9": "1757.04"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-28",
+      "cat9": "1757.04"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-01",
+      "cat9": "4068.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-02",
+      "cat9": "4068.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-28",
+      "cat9": "4068.00"
+    }
+  ],
+  "messages": [
+    "empresaSlug\ttotal_cat9",
+    "MORUMBI\t113904",
+    "MASCOTE\t49196"
+  ],
+  "stdout": "empresaSlug\tdata\tcat9\nMASCOTE\t2026-03-01\t1757.04\nMASCOTE\t2026-03-02\t1757.04\nMASCOTE\t2026-03-28\t1757.04\nMORUMBI\t2026-03-01\t4068.00\nMORUMBI\t2026-03-02\t4068.00\nMORUMBI\t2026-03-28\t4068.00\nempresaSlug\ttotal_cat9\nMORUMBI\t113904\nMASCOTE\t49196\n",
+  "stderr": "",
+  "execution_time_ms": 74
+}

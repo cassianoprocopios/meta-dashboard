@@ -1,0 +1,320 @@
+{
+  "query": "SELECT empresaSlug, data, CAST(cat9 AS DECIMAL) as cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE','MORUMBI') ORDER BY empresaSlug, data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, data, CAST(cat9 AS DECIMAL) as cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE','MORUMBI') ORDER BY empresaSlug, data;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-01",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-02",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-03",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-04",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-05",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-06",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-07",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-08",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-09",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-10",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-11",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-12",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-13",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-14",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-15",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-16",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-17",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-18",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-19",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-20",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-21",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-22",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-23",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-24",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-25",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-26",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-27",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-28",
+      "cat9": "1757"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-29",
+      "cat9": "0"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-30",
+      "cat9": "0"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-31",
+      "cat9": "0"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-01",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-02",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-03",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-04",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-05",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-06",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-07",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-08",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-09",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-10",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-11",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-12",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-13",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-14",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-15",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-16",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-17",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-18",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-19",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-20",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-21",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-22",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-23",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-24",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-25",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-26",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-27",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-28",
+      "cat9": "4068"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-29",
+      "cat9": "0"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-30",
+      "cat9": "0"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-31",
+      "cat9": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat9\nMASCOTE\t2026-03-01\t1757\nMASCOTE\t2026-03-02\t1757\nMASCOTE\t2026-03-03\t1757\nMASCOTE\t2026-03-04\t1757\nMASCOTE\t2026-03-05\t1757\nMASCOTE\t2026-03-06\t1757\nMASCOTE\t2026-03-07\t1757\nMASCOTE\t2026-03-08\t1757\nMASCOTE\t2026-03-09\t1757\nMASCOTE\t2026-03-10\t1757\nMASCOTE\t2026-03-11\t1757\nMASCOTE\t2026-03-12\t1757\nMASCOTE\t2026-03-13\t1757\nMASCOTE\t2026-03-14\t1757\nMASCOTE\t2026-03-15\t1757\nMASCOTE\t2026-03-16\t1757\nMASCOTE\t2026-03-17\t1757\nMASCOTE\t2026-03-18\t1757\nMASCOTE\t2026-03-19\t1757\nMASCOTE\t2026-03-20\t1757\nMASCOTE\t2026-03-21\t1757\nMASCOTE\t2026-03-22\t1757\nMASCOTE\t2026-03-23\t1757\nMASCOTE\t2026-03-24\t1757\nMASCOTE\t2026-03-25\t1757\nMASCOTE\t2026-03-26\t1757\nMASCOTE\t2026-03-27\t1757\nMASCOTE\t2026-03-28\t1757\nMASCOTE\t2026-03-29\t0\nMASCOTE\t2026-03-30\t0\nMASCOTE\t2026-03-31\t0\nMORUMBI\t2026-03-01\t4068\nMORUMBI\t2026-03-02\t4068\nMORUMBI\t2026-03-03\t4068\nMORUMBI\t2026-03-04\t4068\nMORUMBI\t2026-03-05\t4068\nMORUMBI\t2026-03-06\t4068\nMORUMBI\t2026-03-07\t4068\nMORUMBI\t2026-03-08\t4068\nMORUMBI\t2026-03-09\t4068\nMORUMBI\t2026-03-10\t4068\nMORUMBI\t2026-03-11\t4068\nMORUMBI\t2026-03-12\t4068\nMORUMBI\t2026-03-13\t4068\nMORUMBI\t2026-03-14\t4068\nMORUMBI\t2026-03-15\t4068\nMORUMBI\t2026-03-16\t4068\nMORUMBI\t2026-03-17\t4068\nMORUMBI\t2026-03-18\t4068\nMORUMBI\t2026-03-19\t4068\nMORUMBI\t2026-03-20\t4068\nMORUMBI\t2026-03-21\t4068\nMORUMBI\t2026-03-22\t4068\nMORUMBI\t2026-03-23\t4068\nMORUMBI\t2026-03-24\t4068\nMORUMBI\t2026-03-25\t4068\nMORUMBI\t2026-03-26\t4068\nMORUMBI\t2026-03-27\t4068\nMORUMBI\t2026-03-28\t4068\nMORUMBI\t2026-03-29\t0\nMORUMBI\t2026-03-30\t0\nMORUMBI\t2026-03-31\t0\n",
+  "stderr": "",
+  "execution_time_ms": 126
+}
