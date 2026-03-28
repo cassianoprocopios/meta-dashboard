@@ -1,0 +1,24 @@
+{
+  "query": "SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_recorrencia, COUNT(*) as dias_total, SUM(CASE WHEN CAST(cat9 AS DECIMAL) > 0 THEN 1 ELSE 0 END) as dias_com_valor, MIN(CASE WHEN CAST(cat9 AS DECIMAL) > 0 THEN cat9 END) as valor_diario FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_recorrencia, COUNT(*) as dias_total, SUM(CASE WHEN CAST(cat9 AS DECIMAL) > 0 THEN 1 ELSE 0 END) as dias_com_valor, MIN(CASE WHEN CAST(cat9 AS DECIMAL) > 0 THEN cat9 END) as valor_diario FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "total_recorrencia": "113904",
+      "dias_total": "31",
+      "dias_com_valor": "28",
+      "valor_diario": "4068.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "total_recorrencia": "49196",
+      "dias_total": "31",
+      "dias_com_valor": "28",
+      "valor_diario": "1757.04"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_recorrencia\tdias_total\tdias_com_valor\tvalor_diario\nMORUMBI\t113904\t31\t28\t4068.00\nMASCOTE\t49196\t31\t28\t1757.04\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

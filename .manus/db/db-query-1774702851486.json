@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Mascote: R$ 49.098 / 28 dias = R$ 1.753,50/dia\nUPDATE faturamentos SET cat9 = '1753.50' WHERE empresaSlug = 'MASCOTE' AND data BETWEEN '2026-03-01' AND '2026-03-28';\nUPDATE faturamentos SET cat9 = '0.00' WHERE empresaSlug = 'MASCOTE' AND data BETWEEN '2026-03-29' AND '2026-03-31';\n\n-- Morumbi: R$ 114.003 / 28 dias = R$ 4.071,54/dia\nUPDATE faturamentos SET cat9 = '4071.54' WHERE empresaSlug = 'MORUMBI' AND data BETWEEN '2026-03-01' AND '2026-03-28';\nUPDATE faturamentos SET cat9 = '0.00' WHERE empresaSlug = 'MORUMBI' AND data BETWEEN '2026-03-29' AND '2026-03-31';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Mascote: R$ 49.098 / 28 dias = R$ 1.753,50/dia\nUPDATE faturamentos SET cat9 = '1753.50' WHERE empresaSlug = 'MASCOTE' AND data BETWEEN '2026-03-01' AND '2026-03-28';\nUPDATE faturamentos SET cat9 = '0.00' WHERE empresaSlug = 'MASCOTE' AND data BETWEEN '2026-03-29' AND '2026-03-31';\n\n-- Morumbi: R$ 114.003 / 28 dias = R$ 4.071,54/dia\nUPDATE faturamentos SET cat9 = '4071.54' WHERE empresaSlug = 'MORUMBI' AND data BETWEEN '2026-03-01' AND '2026-03-28';\nUPDATE faturamentos SET cat9 = '0.00' WHERE empresaSlug = 'MORUMBI' AND data BETWEEN '2026-03-29' AND '2026-03-31';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 132
+}
