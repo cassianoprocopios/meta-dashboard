@@ -1,0 +1,45 @@
+{
+  "query": "SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_cat9, COUNT(*) as dias FROM faturamentos WHERE data LIKE '2026-03-%' GROUP BY empresaSlug;\n\nSELECT empresaSlug, data, cat9 FROM faturamentos WHERE data = '2026-03-01' ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_cat9, COUNT(*) as dias FROM faturamentos WHERE data LIKE '2026-03-%' GROUP BY empresaSlug;\n\nSELECT empresaSlug, data, cat9 FROM faturamentos WHERE data = '2026-03-01' ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "total_cat9": "220356",
+      "dias": "31"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "total_cat9": "0",
+      "dias": "19"
+    },
+    {
+      "empresaSlug": "DOM_",
+      "total_cat9": "0",
+      "dias": "25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "total_cat9": "95106",
+      "dias": "31"
+    },
+    {
+      "empresaSlug": "empresaSlug",
+      "total_cat9": "data",
+      "dias": "cat9"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "total_cat9": "2026-03-01",
+      "dias": "49098.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "total_cat9": "2026-03-01",
+      "dias": "114003.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_cat9\tdias\nMORUMBI\t220356\t31\nSERAPHINE\t0\t19\nDOM_\t0\t25\nMASCOTE\t95106\t31\nempresaSlug\tdata\tcat9\nMASCOTE\t2026-03-01\t49098.00\nMORUMBI\t2026-03-01\t114003.00\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

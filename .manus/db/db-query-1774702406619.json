@@ -1,0 +1,106 @@
+{
+  "query": "SELECT empresaSlug, tipo, cbNome, metaCategoria FROM cashbarberMapeamento ORDER BY empresaSlug, tipo, cbNome LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, tipo, cbNome, metaCategoria FROM cashbarberMapeamento ORDER BY empresaSlug, tipo, cbNome LIMIT 50;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat3"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "servico_categoria",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbNome": "Bar",
+      "metaCategoria": "cat8"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat7"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat6"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat5"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "tipo": "produto_categoria",
+      "cbNome": "Keune",
+      "metaCategoria": "cat4"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat3"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "servico_categoria",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "produto_categoria",
+      "cbNome": "Bar",
+      "metaCategoria": "cat8"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "produto_categoria",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat7"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "produto_categoria",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat6"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "produto_categoria",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat5"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "tipo": "produto_categoria",
+      "cbNome": "Keune",
+      "metaCategoria": "cat4"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttipo\tcbNome\tmetaCategoria\nMASCOTE\tservico_categoria\tAuxiliar\tcat3\nMASCOTE\tservico_categoria\tAVULSO/CLUBE\tcat1\nMASCOTE\tservico_categoria\tSERVIÇO EXTRA\tcat2\nMASCOTE\tproduto_categoria\tBar\tcat8\nMASCOTE\tproduto_categoria\tBarbiero\tcat7\nMASCOTE\tproduto_categoria\tCaixinha\tcat6\nMASCOTE\tproduto_categoria\tDon Alcides\tcat5\nMASCOTE\tproduto_categoria\tKeune\tcat4\nMORUMBI\tservico_categoria\tAuxiliar\tcat3\nMORUMBI\tservico_categoria\tAVULSO/CLUBE\tcat1\nMORUMBI\tservico_categoria\tSERVIÇO EXTRA\tcat2\nMORUMBI\tproduto_categoria\tBar\tcat8\nMORUMBI\tproduto_categoria\tBarbiero\tcat7\nMORUMBI\tproduto_categoria\tCaixinha\tcat6\nMORUMBI\tproduto_categoria\tDon Alcides\tcat5\nMORUMBI\tproduto_categoria\tKeune\tcat4\n",
+  "stderr": "",
+  "execution_time_ms": 100
+}

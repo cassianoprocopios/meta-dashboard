@@ -1,0 +1,120 @@
+{
+  "query": "SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data BETWEEN '2026-03-21' AND '2026-03-31' AND empresaSlug IN ('MASCOTE', 'MORUMBI') ORDER BY empresaSlug, data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data BETWEEN '2026-03-21' AND '2026-03-31' AND empresaSlug IN ('MASCOTE', 'MORUMBI') ORDER BY empresaSlug, data;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-21",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-22",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-23",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-24",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-25",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-26",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-27",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-28",
+      "cat9": "1704.25"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-29",
+      "cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-30",
+      "cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-03-31",
+      "cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-21",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-22",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-23",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-24",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-25",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-26",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-27",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-28",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-29",
+      "cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-30",
+      "cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-31",
+      "cat9": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat9\nMASCOTE\t2026-03-21\t1704.25\nMASCOTE\t2026-03-22\t1704.25\nMASCOTE\t2026-03-23\t1704.25\nMASCOTE\t2026-03-24\t1704.25\nMASCOTE\t2026-03-25\t1704.25\nMASCOTE\t2026-03-26\t1704.25\nMASCOTE\t2026-03-27\t1704.25\nMASCOTE\t2026-03-28\t1704.25\nMASCOTE\t2026-03-29\t0.00\nMASCOTE\t2026-03-30\t0.00\nMASCOTE\t2026-03-31\t0.00\nMORUMBI\t2026-03-21\t3938.61\nMORUMBI\t2026-03-22\t3938.61\nMORUMBI\t2026-03-23\t3938.61\nMORUMBI\t2026-03-24\t3938.61\nMORUMBI\t2026-03-25\t3938.61\nMORUMBI\t2026-03-26\t3938.61\nMORUMBI\t2026-03-27\t3938.61\nMORUMBI\t2026-03-28\t3938.61\nMORUMBI\t2026-03-29\t0.00\nMORUMBI\t2026-03-30\t0.00\nMORUMBI\t2026-03-31\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}

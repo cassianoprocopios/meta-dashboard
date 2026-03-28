@@ -1,0 +1,35 @@
+{
+  "query": "SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug = 'MORUMBI' ORDER BY data LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, data, cat9 FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug = 'MORUMBI' ORDER BY data LIMIT 5;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-01",
+      "cat9": "114003.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-02",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-03",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-04",
+      "cat9": "3938.61"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "data": "2026-03-05",
+      "cat9": "3938.61"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat9\nMORUMBI\t2026-03-01\t114003.00\nMORUMBI\t2026-03-02\t3938.61\nMORUMBI\t2026-03-03\t3938.61\nMORUMBI\t2026-03-04\t3938.61\nMORUMBI\t2026-03-05\t3938.61\n",
+  "stderr": "",
+  "execution_time_ms": 74
+}

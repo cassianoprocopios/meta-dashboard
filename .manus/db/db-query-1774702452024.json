@@ -1,0 +1,20 @@
+{
+  "query": "SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_recorrencia, COUNT(*) as dias FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(CAST(cat9 AS DECIMAL)) as total_recorrencia, COUNT(*) as dias FROM faturamentos WHERE data LIKE '2026-03-%' AND empresaSlug IN ('MASCOTE', 'MORUMBI') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "total_recorrencia": "47712",
+      "dias": "31"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "total_recorrencia": "110292",
+      "dias": "31"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_recorrencia\tdias\nMASCOTE\t47712\t31\nMORUMBI\t110292\t31\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}
