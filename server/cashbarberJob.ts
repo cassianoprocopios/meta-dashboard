@@ -462,3 +462,34 @@ cron.schedule("0 0 21 * * *", () => {
     console.error("[Ranking Notif] Erro:", e)
   );
 });
+
+// ─── Job diário às 6h da manhã (09:00 UTC = 06:00 BRT) ───────────────────────
+// Garante que o sync do dia seja executado às 6h mesmo que o job horário
+// tenha sido perdido por hibernação do sandbox.
+// Usa a mesma lógica do endpoint /api/internal/cron-sync.
+cron.schedule("0 0 9 * * *", async () => {
+  console.log("[CashBarber Job] Sync diário das 6h iniciado...");
+  try {
+    const configs = await listAllActiveCashbarberConfigs();
+    const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+    for (const tenantId of tenantIds) {
+      const configsTenant = configs.filter((c) => c.tenantId === tenantId && c.sincAutoAtiva);
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      for (const config of configsTenant) {
+        try {
+          await executarSincronizacaoEmpresa(tenantId, config.empresaSlug, "auto");
+        } catch (err) {
+          console.error(`[CashBarber Job] Erro no sync diário 6h para ${config.empresaSlug}:`, err);
+        }
+      }
+      // Aplicar Dpote após sync de todas as empresas do tenant
+      await executarAplicacaoDpote(tenantId);
+      await verificarMetaDiariaParaTenant(tenantId);
+    }
+    console.log("[CashBarber Job] Sync diário das 6h concluído");
+  } catch (err) {
+    console.error("[CashBarber Job] Erro no sync diário das 6h:", err);
+  }
+});

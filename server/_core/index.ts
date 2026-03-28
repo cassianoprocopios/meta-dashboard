@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
+import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,6 +37,51 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+
+  // ─── Endpoint interno para sync agendado externo ─────────────────────────────
+  // Protegido por token secreto para evitar uso indevido
+  // Usado pelo cron job externo para garantir sync mesmo após hibernação do sandbox
+  app.post("/api/internal/cron-sync", async (req, res) => {
+    const token = req.headers["x-cron-token"] || req.query.token;
+    const expectedToken = process.env.CRON_SECRET_TOKEN || "barbiero-cron-2026";
+    if (token !== expectedToken) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const { listCashbarberConfigs } = await import("../db");
+      const { sincronizarFaturamentoCashbarber } = await import("../cashbarberSincronizador");
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      // Buscar todas as configs ativas (tenant 1 = Barbiero)
+      const configs = await listCashbarberConfigs(1);
+      const resultados: Record<string, unknown> = {};
+      for (const config of configs) {
+        if (!config.ativo) continue;
+        try {
+          const resultado = await sincronizarFaturamentoCashbarber(1, config.empresaSlug, mes, ano, "auto");
+          resultados[config.empresaSlug] = { ok: true, dias: resultado.diasSincronizados };
+          console.log(`[CronSync] Sync externo concluído para ${config.empresaSlug}: ${resultado.diasSincronizados} dias`);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          resultados[config.empresaSlug] = { ok: false, erro: msg };
+          console.error(`[CronSync] Erro ao sincronizar ${config.empresaSlug}:`, msg);
+        }
+      }
+      // Aplicar Dpote após sync de todas as empresas
+      try {
+        await aplicarDpoteParaTenant(1, mes, ano);
+        console.log(`[CronSync] Dpote aplicado com sucesso`);
+      } catch (err) {
+        console.warn(`[CronSync] Falha ao aplicar Dpote:`, err);
+      }
+      return res.json({ ok: true, mes, ano, resultados, timestamp: agora.toISOString() });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[CronSync] Erro geral:", msg);
+      return res.status(500).json({ ok: false, erro: msg });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",
