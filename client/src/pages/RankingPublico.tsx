@@ -329,7 +329,17 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar }: {
 }
 
 // ─── Aba Por Unidade ─────────────────────────────────────────────────────────
-function RankingUnidade({ lista }: { lista: Profissional[] }) {
+type HistoricoUnidade = {
+  mes: number;
+  ano: number;
+  empresaSlug: string;
+  totalServicos: number;
+  totalProdutos: number;
+  totalGeral: number;
+  profissionais: number;
+};
+
+function RankingUnidade({ lista, historico }: { lista: Profissional[]; historico: HistoricoUnidade[] }) {
   const unidades = useMemo(() => {
     const map: Record<string, {
       slug: string;
@@ -521,11 +531,91 @@ function RankingUnidade({ lista }: { lista: Profissional[] }) {
           </div>
         </div>
       ))}
+      {/* Evolução histórica */}
+      {historico.length > 0 && (() => {
+        // Agrupar por mês/ano e ordenar cronologicamente
+        const mesesMap = new Map<string, { label: string; mascote: number; morumbi: number }>();
+        for (const h of historico) {
+          const key = `${h.ano}-${String(h.mes).padStart(2,'0')}`;
+          if (!mesesMap.has(key)) {
+            mesesMap.set(key, { label: `${MESES[h.mes-1].slice(0,3)}/${String(h.ano).slice(2)}`, mascote: 0, morumbi: 0 });
+          }
+          const entry = mesesMap.get(key)!;
+          if (h.empresaSlug.includes('mascote')) entry.mascote = h.totalGeral;
+          if (h.empresaSlug.includes('morumbi')) entry.morumbi = h.totalGeral;
+        }
+        const meses = Array.from(mesesMap.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([, v]) => v);
+        const maxVal = Math.max(...meses.flatMap(m => [m.mascote, m.morumbi]), 1);
+        return (
+          <div className="rounded-xl border bg-card p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              Evolução Histórica — Últimos {meses.length} meses
+            </h3>
+            {/* Legenda */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded-sm bg-purple-500" />
+                <span className="text-xs text-muted-foreground">Mascote</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded-sm bg-blue-500" />
+                <span className="text-xs text-muted-foreground">Morumbi</span>
+              </div>
+            </div>
+            {/* Gráfico de barras agrupadas */}
+            <div className="flex items-end gap-3 h-40">
+              {meses.map((m, idx) => (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="flex items-end gap-0.5 w-full justify-center" style={{ height: '120px' }}>
+                    {/* Barra Mascote */}
+                    <div className="flex-1 flex flex-col justify-end">
+                      <div
+                        className="bg-purple-500 rounded-t-sm w-full"
+                        style={{ height: `${Math.max((m.mascote / maxVal) * 100, m.mascote > 0 ? 2 : 0)}%` }}
+                        title={`Mascote: ${formatCurrency(m.mascote)}`}
+                      />
+                    </div>
+                    {/* Barra Morumbi */}
+                    <div className="flex-1 flex flex-col justify-end">
+                      <div
+                        className="bg-blue-500 rounded-t-sm w-full"
+                        style={{ height: `${Math.max((m.morumbi / maxVal) * 100, m.morumbi > 0 ? 2 : 0)}%` }}
+                        title={`Morumbi: ${formatCurrency(m.morumbi)}`}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground text-center">{m.label}</span>
+                </div>
+              ))}
+            </div>
+            {/* Tabela de valores */}
+            <div className="mt-4 border-t pt-4 space-y-2">
+              {meses.map((m, idx) => (
+                <div key={idx} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground w-16">{m.label}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-purple-600 font-medium">{formatCurrency(m.mascote)}</span>
+                    <span className="text-blue-600 font-medium">{formatCurrency(m.morumbi)}</span>
+                    <span className={`font-semibold ${
+                      m.mascote > m.morumbi ? 'text-purple-600' : m.morumbi > m.mascote ? 'text-blue-600' : 'text-muted-foreground'
+                    }`}>
+                      {m.mascote > m.morumbi ? '🟣' : m.morumbi > m.mascote ? '🔵' : '='}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
 
-// ─── Pódio ───────────────────────────────────────────────────────────────────
+// ─── Pódio ─────────────────────────────────────────────────────────
 function PodiumCard({ posicao, profissional, height, bgColor, iconColor, campo, onDetalhar }: {
   posicao: number;
   profissional: Profissional;
@@ -572,6 +662,10 @@ export default function RankingPublico() {
   const ranking = (rankingData?.lista ?? []) as Profissional[];
   const ultimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
   const { data: periodos } = trpc.profissionais.periodos.useQuery();
+  const { data: historicoUnidades } = trpc.profissionais.historicoUnidades.useQuery(
+    { ultimos: 6 },
+    { staleTime: 300_000, enabled: abaAtiva === "unidade" }
+  );
 
   const anosDisponiveis = useMemo(() => {
     const set = new Set<number>();
@@ -753,7 +847,7 @@ export default function RankingPublico() {
               <p className="text-muted-foreground text-sm">Carregando ranking...</p>
             </div>
           ) : abaAtiva === "unidade" ? (
-            <RankingUnidade lista={ranking} />
+            <RankingUnidade lista={ranking} historico={historicoUnidades ?? []} />
           ) : listaAtiva.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
               <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">

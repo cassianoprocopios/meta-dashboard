@@ -1678,3 +1678,52 @@ export async function upsertFaturamentoColaborador(input: {
     });
   }
 }
+
+/** Retorna o histórico mensal agregado por unidade (últimos N meses) */
+export async function listarHistoricoUnidades(
+  tenantId: number,
+  ultimos: number = 6
+): Promise<Array<{
+  mes: number;
+  ano: number;
+  empresaSlug: string;
+  totalServicos: number;
+  totalProdutos: number;
+  totalGeral: number;
+  profissionais: number;
+}>> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      mes: faturamentoColaboradores.mes,
+      ano: faturamentoColaboradores.ano,
+      empresaSlug: faturamentoColaboradores.empresaSlug,
+      totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
+      totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
+      totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+      profissionais: sql<number>`COUNT(DISTINCT ${faturamentoColaboradores.colaboradorId})`,
+    })
+    .from(faturamentoColaboradores)
+    .where(eq(faturamentoColaboradores.tenantId, tenantId))
+    .groupBy(
+      faturamentoColaboradores.ano,
+      faturamentoColaboradores.mes,
+      faturamentoColaboradores.empresaSlug
+    )
+    .orderBy(
+      desc(faturamentoColaboradores.ano),
+      desc(faturamentoColaboradores.mes),
+      faturamentoColaboradores.empresaSlug
+    )
+    .limit(ultimos * 3); // 3 unidades possíveis por mês
+  return rows.map(r => ({
+    mes: r.mes,
+    ano: r.ano,
+    empresaSlug: r.empresaSlug,
+    totalServicos: Number(r.totalServicos),
+    totalProdutos: Number(r.totalProdutos),
+    totalGeral: Number(r.totalGeral),
+    profissionais: Number(r.profissionais),
+  }));
+}

@@ -82,6 +82,7 @@ import {
   getDpoteSyncLogs,
   saveRecorrenciaFonte,
   getRecorrenciaFonte,
+  listarHistoricoUnidades,
 } from "./db";
 import {
   cashbarberLogin,
@@ -280,6 +281,13 @@ const profissionaisRouter = router({
     const tenantId = await getTenantIdFromCtx(ctx);
     return listarPeriodosComDados(tenantId);
   }),
+
+  historicoUnidades: protectedProcedure
+    .input(z.object({ ultimos: z.number().int().min(1).max(24).optional().default(6) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return listarHistoricoUnidades(tenantId, input.ultimos);
+    }),
 
   sincronizarFaturamento: protectedProcedure
     .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
