@@ -965,3 +965,8 @@
 - [x] Adicionar botão "Recalcular Ranking" na sidebar (Ações Rápidas)
 - [x] Passar mes/ano atual como parâmetro para a procedure
 - [x] Exibir toast com resultado (X profissionais recalculados, Y erros)
+
+## Indicador de Última Atualização do Ranking
+- [x] Adicionar MAX(ultimaSyncEm) na query listarRankingPorPeriodo no db.ts
+- [x] Expor ultimaAtualizacao na procedure profissionais.ranking
+- [x] Exibir data/hora formatada no header do ranking (RankingPublico.tsx e Home.tsx)

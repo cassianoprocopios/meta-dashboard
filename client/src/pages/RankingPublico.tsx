@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Clock,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -40,10 +41,12 @@ export default function RankingPublico() {
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [ano, setAno] = useState(hoje.getFullYear());
 
-  const { data: ranking, isLoading } = trpc.profissionais.ranking.useQuery(
+  const { data: rankingData, isLoading } = trpc.profissionais.ranking.useQuery(
     { mes, ano },
     { staleTime: 60_000 }
   );
+  const ranking = rankingData?.lista;
+  const ultimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
   const { data: periodos } = trpc.profissionais.periodos.useQuery();
 
   const anosDisponiveis = useMemo(() => {
@@ -55,7 +58,7 @@ export default function RankingPublico() {
   }, [periodos]);
 
   const total = ranking?.length ?? 0;
-  const temDadosNoMes = (ranking ?? []).some((p) => p.temDados);
+  const temDadosNoMes = (ranking ?? []).some((p: { temDados: boolean }) => p.temDados);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
 
   function navegarMes(direcao: -1 | 1) {
@@ -93,10 +96,18 @@ export default function RankingPublico() {
                 <h1 className="text-base font-semibold">Ranking de Profissionais</h1>
               </div>
             </div>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {total} profissional{total !== 1 ? "is" : ""}
-            </Badge>
+              <div className="flex items-center gap-3">
+              {ultimaAtualizacao && (
+                <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  Atualizado em {new Date(ultimaAtualizacao).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {total} profissional{total !== 1 ? "is" : ""}
+              </Badge>
+            </div>
           </div>
         </div>
 

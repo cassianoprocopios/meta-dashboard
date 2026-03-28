@@ -256,10 +256,12 @@ export default function Home() {
     { enabled: activeTab === "dashboard" }
   );
   // Ranking de profissionais do mês atual
-  const { data: rankingProfissionais = [], isLoading: loadingRanking } = trpc.profissionais.ranking.useQuery(
+  const { data: rankingData, isLoading: loadingRanking } = trpc.profissionais.ranking.useQuery(
     { mes, ano },
     { enabled: activeTab === "dashboard", staleTime: 60_000 }
   );
+  const rankingProfissionais = rankingData?.lista ?? [];
+  const rankingUltimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
   // Empresas do utilizador (múltiplas unidades)
   const { data: userEmpresasSlugs = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
     { userId: user?.id ?? 0 },
@@ -2197,7 +2199,15 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground text-sm">Ranking de Profissionais</h3>
-                      <p className="text-xs text-muted-foreground">{MESES[mes - 1]} {ano} — por faturamento total</p>
+                      <p className="text-xs text-muted-foreground">
+                        {MESES[mes - 1]} {ano} — por faturamento total
+                        {rankingUltimaAtualizacao && (
+                          <span className="ml-1.5 inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3 inline" />
+                            {new Date(rankingUltimaAtualizacao).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   <Button

@@ -1516,20 +1516,24 @@ export async function listarRankingPorPeriodo(
   tenantId: number,
   mes: number,
   ano: number
-): Promise<Array<{
-  colaboradorId: number;
-  totalServicos: number;
-  totalProdutos: number;
-  totalGeral: number;
-}>> {
+): Promise<{
+  itens: Array<{
+    colaboradorId: number;
+    totalServicos: number;
+    totalProdutos: number;
+    totalGeral: number;
+  }>;
+  ultimaAtualizacao: Date | null;
+}> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) return { itens: [], ultimaAtualizacao: null };
   const rows = await db
     .select({
       colaboradorId: faturamentoColaboradores.colaboradorId,
       totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
       totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
       totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+      ultimaSyncEm: sql<Date | null>`MAX(${faturamentoColaboradores.ultimaSyncEm})`,
     })
     .from(faturamentoColaboradores)
     .where(
@@ -1541,12 +1545,21 @@ export async function listarRankingPorPeriodo(
     )
     .groupBy(faturamentoColaboradores.colaboradorId)
     .orderBy(desc(sql`SUM(${faturamentoColaboradores.totalGeral})`));
-  return rows.map((r) => ({
-    colaboradorId: r.colaboradorId,
-    totalServicos: Number(r.totalServicos),
-    totalProdutos: Number(r.totalProdutos),
-    totalGeral: Number(r.totalGeral),
-  }));
+  // A última atualização é o MAX global entre todos os colaboradores do período
+  const ultimaAtualizacao = rows.reduce((max: Date | null, r) => {
+    if (!r.ultimaSyncEm) return max;
+    const d = r.ultimaSyncEm instanceof Date ? r.ultimaSyncEm : new Date(r.ultimaSyncEm);
+    return !max || d > max ? d : max;
+  }, null);
+  return {
+    itens: rows.map((r) => ({
+      colaboradorId: r.colaboradorId,
+      totalServicos: Number(r.totalServicos),
+      totalProdutos: Number(r.totalProdutos),
+      totalGeral: Number(r.totalGeral),
+    })),
+    ultimaAtualizacao,
+  };
 }
 
 /** Retorna os períodos (mês/ano) que têm dados de faturamento de colaboradores */

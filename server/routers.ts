@@ -230,12 +230,12 @@ const profissionaisRouter = router({
     .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const [profissionais, faturamentos] = await Promise.all([
+      const [profissionais, { itens: faturamentos, ultimaAtualizacao }] = await Promise.all([
         listarColaboradores(tenantId),
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
       ]);
       const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
-      return profissionais
+      const lista = profissionais
         .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1)
         .map((p) => {
           const fat = faturamentoMap.get(p.id);
@@ -252,6 +252,7 @@ const profissionaisRouter = router({
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
+      return { lista, ultimaAtualizacao: ultimaAtualizacao ?? null };
     }),
 
   periodos: protectedProcedure.query(async ({ ctx }) => {
