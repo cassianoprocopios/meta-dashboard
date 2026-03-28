@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import html2canvas from "html2canvas";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ import {
   CalendarDays,
   CalendarRange,
   RefreshCw,
+  Share2,
+  Download,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -782,7 +785,37 @@ export default function RankingPublico() {
     });
   }, [hoje]);
 
-  // Lista e campo para a aba ativa
+  // ─── Exportar ranking como imagem ───────────────────────────────────────────
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [exportando, setExportando] = useState(false);
+
+  const exportarImagem = useCallback(async () => {
+    if (!exportRef.current || exportando) return;
+    setExportando(true);
+    try {
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: "#0f172a",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement("a");
+      const periodo = modo === "diario"
+        ? dataDiaria.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-")
+        : modo === "semanal"
+        ? `semana-${toDateStr(semanaInicio)}`
+        : `${MESES[mes - 1]}-${ano}`;
+      link.download = `ranking-${periodo}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (e) {
+      console.error("Erro ao exportar imagem:", e);
+    } finally {
+      setExportando(false);
+    }
+  }, [exportando, modo, dataDiaria, semanaInicio, mes, ano]);
+
+  // Lista e campo para a aba ativaa
   const listaAtiva = abaAtiva === "barbeiros" ? barbeiros
     : abaAtiva === "auxiliares" ? auxiliares
     : abaAtiva === "produtos" ? rankingProdutos
@@ -864,6 +897,24 @@ export default function RankingPublico() {
                 <Users className="h-3 w-3" />
                 {rankingAtivo.length} profissional{rankingAtivo.length !== 1 ? "is" : ""}
               </Badge>
+              {/* Botão exportar imagem */}
+              {listaAtiva.length > 0 && (temDadosNoMes || modo !== "mensal") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportarImagem}
+                  disabled={exportando || isLoadingAtivo}
+                  className="flex items-center gap-1.5 text-xs"
+                  title="Exportar ranking como imagem"
+                >
+                  {exportando ? (
+                    <div className="h-3.5 w-3.5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  ) : (
+                    <Download className="h-3.5 w-3.5" />
+                  )}
+                  <span className="hidden sm:inline">{exportando ? "Gerando..." : "Exportar"}</span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -1123,6 +1174,108 @@ export default function RankingPublico() {
         open={!!profissionalSelecionado}
         onClose={() => setProfissionalSelecionado(null)}
       />
+
+      {/* Elemento oculto para exportar como imagem */}
+      <div
+        ref={exportRef}
+        style={{
+          position: "fixed",
+          top: "-9999px",
+          left: "-9999px",
+          width: "600px",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
+          padding: "32px",
+          borderRadius: "16px",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+          color: "#ffffff",
+        }}
+      >
+        {/* Header do card */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
+          <div>
+            <div style={{ fontSize: "22px", fontWeight: "700", color: "#fbbf24", letterSpacing: "-0.5px" }}>🏆 Ranking</div>
+            <div style={{ fontSize: "13px", color: "#94a3b8", marginTop: "2px" }}>
+              {modo === "diario"
+                ? dataDiaria.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+                : modo === "semanal"
+                ? `Semana ${labelSemana(semanaInicio, semanaFim)}`
+                : `${MESES[mes - 1]} de ${ano}`}
+            </div>
+          </div>
+          <div style={{ fontSize: "12px", color: "#64748b", textAlign: "right" }}>
+            <div style={{ fontWeight: "600", color: "#94a3b8" }}>Barbiero</div>
+            <div>performancemeta.sbs</div>
+          </div>
+        </div>
+
+        {/* Linha divisória */}
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", marginBottom: "24px" }} />
+
+        {/* Top 5 */}
+        {listaAtiva.slice(0, 5).map((p, idx) => {
+          const medals = ["🥇", "🥈", "🥉", "4º", "5º"];
+          const bgColors = [
+            "rgba(251,191,36,0.15)",
+            "rgba(148,163,184,0.12)",
+            "rgba(180,83,9,0.12)",
+            "rgba(255,255,255,0.05)",
+            "rgba(255,255,255,0.05)",
+          ];
+          const borderColors = [
+            "rgba(251,191,36,0.4)",
+            "rgba(148,163,184,0.3)",
+            "rgba(180,83,9,0.3)",
+            "rgba(255,255,255,0.08)",
+            "rgba(255,255,255,0.08)",
+          ];
+          const valor = campoAtivo === "totalProdutos" ? p.totalProdutos : p.totalGeral;
+          return (
+            <div
+              key={p.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                padding: "12px 16px",
+                borderRadius: "10px",
+                background: bgColors[idx],
+                border: `1px solid ${borderColors[idx]}`,
+                marginBottom: idx < 4 ? "8px" : "0",
+              }}
+            >
+              <div style={{ fontSize: idx < 3 ? "22px" : "14px", fontWeight: "700", minWidth: "28px", textAlign: "center", color: idx >= 3 ? "#64748b" : undefined }}>
+                {medals[idx]}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "15px", fontWeight: "600", color: idx === 0 ? "#fbbf24" : "#f1f5f9" }}>
+                  {p.apelido || p.nome}
+                </div>
+                <div style={{ fontSize: "11px", color: "#64748b", marginTop: "1px" }}>{p.cargo || "Profissional"}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: idx === 0 ? "#fbbf24" : "#e2e8f0" }}>
+                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor)}
+                </div>
+                {p.metaMensal && p.metaMensal > 0 && modo === "mensal" && (
+                  <div style={{ fontSize: "10px", color: p.pctMeta && p.pctMeta >= 100 ? "#4ade80" : "#94a3b8", marginTop: "2px" }}>
+                    {p.pctMeta?.toFixed(0)}% da meta
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Rodapé */}
+        <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: "11px", color: "#475569" }}>
+            {abaAtiva === "barbeiros" ? "Barbeiros" : abaAtiva === "auxiliares" ? "Auxiliares" : abaAtiva === "produtos" ? "Produtos" : abaAtiva === "mascote" ? "Mascote" : abaAtiva === "morumbi" ? "Morumbi" : "Geral"}
+          </div>
+          <div style={{ fontSize: "11px", color: "#475569" }}>
+            Gerado em {new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
