@@ -379,7 +379,7 @@ async function enviarNotificacaoRankingDiario(): Promise<void> {
 
     // Buscar todos os tenants com configs ativas
     const configs = await listAllActiveCashbarberConfigs();
-    const tenantIds = [...new Set(configs.map((c) => c.tenantId))];
+    const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
 
     for (const tenantId of tenantIds) {
       try {
@@ -396,28 +396,32 @@ async function enviarNotificacaoRankingDiario(): Promise<void> {
           try {
             const token = await cashbarberLogin(empresa.cbEmail, empresa.cbSenha);
             if (!token) continue;
-            const relatorio = await cashbarberRelatorio15(token, empresa.cbFilialId, dataStr, dataStr);
-            if (!relatorio?.data) continue;
-
-            for (const barbeiro of relatorio.data) {
-              const col = colaboradores.find(
-                (c) => c.cashbarberProfissionalId === String(barbeiro.bar_id) && c.ativo === 1 && c.exibirNoRanking === 1
-              );
-              if (!col) continue;
-              const totalServicos = (barbeiro.servicos ?? [])
-                .filter((s: any) => !EXCLUIDOS.test(s.ser_nome ?? ""))
-                .reduce((acc: number, s: any) => acc + (parseFloat(String(s.sum ?? 0)) || 0), 0);
-              const totalProdutos = (barbeiro.produtos ?? [])
-                .reduce((acc: number, p: any) => acc + (parseFloat(String(p.sum ?? 0)) || 0), 0);
-              const total = totalServicos + totalProdutos;
-              if (total > 0) {
-                const nomeExib = col.apelido || col.nome;
-                const idx = resultados.findIndex((r) => r.nome === nomeExib);
-                if (idx >= 0) {
-                  resultados[idx].total += total;
-                } else {
-                  resultados.push({ nome: nomeExib, total });
+            // Buscar dados por profissional individualmente
+            const colsEmpresa = colaboradores.filter(
+              (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.cashbarberProfissionalId != null
+            );
+            for (const col of colsEmpresa) {
+              try {
+                const relatorio = await cashbarberRelatorio15(
+                  token, dataStr, dataStr, empresa.cbFilialId, Number(col.cashbarberProfissionalId)
+                );
+                const totalServicos = (relatorio.servicos ?? [])
+                  .filter((s: any) => !EXCLUIDOS.test(s.ser_nome ?? ""))
+                  .reduce((acc: number, s: any) => acc + (parseFloat(String(s.sum ?? 0)) || 0), 0);
+                const totalProdutos = (relatorio.produtos ?? [])
+                  .reduce((acc: number, p: any) => acc + (parseFloat(String(p.total ?? p.sum ?? 0)) || 0), 0);
+                const total = totalServicos + totalProdutos;
+                if (total > 0) {
+                  const nomeExib = col.apelido || col.nome;
+                  const idx = resultados.findIndex((r) => r.nome === nomeExib);
+                  if (idx >= 0) {
+                    resultados[idx].total += total;
+                  } else {
+                    resultados.push({ nome: nomeExib, total });
+                  }
                 }
+              } catch {
+                // silenciar erro por profissional
               }
             }
           } catch {
