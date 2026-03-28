@@ -243,6 +243,22 @@ const profissionaisRouter = router({
       return { ok: true };
     }),
 
+  listarParaAcesso: protectedProcedure.query(async ({ ctx }) => {
+    const tenantId = await getTenantIdFromCtx(ctx);
+    const lista = await listarColaboradores(tenantId);
+    return lista
+      .filter((c) => c.ativo === 1)
+      .map((c) => ({
+        id: c.id,
+        nome: c.nome,
+        apelido: c.apelido,
+        fotoUrl: c.fotoUrl,
+        empresaSlug: c.empresaSlug,
+        pinAcesso: c.pinAcesso,
+        exibirNoRanking: c.exibirNoRanking === 1,
+      }));
+  }),
+
   ranking: protectedProcedure
     .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
     .query(async ({ ctx, input }) => {

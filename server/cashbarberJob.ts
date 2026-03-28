@@ -224,6 +224,13 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       await executarAplicacaoDpote(tenantId);
       // Após atualizar os dados, verificar se alguma empresa atingiu a meta diária
       await verificarMetaDiariaParaTenant(tenantId);
+      // Recalcular ranking dos profissionais para manter /pro sempre atualizado
+      try {
+        const resultado = await executarRecalculoRanking(tenantId);
+        console.log(`[CashBarber Job] Ranking horário recalculado: ${resultado.sincronizados} profissional(is)`);
+      } catch (rankErr) {
+        console.warn(`[CashBarber Job] Falha ao recalcular ranking horário:`, rankErr);
+      }
     }
   });
 

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Scissors, BarChart2, Building2, Trophy, Target, ClipboardList, Shield, Code2, History, Activity } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Scissors, BarChart2, Building2, Trophy, Target, ClipboardList, Shield, Code2, History, Activity, Smartphone } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -46,6 +46,7 @@ const menuItems: MenuItem[] = [
   { icon: Users, label: "Usuários", path: "/", perfis: ["admin"], roles: ["admin"] },
   { icon: Trophy, label: "Ranking Público", path: "/ranking" },
   { icon: Activity, label: "Status Sync", path: "/sync-status", roles: ["admin"] },
+  { icon: Smartphone, label: "Acesso Profissionais", path: "/acesso-profissionais", roles: ["admin"] },
   { icon: Shield, label: "Admin", path: "/admin-panel", roles: ["admin"] },
   { icon: Code2, label: "Dev Panel", path: "/dev", roles: ["admin"] },
 ];

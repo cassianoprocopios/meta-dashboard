@@ -1873,6 +1873,11 @@ export default function Home() {
                           {s.totalPrevisto > 0 && (
                             <p className="text-[11px] text-amber-400 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
                           )}
+                          {s.recorrenciaMes > 0 && (
+                            <p className="text-[10px] text-violet-400/80 mt-0.5">
+                              incl. {fmt(s.recorrenciaMes)} recorr.
+                            </p>
+                          )}
                         </div>
                       </div>
 
