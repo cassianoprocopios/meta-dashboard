@@ -331,21 +331,37 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar }: {
 // ─── Aba Por Unidade ─────────────────────────────────────────────────────────
 function RankingUnidade({ lista }: { lista: Profissional[] }) {
   const unidades = useMemo(() => {
-    const map: Record<string, { slug: string; totalServicos: number; totalProdutos: number; totalGeral: number; profissionais: number }> = {};
+    const map: Record<string, {
+      slug: string;
+      totalServicos: number;
+      totalProdutos: number;
+      totalGeral: number;
+      profissionais: number;
+      top: Profissional[];
+    }> = {};
     for (const p of lista) {
       if (!p.temDados) continue;
       if (!map[p.empresaSlug]) {
-        map[p.empresaSlug] = { slug: p.empresaSlug, totalServicos: 0, totalProdutos: 0, totalGeral: 0, profissionais: 0 };
+        map[p.empresaSlug] = { slug: p.empresaSlug, totalServicos: 0, totalProdutos: 0, totalGeral: 0, profissionais: 0, top: [] };
       }
       map[p.empresaSlug].totalServicos += p.totalServicos;
       map[p.empresaSlug].totalProdutos += p.totalProdutos;
       map[p.empresaSlug].totalGeral += p.totalGeral;
       map[p.empresaSlug].profissionais++;
+      map[p.empresaSlug].top.push(p);
+    }
+    // Ordenar top por totalGeral desc
+    for (const u of Object.values(map)) {
+      u.top.sort((a, b) => b.totalGeral - a.totalGeral);
     }
     return Object.values(map).sort((a, b) => b.totalGeral - a.totalGeral);
   }, [lista]);
 
   const max = Math.max(...unidades.map(u => u.totalGeral), 1);
+
+  // Comparativo direto Mascote vs Morumbi
+  const mascote = unidades.find(u => u.slug.includes("mascote"));
+  const morumbi = unidades.find(u => u.slug.includes("morumbi"));
 
   if (unidades.length === 0) {
     return (
@@ -357,47 +373,151 @@ function RankingUnidade({ lista }: { lista: Profissional[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      {unidades.map((u, i) => (
-        <div key={u.slug} className={`rounded-xl border p-5 ${
-          i === 0 ? "bg-yellow-500/5 border-yellow-500/20"
-          : i === 1 ? "bg-slate-400/5 border-slate-400/20"
-          : "bg-amber-700/5 border-amber-700/20"
-        }`}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold ${
-              i === 0 ? "bg-yellow-500/20 text-yellow-600"
-              : i === 1 ? "bg-slate-400/20 text-slate-500"
-              : "bg-amber-700/20 text-amber-700"
-            }`}>
-              {i === 0 ? <Crown className="h-5 w-5 text-yellow-500" /> : <Medal className={`h-5 w-5 ${i === 1 ? "text-slate-400" : "text-amber-700"}`} />}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="font-bold text-foreground text-lg">{nomeUnidade(u.slug)}</span>
+    <div className="space-y-6">
+
+      {/* Comparativo lado a lado */}
+      {mascote && morumbi && (
+        <div className="rounded-xl border bg-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            Comparativo de Unidades
+          </h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Mascote */}
+            <div className="rounded-lg border border-purple-500/20 bg-purple-500/5 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-4 w-4 text-purple-500" />
+                <span className="font-bold text-purple-600">Mascote</span>
               </div>
-              <p className="text-xs text-muted-foreground">{u.profissionais} profissional(is) com dados</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(mascote.totalGeral)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{mascote.profissionais} profissionais</p>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Serviços</span>
+                  <span className="font-medium">{formatCurrency(mascote.totalServicos)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Produtos</span>
+                  <span className="font-medium text-emerald-600">{formatCurrency(mascote.totalProdutos)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Média/prof.</span>
+                  <span className="font-medium">{formatCurrency(mascote.totalGeral / mascote.profissionais)}</span>
+                </div>
+              </div>
+            </div>
+            {/* Morumbi */}
+            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-4 w-4 text-blue-500" />
+                <span className="font-bold text-blue-600">Morumbi</span>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(morumbi.totalGeral)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{morumbi.profissionais} profissionais</p>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Serviços</span>
+                  <span className="font-medium">{formatCurrency(morumbi.totalServicos)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Produtos</span>
+                  <span className="font-medium text-emerald-600">{formatCurrency(morumbi.totalProdutos)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Média/prof.</span>
+                  <span className="font-medium">{formatCurrency(morumbi.totalGeral / morumbi.profissionais)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Barra comparativa */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-purple-600 w-16 text-right">Mascote</span>
+              <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{ width: `${(mascote.totalGeral / max) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs font-medium w-24 text-right">{formatCurrency(mascote.totalGeral)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-blue-600 w-16 text-right">Morumbi</span>
+              <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full"
+                  style={{ width: `${(morumbi.totalGeral / max) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs font-medium w-24 text-right">{formatCurrency(morumbi.totalGeral)}</span>
+            </div>
+          </div>
+          {/* Vencedor */}
+          {mascote.totalGeral !== morumbi.totalGeral && (
+            <div className={`mt-4 rounded-lg p-3 text-center text-sm font-semibold ${
+              mascote.totalGeral > morumbi.totalGeral
+                ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+            }`}>
+              <Crown className="h-4 w-4 inline mr-1.5" />
+              {mascote.totalGeral > morumbi.totalGeral ? "Mascote" : "Morumbi"} lidera este mês
+              {" — "}
+              {formatCurrency(Math.abs(mascote.totalGeral - morumbi.totalGeral))} de diferença
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Top profissionais por unidade */}
+      {unidades.map((u) => (
+        <div key={u.slug} className="rounded-xl border bg-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Building2 className={`h-4 w-4 ${u.slug.includes("mascote") ? "text-purple-500" : u.slug.includes("morumbi") ? "text-blue-500" : "text-muted-foreground"}`} />
+              <span className="font-bold text-foreground">{nomeUnidade(u.slug)}</span>
+              <Badge variant="outline" className="text-xs">{u.profissionais} profissionais</Badge>
             </div>
             <div className="text-right">
-              <p className={`font-bold text-xl ${i === 0 ? "text-yellow-600" : "text-foreground"}`}>{formatCurrency(u.totalGeral)}</p>
+              <p className="font-bold text-lg text-foreground">{formatCurrency(u.totalGeral)}</p>
+              <p className="text-xs text-muted-foreground">Méd. {formatCurrency(u.totalGeral / u.profissionais)}/prof.</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className="bg-primary/5 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground">Serviços</p>
-              <p className="text-sm font-semibold text-foreground">{formatCurrency(u.totalServicos)}</p>
-            </div>
-            <div className="bg-emerald-500/5 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground">Produtos</p>
-              <p className="text-sm font-semibold text-emerald-600">{formatCurrency(u.totalProdutos)}</p>
-            </div>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${i === 0 ? "bg-yellow-500" : i === 1 ? "bg-slate-400" : "bg-amber-600"}`}
-              style={{ width: `${(u.totalGeral / max) * 100}%` }}
-            />
+          {/* Top 5 profissionais */}
+          <div className="space-y-2">
+            {u.top.slice(0, 5).map((p, idx) => {
+              const nome = p.apelido ?? p.nome;
+              const iniciais = nome.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase();
+              const pct = u.totalGeral > 0 ? (p.totalGeral / u.totalGeral) * 100 : 0;
+              return (
+                <div key={p.id} className="flex items-center gap-3">
+                  <span className={`text-xs font-bold w-5 text-center ${
+                    idx === 0 ? "text-yellow-500" : "text-muted-foreground"
+                  }`}>{idx + 1}º</span>
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    {p.fotoUrl
+                      ? <img src={p.fotoUrl} alt={nome} className="h-7 w-7 rounded-full object-cover" />
+                      : <span className="text-[10px] font-bold text-primary">{iniciais}</span>
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs font-medium text-foreground truncate">{nome}</span>
+                      <span className="text-xs font-semibold text-foreground ml-2 shrink-0">{formatCurrency(p.totalGeral)}</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          u.slug.includes("mascote") ? "bg-purple-500" : "bg-blue-500"
+                        }`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground w-8 text-right shrink-0">{pct.toFixed(0)}%</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}
@@ -468,9 +588,9 @@ export default function RankingPublico() {
     [...ranking].sort((a, b) => b.totalProdutos - a.totalProdutos),
     [ranking]
   );
-  // Rankings por unidade: barbeiros + auxiliares de cada unidade (ordenado por totalGeral)
-  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-mascote" && (p.categoriaRanking === "barbeiro" || p.categoriaRanking === "auxiliar")), [ranking]);
-  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-morumbi" && (p.categoriaRanking === "barbeiro" || p.categoriaRanking === "auxiliar")), [ranking]);
+  // Rankings por unidade: barbeiros + auxiliares + recepção de cada unidade (ordenado por totalGeral)
+  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-mascote"), [ranking]);
+  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-morumbi"), [ranking]);
 
   const temDadosNoMes = ranking.some(p => p.temDados);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();

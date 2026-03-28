@@ -1023,7 +1023,13 @@
 ## Correção Ranking — Recepção e Unidades
 - [ ] Investigar por que recepção não aparece na aba Produtos do ranking
 - [ ] Verificar empresaSlug de cada profissional no CashBarber (qual unidade cada um pertence)
-- [ ] Atualizar empresaSlug dos profissionais no banco conforme dados reais do CashBarber
-- [ ] Corrigir filtro da aba Produtos para incluir recepção
-- [ ] Corrigir filtros das abas Mascote e Morumbi com empresaSlug correto
-- [ ] Recalcular ranking com dados atualizados
+- [x] Atualizar empresaSlug dos profissionais no banco conforme dados reais do CashBarber
+- [x] Corrigir filtro da aba Produtos para incluir recepção
+- [x] Corrigir filtros das abas Mascote e Morumbi com empresaSlug correto
+- [x] Recalcular ranking com dados atualizados
+
+## Ranking por Unidade e Recepção
+
+- [x] Recalcular ranking do mês atual (março/2026) via script direto
+- [x] Incluir Recepção nas abas Mascote e Morumbi
+- [x] Implementar aba Por Unidade com comparativo Mascote vs Morumbi (totais, médias, líderes)
