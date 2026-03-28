@@ -468,9 +468,9 @@ export default function RankingPublico() {
     [...ranking].sort((a, b) => b.totalProdutos - a.totalProdutos),
     [ranking]
   );
-  // Rankings por unidade (apenas barbeiros de cada unidade)
-  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.categoriaRanking === "barbeiro" && p.empresaSlug.includes("mascote")), [ranking]);
-  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.categoriaRanking === "barbeiro" && p.empresaSlug.includes("morumbi")), [ranking]);
+  // Rankings por unidade: barbeiros + auxiliares de cada unidade (ordenado por totalGeral)
+  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-mascote" && (p.categoriaRanking === "barbeiro" || p.categoriaRanking === "auxiliar")), [ranking]);
+  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.empresaSlug === "barbiero-morumbi" && (p.categoriaRanking === "barbeiro" || p.categoriaRanking === "auxiliar")), [ranking]);
 
   const temDadosNoMes = ranking.some(p => p.temDados);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
@@ -498,8 +498,8 @@ export default function RankingPublico() {
   const abas: { id: AbaRanking; label: string; icon: React.ReactNode; count: number }[] = [
     { id: "barbeiros", label: "Barbeiros", icon: <Scissors className="h-3.5 w-3.5" />, count: barbeiros.length },
     { id: "auxiliares", label: "Auxiliares", icon: <Star className="h-3.5 w-3.5" />, count: auxiliares.length },
-    { id: "mascote", label: "Mascote", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMAscote.length },
-    { id: "morumbi", label: "Morumbi", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMoreumbi.length },
+    { id: "mascote", label: "Mascote", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMAscote.filter(p => p.temDados).length },
+    { id: "morumbi", label: "Morumbi", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMoreumbi.filter(p => p.temDados).length },
     { id: "unidade", label: "Por Unidade", icon: <TrendingUp className="h-3.5 w-3.5" />, count: 0 },
     { id: "produtos", label: "Produtos", icon: <Package className="h-3.5 w-3.5" />, count: rankingProdutos.filter(p => p.totalProdutos > 0).length },
   ];

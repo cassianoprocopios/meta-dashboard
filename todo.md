@@ -1019,3 +1019,11 @@
 - [x] Pódio visual (top 3) ativado na aba Produtos do ranking (usa listaAtiva/campoAtivo)
 - [x] Nova aba "Mascote" no ranking (apenas barbeiros da unidade Mascote)
 - [x] Nova aba "Morumbi" no ranking (apenas barbeiros da unidade Morumbi)
+
+## Correção Ranking — Recepção e Unidades
+- [ ] Investigar por que recepção não aparece na aba Produtos do ranking
+- [ ] Verificar empresaSlug de cada profissional no CashBarber (qual unidade cada um pertence)
+- [ ] Atualizar empresaSlug dos profissionais no banco conforme dados reais do CashBarber
+- [ ] Corrigir filtro da aba Produtos para incluir recepção
+- [ ] Corrigir filtros das abas Mascote e Morumbi com empresaSlug correto
+- [ ] Recalcular ranking com dados atualizados

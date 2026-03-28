@@ -739,3 +739,40 @@ export async function cashbarberCalcularDpoteViaHistorico(
     filiais,
   };
 }
+
+/**
+ * Relatório 13 do CashBarber: lista de barbeiros com suas filiais e produtos vendidos.
+ * Retorna array com { barbeiro: string, filial: string, produtos_comissoes: {...} }
+ * Usado para identificar a unidade (filial) de cada profissional.
+ */
+export async function cashbarberRelatorio13(
+  token: string,
+  dataInicial: string,
+  dataFinal: string
+): Promise<Array<{ barbeiro: string; filial: string; produtos_comissoes?: Record<string, unknown> }>> {
+  const resp = await fetch("https://api.cashbarber.com.br/api/painel/relatorios/13", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ data_inicial: dataInicial, data_final: dataFinal }),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`CashBarber relatorio13 falhou: ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  // A API retorna um objeto indexado numericamente ou array
+  return Array.isArray(data) ? data : Object.values(data);
+}
+
+/**
+ * Converte o nome de filial do CashBarber para o empresaSlug usado no sistema.
+ */
+export function filialParaEmpresaSlug(filial: string | null | undefined): string {
+  if (!filial) return "barbiero-grupo";
+  const f = filial.toLowerCase();
+  if (f.includes("morumbi") || f.includes("andrade")) return "barbiero-morumbi";
+  if (f.includes("mascote")) return "barbiero-mascote";
+  if (f.includes("seraphine") || f.includes("serafine")) return "barbiero-seraphine";
+  return "barbiero-grupo";
+}

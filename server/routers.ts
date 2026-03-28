@@ -97,6 +97,8 @@ import {
   cashbarberBuscarValorAssinaturas,
   cashbarberCalcularDpotePorFichas,
   cashbarberCalcularDpoteViaHistorico,
+  cashbarberRelatorio13,
+  filialParaEmpresaSlug,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
@@ -238,8 +240,20 @@ const profissionaisRouter = router({
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
       ]);
       const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
+      // Incluir na lista:
+      // - Profissionais ativos com exibirNoRanking=1 (barbeiros, auxiliares)
+      // - Recepção (categoriaRanking='recepcao') com dados de produtos, mesmo que exibirNoRanking=0
       const lista = profissionais
-        .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1)
+        .filter((p) => {
+          if (p.ativo !== 1) return false;
+          if (p.exibirNoRanking === 1) return true;
+          // Incluir recepção se tiver dados de produtos no período
+          if (p.categoriaRanking === 'recepcao') {
+            const fat = faturamentoMap.get(p.id);
+            return fat && fat.totalProdutos > 0;
+          }
+          return false;
+        })
         .map((p) => {
           const fat = faturamentoMap.get(p.id);
           return {
@@ -360,6 +374,20 @@ const profissionaisRouter = router({
       const dataInicial = `${ano}-${String(mes).padStart(2, '0')}-01`;
       const ultimoDia = new Date(ano, mes, 0).getDate();
       const dataFinal = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+
+      // Buscar mapeamento de filial via relatório 13 (barbeiros com filial)
+      let mapaFilial: Map<string, string> = new Map();
+      try {
+        const rel13 = await cashbarberRelatorio13(token, dataInicial, dataFinal);
+        for (const item of rel13) {
+          if (item.barbeiro && item.filial) {
+            mapaFilial.set(item.barbeiro.toLowerCase().trim(), filialParaEmpresaSlug(item.filial));
+          }
+        }
+      } catch (e) {
+        console.warn('[Ranking] Não foi possível buscar relatório 13 para mapeamento de filiais:', e);
+      }
+
       // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
       // Todos os demais serviços + produtos são contabilizados
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba)/i;
@@ -379,10 +407,27 @@ const profissionaisRouter = router({
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
+
+          // Determinar empresaSlug correto: usar mapeamento do rel13 se disponível, senão manter o atual
+          const nomeCB = (col.apelido ?? col.nome).toLowerCase().trim();
+          const slugCorreto = mapaFilial.get(nomeCB) ?? col.empresaSlug ?? 'barbiero-grupo';
+
+          // Atualizar empresaSlug no colaborador se mudou
+          if (slugCorreto !== col.empresaSlug) {
+            const db = await (await import('./db')).getDb();
+            if (db) {
+              const { colaboradores } = await import('../drizzle/schema');
+              const { eq, and } = await import('drizzle-orm');
+              await db.update(colaboradores)
+                .set({ empresaSlug: slugCorreto })
+                .where(and(eq(colaboradores.id, col.id), eq(colaboradores.tenantId, tenantId)));
+            }
+          }
+
           await upsertFaturamentoColaborador({
             tenantId,
             colaboradorId: col.id,
-            empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+            empresaSlug: slugCorreto,
             mes,
             ano,
             totalServicos,
