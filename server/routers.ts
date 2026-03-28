@@ -292,8 +292,13 @@ const profissionaisRouter = router({
           const servicosRanking = relatorio.servicos.filter(
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
+          // Excluir produtos de bar/bebidas/caixinha do ranking
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+          const produtosRanking = relatorio.produtos.filter(
+            (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
+          );
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
-          const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+          const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
           await upsertFaturamentoColaborador({
             tenantId,
@@ -312,9 +317,9 @@ const profissionaisRouter = router({
                 count: s.count ?? 0,
               }))
             ),
-            // Salvar detalhamento de produtos por item com quantidade
+            // Salvar detalhamento de produtos por item com quantidade (excluindo bar/bebidas)
             detalhesProdutos: JSON.stringify(
-              relatorio.produtos
+              produtosRanking
                 .filter((p: any) => p.total > 0)
                 .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total, count: Number(p.count) || 0 }))
                 .slice(0, 30)
@@ -361,8 +366,13 @@ const profissionaisRouter = router({
           const servicosRanking = relatorio.servicos.filter(
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
+          // Excluir produtos de bar/bebidas/caixinha do ranking
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+          const produtosRanking = relatorio.produtos.filter(
+            (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
+          );
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
-          const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+          const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
           await upsertFaturamentoColaborador({
             tenantId,
@@ -381,9 +391,9 @@ const profissionaisRouter = router({
                 count: s.count ?? 0,
               }))
             ),
-            // Salvar detalhamento de produtos por item com quantidade
+            // Salvar detalhamento de produtos por item com quantidade (excluindo bar/bebidas)
             detalhesProdutos: JSON.stringify(
-              relatorio.produtos
+              produtosRanking
                 .filter((p: any) => p.total > 0)
                 .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total, count: Number(p.count) || 0 }))
                 .slice(0, 30)

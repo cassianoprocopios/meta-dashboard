@@ -995,3 +995,9 @@
 - [x] Atualizar JSON salvo em detalhesServicos e detalhesProdutos para incluir campo count
 - [x] Atualizar modal RankingPublico.tsx para exibir quantidade (Nx) ao lado de cada item
 - [x] Executar recálculo: 23 profissionais de Março/2026 atualizados com dados de quantidade
+
+## Exclusão de Produtos do Ranking
+- [x] Excluir Caixinha, Água, Heineken, Refrigerante e Corona do totalProdutos e detalhesProdutos
+- [x] Corrigir filtro nas procedures sincronizarFaturamento e recalcularRankingMes (routers.ts)
+- [x] Corrigir filtro no script de recálculo direto (scripts/recalcular-ranking-direto.mjs)
+- [x] Executar recálculo: 23 profissionais de Março/2026 atualizados

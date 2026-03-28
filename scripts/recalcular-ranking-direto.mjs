@@ -120,7 +120,10 @@ async function main() {
       const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, col.cashbarberProfissionalId);
       const servicosRanking = (relatorio.servicos ?? []).filter(s => !CATEGORIAS_EXCLUIDAS.test(s.ser_nome ?? ""));
       const totalServicos = servicosRanking.reduce((acc, s) => acc + (Number(s.sum) || 0), 0);
-      const totalProdutos = (relatorio.produtos ?? []).reduce((acc, p) => acc + (Number(p.total) || 0), 0);
+      // Excluir produtos de bar/bebidas/caixinha do ranking
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const produtosRanking = (relatorio.produtos ?? []).filter(p => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+      const totalProdutos = produtosRanking.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
       const totalGeral = totalServicos + totalProdutos;
 
       // Upsert no banco
@@ -130,7 +133,7 @@ async function main() {
       );
 
       const now = new Date();
-      const produtosDetalhe = (relatorio.produtos ?? [])
+      const produtosDetalhe = produtosRanking
         .filter(p => (Number(p.total) || 0) > 0)
         .map(p => ({ pro_nome: p.pro_nome, sum: Number(p.total) || 0, count: Number(p.count) || 0 }))
         .slice(0, 30);
