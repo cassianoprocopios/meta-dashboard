@@ -175,6 +175,7 @@ const profissionaisRouter = router({
       ativo: c.ativo === 1,
       cashbarberProfissionalId: c.cashbarberProfissionalId,
       empresaSlug: c.empresaSlug,
+      categoriaRanking: (c.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     }));
@@ -192,6 +193,7 @@ const profissionaisRouter = router({
         ativo: z.boolean().optional(),
         cashbarberProfissionalId: z.number().nullable().optional(),
         empresaSlug: z.string().optional(),
+        categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -206,6 +208,7 @@ const profissionaisRouter = router({
         ativo: input.ativo !== false ? 1 : 0,
         cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
         empresaSlug: input.empresaSlug ?? "barbiero-grupo",
+        categoriaRanking: input.categoriaRanking ?? 'barbeiro',
       });
       return result;
     }),

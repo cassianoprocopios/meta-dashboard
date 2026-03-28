@@ -48,7 +48,7 @@ function formatCurrency(value: number) {
 }
 
 type CategoriaRanking = "barbeiro" | "auxiliar" | "recepcao";
-type AbaRanking = "barbeiros" | "auxiliares" | "unidade" | "produtos";
+type AbaRanking = "barbeiros" | "auxiliares" | "unidade" | "produtos" | "mascote" | "morumbi";
 
 type Profissional = {
   id: number;
@@ -468,6 +468,9 @@ export default function RankingPublico() {
     [...ranking].sort((a, b) => b.totalProdutos - a.totalProdutos),
     [ranking]
   );
+  // Rankings por unidade (apenas barbeiros de cada unidade)
+  const barbeirosMAscote = useMemo(() => ranking.filter(p => p.categoriaRanking === "barbeiro" && p.empresaSlug.includes("mascote")), [ranking]);
+  const barbeirosMoreumbi = useMemo(() => ranking.filter(p => p.categoriaRanking === "barbeiro" && p.empresaSlug.includes("morumbi")), [ranking]);
 
   const temDadosNoMes = ranking.some(p => p.temDados);
   const isPeriodoAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
@@ -484,13 +487,20 @@ export default function RankingPublico() {
   }
 
   // Lista e campo para a aba ativa
-  const listaAtiva = abaAtiva === "barbeiros" ? barbeiros : abaAtiva === "auxiliares" ? auxiliares : rankingProdutos;
+  const listaAtiva = abaAtiva === "barbeiros" ? barbeiros
+    : abaAtiva === "auxiliares" ? auxiliares
+    : abaAtiva === "produtos" ? rankingProdutos
+    : abaAtiva === "mascote" ? barbeirosMAscote
+    : abaAtiva === "morumbi" ? barbeirosMoreumbi
+    : rankingProdutos;
   const campoAtivo: "totalGeral" | "totalProdutos" = abaAtiva === "produtos" ? "totalProdutos" : "totalGeral";
 
   const abas: { id: AbaRanking; label: string; icon: React.ReactNode; count: number }[] = [
     { id: "barbeiros", label: "Barbeiros", icon: <Scissors className="h-3.5 w-3.5" />, count: barbeiros.length },
     { id: "auxiliares", label: "Auxiliares", icon: <Star className="h-3.5 w-3.5" />, count: auxiliares.length },
-    { id: "unidade", label: "Por Unidade", icon: <Building2 className="h-3.5 w-3.5" />, count: 0 },
+    { id: "mascote", label: "Mascote", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMAscote.length },
+    { id: "morumbi", label: "Morumbi", icon: <Building2 className="h-3.5 w-3.5" />, count: barbeirosMoreumbi.length },
+    { id: "unidade", label: "Por Unidade", icon: <TrendingUp className="h-3.5 w-3.5" />, count: 0 },
     { id: "produtos", label: "Produtos", icon: <Package className="h-3.5 w-3.5" />, count: rankingProdutos.filter(p => p.totalProdutos > 0).length },
   ];
 
@@ -667,6 +677,8 @@ export default function RankingPublico() {
                 {abaAtiva === "barbeiros" && `Barbeiros — ${MESES[mes - 1]} ${ano}`}
                 {abaAtiva === "auxiliares" && `Auxiliares — ${MESES[mes - 1]} ${ano}`}
                 {abaAtiva === "produtos" && `Ranking de Produtos — ${MESES[mes - 1]} ${ano}`}
+                {abaAtiva === "mascote" && `Barbeiros Mascote — ${MESES[mes - 1]} ${ano}`}
+                {abaAtiva === "morumbi" && `Barbeiros Morumbi — ${MESES[mes - 1]} ${ano}`}
               </h2>
 
               {/* Lista */}

@@ -59,6 +59,7 @@ type Profissional = {
   ativo: boolean;
   cashbarberProfissionalId: number | null;
   empresaSlug: string;
+  categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
 };
 
 type FormData = {
@@ -69,6 +70,7 @@ type FormData = {
   cashbarberProfissionalId: string;
   exibirNoRanking: boolean;
   ativo: boolean;
+  categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
 };
 
 const emptyForm: FormData = {
@@ -78,6 +80,7 @@ const emptyForm: FormData = {
   cashbarberProfissionalId: "",
   exibirNoRanking: true,
   ativo: true,
+  categoriaRanking: 'barbeiro',
 };
 
 export default function Profissionais() {
@@ -139,6 +142,7 @@ export default function Profissionais() {
       cashbarberProfissionalId: p.cashbarberProfissionalId?.toString() ?? "",
       exibirNoRanking: p.exibirNoRanking,
       ativo: p.ativo,
+      categoriaRanking: p.categoriaRanking ?? 'barbeiro',
     });
     setModalAberto(true);
   };
@@ -158,6 +162,7 @@ export default function Profissionais() {
         : null,
       exibirNoRanking: form.exibirNoRanking,
       ativo: form.ativo,
+      categoriaRanking: form.categoriaRanking,
     });
   };
 
@@ -300,6 +305,9 @@ export default function Profissionais() {
                     Cargo
                   </th>
                   <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
+                    Categoria
+                  </th>
+                  <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
                     ID CashBarber
                   </th>
                   <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
@@ -346,6 +354,18 @@ export default function Profissionais() {
                       >
                         {p.cargo ?? "—"}
                       </Badge>
+                    </td>
+                    {/* Categoria Ranking */}
+                    <td className="px-4 py-3">
+                      {p.categoriaRanking === 'barbeiro' && (
+                        <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">✂️ Barbeiro</Badge>
+                      )}
+                      {p.categoriaRanking === 'auxiliar' && (
+                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-xs">💇 Auxiliar</Badge>
+                      )}
+                      {p.categoriaRanking === 'recepcao' && (
+                        <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs">💼 Recepção</Badge>
+                      )}
                     </td>
                     {/* ID CashBarber */}
                     <td className="px-4 py-3">
@@ -484,6 +504,33 @@ export default function Profissionais() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Categoria no Ranking */}
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">Categoria no Ranking</Label>
+              <Select
+                value={form.categoriaRanking}
+                onValueChange={(v) => setForm({ ...form, categoriaRanking: v as 'barbeiro' | 'auxiliar' | 'recepcao' })}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-white/10">
+                  <SelectItem value="barbeiro" className="text-white hover:bg-white/10">
+                    ✂️ Barbeiro
+                  </SelectItem>
+                  <SelectItem value="auxiliar" className="text-white hover:bg-white/10">
+                    💇 Auxiliar
+                  </SelectItem>
+                  <SelectItem value="recepcao" className="text-white hover:bg-white/10">
+                    💼 Recepção
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-white/30 text-xs">
+                Define em qual aba do ranking este profissional aparecerá.
+              </p>
             </div>
 
             {/* ID CashBarber */}

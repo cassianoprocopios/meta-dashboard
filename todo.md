@@ -1012,3 +1012,10 @@
 - [x] Ranking por Unidade agrega faturamento de todos os profissionais por empresa
 - [x] Modal de detalhamento com rodapé listando itens excluídos
 - [x] Recalcular ranking: 23 profissionais de Março/2026 atualizados
+
+## Melhorias no Ranking (v2)
+- [x] Campo categoriaRanking (Barbeiro/Auxiliar/Recepção) na tela de gerenciamento de profissionais com badge visual
+- [x] Select de categoria no formulário de edição do profissional (salva via procedure existente)
+- [x] Pódio visual (top 3) ativado na aba Produtos do ranking (usa listaAtiva/campoAtivo)
+- [x] Nova aba "Mascote" no ranking (apenas barbeiros da unidade Mascote)
+- [x] Nova aba "Morumbi" no ranking (apenas barbeiros da unidade Morumbi)
