@@ -959,3 +959,9 @@
 
 ## Ranking de Profissionais — Exclusão de Categorias
 - [x] Excluir Avulso/Clube, Caixinha e Bar do cálculo de totalServicos/totalGeral no ranking
+
+## Recálculo Forçado do Ranking
+- [x] Criar procedure tRPC profissionais.recalcularRankingMes (ressincroniza todos os profissionais do mês atual)
+- [x] Adicionar botão "Recalcular Ranking" na sidebar (Ações Rápidas)
+- [x] Passar mes/ano atual como parâmetro para a procedure
+- [x] Exibir toast com resultado (X profissionais recalculados, Y erros)

@@ -299,6 +299,15 @@ export default function Home() {
       toast.error("Erro ao verificar meta diária. Tente novamente.");
     },
   });
+  // Mutation para recalcular ranking do mês atual com critérios de exclusão atualizados
+  const recalcularRankingMutation = trpc.profissionais.recalcularRankingMes.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.mensagem);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Erro ao recalcular ranking. Tente novamente.");
+    },
+  });
   // Empresas visíveis para este usuárioo
   const empresasVisiveis = useMemo(() => {
     if (isAdmin) return empresasData;
@@ -758,6 +767,8 @@ export default function Home() {
           syncingDpote={syncingDpote}
           onTestarMetaDiaria={() => testarMetaDiariaMutation.mutate()}
           testingMetaDiaria={testarMetaDiariaMutation.isPending}
+          onRecalcularRanking={() => recalcularRankingMutation.mutate()}
+          recalculandoRanking={recalcularRankingMutation.isPending}
         />
       )}
       {/* Conteúdo principal */}

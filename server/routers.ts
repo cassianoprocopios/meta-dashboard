@@ -311,6 +311,65 @@ const profissionaisRouter = router({
       }
       return { sincronizados, erros, mensagem: `${sincronizados} profissional(is) sincronizado(s), ${erros} erro(s).` };
     }),
+
+  recalcularRankingMes: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada.' });
+      }
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1);
+      if (comId.length === 0) {
+        return { sincronizados: 0, erros: 0, mensagem: 'Nenhum profissional com ID do CashBarber configurado.' };
+      }
+      const dataInicial = `${ano}-${String(mes).padStart(2, '0')}-01`;
+      const ultimoDia = new Date(ano, mes, 0).getDate();
+      const dataFinal = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+      // Categorias excluídas do ranking: Avulso/Clube, Caixinha e Bar
+      const CATEGORIAS_EXCLUIDAS_RANKING = /avulso|clube|caixinha|bar/i;
+      let sincronizados = 0;
+      let erros = 0;
+      for (const col of comId) {
+        try {
+          const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
+          const servicosRanking = relatorio.servicos.filter(
+            (s: any) => !CATEGORIAS_EXCLUIDAS_RANKING.test(s.ser_nome ?? '')
+          );
+          const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+          const totalProdutos = relatorio.produtos.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+          const totalGeral = totalServicos + totalProdutos;
+          await upsertFaturamentoColaborador({
+            tenantId,
+            colaboradorId: col.id,
+            empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+            mes,
+            ano,
+            totalServicos,
+            totalProdutos,
+            totalGeral,
+            detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
+          });
+          sincronizados++;
+        } catch (e) {
+          console.error(`[Ranking] Erro ao recalcular ${col.nome}:`, e);
+          erros++;
+        }
+      }
+      const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      return {
+        sincronizados,
+        erros,
+        mensagem: `Ranking de ${meses[mes - 1]}/${ano} recalculado: ${sincronizados} profissional(is) atualizado(s)${erros > 0 ? `, ${erros} erro(s)` : ''}.`,
+      };
+    }),
 });
 
 export const appRouter = router({

@@ -74,6 +74,8 @@ interface AppSidebarProps {
   syncingDpote?: boolean;
   onTestarMetaDiaria?: () => void;
   testingMetaDiaria?: boolean;
+  onRecalcularRanking?: () => void;
+  recalculandoRanking?: boolean;
 }
 
 export default function AppSidebar({
@@ -92,6 +94,8 @@ export default function AppSidebar({
   syncingDpote,
   onTestarMetaDiaria,
   testingMetaDiaria,
+  onRecalcularRanking,
+  recalculandoRanking,
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
@@ -434,6 +438,27 @@ export default function AppSidebar({
                   <span className="text-xs font-medium truncate block">Meta Diária</span>
                   <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
                     Verificar e notificar gerente
+                  </p>
+                </div>
+              )}
+            </button>
+            <button
+              onClick={onRecalcularRanking}
+              disabled={recalculandoRanking}
+              title={collapsed ? "Recalcular Ranking" : undefined}
+              className={`
+                w-full flex items-center gap-2.5 rounded-xl transition-all duration-150 border border-transparent
+                ${collapsed ? "justify-center p-2" : "px-2.5 py-2"}
+                text-white/40 hover:text-emerald-400 hover:bg-emerald-500/[0.07] hover:border-emerald-500/20
+                disabled:opacity-40 disabled:cursor-not-allowed
+              `}
+            >
+              <Trophy className={`w-4 h-4 flex-shrink-0 ${recalculandoRanking ? "animate-pulse text-emerald-400" : ""}`} />
+              {!collapsed && (
+                <div className="flex-1 text-left min-w-0">
+                  <span className="text-xs font-medium truncate block">Recalcular Ranking</span>
+                  <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
+                    Reprocessar mês atual
                   </p>
                 </div>
               )}
