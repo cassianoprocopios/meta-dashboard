@@ -315,7 +315,7 @@ const profissionaisRouter = router({
           const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
           // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
           // Todos os demais serviços + produtos são contabilizados
-          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba)/i;
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba|pezinho)/i;
           const servicosRanking = relatorio.servicos.filter(
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
@@ -398,7 +398,7 @@ const profissionaisRouter = router({
 
       // Excluir do ranking: Corte de Cabelo, Barba e Corte Kids
       // Todos os demais serviços + produtos são contabilizados
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba|pezinho)/i;
       let sincronizados = 0;
       let erros = 0;
       for (const col of comId) {

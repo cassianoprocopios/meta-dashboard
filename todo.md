@@ -1033,3 +1033,10 @@
 - [x] Recalcular ranking do mês atual (março/2026) via script direto
 - [x] Incluir Recepção nas abas Mascote e Morumbi
 - [x] Implementar aba Por Unidade com comparativo Mascote vs Morumbi (totais, médias, líderes)
+## Correção do Ranking
+- [x] Remover "Pezinho (acabamento)" do cálculo do ranking
+- [x] Recalcular todos os meses históricos com filtro corrigido
+
+## Correção do Ranking - Filtro de Serviços
+- [x] Remover "Pezinho (acabamento)" do cálculo do ranking
+- [x] Recalcular todos os meses históricos com filtro corrigido
