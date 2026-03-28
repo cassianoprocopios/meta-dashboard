@@ -74,6 +74,8 @@ import {
   saveCashbarberMapeamento,
   insertCashbarberSyncLog,
   listCashbarberSyncLogs,
+  listAllCashbarberSyncLogs,
+  getUltimoSyncPorEmpresa,
   updateCashbarberAgendamento,
   getDpoteHistoricoId,
   saveDpoteHistoricoId,
@@ -2886,6 +2888,71 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     statusJobs: protectedProcedure.query(async ({ ctx }) => {
       if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       return getStatusJobsCashbarber();
+    }),
+
+    /** Retorna dados completos para o painel de status de sync */
+    painelStatus: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const [ultimosPorEmpresa, logsRecentes, jobsAtivos] = await Promise.all([
+        getUltimoSyncPorEmpresa(tenantId),
+        listAllCashbarberSyncLogs(tenantId, 30),
+        Promise.resolve(getStatusJobsCashbarber()),
+      ]);
+
+      // Calcular próximo sync: sempre às 09:00 UTC (06:00 BRT) do próximo dia
+      const agora = new Date();
+      const proximoSync = new Date(agora);
+      proximoSync.setUTCHours(9, 0, 0, 0);
+      if (proximoSync <= agora) proximoSync.setUTCDate(proximoSync.getUTCDate() + 1);
+
+      // Calcular status geral: ok se todos ok, parcial se algum parcial, erro se algum erro
+      const statusGeral = ultimosPorEmpresa.length === 0
+        ? "sem_dados"
+        : ultimosPorEmpresa.every((e) => e.status === "ok")
+        ? "ok"
+        : ultimosPorEmpresa.some((e) => e.status === "erro")
+        ? "erro"
+        : "parcial";
+
+      return {
+        statusGeral,
+        ultimosPorEmpresa,
+        logsRecentes,
+        jobsAtivos,
+        proximoSync,
+        agora,
+      };
+    }),
+
+    /** Dispara sync manual de todas as empresas do tenant */
+    syncManual: protectedProcedure.mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const configs = await listCashbarberConfigs(tenantId);
+      const configsAtivas = configs.filter((c) => c.ativo === 1);
+      if (configsAtivas.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
+      }
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      const resultados: Record<string, { ok: boolean; dias?: number; erro?: string }> = {};
+      for (const config of configsAtivas) {
+        try {
+          const resultado = await sincronizarFaturamentoCashbarber(tenantId, config.empresaSlug, mes, ano, "manual");
+          resultados[config.empresaSlug] = { ok: true, dias: resultado.diasSincronizados };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          resultados[config.empresaSlug] = { ok: false, erro: msg };
+        }
+      }
+      // Aplicar Dpote após sync
+      try {
+        const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+        await aplicarDpoteParaTenant(tenantId, mes, ano);
+      } catch (err) {
+        console.warn("[SyncManual] Falha ao aplicar Dpote:", err);
+      }
+      return { ok: true, resultados, mes, ano };
     }),
 
     /** Recarrega os jobs (útil após mudanças de configuração) */

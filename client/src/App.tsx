@@ -14,6 +14,7 @@ import HistoricoAcuracia from "./pages/HistoricoAcuracia";
 import Profissionais from "./pages/Profissionais";
 import RankingPublico from "./pages/RankingPublico";
 import RankingProfissional from "./pages/RankingProfissional";
+import SyncStatus from "./pages/SyncStatus";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -63,6 +64,7 @@ function Router() {
       <Route path={"/historico-acuracia"} component={HistoricoAcuracia} />
       <Route path={"/profissionais"} component={Profissionais} />
       <Route path={"/ranking"} component={RankingPublico} />
+      <Route path={"/sync-status"} component={SyncStatus} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

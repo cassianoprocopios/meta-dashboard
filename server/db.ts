@@ -1728,3 +1728,43 @@ export async function listarHistoricoUnidades(
     profissionais: Number(r.profissionais),
   }));
 }
+
+/** Retorna os últimos logs de sincronização de TODAS as empresas do tenant (para o painel de status) */
+export async function listAllCashbarberSyncLogs(tenantId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(cashbarberSyncLog)
+    .where(eq(cashbarberSyncLog.tenantId, tenantId))
+    .orderBy(desc(cashbarberSyncLog.executadoEm))
+    .limit(limit);
+}
+
+/** Retorna o último log de sync de cada empresa do tenant (para o card de status rápido) */
+export async function getUltimoSyncPorEmpresa(tenantId: number): Promise<
+  Array<{ empresaSlug: string; status: string; executadoEm: Date; diasSincronizados: number; erros: string | null }>
+> {
+  const db = await getDb();
+  if (!db) return [];
+  const logs = await db
+    .select()
+    .from(cashbarberSyncLog)
+    .where(eq(cashbarberSyncLog.tenantId, tenantId))
+    .orderBy(desc(cashbarberSyncLog.executadoEm))
+    .limit(100);
+
+  const porEmpresa = new Map<string, typeof logs[0]>();
+  for (const log of logs) {
+    if (!porEmpresa.has(log.empresaSlug)) {
+      porEmpresa.set(log.empresaSlug, log);
+    }
+  }
+  return Array.from(porEmpresa.values()).map((l) => ({
+    empresaSlug: l.empresaSlug,
+    status: l.status,
+    executadoEm: l.executadoEm,
+    diasSincronizados: l.diasSincronizados,
+    erros: l.erros ?? null,
+  }));
+}

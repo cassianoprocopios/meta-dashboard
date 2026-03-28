@@ -469,27 +469,55 @@ cron.schedule("0 0 21 * * *", () => {
 // Usa a mesma lógica do endpoint /api/internal/cron-sync.
 cron.schedule("0 0 9 * * *", async () => {
   console.log("[CashBarber Job] Sync diário das 6h iniciado...");
+  const errosPorEmpresa: Record<string, string> = {};
   try {
     const configs = await listAllActiveCashbarberConfigs();
     const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
     for (const tenantId of tenantIds) {
       const configsTenant = configs.filter((c) => c.tenantId === tenantId && c.sincAutoAtiva);
-      const agora = new Date();
-      const mes = agora.getMonth() + 1;
-      const ano = agora.getFullYear();
       for (const config of configsTenant) {
         try {
           await executarSincronizacaoEmpresa(tenantId, config.empresaSlug, "auto");
         } catch (err) {
-          console.error(`[CashBarber Job] Erro no sync diário 6h para ${config.empresaSlug}:`, err);
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(`[CashBarber Job] Erro no sync diário 6h para ${config.empresaSlug}:`, msg);
+          errosPorEmpresa[config.empresaSlug] = msg;
         }
       }
       // Aplicar Dpote após sync de todas as empresas do tenant
       await executarAplicacaoDpote(tenantId);
       await verificarMetaDiariaParaTenant(tenantId);
     }
-    console.log("[CashBarber Job] Sync diário das 6h concluído");
+    const totalErros = Object.keys(errosPorEmpresa).length;
+    if (totalErros > 0) {
+      // Enviar alerta de falha para o dono do sistema
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+        const detalhes = Object.entries(errosPorEmpresa)
+          .map(([emp, err]) => `\u2022 ${emp}: ${err}`)
+          .join("\n");
+        await notifyOwner({
+          title: `\u26a0\ufe0f Falha no Sync Automático (${dataHora})`,
+          content: `O sync diário das 6h falhou para ${totalErros} empresa(s):\n\n${detalhes}\n\nAcesse /sync-status para detalhes ou dispare um sync manual.`,
+        });
+        console.log(`[CashBarber Job] Alerta de falha enviado: ${totalErros} empresa(s) com erro`);
+      } catch (notifErr) {
+        console.error("[CashBarber Job] Falha ao enviar notificação de erro:", notifErr);
+      }
+    }
+    console.log(`[CashBarber Job] Sync diário das 6h concluído. Erros: ${totalErros}`);
   } catch (err) {
-    console.error("[CashBarber Job] Erro no sync diário das 6h:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[CashBarber Job] Erro crítico no sync diário das 6h:", msg);
+    // Alerta crítico: o job inteiro falhou
+    try {
+      const { notifyOwner } = await import("./_core/notification");
+      const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+      await notifyOwner({
+        title: `\ud83d\udd34 Falha Crítica no Job de Sync (${dataHora})`,
+        content: `O job diário de sincronização das 6h falhou completamente:\n\n${msg}\n\nAcesse /sync-status para detalhes.`,
+      });
+    } catch { /* silenciar erro de notificação */ }
   }
 });

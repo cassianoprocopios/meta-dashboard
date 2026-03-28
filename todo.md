@@ -1053,3 +1053,12 @@
 ## Ranking Diário e Semanal no RankingPublico
 - [ ] Adicionar aba "Diário" com seletor de data e dados em tempo real do CashBarber
 - [ ] Adicionar aba "Semanal" com seletor de semana e dados em tempo real do CashBarber
+
+## Painel de Status dos Jobs e Alertas de Sync
+
+- [x] Backend: procedure tRPC para retornar status dos jobs (último sync, próximo sync, status por empresa)
+- [x] Backend: registrar resultado de cada sync no banco (reutilizar cashbarberSyncLog)
+- [x] Backend: alerta push automático quando sync falhar (notifyOwner com detalhes do erro)
+- [x] Frontend: página /sync-status com painel de status dos jobs no dashboard
+- [x] Frontend: card de status do último sync na sidebar/dashboard
+- [x] Frontend: botão de sync manual no painel de status
