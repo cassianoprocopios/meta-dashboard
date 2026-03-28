@@ -982,3 +982,10 @@
 - [x] Expor detalhesServicos na procedure profissionais.ranking
 - [x] Criar modal de detalhamento ao clicar no card do profissional (RankingPublico.tsx)
 - [ ] Adicionar detalhamento também no card de ranking do Home.tsx (backlog)
+
+## Detalhamento de Produtos por Item no Modal do Ranking
+- [x] Coluna detalhesProdutos já existe na tabela faturamentoColaboradores no schema
+- [x] Salvar JSON de produtos na sincronização (sincronizarFaturamento e recalcularRankingMes)
+- [x] Expor detalhesProdutos na query listarRankingPorPeriodo (db.ts) e procedure ranking
+- [x] Atualizar modal no RankingPublico.tsx para exibir breakdown de produtos por item
+- [x] Executar recálculo e popular detalhesProdutos para todos os 23 profissionais de Março/2026

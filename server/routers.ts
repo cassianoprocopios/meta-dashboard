@@ -250,6 +250,7 @@ const profissionaisRouter = router({
             totalGeral: fat?.totalGeral ?? 0,
             temDados: !!fat,
             detalhesServicos: fat?.detalhesServicos ?? null,
+            detalhesProdutos: fat?.detalhesProdutos ?? null,
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
@@ -305,6 +306,13 @@ const profissionaisRouter = router({
             totalGeral,
             // Salvar apenas os serviços válidos (excluídas as categorias ignoradas)
             detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
+            // Salvar detalhamento de produtos por item
+            detalhesProdutos: JSON.stringify(
+              relatorio.produtos
+                .filter((p: any) => p.total > 0)
+                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total }))
+                .slice(0, 30)
+            ),
           });
           sincronizados++;
         } catch (e) {
@@ -360,6 +368,13 @@ const profissionaisRouter = router({
             totalProdutos,
             totalGeral,
             detalhesServicos: JSON.stringify(servicosRanking.slice(0, 20)),
+            // Salvar detalhamento de produtos por item
+            detalhesProdutos: JSON.stringify(
+              relatorio.produtos
+                .filter((p: any) => p.total > 0)
+                .map((p: any) => ({ pro_nome: p.pro_nome, sum: p.total }))
+                .slice(0, 30)
+            ),
           });
           sincronizados++;
         } catch (e) {

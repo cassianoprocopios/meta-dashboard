@@ -1523,6 +1523,7 @@ export async function listarRankingPorPeriodo(
     totalProdutos: number;
     totalGeral: number;
     detalhesServicos: string | null;
+    detalhesProdutos: string | null;
   }>;
   ultimaAtualizacao: Date | null;
 }> {
@@ -1543,6 +1544,15 @@ export async function listarRankingPorPeriodo(
           AND fc2.mes = ${faturamentoColaboradores.mes}
           AND fc2.ano = ${faturamentoColaboradores.ano}
         ORDER BY fc2.ultimaSyncEm DESC LIMIT 1
+      )`,
+      // Pegar o detalhesProdutos do registro mais recente
+      detalhesProdutos: sql<string | null>`(
+        SELECT detalhesProdutos FROM faturamentoColaboradores fc3
+        WHERE fc3.tenantId = ${faturamentoColaboradores.tenantId}
+          AND fc3.colaboradorId = ${faturamentoColaboradores.colaboradorId}
+          AND fc3.mes = ${faturamentoColaboradores.mes}
+          AND fc3.ano = ${faturamentoColaboradores.ano}
+        ORDER BY fc3.ultimaSyncEm DESC LIMIT 1
       )`,
     })
     .from(faturamentoColaboradores)
@@ -1568,6 +1578,7 @@ export async function listarRankingPorPeriodo(
       totalProdutos: Number(r.totalProdutos),
       totalGeral: Number(r.totalGeral),
       detalhesServicos: r.detalhesServicos ?? null,
+      detalhesProdutos: r.detalhesProdutos ?? null,
     })),
     ultimaAtualizacao,
   };
@@ -1599,6 +1610,7 @@ export async function upsertFaturamentoColaborador(input: {
   totalProdutos: number;
   totalGeral: number;
   detalhesServicos?: string | null;
+  detalhesProdutos?: string | null;
 }) {
   const db = await getDb();
   if (!db) return;
@@ -1624,6 +1636,7 @@ export async function upsertFaturamentoColaborador(input: {
         totalProdutos: String(input.totalProdutos),
         totalGeral: String(input.totalGeral),
         detalhesServicos: input.detalhesServicos ?? null,
+        detalhesProdutos: input.detalhesProdutos ?? null,
         updatedAt: new Date(),
       })
       .where(eq(faturamentoColaboradores.id, existing[0].id));
@@ -1638,6 +1651,7 @@ export async function upsertFaturamentoColaborador(input: {
       totalProdutos: String(input.totalProdutos),
       totalGeral: String(input.totalGeral),
       detalhesServicos: input.detalhesServicos ?? null,
+      detalhesProdutos: input.detalhesProdutos ?? null,
     });
   }
 }

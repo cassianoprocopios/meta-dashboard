@@ -130,27 +130,36 @@ async function main() {
       );
 
       const now = new Date();
+      const produtosDetalhe = (relatorio.produtos ?? [])
+        .filter(p => (Number(p.total) || 0) > 0)
+        .map(p => ({ pro_nome: p.pro_nome, sum: Number(p.total) || 0 }))
+        .slice(0, 30);
+
       if (existing.length > 0) {
         await conn.query(
           `UPDATE faturamentoColaboradores 
            SET totalServicos = ?, totalProdutos = ?, totalGeral = ?, 
-               detalhesServicos = ?, ultimaSyncEm = ?, updatedAt = ? 
+               detalhesServicos = ?, detalhesProdutos = ?, ultimaSyncEm = ?, updatedAt = ? 
            WHERE tenantId = 1 AND colaboradorId = ? AND mes = ? AND ano = ?`,
           [
             totalServicos.toFixed(2), totalProdutos.toFixed(2), totalGeral.toFixed(2),
-            JSON.stringify(servicosRanking.slice(0, 20)), now, now,
+            JSON.stringify(servicosRanking.slice(0, 20)),
+            JSON.stringify(produtosDetalhe),
+            now, now,
             col.id, mes, ano
           ]
         );
       } else {
         await conn.query(
           `INSERT INTO faturamentoColaboradores 
-           (tenantId, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral, detalhesServicos, ultimaSyncEm, createdAt, updatedAt) 
-           VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           (tenantId, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral, detalhesServicos, detalhesProdutos, ultimaSyncEm, createdAt, updatedAt) 
+           VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             col.id, col.empresaSlug ?? "barbiero-grupo", mes, ano,
             totalServicos.toFixed(2), totalProdutos.toFixed(2), totalGeral.toFixed(2),
-            JSON.stringify(servicosRanking.slice(0, 20)), now, now, now
+            JSON.stringify(servicosRanking.slice(0, 20)),
+            JSON.stringify(produtosDetalhe),
+            now, now, now
           ]
         );
       }

@@ -55,10 +55,16 @@ type Profissional = {
   totalGeral: number;
   temDados: boolean;
   detalhesServicos?: string | null;
+  detalhesProdutos?: string | null;
 };
 
 type ServicoDetalhe = {
   ser_nome: string;
+  sum: number;
+};
+
+type ProdutoDetalhe = {
+  pro_nome: string;
   sum: number;
 };
 
@@ -68,6 +74,17 @@ function parseDetalhes(json: string | null | undefined): ServicoDetalhe[] {
     const parsed = JSON.parse(json);
     if (!Array.isArray(parsed)) return [];
     return parsed.filter((s) => s && typeof s.ser_nome === "string" && typeof s.sum === "number");
+  } catch {
+    return [];
+  }
+}
+
+function parseProdutos(json: string | null | undefined): ProdutoDetalhe[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((p) => p && typeof p.pro_nome === "string" && typeof p.sum === "number");
   } catch {
     return [];
   }
@@ -85,7 +102,9 @@ function ModalDetalhes({
   if (!profissional) return null;
   const nome = profissional.apelido ?? profissional.nome;
   const servicos = parseDetalhes(profissional.detalhesServicos);
+  const produtos = parseProdutos(profissional.detalhesProdutos);
   const totalServicosDetalhado = servicos.reduce((acc, s) => acc + s.sum, 0);
+  const totalProdutosDetalhado = produtos.reduce((acc, p) => acc + p.sum, 0);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -152,20 +171,46 @@ function ModalDetalhes({
           </div>
         )}
 
-        {/* Produtos (valor total, sem detalhamento por item) */}
-        {profissional.totalProdutos > 0 && (
-          <div className="mt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Package className="h-3.5 w-3.5 text-muted-foreground" />
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Produtos</p>
+        {/* Produtos por item */}
+        <div className="mt-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Produtos ({produtos.length > 0 ? produtos.length : "—"})
+            </p>
+          </div>
+          {produtos.length > 0 ? (
+            <div className="space-y-1">
+              {produtos
+                .sort((a, b) => b.sum - a.sum)
+                .map((p, i) => {
+                  const pct = totalProdutosDetalhado > 0 ? (p.sum / totalProdutosDetalhado) * 100 : 0;
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{p.pro_nome}</p>
+                        <div className="w-full bg-muted rounded-full h-1 mt-1">
+                          <div
+                            className="h-1 rounded-full bg-emerald-500"
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs font-semibold text-emerald-600 shrink-0">{formatCurrency(p.sum)}</p>
+                    </div>
+                  );
+                })}
             </div>
+          ) : profissional.totalProdutos > 0 ? (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
               <Package className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
               <p className="text-xs font-medium text-foreground flex-1">Total em produtos</p>
               <p className="text-xs font-semibold text-emerald-600">{formatCurrency(profissional.totalProdutos)}</p>
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs text-muted-foreground italic px-2">Nenhum produto vendido neste período.</p>
+          )}
+        </div>
 
         <p className="text-[10px] text-muted-foreground mt-3 pt-3 border-t">
           Serviços excluídos do ranking: Corte de Cabelo, Barba, Corte Kids e Raspar na Máquina.
