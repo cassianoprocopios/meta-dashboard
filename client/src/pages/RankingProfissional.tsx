@@ -107,11 +107,43 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string) =>
   );
 }
 
+// ─── Avatar do profissional ──────────────────────────────────────────────────
+function Avatar({ nome, fotoUrl, isMe, size = 36 }: { nome: string; fotoUrl?: string | null; isMe: boolean; size?: number }) {
+  const inicial = (nome || "?")[0].toUpperCase();
+  const [imgError, setImgError] = useState(false);
+  if (fotoUrl && !imgError) {
+    return (
+      <img
+        src={fotoUrl}
+        alt={nome}
+        onError={() => setImgError(true)}
+        style={{ width: size, height: size }}
+        className={`rounded-full object-cover flex-shrink-0 border-2 ${
+          isMe ? "border-blue-400" : "border-white/20"
+        }`}
+      />
+    );
+  }
+  return (
+    <div
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+      className={`rounded-full flex items-center justify-center flex-shrink-0 font-bold border-2 ${
+        isMe
+          ? "bg-blue-500/30 border-blue-400 text-blue-300"
+          : "bg-white/10 border-white/20 text-white/70"
+      }`}
+    >
+      {inicial}
+    </div>
+  );
+}
+
 // ─── Card de posição no ranking ───────────────────────────────────────────────
 function RankingCard({
   pos,
   nome,
   apelido,
+  fotoUrl,
   totalGeral,
   totalServicos,
   totalProdutos,
@@ -122,6 +154,7 @@ function RankingCard({
   pos: number;
   nome: string;
   apelido?: string | null;
+  fotoUrl?: string | null;
   totalGeral: number;
   totalServicos: number;
   totalProdutos: number;
@@ -141,13 +174,15 @@ function RankingCard({
       `}
     >
       {/* Posição */}
-      <div className="w-8 text-center flex-shrink-0">
+      <div className="w-6 text-center flex-shrink-0">
         {medalha ? (
-          <span className="text-xl">{medalha}</span>
+          <span className="text-lg">{medalha}</span>
         ) : (
-          <span className="text-white/40 text-sm font-bold">{pos}º</span>
+          <span className="text-white/40 text-xs font-bold">{pos}º</span>
         )}
       </div>
+      {/* Avatar */}
+      <Avatar nome={nome} fotoUrl={fotoUrl} isMe={isMe} size={36} />
       {/* Nome */}
       <div className="flex-1 min-w-0">
         <div className={`font-semibold truncate ${isMe ? "text-blue-300" : "text-white"}`}>
@@ -211,7 +246,7 @@ function ExportCard({
   exportRef: React.RefObject<HTMLDivElement | null>;
   titulo: string;
   subtitulo: string;
-  ranking: Array<{ id: number; nome: string; apelido?: string | null; totalGeral: number; totalServicos: number; totalProdutos: number }>;
+  ranking: Array<{ id: number; nome: string; apelido?: string | null; fotoUrl?: string | null; totalGeral: number; totalServicos: number; totalProdutos: number; empresaSlug?: string | null }>;
   meuNome: string;
   unidade?: string;
 }) {
@@ -384,6 +419,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 pos={i + 1}
                 nome={p.nome}
                 apelido={p.apelido}
+                fotoUrl={p.fotoUrl}
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
@@ -514,6 +550,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
                 pos={i + 1}
                 nome={p.nome}
                 apelido={p.apelido}
+                fotoUrl={p.fotoUrl}
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
@@ -633,6 +670,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 pos={i + 1}
                 nome={p.nome}
                 apelido={p.apelido}
+                fotoUrl={p.fotoUrl}
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
