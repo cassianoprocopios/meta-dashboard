@@ -3437,6 +3437,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const token = await new SignJWT({
         profissionalId: profissional.id,
         nome: profissional.nome,
+        empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo',
         tenantId,
         type: 'profissional',
       })
@@ -3454,7 +3455,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           path: '/',
         });
       }
-      return { ok: true, nome: profissional.nome, id: profissional.id };
+      return { ok: true, nome: profissional.nome, id: profissional.id, empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo' };
     }),
 
   meProfissional: publicProcedure.query(async ({ ctx }) => {
@@ -3469,6 +3470,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       return {
         profissionalId: payload.profissionalId as number,
         nome: payload.nome as string,
+        empresaSlug: (payload.empresaSlug as string) ?? 'barbiero-grupo',
         tenantId: payload.tenantId as number,
       };
     } catch {

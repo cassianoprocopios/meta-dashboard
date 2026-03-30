@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe } from "lucide-react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
@@ -9,38 +9,43 @@ function hoje(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-
 function mesAtual(): { mes: number; ano: number } {
   const d = new Date();
   return { mes: d.getMonth() + 1, ano: d.getFullYear() };
 }
-
 function formatarMoeda(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
-
 function formatarData(iso: string) {
   const [ano, mes, dia] = iso.split("-");
   return `${dia}/${mes}/${ano}`;
 }
-
 function nomeMes(mes: number) {
   return ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][mes - 1];
 }
 
+const EMPRESA_LABEL: Record<string, string> = {
+  MASCOTE: "Barbiero Mascote",
+  MORUMBI: "Barbiero Morumbi",
+  "barbiero-grupo": "Barbiero",
+};
+function empresaLabel(slug: string | null | undefined) {
+  if (!slug) return "Barbiero";
+  return EMPRESA_LABEL[slug] ?? slug;
+}
+
 // ─── Tela de Login por PIN ────────────────────────────────────────────────────
-function LoginPIN({ onLogin }: { onLogin: (nome: string) => void }) {
+function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string) => void }) {
   const [pin, setPin] = useState("");
   const loginMut = trpc.loginProfissional.useMutation({
     onSuccess: (data) => {
-      onLogin(data.nome);
+      onLogin(data.nome, data.empresaSlug);
     },
     onError: () => {
       toast.error("PIN inválido — Verifique o PIN e tente novamente.");
       setPin("");
     },
   });
-
   const handleDigit = (d: string) => {
     if (pin.length >= 4) return;
     const novo = pin + d;
@@ -49,9 +54,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string) => void }) {
       loginMut.mutate({ pin: novo });
     }
   };
-
   const handleDelete = () => setPin((p) => p.slice(0, -1));
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-6">
       {/* Logo */}
@@ -62,7 +65,6 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string) => void }) {
         <h1 className="text-2xl font-bold text-white">Ranking</h1>
         <p className="text-white/50 text-sm mt-1">Acesso para profissionais</p>
       </div>
-
       {/* Indicador PIN */}
       <div className="flex gap-3 mb-8">
         {[0, 1, 2, 3].map((i) => (
@@ -76,7 +78,6 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string) => void }) {
           />
         ))}
       </div>
-
       {/* Teclado numérico */}
       <div className="grid grid-cols-3 gap-3 w-full max-w-xs">
         {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d, i) => (
@@ -99,7 +100,6 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string) => void }) {
           </button>
         ))}
       </div>
-
       <p className="text-white/30 text-xs mt-8 text-center">
         Digite seu PIN de 4 dígitos para acessar o ranking
       </p>
@@ -116,6 +116,8 @@ function RankingCard({
   totalServicos,
   totalProdutos,
   isMe,
+  empresaSlug,
+  mostrarEmpresa = false,
 }: {
   pos: number;
   nome: string;
@@ -124,10 +126,11 @@ function RankingCard({
   totalServicos: number;
   totalProdutos: number;
   isMe: boolean;
+  empresaSlug?: string | null;
+  mostrarEmpresa?: boolean;
 }) {
   const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
   const nomeExibido = apelido || nome.split(" ")[0];
-
   return (
     <div
       className={`
@@ -145,19 +148,20 @@ function RankingCard({
           <span className="text-white/40 text-sm font-bold">{pos}º</span>
         )}
       </div>
-
       {/* Nome */}
       <div className="flex-1 min-w-0">
         <div className={`font-semibold truncate ${isMe ? "text-blue-300" : "text-white"}`}>
           {nomeExibido}
           {isMe && <span className="ml-2 text-xs text-blue-400/70">(você)</span>}
         </div>
-        <div className="text-xs text-white/40 flex gap-2">
+        <div className="text-xs text-white/40 flex gap-2 flex-wrap">
           <span>Serv: {formatarMoeda(totalServicos)}</span>
           {totalProdutos > 0 && <span>· Prod: {formatarMoeda(totalProdutos)}</span>}
+          {mostrarEmpresa && empresaSlug && (
+            <span className="text-blue-300/50">· {empresaLabel(empresaSlug)}</span>
+          )}
         </div>
       </div>
-
       {/* Total */}
       <div className={`text-right flex-shrink-0 font-bold ${isMe ? "text-blue-300" : "text-white"}`}>
         {formatarMoeda(totalGeral)}
@@ -170,7 +174,6 @@ function RankingCard({
 function useExportarImagem() {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState(false);
-
   const exportar = useCallback(async (nomeArquivo: string) => {
     if (!exportRef.current || exportando) return;
     setExportando(true);
@@ -193,84 +196,54 @@ function useExportarImagem() {
       setExportando(false);
     }
   }, [exportando]);
-
   return { exportRef, exportando, exportar };
 }
 
 // ─── Elemento de exportação (oculto) ─────────────────────────────────────────
-type RankingItem = {
-  id: number;
-  nome: string;
-  apelido?: string | null;
-  totalGeral: number;
-  totalServicos: number;
-  totalProdutos: number;
-};
-
 function ExportCard({
   exportRef,
   titulo,
   subtitulo,
   ranking,
   meuNome,
+  unidade,
 }: {
   exportRef: React.RefObject<HTMLDivElement | null>;
   titulo: string;
   subtitulo: string;
-  ranking: RankingItem[];
+  ranking: Array<{ id: number; nome: string; apelido?: string | null; totalGeral: number; totalServicos: number; totalProdutos: number }>;
   meuNome: string;
+  unidade?: string;
 }) {
-  const top5 = ranking.slice(0, 5);
-  const medals = ["🥇", "🥈", "🥉", "4º", "5º"];
-  const bgColors = [
-    "rgba(251,191,36,0.15)",
-    "rgba(148,163,184,0.12)",
-    "rgba(180,83,9,0.12)",
-    "rgba(255,255,255,0.05)",
-    "rgba(255,255,255,0.05)",
-  ];
-  const borderColors = [
-    "rgba(251,191,36,0.4)",
-    "rgba(148,163,184,0.3)",
-    "rgba(180,83,9,0.3)",
-    "rgba(255,255,255,0.08)",
-    "rgba(255,255,255,0.08)",
-  ];
-
   return (
     <div
       ref={exportRef}
       style={{
         position: "fixed",
-        top: "-9999px",
         left: "-9999px",
-        width: "500px",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
-        padding: "28px",
+        top: 0,
+        width: "400px",
+        background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
+        padding: "28px 24px",
         borderRadius: "16px",
         fontFamily: "system-ui, -apple-system, sans-serif",
-        color: "#ffffff",
       }}
     >
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+      <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontSize: "20px", fontWeight: "700", color: "#fbbf24", letterSpacing: "-0.5px" }}>🏆 {titulo}</div>
+          <div style={{ fontSize: "20px", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.5px" }}>{titulo}</div>
           <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>{subtitulo}</div>
         </div>
-        <div style={{ fontSize: "11px", color: "#64748b", textAlign: "right" }}>
-          <div style={{ fontWeight: "600", color: "#94a3b8" }}>Barbiero</div>
-          <div>performancemeta.sbs</div>
+        <div style={{ fontSize: "11px", color: "#475569", textAlign: "right" }}>
+          <div style={{ fontWeight: "600", color: "#64748b" }}>{unidade ?? "Barbiero"}</div>
         </div>
       </div>
-
-      {/* Divisória */}
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", marginBottom: "20px" }} />
-
-      {/* Top 5 */}
-      {top5.map((p, idx) => {
-        const nomeExibido = p.apelido || p.nome.split(" ")[0];
+      {/* Lista */}
+      {ranking.slice(0, 10).map((p, i) => {
         const isMe = p.nome === meuNome || p.apelido === meuNome;
+        const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+        const nomeExibido = p.apelido || p.nome.split(" ")[0];
         return (
           <div
             key={p.id}
@@ -278,31 +251,31 @@ function ExportCard({
               display: "flex",
               alignItems: "center",
               gap: "12px",
-              padding: "10px 14px",
+              padding: "10px 12px",
               borderRadius: "10px",
-              background: isMe ? "rgba(59,130,246,0.2)" : bgColors[idx],
-              border: `1px solid ${isMe ? "rgba(59,130,246,0.5)" : borderColors[idx]}`,
-              marginBottom: idx < 4 ? "7px" : "0",
+              marginBottom: "6px",
+              background: isMe ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)",
+              border: isMe ? "1px solid rgba(59,130,246,0.4)" : "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <div style={{ fontSize: idx < 3 ? "20px" : "13px", fontWeight: "700", minWidth: "26px", textAlign: "center", color: idx >= 3 ? "#64748b" : undefined }}>
-              {medals[idx]}
+            <div style={{ width: "28px", textAlign: "center", fontSize: "16px" }}>
+              {medalha ?? <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "700" }}>{i + 1}º</span>}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "14px", fontWeight: "600", color: isMe ? "#93c5fd" : idx === 0 ? "#fbbf24" : "#f1f5f9" }}>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: isMe ? "#93c5fd" : "#f1f5f9" }}>
                 {nomeExibido}{isMe ? " (você)" : ""}
               </div>
-              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "1px" }}>
-                Serv: {formatarMoeda(p.totalServicos)}{p.totalProdutos > 0 ? ` · Prod: ${formatarMoeda(p.totalProdutos)}` : ""}
+              <div style={{ fontSize: "10px", color: "#475569" }}>
+                Serv: {formatarMoeda(p.totalServicos)}
+                {p.totalProdutos > 0 ? ` · Prod: ${formatarMoeda(p.totalProdutos)}` : ""}
               </div>
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "700", color: isMe ? "#93c5fd" : idx === 0 ? "#fbbf24" : "#e2e8f0" }}>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: isMe ? "#93c5fd" : "#e2e8f0" }}>
               {formatarMoeda(p.totalGeral)}
             </div>
           </div>
         );
       })}
-
       {/* Rodapé */}
       <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: "10px", color: "#475569" }}>Barbeiros</div>
@@ -315,8 +288,9 @@ function ExportCard({
 }
 
 // ─── Aba Diário ───────────────────────────────────────────────────────────────
-function AbaDiario({ meuNome }: { meuNome: string }) {
+function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [data, setData] = useState(hoje());
+  const [verGeral, setVerGeral] = useState(false);
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000 });
   const { exportRef, exportando, exportar } = useExportarImagem();
 
@@ -332,15 +306,28 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
     if (`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` > h) return;
     setData(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
   };
-
   const ehHoje = data === hoje();
   const [dia, mes, ano] = formatarData(data).split("/");
   const subtitulo = ehHoje ? "Hoje" : `${dia}/${mes}/${ano}`;
 
+  // Filtrar por unidade ou mostrar geral
+  const rankingFiltrado = useMemo(() => {
+    if (!ranking) return [];
+    if (verGeral) return ranking;
+    return ranking.filter((p) => p.empresaSlug === minhaEmpresa);
+  }, [ranking, minhaEmpresa, verGeral]);
+
+  // Posição do profissional no geral
+  const minhaPosicaoGeral = useMemo(() => {
+    if (!ranking) return null;
+    const idx = ranking.findIndex((p) => p.nome === meuNome || p.apelido === meuNome);
+    return idx >= 0 ? idx + 1 : null;
+  }, [ranking, meuNome]);
+
   return (
     <div>
       {/* Seletor de data */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <button onClick={anterior} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -353,16 +340,45 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
         </button>
       </div>
 
+      {/* Toggle Unidade / Geral */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        <button
+          onClick={() => setVerGeral(false)}
+          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          {empresaLabel(minhaEmpresa)}
+        </button>
+        <button
+          onClick={() => setVerGeral(true)}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          <Globe className="w-3 h-3" />Geral
+          {minhaPosicaoGeral && !verGeral && (
+            <span className="ml-1 bg-blue-400/20 text-blue-300 text-xs px-1.5 rounded-full">{minhaPosicaoGeral}º</span>
+          )}
+        </button>
+      </div>
+
+      {/* Posição no geral (quando na aba da unidade) */}
+      {!verGeral && minhaPosicaoGeral && (
+        <div className="mb-3 flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl px-3 py-2">
+          <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+          <span className="text-xs text-blue-300">
+            Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral de todas as unidades
+          </span>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
         </div>
-      ) : !ranking || ranking.length === 0 ? (
+      ) : rankingFiltrado.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para este dia</div>
       ) : (
         <>
           <div className="space-y-2">
-            {ranking.map((p, i) => (
+            {rankingFiltrado.map((p, i) => (
               <RankingCard
                 key={p.id}
                 pos={i + 1}
@@ -372,6 +388,8 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
+                empresaSlug={p.empresaSlug}
+                mostrarEmpresa={verGeral}
               />
             ))}
           </div>
@@ -388,13 +406,14 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
       )}
 
       {/* Elemento oculto para exportação */}
-      {ranking && ranking.length > 0 && (
+      {rankingFiltrado.length > 0 && (
         <ExportCard
           exportRef={exportRef}
           titulo={`Ranking — ${subtitulo}`}
           subtitulo={`Faturamento de ${formatarData(data)}`}
-          ranking={ranking}
+          ranking={rankingFiltrado}
           meuNome={meuNome}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
         />
       )}
     </div>
@@ -402,10 +421,10 @@ function AbaDiario({ meuNome }: { meuNome: string }) {
 }
 
 // ─── Aba Semanal ──────────────────────────────────────────────────────────────
-function AbaSemanal({ meuNome }: { meuNome: string }) {
+function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [semanaOffset, setSemanaOffset] = useState(0);
+  const [verGeral, setVerGeral] = useState(false);
   const { exportRef, exportando, exportar } = useExportarImagem();
-
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
     const dia = d.getDay();
@@ -426,10 +445,22 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
   const ehSemanaAtual = semanaOffset === 0;
   const labelSemana = `${formatarData(dataInicio)} – ${formatarData(dataFim)}`;
 
+  const rankingFiltrado = useMemo(() => {
+    if (!ranking) return [];
+    if (verGeral) return ranking;
+    return ranking.filter((p) => p.empresaSlug === minhaEmpresa);
+  }, [ranking, minhaEmpresa, verGeral]);
+
+  const minhaPosicaoGeral = useMemo(() => {
+    if (!ranking) return null;
+    const idx = ranking.findIndex((p) => p.nome === meuNome || p.apelido === meuNome);
+    return idx >= 0 ? idx + 1 : null;
+  }, [ranking, meuNome]);
+
   return (
     <div>
       {/* Seletor de semana */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <button onClick={() => setSemanaOffset((o) => o - 1)} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -442,16 +473,42 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
         </button>
       </div>
 
+      {/* Toggle Unidade / Geral */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        <button
+          onClick={() => setVerGeral(false)}
+          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          {empresaLabel(minhaEmpresa)}
+        </button>
+        <button
+          onClick={() => setVerGeral(true)}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          <Globe className="w-3 h-3" />Geral
+        </button>
+      </div>
+
+      {/* Posição no geral */}
+      {!verGeral && minhaPosicaoGeral && (
+        <div className="mb-3 flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl px-3 py-2">
+          <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+          <span className="text-xs text-blue-300">
+            Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral desta semana
+          </span>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
         </div>
-      ) : !ranking || ranking.length === 0 ? (
+      ) : rankingFiltrado.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para esta semana</div>
       ) : (
         <>
           <div className="space-y-2">
-            {ranking.map((p, i) => (
+            {rankingFiltrado.map((p, i) => (
               <RankingCard
                 key={p.id}
                 pos={i + 1}
@@ -461,6 +518,8 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
+                empresaSlug={p.empresaSlug}
+                mostrarEmpresa={verGeral}
               />
             ))}
           </div>
@@ -477,13 +536,14 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
       )}
 
       {/* Elemento oculto para exportação */}
-      {ranking && ranking.length > 0 && (
+      {rankingFiltrado.length > 0 && (
         <ExportCard
           exportRef={exportRef}
           titulo={`Ranking Semanal`}
           subtitulo={`Semana de ${labelSemana}`}
-          ranking={ranking}
+          ranking={rankingFiltrado}
           meuNome={meuNome}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
         />
       )}
     </div>
@@ -491,8 +551,9 @@ function AbaSemanal({ meuNome }: { meuNome: string }) {
 }
 
 // ─── Aba Mensal ───────────────────────────────────────────────────────────────
-function AbaMensal({ meuNome }: { meuNome: string }) {
+function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [mesOffset, setMesOffset] = useState(0);
+  const [verGeral, setVerGeral] = useState(false);
   const { exportRef, exportando, exportar } = useExportarImagem();
 
   const { mes, ano } = useMemo(() => {
@@ -502,13 +563,23 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
   }, [mesOffset]);
 
   const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000 });
-  const ranking = rankingData?.lista ?? [];
+  const rankingTodos = rankingData?.lista ?? [];
   const ehMesAtual = mesOffset === 0;
+
+  const rankingFiltrado = useMemo(() => {
+    if (verGeral) return rankingTodos;
+    return rankingTodos.filter((p) => p.empresaSlug === minhaEmpresa);
+  }, [rankingTodos, minhaEmpresa, verGeral]);
+
+  const minhaPosicaoGeral = useMemo(() => {
+    const idx = rankingTodos.findIndex((p) => p.nome === meuNome || p.apelido === meuNome);
+    return idx >= 0 ? idx + 1 : null;
+  }, [rankingTodos, meuNome]);
 
   return (
     <div>
       {/* Seletor de mês */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <button onClick={() => setMesOffset((o) => o - 1)} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20">
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -521,16 +592,42 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
         </button>
       </div>
 
+      {/* Toggle Unidade / Geral */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        <button
+          onClick={() => setVerGeral(false)}
+          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          {empresaLabel(minhaEmpresa)}
+        </button>
+        <button
+          onClick={() => setVerGeral(true)}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
+        >
+          <Globe className="w-3 h-3" />Geral
+        </button>
+      </div>
+
+      {/* Posição no geral */}
+      {!verGeral && minhaPosicaoGeral && (
+        <div className="mb-3 flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl px-3 py-2">
+          <Globe className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+          <span className="text-xs text-blue-300">
+            Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral de {nomeMes(mes)}
+          </span>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
         </div>
-      ) : ranking.length === 0 ? (
+      ) : rankingFiltrado.length === 0 ? (
         <div className="text-center py-8 text-white/40">Nenhum dado para este mês</div>
       ) : (
         <>
           <div className="space-y-2">
-            {ranking.map((p, i) => (
+            {rankingFiltrado.map((p, i) => (
               <RankingCard
                 key={p.id}
                 pos={i + 1}
@@ -540,6 +637,8 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
+                empresaSlug={p.empresaSlug}
+                mostrarEmpresa={verGeral}
               />
             ))}
           </div>
@@ -556,13 +655,14 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
       )}
 
       {/* Elemento oculto para exportação */}
-      {ranking.length > 0 && (
+      {rankingFiltrado.length > 0 && (
         <ExportCard
           exportRef={exportRef}
           titulo={`Ranking — ${nomeMes(mes)}`}
           subtitulo={`Faturamento de ${nomeMes(mes)} de ${ano}`}
-          ranking={ranking}
+          ranking={rankingFiltrado}
           meuNome={meuNome}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
         />
       )}
     </div>
@@ -570,7 +670,7 @@ function AbaMensal({ meuNome }: { meuNome: string }) {
 }
 
 // ─── Tela principal do ranking ────────────────────────────────────────────────
-function RankingView({ meuNome, onLogout }: { meuNome: string; onLogout: () => void }) {
+function RankingView({ meuNome, minhaEmpresa, onLogout }: { meuNome: string; minhaEmpresa: string; onLogout: () => void }) {
   const [aba, setAba] = useState<"diario" | "semanal" | "mensal">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
@@ -586,7 +686,9 @@ function RankingView({ meuNome, onLogout }: { meuNome: string; onLogout: () => v
       <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-white font-bold text-lg">Ranking</h1>
-          <p className="text-white/40 text-xs">Olá, {meuNome.split(" ")[0]}!</p>
+          <p className="text-white/40 text-xs">
+            {meuNome.split(" ")[0]} · <span className="text-blue-400/70">{empresaLabel(minhaEmpresa)}</span>
+          </p>
         </div>
         <button
           onClick={() => logoutMut.mutate()}
@@ -617,9 +719,9 @@ function RankingView({ meuNome, onLogout }: { meuNome: string; onLogout: () => v
 
       {/* Conteúdo */}
       <div className="px-4 pb-8 pt-2">
-        {aba === "diario" && <AbaDiario meuNome={meuNome} />}
-        {aba === "semanal" && <AbaSemanal meuNome={meuNome} />}
-        {aba === "mensal" && <AbaMensal meuNome={meuNome} />}
+        {aba === "diario" && <AbaDiario meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
+        {aba === "semanal" && <AbaSemanal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
+        {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
       </div>
     </div>
   );
@@ -628,13 +730,17 @@ function RankingView({ meuNome, onLogout }: { meuNome: string; onLogout: () => v
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function RankingProfissional() {
   const [meuNome, setMeuNome] = useState<string | null>(null);
+  const [minhaEmpresa, setMinhaEmpresa] = useState<string>("barbiero-grupo");
   const { data: sessao, isLoading } = trpc.meProfissional.useQuery(undefined, {
     retry: false,
     staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
-    if (sessao?.nome) setMeuNome(sessao.nome);
+    if (sessao?.nome) {
+      setMeuNome(sessao.nome);
+      setMinhaEmpresa(sessao.empresaSlug ?? "barbiero-grupo");
+    }
   }, [sessao]);
 
   if (isLoading) {
@@ -646,8 +752,24 @@ export default function RankingProfissional() {
   }
 
   if (!meuNome) {
-    return <LoginPIN onLogin={setMeuNome} />;
+    return (
+      <LoginPIN
+        onLogin={(nome, empresaSlug) => {
+          setMeuNome(nome);
+          setMinhaEmpresa(empresaSlug);
+        }}
+      />
+    );
   }
 
-  return <RankingView meuNome={meuNome} onLogout={() => setMeuNome(null)} />;
+  return (
+    <RankingView
+      meuNome={meuNome}
+      minhaEmpresa={minhaEmpresa}
+      onLogout={() => {
+        setMeuNome(null);
+        setMinhaEmpresa("barbiero-grupo");
+      }}
+    />
+  );
 }
