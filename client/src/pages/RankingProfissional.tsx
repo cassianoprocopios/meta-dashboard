@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
@@ -149,6 +149,9 @@ function RankingCard({
   totalProdutos,
   qtdServicos = 0,
   qtdProdutos = 0,
+  pctMeta,
+  metaMensal,
+  posAnterior,
   isMe,
   empresaSlug,
   mostrarEmpresa = false,
@@ -162,32 +165,65 @@ function RankingCard({
   totalProdutos: number;
   qtdServicos?: number;
   qtdProdutos?: number;
+  pctMeta?: number | null;
+  metaMensal?: number | null;
+  posAnterior?: number | null;
   isMe: boolean;
   empresaSlug?: string | null;
   mostrarEmpresa?: boolean;
 }) {
   const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
   const nomeExibido = apelido || nome.split(" ")[0];
+
+  // Indicador de variação de posição
+  const variacaoPosicao = posAnterior != null ? posAnterior - pos : null; // positivo = subiu
+  const IndicadorPosicao = () => {
+    if (variacaoPosicao == null) return null;
+    if (variacaoPosicao > 0) return (
+      <span className="inline-flex items-center gap-0.5 text-emerald-400 text-xs font-semibold">
+        <TrendingUp className="w-3 h-3" />+{variacaoPosicao}
+      </span>
+    );
+    if (variacaoPosicao < 0) return (
+      <span className="inline-flex items-center gap-0.5 text-red-400 text-xs font-semibold">
+        <TrendingDown className="w-3 h-3" />{variacaoPosicao}
+      </span>
+    );
+    return (
+      <span className="inline-flex items-center gap-0.5 text-white/30 text-xs">
+        <Minus className="w-3 h-3" />
+      </span>
+    );
+  };
+
+  // Cores da barra de meta
+  const corMeta = pctMeta == null ? null
+    : pctMeta >= 100 ? "bg-emerald-400"
+    : pctMeta >= 75  ? "bg-blue-400"
+    : pctMeta >= 50  ? "bg-amber-400"
+    : "bg-red-400";
+
   return (
     <div
       className={`
-        flex items-center gap-3 p-3 rounded-xl transition-all
+        flex items-start gap-3 p-3 rounded-xl transition-all
         ${isMe
           ? "bg-blue-500/20 border border-blue-500/40 shadow-lg shadow-blue-500/10"
           : "bg-white/5 border border-white/10"}
       `}
     >
-      {/* Posição */}
-      <div className="w-6 text-center flex-shrink-0">
+      {/* Posição + variação */}
+      <div className="w-7 flex flex-col items-center gap-0.5 flex-shrink-0 pt-0.5">
         {medalha ? (
-          <span className="text-lg">{medalha}</span>
+          <span className="text-lg leading-none">{medalha}</span>
         ) : (
           <span className="text-white/40 text-xs font-bold">{pos}º</span>
         )}
+        <IndicadorPosicao />
       </div>
       {/* Avatar */}
       <Avatar nome={nome} fotoUrl={fotoUrl} isMe={isMe} size={36} />
-      {/* Nome + detalhes */}
+      {/* Nome + detalhes + barra de meta */}
       <div className="flex-1 min-w-0">
         <div className={`font-semibold truncate ${isMe ? "text-blue-300" : "text-white"}`}>
           {nomeExibido}
@@ -212,9 +248,26 @@ function RankingCard({
             <span className="text-blue-300/50">· {empresaLabel(empresaSlug)}</span>
           )}
         </div>
+        {/* Barra de progresso de meta mensal */}
+        {pctMeta != null && metaMensal != null && (
+          <div className="mt-1.5">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-xs text-white/40">Meta: {formatarMoeda(metaMensal)}</span>
+              <span className={`text-xs font-bold ${
+                pctMeta >= 100 ? "text-emerald-400" : pctMeta >= 75 ? "text-blue-400" : pctMeta >= 50 ? "text-amber-400" : "text-red-400"
+              }`}>{pctMeta}%</span>
+            </div>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${corMeta}`}
+                style={{ width: `${Math.min(pctMeta, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
       {/* Total */}
-      <div className={`text-right flex-shrink-0 font-bold ${isMe ? "text-blue-300" : "text-white"}`}>
+      <div className={`text-right flex-shrink-0 font-bold text-sm ${isMe ? "text-blue-300" : "text-white"}`}>
         {formatarMoeda(totalGeral)}
       </div>
     </div>
@@ -338,11 +391,32 @@ function ExportCard({
   );
 }
 
-// ─── Aba Diário ───────────────────────────────────────────────────────────────
+// ─── Helper: data anterior ────────────────────────────────────────────────────────────────────────────────
+function subtrairDia(iso: string, n = 1): string {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Mapa de posições: id -> posição (1-based)
+function buildPosMap(lista: Array<{ id: number }>): Map<number, number> {
+  const m = new Map<number, number>();
+  lista.forEach((p, i) => m.set(p.id, i + 1));
+  return m;
+}
+
+// ─── Aba Diário ────────────────────────────────────────────────────────────────────────────────
 function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [data, setData] = useState(hoje());
   const [verGeral, setVerGeral] = useState(false);
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000 });
+  // Ranking do dia anterior para calcular variação de posição
+  const dataAnterior = useMemo(() => subtrairDia(data, 1), [data]);
+  const { data: rankingAnterior } = trpc.rankingDiario.useQuery(
+    { data: dataAnterior },
+    { staleTime: 5 * 60_000, enabled: true }
+  );
+  const posMapAnterior = useMemo(() => buildPosMap(rankingAnterior ?? []), [rankingAnterior]);
   const { exportRef, exportando, exportar } = useExportarImagem();
 
   const anterior = () => {
@@ -441,6 +515,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 totalProdutos={p.totalProdutos}
                 qtdServicos={(p as any).qtdServicos ?? 0}
                 qtdProdutos={(p as any).qtdProdutos ?? 0}
+                posAnterior={posMapAnterior.get(p.id) ?? null}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
@@ -474,7 +549,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   );
 }
 
-// ─── Aba Semanal ──────────────────────────────────────────────────────────────
+// ─── Aba Semanal ────────────────────────────────────────────────────────────────────────────────
 function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [semanaOffset, setSemanaOffset] = useState(0);
   const [verGeral, setVerGeral] = useState(false);
@@ -491,11 +566,28 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
     return { dataInicio: fmt(inicio), dataFim: fmt(fim) };
   }, [semanaOffset]);
 
+  // Semana anterior para calcular variação de posição
+  const { dataInicio: dataInicioAnt, dataFim: dataFimAnt } = useMemo(() => {
+    const d = new Date();
+    const dia = d.getDay();
+    const diffInicio = dia === 0 ? -6 : 1 - dia;
+    const inicio = new Date(d);
+    inicio.setDate(d.getDate() + diffInicio + (semanaOffset - 1) * 7);
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+    const fmt = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    return { dataInicio: fmt(inicio), dataFim: fmt(fim) };
+  }, [semanaOffset]);
+
   const { data: ranking, isLoading } = trpc.rankingSemanal.useQuery(
     { dataInicio, dataFim },
     { staleTime: 60_000 }
   );
-
+  const { data: rankingAnteriorSem } = trpc.rankingSemanal.useQuery(
+    { dataInicio: dataInicioAnt, dataFim: dataFimAnt },
+    { staleTime: 5 * 60_000 }
+  );
+  const posMapAnteriorSem = useMemo(() => buildPosMap(rankingAnteriorSem ?? []), [rankingAnteriorSem]);
   const ehSemanaAtual = semanaOffset === 0;
   const labelSemana = `${formatarData(dataInicio)} – ${formatarData(dataFim)}`;
 
@@ -574,6 +666,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
                 totalProdutos={p.totalProdutos}
                 qtdServicos={(p as any).qtdServicos ?? 0}
                 qtdProdutos={(p as any).qtdProdutos ?? 0}
+                posAnterior={posMapAnteriorSem.get(p.id) ?? null}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
@@ -622,6 +715,18 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000 });
   const rankingTodos = rankingData?.lista ?? [];
   const ehMesAtual = mesOffset === 0;
+
+  // Mês anterior para calcular variação de posição
+  const { mes: mesAnt, ano: anoAnt } = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + mesOffset - 1);
+    return { mes: d.getMonth() + 1, ano: d.getFullYear() };
+  }, [mesOffset]);
+  const { data: rankingDataAnt } = trpc.rankingMensal.useQuery(
+    { mes: mesAnt, ano: anoAnt },
+    { staleTime: 5 * 60_000 }
+  );
+  const posMapAnteriorMes = useMemo(() => buildPosMap(rankingDataAnt?.lista ?? []), [rankingDataAnt]);
 
   const rankingFiltrado = useMemo(() => {
     if (verGeral) return rankingTodos;
@@ -696,6 +801,9 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 totalProdutos={p.totalProdutos}
                 qtdServicos={(p as any).qtdServicos ?? 0}
                 qtdProdutos={(p as any).qtdProdutos ?? 0}
+                pctMeta={p.pctMeta}
+                metaMensal={p.metaMensal}
+                posAnterior={posMapAnteriorMes.get(p.id) ?? null}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
