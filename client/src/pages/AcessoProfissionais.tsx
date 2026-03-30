@@ -591,6 +591,14 @@ export default function AcessoProfissionais() {
                         </div>
                         {/* Ações */}
                         <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Botão editar telefone — sempre visível */}
+                          <button
+                            onClick={() => setTelProfissional(p)}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
+                            title="Editar número de WhatsApp"
+                          >
+                            <Pencil className="w-3 h-3 text-muted-foreground" />
+                          </button>
                           {p.pinAcesso ? (
                             <>
                               <div className="bg-muted/50 border border-border/40 rounded-lg px-2.5 py-1.5">
@@ -609,15 +617,6 @@ export default function AcessoProfissionais() {
                                 title={tel ? `Enviar via WhatsApp para ${tel}` : "Cadastrar número para enviar via WhatsApp"}
                               >
                                 <MessageCircle className={`w-3.5 h-3.5 ${tel ? "text-emerald-400" : "text-muted-foreground"}`} />
-                              </button>
-
-                              {/* Botão editar telefone */}
-                              <button
-                                onClick={() => setTelProfissional(p)}
-                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
-                                title="Editar número de WhatsApp"
-                              >
-                                <Pencil className="w-3 h-3 text-muted-foreground" />
                               </button>
 
                               {/* Botão QR Code */}
