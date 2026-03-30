@@ -3586,13 +3586,84 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     }
   }),
 
-  logoutProfissional: publicProcedure.mutation(async ({ ctx }) => {
+   logoutProfissional: publicProcedure.mutation(async ({ ctx }) => {
     const res = (ctx as any).res;
     if (res) {
       res.clearCookie('prof_session', { path: '/' });
     }
     return { ok: true };
   }),
-});
 
+  // ─── Meus Atendimentos ───
+  meusAtendimentos: publicProcedure
+    .input(z.object({
+      dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }))
+    .query(async ({ ctx, input }) => {
+      const req = (ctx as any).req;
+      const cookieHeader = req?.headers?.cookie ?? '';
+      const cookies = parseCookieHeader(cookieHeader);
+      const token = cookies['prof_session'];
+      if (!token) throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Não autenticado.' });
+
+      let profissionalId: number;
+      let tenantId: number;
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        if (payload.type !== 'profissional') throw new Error();
+        profissionalId = payload.profissionalId as number;
+        tenantId = payload.tenantId as number;
+      } catch {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sessão inválida.' });
+      }
+
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const col = colaboradoresList.find((c) => c.id === profissionalId);
+      if (!col || !col.cashbarberProfissionalId) {
+        return { servicos: [], produtos: [], totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
+      }
+
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada.' });
+      }
+
+      const cbToken = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const relatorio = await cashbarberRelatorio15(cbToken, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
+
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+
+      const servicosFiltrados = (relatorio.servicos ?? []).filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+      const produtosFiltrados = (relatorio.produtos ?? []).filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+
+      const servicos = servicosFiltrados
+        .filter((s: any) => (s.sum ?? 0) > 0)
+        .map((s: any) => ({ nome: s.ser_nome ?? 'Serviço', valor: Number(s.sum) || 0, qtd: Number(s.count) || 0 }))
+        .sort((a: any, b: any) => b.valor - a.valor);
+
+      const produtos = produtosFiltrados
+        .filter((p: any) => (p.total ?? 0) > 0)
+        .map((p: any) => ({ nome: p.pro_nome ?? 'Produto', valor: Number(p.total) || 0, qtd: Number(p.count) || 0 }))
+        .sort((a: any, b: any) => b.valor - a.valor);
+
+      const totalServicos = servicos.reduce((acc: number, s: any) => acc + s.valor, 0);
+      const totalProdutos = produtos.reduce((acc: number, p: any) => acc + p.valor, 0);
+      const qtdServicos = servicos.reduce((acc: number, s: any) => acc + s.qtd, 0);
+      const qtdProdutos = produtos.reduce((acc: number, p: any) => acc + p.qtd, 0);
+
+      return {
+        servicos,
+        produtos,
+        totalServicos,
+        totalProdutos,
+        totalGeral: totalServicos + totalProdutos,
+        qtdServicos,
+        qtdProdutos,
+      };
+    }),
+});
 export type AppRouter = typeof appRouter;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus, Scissors, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
@@ -839,15 +839,155 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   );
 }
 
+// ─── Aba Meus Atendimentos ───────────────────────────────────────────────────
+function AbaAtendimentos({ meuNome }: { meuNome: string }) {
+  const [periodo, setPeriodo] = useState<"hoje" | "semana" | "mes">("hoje");
+
+  function getRange(p: "hoje" | "semana" | "mes"): { dataInicio: string; dataFim: string } {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const fmt = (dt: Date) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+    if (p === "hoje") {
+      const s = fmt(d);
+      return { dataInicio: s, dataFim: s };
+    }
+    if (p === "semana") {
+      const day = d.getDay(); // 0=dom
+      const diffSeg = (day === 0 ? -6 : 1 - day);
+      const seg = new Date(d); seg.setDate(d.getDate() + diffSeg);
+      const sab = new Date(seg); sab.setDate(seg.getDate() + 6);
+      return { dataInicio: fmt(seg), dataFim: fmt(sab) };
+    }
+    // mes
+    const inicio = new Date(d.getFullYear(), d.getMonth(), 1);
+    const fim = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    return { dataInicio: fmt(inicio), dataFim: fmt(fim) };
+  }
+
+  const range = getRange(periodo);
+  const { data, isLoading, error } = trpc.meusAtendimentos.useQuery(
+    { dataInicio: range.dataInicio, dataFim: range.dataFim },
+    { staleTime: 1000 * 60 * 5 }
+  );
+
+  const periodos = [
+    { id: "hoje" as const, label: "Hoje" },
+    { id: "semana" as const, label: "Semana" },
+    { id: "mes" as const, label: "Mês" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Seletor de período */}
+      <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+        {periodos.map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => setPeriodo(id)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+              periodo === id ? "bg-blue-500 text-white" : "text-white/50 hover:text-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-8 text-red-400 text-sm">
+          Erro ao carregar atendimentos. Tente novamente.
+        </div>
+      )}
+
+      {data && !isLoading && (
+        <>
+          {/* Resumo */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+              <p className="text-white/40 text-xs mb-1">Total</p>
+              <p className="text-white font-bold text-sm">{formatarMoeda(data.totalGeral)}</p>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+              <p className="text-white/40 text-xs mb-1">Serviços</p>
+              <p className="text-blue-300 font-bold text-sm">{data.qtdServicos} atend.</p>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+              <p className="text-white/40 text-xs mb-1">Produtos</p>
+              <p className="text-emerald-300 font-bold text-sm">{data.qtdProdutos} itens</p>
+            </div>
+          </div>
+
+          {/* Serviços */}
+          {data.servicos.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Scissors className="w-4 h-4 text-blue-400" />
+                <h3 className="text-white/70 text-sm font-semibold">Serviços</h3>
+                <span className="text-white/30 text-xs ml-auto">{formatarMoeda(data.totalServicos)}</span>
+              </div>
+              <div className="space-y-1.5">
+                {data.servicos.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm truncate">{s.nome}</p>
+                      <p className="text-white/40 text-xs">{s.qtd}x</p>
+                    </div>
+                    <span className="text-blue-300 font-semibold text-sm ml-3">{formatarMoeda(s.valor)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Produtos */}
+          {data.produtos.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-white/70 text-sm font-semibold">Produtos</h3>
+                <span className="text-white/30 text-xs ml-auto">{formatarMoeda(data.totalProdutos)}</span>
+              </div>
+              <div className="space-y-1.5">
+                {data.produtos.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm truncate">{p.nome}</p>
+                      <p className="text-white/40 text-xs">{p.qtd}x</p>
+                    </div>
+                    <span className="text-emerald-300 font-semibold text-sm ml-3">{formatarMoeda(p.valor)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.servicos.length === 0 && data.produtos.length === 0 && (
+            <div className="text-center py-12 text-white/30 text-sm">
+              Nenhum atendimento encontrado no período.
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Tela principal do ranking ────────────────────────────────────────────────
 function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; onLogout: () => void }) {
-  const [aba, setAba] = useState<"diario" | "semanal" | "mensal">("diario");
+  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
   const abas = [
     { id: "diario" as const, label: "Hoje", icon: Calendar },
     { id: "semanal" as const, label: "Semana", icon: TrendingUp },
     { id: "mensal" as const, label: "Mês", icon: Trophy },
+    { id: "atendimentos" as const, label: "Meus", icon: Scissors },
   ];
 
   return (
@@ -894,6 +1034,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome:
         {aba === "diario" && <AbaDiario meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
         {aba === "semanal" && <AbaSemanal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
         {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
+        {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
       </div>
     </div>
   );
