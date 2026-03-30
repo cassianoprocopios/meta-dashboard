@@ -28,6 +28,8 @@ const EMPRESA_LABEL: Record<string, string> = {
   MASCOTE: "Barbiero Mascote",
   MORUMBI: "Barbiero Morumbi",
   "barbiero-grupo": "Barbiero",
+  "barbiero-morumbi": "Barbiero Morumbi",
+  "barbiero-mascote": "Barbiero Mascote",
 };
 function empresaLabel(slug: string | null | undefined) {
   if (!slug) return "Barbiero";
