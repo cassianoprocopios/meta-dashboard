@@ -515,8 +515,88 @@ const profissionaisRouter = router({
         mensagem: `Ranking de ${meses[mes - 1]}/${ano} recalculado: ${sincronizados} profissional(is) atualizado(s)${erros > 0 ? `, ${erros} erro(s)` : ''}.`,
       };
     }),
-});
 
+  // Gera PINs únicos para profissionais sem PIN e retorna links wa.me pré-preenchidos
+  gerarLinksWhatsApp: protectedProcedure
+    .input(z.object({
+      appUrl: z.string().url(),
+      apenasComTelefone: z.boolean().optional().default(true),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const lista = await listarColaboradores(tenantId);
+      const ativos = lista.filter((c) => c.ativo === 1);
+
+      // Coletar PINs já em uso
+      const pinsUsados = new Set(ativos.map((c) => c.pinAcesso).filter(Boolean) as string[]);
+
+      function gerarPinUnico(): string {
+        let pin: string;
+        let tentativas = 0;
+        do {
+          pin = String(Math.floor(1000 + Math.random() * 9000));
+          tentativas++;
+          if (tentativas > 1000) throw new Error('Não foi possível gerar PINs únicos suficientes');
+        } while (pinsUsados.has(pin));
+        pinsUsados.add(pin);
+        return pin;
+      }
+
+       const { colaboradores: colTable } = await import('../drizzle/schema');
+      const { eq, and } = await import('drizzle-orm');
+      const dbRaw = await (await import('./db')).getDb();
+      if (!dbRaw) throw new Error('DB not available');
+      const db = dbRaw;
+      const resultados: Array<{
+        id: number;
+        nome: string;
+        apelido: string | null;
+        telefone: string | null;
+        pin: string;
+        linkWhatsApp: string | null;
+        mensagem: string;
+      }> = [];
+
+      for (const col of ativos) {
+        // Gerar PIN se ainda não tem
+        let pin = col.pinAcesso;
+        if (!pin) {
+          pin = gerarPinUnico();
+          await db.update(colTable)
+            .set({ pinAcesso: pin })
+            .where(and(eq(colTable.id, col.id), eq(colTable.tenantId, tenantId)));
+        }
+
+        // Pular se não tem telefone e o filtro está ativo
+        if (input.apenasComTelefone && !col.telefone) continue;
+
+        const nomeExibido = col.apelido || col.nome.split(' ')[0];
+        const linkAcesso = `${input.appUrl}/pro`;
+        const mensagem = `Olá ${nomeExibido}! ✂️\n\nSeu acesso ao ranking da Barbiero está pronto!\n\n*PIN:* ${pin}\n*Link:* ${linkAcesso}\n\nAcesse pelo celular, digite seu PIN e acompanhe seu desempenho em tempo real. 🚀`;
+
+        const telefoneFormatado = col.telefone ? col.telefone.replace(/\D/g, '') : null;
+        // Garantir que o número não tenha o código 55 duplicado
+        const numeroFinal = telefoneFormatado
+          ? (telefoneFormatado.startsWith('55') ? telefoneFormatado : `55${telefoneFormatado}`)
+          : null;
+        const linkWa = numeroFinal
+          ? `https://wa.me/${numeroFinal}?text=${encodeURIComponent(mensagem)}`
+          : null;
+
+        resultados.push({
+          id: col.id,
+          nome: col.nome,
+          apelido: col.apelido ?? null,
+          telefone: col.telefone ?? null,
+          pin,
+          linkWhatsApp: linkWa,
+          mensagem,
+        });
+      }
+
+      return { resultados, total: resultados.length };
+    }),
+});
 export const appRouter = router({
   system: systemRouter,
   profissionais: profissionaisRouter,

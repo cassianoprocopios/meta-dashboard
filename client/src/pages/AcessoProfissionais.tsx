@@ -22,6 +22,10 @@ import {
   MessageCircle,
   Phone,
   Pencil,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -245,17 +249,152 @@ function TelefoneModal({
   );
 }
 
+// ─── Modal Envio em Massa ─────────────────────────────────────────────────────
+type ResultadoEnvio = {
+  id: number;
+  nome: string;
+  apelido: string | null;
+  telefone: string | null;
+  pin: string;
+  linkWhatsApp: string | null;
+  mensagem: string;
+};
+
+function EnvioMassaModal({
+  resultados,
+  onClose,
+}: {
+  resultados: ResultadoEnvio[];
+  onClose: () => void;
+}) {
+  const [enviados, setEnviados] = useState<Set<number>>(new Set());
+  const comLink = resultados.filter((r) => r.linkWhatsApp);
+  const semLink = resultados.filter((r) => !r.linkWhatsApp);
+
+  const handleEnviar = (r: ResultadoEnvio) => {
+    if (!r.linkWhatsApp) return;
+    window.open(r.linkWhatsApp, "_blank");
+    setEnviados((prev) => { const s = new Set(prev); s.add(r.id); return s; });
+  };
+
+  const handleEnviarTodos = () => {
+    comLink.forEach((r, i) => {
+      setTimeout(() => {
+        window.open(r.linkWhatsApp!, "_blank");
+        setEnviados((prev) => { const s = new Set(prev); s.add(r.id); return s; });
+      }, i * 800);
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-card border border-border/40 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
+          <div className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-emerald-400" />
+            <span className="font-semibold text-sm text-foreground">Enviar PIN via WhatsApp</span>
+            <span className="text-xs text-muted-foreground">({comLink.length} com número)</span>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors">
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Botão enviar todos */}
+        {comLink.length > 0 && (
+          <div className="px-5 py-3 border-b border-border/20 bg-emerald-500/5">
+            <Button
+              size="sm"
+              className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={handleEnviarTodos}
+            >
+              <Send className="w-3.5 h-3.5" />
+              Abrir todos no WhatsApp ({comLink.length})
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1.5 text-center">
+              Abre uma janela do WhatsApp para cada profissional com intervalo de 0,8s
+            </p>
+          </div>
+        )}
+
+        {/* Lista */}
+        <div className="max-h-96 overflow-y-auto divide-y divide-border/20">
+          {comLink.map((r) => (
+            <div key={r.id} className="px-5 py-3 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{r.apelido ?? r.nome}</p>
+                <p className="text-xs text-muted-foreground">{r.telefone}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-mono text-sm font-bold text-foreground bg-muted/50 border border-border/40 rounded-lg px-2.5 py-1">{r.pin}</span>
+                {enviados.has(r.id) ? (
+                  <div className="flex items-center gap-1 text-xs text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Enviado</span>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 h-7 text-xs border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 bg-transparent"
+                    onClick={() => handleEnviar(r)}
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    Enviar
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+          {semLink.length > 0 && (
+            <div className="px-5 py-3 bg-muted/10">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-medium text-amber-400">Sem número cadastrado ({semLink.length})</span>
+              </div>
+              {semLink.map((r) => (
+                <div key={r.id} className="flex items-center gap-2 py-1">
+                  <span className="text-xs text-muted-foreground">{r.apelido ?? r.nome}</span>
+                  <span className="font-mono text-xs text-muted-foreground/60">PIN: {r.pin}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="px-5 py-3 border-t border-border/20">
+          <p className="text-xs text-muted-foreground text-center">
+            {enviados.size}/{comLink.length} mensagens abertas
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AcessoProfissionais() {
   const [, setLocation] = useLocation();
   const [busca, setBusca] = useState("");
   const [qrProfissional, setQrProfissional] = useState<Profissional | null>(null);
   const [telProfissional, setTelProfissional] = useState<Profissional | null>(null);
+  const [resultadosEnvio, setResultadosEnvio] = useState<ResultadoEnvio[] | null>(null);
   // Estado local de telefones para atualização otimista
   const [telefonesLocais, setTelefonesLocais] = useState<Record<number, string>>({});
 
   const utils = trpc.useUtils();
   const { data: profissionais, isLoading } = trpc.profissionais.listarParaAcesso.useQuery();
+
+  const gerarLinks = trpc.profissionais.gerarLinksWhatsApp.useMutation({
+    onSuccess: (data) => {
+      setResultadosEnvio(data.resultados);
+      utils.profissionais.listarParaAcesso.invalidate();
+    },
+    onError: (err) => {
+      toast.error("Erro ao gerar PINs: " + err.message);
+    },
+  });
 
   const filtrados = (profissionais ?? []).filter((p) => {
     const q = busca.toLowerCase();
@@ -307,6 +446,12 @@ export default function AcessoProfissionais() {
           }}
         />
       )}
+      {resultadosEnvio && (
+        <EnvioMassaModal
+          resultados={resultadosEnvio}
+          onClose={() => setResultadosEnvio(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/40">
@@ -318,7 +463,19 @@ export default function AcessoProfissionais() {
             <h1 className="font-semibold text-sm text-foreground">Acesso dos Profissionais</h1>
             <p className="text-xs text-muted-foreground">Como acessar o ranking pelo celular</p>
           </div>
-          <Smartphone className="w-5 h-5 text-muted-foreground" />
+          <Button
+            size="sm"
+            className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
+            onClick={() => gerarLinks.mutate({ appUrl: window.location.origin, apenasComTelefone: false })}
+            disabled={gerarLinks.isPending}
+          >
+            {gerarLinks.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
+            Enviar PINs
+          </Button>
         </div>
       </div>
 
