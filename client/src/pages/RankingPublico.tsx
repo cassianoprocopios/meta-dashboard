@@ -69,6 +69,8 @@ type Profissional = {
   totalServicos: number;
   totalProdutos: number;
   totalGeral: number;
+  qtdServicos?: number;
+  qtdProdutos?: number;
   temDados: boolean;
   detalhesServicos?: string | null;
   detalhesProdutos?: string | null;

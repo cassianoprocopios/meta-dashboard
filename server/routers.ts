@@ -363,6 +363,8 @@ const profissionaisRouter = router({
           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
+          const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+          const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
           await upsertFaturamentoColaborador({
             tenantId,
             colaboradorId: col.id,
@@ -372,6 +374,8 @@ const profissionaisRouter = router({
             totalServicos,
             totalProdutos,
             totalGeral,
+            qtdServicos,
+            qtdProdutos,
             // Salvar apenas os serviços válidos (excluídas as categorias ignoradas) com quantidade
             detalhesServicos: JSON.stringify(
               servicosRanking.slice(0, 20).map((s: any) => ({
@@ -450,10 +454,11 @@ const profissionaisRouter = router({
           const produtosRanking = relatorio.produtos.filter(
             (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
           );
-          const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+           const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
           const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
           const totalGeral = totalServicos + totalProdutos;
-
+          const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+          const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
           // Determinar empresaSlug correto: usar mapeamento do rel13 se disponível, senão manter o atual
           const nomeCB = (col.apelido ?? col.nome).toLowerCase().trim();
           const slugCorreto = mapaFilial.get(nomeCB) ?? col.empresaSlug ?? 'barbiero-grupo';
@@ -479,6 +484,8 @@ const profissionaisRouter = router({
             totalServicos,
             totalProdutos,
             totalGeral,
+            qtdServicos,
+            qtdProdutos,
             // Salvar serviços válidos com quantidade
             detalhesServicos: JSON.stringify(
               servicosRanking.slice(0, 20).map((s: any) => ({
@@ -3302,6 +3309,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
             const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
             const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+            const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             return {
               id: col.id,
               nome: col.nome,
@@ -3313,6 +3322,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos,
               totalProdutos,
               totalGeral: totalServicos + totalProdutos,
+              qtdServicos,
+              qtdProdutos,
             };
           } catch {
             return {
@@ -3326,6 +3337,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos: 0,
               totalProdutos: 0,
               totalGeral: 0,
+              qtdServicos: 0,
+              qtdProdutos: 0,
             };
           }
         })
@@ -3356,6 +3369,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
             const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
             const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+            const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             return {
               id: col.id,
               nome: col.nome,
@@ -3367,6 +3382,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos,
               totalProdutos,
               totalGeral: totalServicos + totalProdutos,
+              qtdServicos,
+              qtdProdutos,
             };
           } catch {
             return {
@@ -3380,6 +3397,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos: 0,
               totalProdutos: 0,
               totalGeral: 0,
+              qtdServicos: 0,
+              qtdProdutos: 0,
             };
           }
         })
@@ -3411,6 +3430,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             totalServicos: fat?.totalServicos ?? 0,
             totalProdutos: fat?.totalProdutos ?? 0,
             totalGeral: fat?.totalGeral ?? 0,
+            qtdServicos: fat?.qtdServicos ?? 0,
+            qtdProdutos: fat?.qtdProdutos ?? 0,
             temDados: !!fat,
             metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
             pctMeta: (p.metaMensal && fat?.totalGeral)
@@ -3467,11 +3488,18 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     try {
       const { payload } = await jwtVerify(token, JWT_SECRET);
       if (payload.type !== 'profissional') return null;
+      const tenantId = payload.tenantId as number;
+      const profissionalId = payload.profissionalId as number;
+      // Buscar dados atualizados do colaborador (foto, apelido)
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const col = colaboradoresList.find((c) => c.id === profissionalId);
       return {
-        profissionalId: payload.profissionalId as number,
+        profissionalId,
         nome: payload.nome as string,
+        apelido: col?.apelido ?? null,
+        fotoUrl: col?.fotoUrl ?? null,
         empresaSlug: (payload.empresaSlug as string) ?? 'barbiero-grupo',
-        tenantId: payload.tenantId as number,
+        tenantId,
       };
     } catch {
       return null;

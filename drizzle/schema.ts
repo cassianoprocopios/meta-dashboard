@@ -352,6 +352,8 @@ export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
   totalComissaoProdutos: decimal("totalComissaoProdutos", { precision: 12, scale: 2 }).notNull().default("0"),
   detalhesProdutos: text("detalhesProdutos"),
   totalServicos: decimal("totalServicos", { precision: 12, scale: 2 }).notNull().default("0"),
+  qtdServicos: int("qtdServicos").notNull().default(0),
+  qtdProdutos: int("qtdProdutos").notNull().default(0),
   totalGeral: decimal("totalGeral", { precision: 12, scale: 2 }).notNull().default("0"),
   detalhesServicos: text("detalhesServicos"),
   ultimaSyncEm: timestamp("ultimaSyncEm").defaultNow().notNull(),

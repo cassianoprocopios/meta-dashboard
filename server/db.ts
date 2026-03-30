@@ -1529,6 +1529,8 @@ export async function listarRankingPorPeriodo(
     totalServicos: number;
     totalProdutos: number;
     totalGeral: number;
+    qtdServicos: number;
+    qtdProdutos: number;
     detalhesServicos: string | null;
     detalhesProdutos: string | null;
   }>;
@@ -1547,6 +1549,8 @@ export async function listarRankingPorPeriodo(
       totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
       totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
       totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+      qtdServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.qtdServicos}), 0)`,
+      qtdProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.qtdProdutos}), 0)`,
       ultimaSyncEm: sql<Date | null>`MAX(${faturamentoColaboradores.ultimaSyncEm})`,
       // Pegar o detalhesServicos do registro mais recente (maior ultimaSyncEm)
       detalhesServicos: sql<string | null>`(
@@ -1602,6 +1606,8 @@ export async function listarRankingPorPeriodo(
       totalServicos: Number(r.totalServicos),
       totalProdutos: Number(r.totalProdutos),
       totalGeral: Number(r.totalGeral),
+      qtdServicos: Number(r.qtdServicos),
+      qtdProdutos: Number(r.qtdProdutos),
       detalhesServicos: r.detalhesServicos ?? null,
       detalhesProdutos: r.detalhesProdutos ?? null,
     })),
@@ -1634,6 +1640,8 @@ export async function upsertFaturamentoColaborador(input: {
   totalServicos: number;
   totalProdutos: number;
   totalGeral: number;
+  qtdServicos?: number;
+  qtdProdutos?: number;
   detalhesServicos?: string | null;
   detalhesProdutos?: string | null;
 }) {
@@ -1660,6 +1668,8 @@ export async function upsertFaturamentoColaborador(input: {
         totalServicos: String(input.totalServicos),
         totalProdutos: String(input.totalProdutos),
         totalGeral: String(input.totalGeral),
+        qtdServicos: input.qtdServicos ?? 0,
+        qtdProdutos: input.qtdProdutos ?? 0,
         detalhesServicos: input.detalhesServicos ?? null,
         detalhesProdutos: input.detalhesProdutos ?? null,
         updatedAt: new Date(),
@@ -1675,6 +1685,8 @@ export async function upsertFaturamentoColaborador(input: {
       totalServicos: String(input.totalServicos),
       totalProdutos: String(input.totalProdutos),
       totalGeral: String(input.totalGeral),
+      qtdServicos: input.qtdServicos ?? 0,
+      qtdProdutos: input.qtdProdutos ?? 0,
       detalhesServicos: input.detalhesServicos ?? null,
       detalhesProdutos: input.detalhesProdutos ?? null,
     });

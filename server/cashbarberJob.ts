@@ -376,6 +376,56 @@ export async function inicializarJobsCashbarber(): Promise<void> {
   console.log("[CashBarber Job] Sistema inicializado com sucesso");
 }
 
+// ─── Job de Ranking a cada 30 minutos (horário de funcionamento) ────────────────
+// Seg–Sex: 09:30–21:00 | Sáb: 09:30–19:00 | Dom: não executa
+
+/**
+ * Verifica se o horário atual está dentro do horário de funcionamento
+ * Seg–Sex: 09:30–21:00 | Sáb: 09:30–19:00 | Dom: nunca
+ */
+function dentroDoHorarioFuncionamento(): boolean {
+  const agora = new Date();
+  // Converter para horário de Brasília (UTC-3)
+  const horaBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const diaSemana = horaBRT.getDay(); // 0=Dom, 1=Seg, ..., 6=Sáb
+  const hora = horaBRT.getHours();
+  const minuto = horaBRT.getMinutes();
+  const totalMinutos = hora * 60 + minuto;
+  const abertura = 9 * 60 + 30; // 09:30
+  const fechamentoSemana = 21 * 60; // 21:00
+  const fechamentoSabado = 19 * 60; // 19:00
+
+  if (diaSemana === 0) return false; // Domingo: nunca
+  if (diaSemana >= 1 && diaSemana <= 5) {
+    // Segunda a Sexta
+    return totalMinutos >= abertura && totalMinutos < fechamentoSemana;
+  }
+  if (diaSemana === 6) {
+    // Sábado
+    return totalMinutos >= abertura && totalMinutos < fechamentoSabado;
+  }
+  return false;
+}
+
+// Job a cada 30 minutos — recalcula ranking apenas no horário de funcionamento
+cron.schedule("0 */30 * * * *", async () => {
+  if (!dentroDoHorarioFuncionamento()) return;
+
+  const configs = await listAllActiveCashbarberConfigs().catch(() => []);
+  const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+
+  for (const tenantId of tenantIds) {
+    try {
+      const resultado = await executarRecalculoRanking(tenantId);
+      console.log(`[Ranking Job] Atualização 30min: tenant ${tenantId} — ${resultado.sincronizados} profissional(is)`);
+    } catch (err) {
+      console.warn(`[Ranking Job] Falha na atualização 30min para tenant ${tenantId}:`, err);
+    }
+  }
+});
+
+console.log("[Ranking Job] Job de 30min agendado (Seg–Sex 09:30–21:00 | Sáb 09:30–19:00)");
+
 // ─── Job de Notificação Diária do Ranking (21h) ───────────────────────────────
 
 async function enviarNotificacaoRankingDiario(): Promise<void> {

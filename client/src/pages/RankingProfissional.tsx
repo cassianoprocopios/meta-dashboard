@@ -147,6 +147,8 @@ function RankingCard({
   totalGeral,
   totalServicos,
   totalProdutos,
+  qtdServicos = 0,
+  qtdProdutos = 0,
   isMe,
   empresaSlug,
   mostrarEmpresa = false,
@@ -158,6 +160,8 @@ function RankingCard({
   totalGeral: number;
   totalServicos: number;
   totalProdutos: number;
+  qtdServicos?: number;
+  qtdProdutos?: number;
   isMe: boolean;
   empresaSlug?: string | null;
   mostrarEmpresa?: boolean;
@@ -183,15 +187,27 @@ function RankingCard({
       </div>
       {/* Avatar */}
       <Avatar nome={nome} fotoUrl={fotoUrl} isMe={isMe} size={36} />
-      {/* Nome */}
+      {/* Nome + detalhes */}
       <div className="flex-1 min-w-0">
         <div className={`font-semibold truncate ${isMe ? "text-blue-300" : "text-white"}`}>
           {nomeExibido}
           {isMe && <span className="ml-2 text-xs text-blue-400/70">(você)</span>}
         </div>
+        {/* Linha 1: contagem de atendimentos */}
+        {(qtdServicos > 0 || qtdProdutos > 0) && (
+          <div className="text-xs text-white/60 flex gap-1.5 flex-wrap">
+            {qtdServicos > 0 && (
+              <span className="bg-white/10 px-1.5 py-0.5 rounded-md">{qtdServicos} serv</span>
+            )}
+            {qtdProdutos > 0 && (
+              <span className="bg-white/10 px-1.5 py-0.5 rounded-md">{qtdProdutos} prod</span>
+            )}
+          </div>
+        )}
+        {/* Linha 2: valores monetários */}
         <div className="text-xs text-white/40 flex gap-2 flex-wrap">
-          <span>Serv: {formatarMoeda(totalServicos)}</span>
-          {totalProdutos > 0 && <span>· Prod: {formatarMoeda(totalProdutos)}</span>}
+          {totalServicos > 0 && <span>{formatarMoeda(totalServicos)}</span>}
+          {totalProdutos > 0 && <span>· {formatarMoeda(totalProdutos)}</span>}
           {mostrarEmpresa && empresaSlug && (
             <span className="text-blue-300/50">· {empresaLabel(empresaSlug)}</span>
           )}
@@ -423,6 +439,8 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
+                qtdServicos={(p as any).qtdServicos ?? 0}
+                qtdProdutos={(p as any).qtdProdutos ?? 0}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
@@ -554,6 +572,8 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
+                qtdServicos={(p as any).qtdServicos ?? 0}
+                qtdProdutos={(p as any).qtdProdutos ?? 0}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
@@ -674,6 +694,8 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 totalGeral={p.totalGeral}
                 totalServicos={p.totalServicos}
                 totalProdutos={p.totalProdutos}
+                qtdServicos={(p as any).qtdServicos ?? 0}
+                qtdProdutos={(p as any).qtdProdutos ?? 0}
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
@@ -708,7 +730,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
 }
 
 // ─── Tela principal do ranking ────────────────────────────────────────────────
-function RankingView({ meuNome, minhaEmpresa, onLogout }: { meuNome: string; minhaEmpresa: string; onLogout: () => void }) {
+function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; onLogout: () => void }) {
   const [aba, setAba] = useState<"diario" | "semanal" | "mensal">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
@@ -722,17 +744,19 @@ function RankingView({ meuNome, minhaEmpresa, onLogout }: { meuNome: string; min
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-white font-bold text-lg">Ranking</h1>
-          <p className="text-white/40 text-xs">
-            {meuNome.split(" ")[0]} · <span className="text-blue-400/70">{empresaLabel(minhaEmpresa)}</span>
-          </p>
+        <div className="flex items-center gap-3">
+          <Avatar nome={meuNome} fotoUrl={meuFotoUrl} isMe={true} size={38} />
+          <div>
+            <h1 className="text-white font-bold text-base leading-tight">{meuNome.split(" ")[0]}</h1>
+            <p className="text-blue-400/70 text-xs">{empresaLabel(minhaEmpresa)}</p>
+          </div>
         </div>
         <button
           onClick={() => logoutMut.mutate()}
-          className="p-2 rounded-lg bg-white/10 text-white/60 hover:bg-white/20"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 text-white/60 hover:bg-white/20 text-xs"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-3.5 h-3.5" />
+          Sair
         </button>
       </div>
 
@@ -769,6 +793,7 @@ function RankingView({ meuNome, minhaEmpresa, onLogout }: { meuNome: string; min
 export default function RankingProfissional() {
   const [meuNome, setMeuNome] = useState<string | null>(null);
   const [minhaEmpresa, setMinhaEmpresa] = useState<string>("barbiero-grupo");
+  const [meuFotoUrl, setMeuFotoUrl] = useState<string | null>(null);
   const { data: sessao, isLoading } = trpc.meProfissional.useQuery(undefined, {
     retry: false,
     staleTime: 1000 * 60 * 5,
@@ -778,6 +803,7 @@ export default function RankingProfissional() {
     if (sessao?.nome) {
       setMeuNome(sessao.nome);
       setMinhaEmpresa(sessao.empresaSlug ?? "barbiero-grupo");
+      setMeuFotoUrl(sessao.fotoUrl ?? null);
     }
   }, [sessao]);
 
@@ -804,9 +830,11 @@ export default function RankingProfissional() {
     <RankingView
       meuNome={meuNome}
       minhaEmpresa={minhaEmpresa}
+      meuFotoUrl={meuFotoUrl}
       onLogout={() => {
         setMeuNome(null);
         setMinhaEmpresa("barbiero-grupo");
+        setMeuFotoUrl(null);
       }}
     />
   );
