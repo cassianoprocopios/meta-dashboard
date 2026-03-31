@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE colaboradores \nSET empresaSlug = 'MORUMBI', pinAcesso = '9376', cashbarberProfissionalId = 34191\nWHERE id = 23 AND nome = 'Eduarda';\n\nUPDATE colaboradores \nSET empresaSlug = 'MORUMBI', cashbarberProfissionalId = 35930\nWHERE id = 20 AND nome = 'Mirela';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE colaboradores \nSET empresaSlug = 'MORUMBI', pinAcesso = '9376', cashbarberProfissionalId = 34191\nWHERE id = 23 AND nome = 'Eduarda';\n\nUPDATE colaboradores \nSET empresaSlug = 'MORUMBI', cashbarberProfissionalId = 35930\nWHERE id = 20 AND nome = 'Mirela';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 74
+}

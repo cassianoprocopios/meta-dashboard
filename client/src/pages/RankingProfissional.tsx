@@ -432,6 +432,11 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   );
   const posMapAnterior = useMemo(() => buildPosMap(rankingAnterior ?? []), [rankingAnterior]);
   const { exportRef, exportando, exportar } = useExportarImagem();
+  // Faturamento da unidade do dia
+  const { data: fatUnidade } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: minhaEmpresa, tipo: 'diario', data },
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
+  );
 
   const anterior = () => {
     const d = new Date(data + "T12:00:00");
@@ -505,6 +510,30 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           <span className="text-xs text-blue-300">
             Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral de todas as unidades
           </span>
+        </div>
+      )}
+
+      {/* Card de faturamento da unidade */}
+      {!verGeral && fatUnidade && fatUnidade.total > 0 && (
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
+              <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidade.total)}</div>
+            </div>
+            <div className="text-right">
+              {fatUnidade.totalOperacional > 0 && (
+                <div className="text-xs text-white/40">
+                  Serv/Prod: {formatarMoeda(fatUnidade.totalOperacional)}
+                </div>
+              )}
+              {fatUnidade.recorrencia > 0 && (
+                <div className="text-xs text-white/30">
+                  + {formatarMoeda(fatUnidade.recorrencia)} recorr.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -627,6 +656,11 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
   const posMapAnteriorSem = useMemo(() => buildPosMap(rankingAnteriorSem ?? []), [rankingAnteriorSem]);
   const ehSemanaAtual = semanaOffset === 0;
   const labelSemana = `${formatarData(dataInicio)} – ${formatarData(dataFim)}`;
+  // Faturamento da unidade da semana
+  const { data: fatUnidadeSem } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: minhaEmpresa, tipo: 'semanal', dataInicio, dataFim },
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
+  );
 
   const rankingFiltrado = useMemo(() => {
     if (!ranking) return [];
@@ -679,6 +713,30 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
           <span className="text-xs text-blue-300">
             Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral desta semana
           </span>
+        </div>
+      )}
+
+      {/* Card de faturamento da unidade */}
+      {!verGeral && fatUnidadeSem && fatUnidadeSem.total > 0 && (
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
+              <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidadeSem.total)}</div>
+            </div>
+            <div className="text-right">
+              {fatUnidadeSem.totalOperacional > 0 && (
+                <div className="text-xs text-white/40">
+                  Serv/Prod: {formatarMoeda(fatUnidadeSem.totalOperacional)}
+                </div>
+              )}
+              {fatUnidadeSem.recorrencia > 0 && (
+                <div className="text-xs text-white/30">
+                  + {formatarMoeda(fatUnidadeSem.recorrencia)} recorr.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -787,6 +845,11 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
     { staleTime: 5 * 60_000 }
   );
   const posMapAnteriorMes = useMemo(() => buildPosMap(rankingDataAnt?.lista ?? []), [rankingDataAnt]);
+  // Faturamento da unidade do mês
+  const { data: fatUnidadeMes } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes, ano },
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
+  );
 
   const rankingFiltrado = useMemo(() => {
     if (verGeral) return rankingTodos;
@@ -837,6 +900,30 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           <span className="text-xs text-blue-300">
             Você está em <strong>{minhaPosicaoGeral}º lugar</strong> no ranking geral de {nomeMes(mes)}
           </span>
+        </div>
+      )}
+
+      {/* Card de faturamento da unidade */}
+      {!verGeral && fatUnidadeMes && fatUnidadeMes.total > 0 && (
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
+              <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidadeMes.total)}</div>
+            </div>
+            <div className="text-right">
+              {fatUnidadeMes.totalOperacional > 0 && (
+                <div className="text-xs text-white/40">
+                  Serv/Prod: {formatarMoeda(fatUnidadeMes.totalOperacional)}
+                </div>
+              )}
+              {fatUnidadeMes.recorrencia > 0 && (
+                <div className="text-xs text-white/30">
+                  + {formatarMoeda(fatUnidadeMes.recorrencia)} recorr.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

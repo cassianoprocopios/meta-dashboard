@@ -1,0 +1,26 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, pinAcesso, cashbarberProfissionalId, ativo\nFROM colaboradores\nWHERE nome LIKE '%Eduarda%' OR nome LIKE '%Mirela%'\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, pinAcesso, cashbarberProfissionalId, ativo\nFROM colaboradores\nWHERE nome LIKE '%Eduarda%' OR nome LIKE '%Mirela%'\nORDER BY nome;\n",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "cashbarberProfissionalId": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "9970",
+      "cashbarberProfissionalId": "NULL",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tpinAcesso\tcashbarberProfissionalId\tativo\n23\tEduarda\tbarbiero-grupo\tNULL\tNULL\t1\n20\tMirela\tbarbiero-grupo\t9970\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

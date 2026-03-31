@@ -3670,5 +3670,87 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         qtdProdutos,
       };
     }),
+
+  // ===== FATURAMENTO DA UNIDADE (para exibir no ranking dos profissionais) =====
+  faturamentoUnidade: publicProcedure
+    .input(z.object({
+      empresaSlug: z.string(),
+      tipo: z.enum(['diario', 'semanal', 'mensal']),
+      data: z.string().optional(),        // YYYY-MM-DD para diário
+      dataInicio: z.string().optional(),  // YYYY-MM-DD para semanal
+      dataFim: z.string().optional(),     // YYYY-MM-DD para semanal
+      mes: z.number().int().min(1).max(12).optional(),
+      ano: z.number().int().min(2020).optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const db = await (await import('./db')).getDb();
+      if (!db) return { total: 0, totalOperacional: 0, recorrencia: 0 };
+
+      const { faturamentos: fatTable } = await import('../drizzle/schema.js');
+      const { and: drizzleAnd, eq: drizzleEq } = await import('drizzle-orm');
+
+      let rows: any[] = [];
+
+      if (input.tipo === 'diario' && input.data) {
+        rows = await db.select().from(fatTable).where(
+          drizzleAnd(
+            drizzleEq(fatTable.tenantId, tenantId),
+            drizzleEq(fatTable.empresaSlug, input.empresaSlug),
+            drizzleEq(fatTable.data, input.data)
+          )
+        );
+      } else if (input.tipo === 'semanal' && input.dataInicio && input.dataFim) {
+        const allRows = await db.select().from(fatTable).where(
+          drizzleAnd(
+            drizzleEq(fatTable.tenantId, tenantId),
+            drizzleEq(fatTable.empresaSlug, input.empresaSlug)
+          )
+        );
+        rows = allRows.filter((r: any) => r.data >= input.dataInicio! && r.data <= input.dataFim!);
+      } else if (input.tipo === 'mensal' && input.mes && input.ano) {
+        const allRows = await db.select().from(fatTable).where(
+          drizzleAnd(
+            drizzleEq(fatTable.tenantId, tenantId),
+            drizzleEq(fatTable.empresaSlug, input.empresaSlug)
+          )
+        );
+        const mesStr = String(input.mes).padStart(2, '0');
+        const prefix = `${input.ano}-${mesStr}`;
+        const hoje = new Date().toISOString().slice(0, 10);
+        rows = allRows.filter((r: any) => r.data.startsWith(prefix) && r.data <= hoje);
+      }
+
+      // Somar cat1..cat8 (operacional) e cat9 (recorrência) dos dias realizados
+      const sumCatsSemCat9 = (r: any) =>
+        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
+          .reduce((s: number, v: any) => s + parseFloat(v || '0'), 0);
+
+      const totalOperacional = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const cat9Acumulado = rows.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+
+      // Para o mensal: usar recorrenciaValorManual se fonte=manual
+      let recorrencia = cat9Acumulado;
+      if (input.tipo === 'mensal' && input.mes && input.ano) {
+        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        const hoje = new Date();
+        const mesAtualNum = hoje.getMonth() + 1;
+        const anoAtualNum = hoje.getFullYear();
+        const ehMesVigente = input.mes === mesAtualNum && input.ano === anoAtualNum;
+        if (
+          config?.recorrenciaFonte === 'manual' &&
+          config?.recorrenciaValorManual != null &&
+          ehMesVigente
+        ) {
+          recorrencia = parseFloat(String(config.recorrenciaValorManual));
+        }
+      }
+
+      return {
+        total: totalOperacional + recorrencia,
+        totalOperacional,
+        recorrencia,
+      };
+    }),
 });
 export type AppRouter = typeof appRouter;

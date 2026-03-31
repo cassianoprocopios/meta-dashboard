@@ -1,0 +1,76 @@
+{
+  "query": "\nSELECT pinAcesso FROM colaboradores WHERE pinAcesso IS NOT NULL ORDER BY pinAcesso;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT pinAcesso FROM colaboradores WHERE pinAcesso IS NOT NULL ORDER BY pinAcesso;\n",
+  "rows": [
+    {
+      "pinAcesso": "1106"
+    },
+    {
+      "pinAcesso": "1336"
+    },
+    {
+      "pinAcesso": "1539"
+    },
+    {
+      "pinAcesso": "2014"
+    },
+    {
+      "pinAcesso": "2123"
+    },
+    {
+      "pinAcesso": "2484"
+    },
+    {
+      "pinAcesso": "2585"
+    },
+    {
+      "pinAcesso": "2923"
+    },
+    {
+      "pinAcesso": "4511"
+    },
+    {
+      "pinAcesso": "5134"
+    },
+    {
+      "pinAcesso": "5427"
+    },
+    {
+      "pinAcesso": "6501"
+    },
+    {
+      "pinAcesso": "6737"
+    },
+    {
+      "pinAcesso": "6869"
+    },
+    {
+      "pinAcesso": "7166"
+    },
+    {
+      "pinAcesso": "7442"
+    },
+    {
+      "pinAcesso": "7523"
+    },
+    {
+      "pinAcesso": "7818"
+    },
+    {
+      "pinAcesso": "7819"
+    },
+    {
+      "pinAcesso": "7934"
+    },
+    {
+      "pinAcesso": "9018"
+    },
+    {
+      "pinAcesso": "9970"
+    }
+  ],
+  "messages": [],
+  "stdout": "pinAcesso\n1106\n1336\n1539\n2014\n2123\n2484\n2585\n2923\n4511\n5134\n5427\n6501\n6737\n6869\n7166\n7442\n7523\n7818\n7819\n7934\n9018\n9970\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, pin, cashbarberProfissionalId, ativo\nFROM colaboradores\nWHERE nome LIKE '%Eduarda%' OR nome LIKE '%Mirela%'\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, pin, cashbarberProfissionalId, ativo\nFROM colaboradores\nWHERE nome LIKE '%Eduarda%' OR nome LIKE '%Mirela%'\nORDER BY nome;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'pin' in 'field list'"
+  ]
+}
