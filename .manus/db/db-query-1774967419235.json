@@ -1,0 +1,50 @@
+{
+  "query": "\nSELECT id, nome, categoriaRanking, pinAcesso, empresaSlug, ativo\nFROM colaboradores\nWHERE tenantId = 1 AND (pinAcesso IS NULL OR pinAcesso = '')\nORDER BY nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, categoriaRanking, pinAcesso, empresaSlug, ativo\nFROM colaboradores\nWHERE tenantId = 1 AND (pinAcesso IS NULL OR pinAcesso = '')\nORDER BY nome ASC;\n",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "MORUMBI",
+      "ativo": "1"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-grupo",
+      "ativo": "1"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tpinAcesso\tempresaSlug\tativo\n23\tEduarda\tauxiliar\tNULL\tMORUMBI\t1\n8\tIsabella\tauxiliar\tNULL\tbarbiero-mascote\t1\n10\tKaren\tauxiliar\tNULL\tbarbiero-mascote\t1\n11\tMell\tauxiliar\tNULL\tbarbiero-grupo\t1\n20\tMirela\tauxiliar\tNULL\tbarbiero-morumbi\t1\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

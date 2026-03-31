@@ -1,0 +1,217 @@
+{
+  "query": "\nSELECT id, nome, apelido, ativo, categoriaRanking, pinAcesso, empresaSlug\nFROM colaboradores\nWHERE tenantId = 1\nORDER BY ativo DESC, nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, apelido, ativo, categoriaRanking, pinAcesso, empresaSlug\nFROM colaboradores\nWHERE tenantId = 1\nORDER BY ativo DESC, nome ASC;\n",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "6737",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "5",
+      "nome": "Caio",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "1106",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7166",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "2014",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7818",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "9018",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "MORUMBI"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "2585",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7442",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "2123",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "2484",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7523",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-grupo"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "NULL",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "6501",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "recepcao",
+      "pinAcesso": "1336",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "recepcao",
+      "pinAcesso": "5134",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7819",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "2923",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "7934",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "apelido": "NULL",
+      "ativo": "1",
+      "categoriaRanking": "barbeiro",
+      "pinAcesso": "5427",
+      "empresaSlug": "barbiero-mascote"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\tativo\tcategoriaRanking\tpinAcesso\tempresaSlug\n1\tAdailton\tNULL\t1\tbarbeiro\t6737\tbarbiero-morumbi\n5\tCaio\tNULL\t1\tbarbeiro\t1106\tbarbiero-mascote\n7\tChristian\tNULL\t1\tbarbeiro\t7166\tbarbiero-morumbi\n12\tCleison\tNULL\t1\tbarbeiro\t2014\tbarbiero-morumbi\n2\tDan\tNULL\t1\tbarbeiro\t7818\tbarbiero-morumbi\n6\tEdinho\tNULL\t1\tbarbeiro\t9018\tbarbiero-mascote\n23\tEduarda\tNULL\t1\tauxiliar\tNULL\tMORUMBI\n3\tEmerson\tNULL\t1\tbarbeiro\t2585\tbarbiero-morumbi\n18\tFábio\tNULL\t1\tbarbeiro\t7442\tbarbiero-morumbi\n22\tFelipe\tNULL\t1\tbarbeiro\t2123\tbarbiero-mascote\n8\tIsabella\tNULL\t1\tauxiliar\tNULL\tbarbiero-mascote\n14\tJoão\tNULL\t1\tbarbeiro\t2484\tbarbiero-morumbi\n21\tKaleb\tNULL\t1\tbarbeiro\t7523\tbarbiero-morumbi\n10\tKaren\tNULL\t1\tauxiliar\tNULL\tbarbiero-mascote\n11\tMell\tNULL\t1\tauxiliar\tNULL\tbarbiero-grupo\n20\tMirela\tNULL\t1\tauxiliar\tNULL\tbarbiero-morumbi\n13\tNeudo\tNULL\t1\tbarbeiro\t6501\tbarbiero-mascote\n16\tRecepção Mascote\tNULL\t1\trecepcao\t1336\tbarbiero-mascote\n4\tRecepção Morumbi\tNULL\t1\trecepcao\t5134\tbarbiero-morumbi\n19\tRenan\tNULL\t1\tbarbeiro\t7819\tbarbiero-mascote\n9\tSamuel\tNULL\t1\tbarbeiro\t2923\tbarbiero-morumbi\n15\tVanilson\tNULL\t1\tbarbeiro\t7934\tbarbiero-morumbi\n17\tVinicius\tNULL\t1\tbarbeiro\t5427\tbarbiero-mascote\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

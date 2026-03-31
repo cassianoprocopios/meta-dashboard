@@ -1473,6 +1473,21 @@ export async function salvarColaborador(
     const rows = await db.select().from(colaboradores).where(eq(colaboradores.id, id)).limit(1);
     return rows[0];
   } else {
+    // Gerar PIN único automaticamente se não foi fornecido
+    let pinAcesso = data.pinAcesso ?? null;
+    if (!pinAcesso) {
+      const ativos = await db
+        .select({ pinAcesso: colaboradores.pinAcesso })
+        .from(colaboradores)
+        .where(eq(colaboradores.tenantId, tenantId));
+      const pinsUsados = new Set(ativos.map((c) => c.pinAcesso).filter(Boolean) as string[]);
+      let pin: string;
+      do {
+        pin = String(Math.floor(1000 + Math.random() * 9000));
+      } while (pinsUsados.has(pin));
+      pinAcesso = pin;
+    }
+
     const insertData: InsertColaborador = {
       tenantId,
       empresaSlug: data.empresaSlug ?? "barbiero-grupo",
@@ -1483,7 +1498,7 @@ export async function salvarColaborador(
       exibirNoRanking: data.exibirNoRanking ?? 1,
       ativo: data.ativo ?? 1,
       cashbarberProfissionalId: data.cashbarberProfissionalId ?? null,
-      pinAcesso: data.pinAcesso ?? null,
+      pinAcesso,
       telefone: data.telefone ?? null,
       createdAt: now,
       updatedAt: now,

@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE colaboradores SET pinAcesso = '1813', empresaSlug = 'barbiero-morumbi', updatedAt = NOW() WHERE id = 23 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '9470', updatedAt = NOW() WHERE id = 8 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '9969', updatedAt = NOW() WHERE id = 10 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '3288', updatedAt = NOW() WHERE id = 11 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '3937', updatedAt = NOW() WHERE id = 20 AND tenantId = 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE colaboradores SET pinAcesso = '1813', empresaSlug = 'barbiero-morumbi', updatedAt = NOW() WHERE id = 23 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '9470', updatedAt = NOW() WHERE id = 8 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '9969', updatedAt = NOW() WHERE id = 10 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '3288', updatedAt = NOW() WHERE id = 11 AND tenantId = 1;\nUPDATE colaboradores SET pinAcesso = '3937', updatedAt = NOW() WHERE id = 20 AND tenantId = 1;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 123
+}
