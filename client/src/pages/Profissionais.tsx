@@ -165,6 +165,11 @@ export default function Profissionais() {
       toast.error("O nome é obrigatório.");
       return;
     }
+    const cbId = parseInt(form.cashbarberProfissionalId);
+    if (!form.cashbarberProfissionalId || isNaN(cbId) || cbId <= 0) {
+      toast.error("O ID do CashBarber é obrigatório. Encontre em: CashBarber → Minha Empresa → Listagem Profissionais → coluna ID.");
+      return;
+    }
     salvar.mutate({
       id: form.id,
       nome: form.nome.trim(),
@@ -565,7 +570,7 @@ export default function Profissionais() {
             <div className="space-y-1.5">
               <Label className="text-white/70 text-sm">
                 ID do Profissional no CashBarber{" "}
-                <span className="text-white/40 font-normal">(opcional)</span>
+                <span className="text-red-400 font-semibold text-xs">* obrigatório</span>
               </Label>
               <Input
                 type="number"
@@ -574,8 +579,21 @@ export default function Profissionais() {
                   setForm({ ...form, cashbarberProfissionalId: e.target.value })
                 }
                 placeholder="Ex: 42"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className={`bg-white/5 text-white placeholder:text-white/30 ${
+                  !form.cashbarberProfissionalId
+                    ? 'border-red-500/60 focus-visible:ring-red-500/40'
+                    : 'border-green-500/50'
+                }`}
               />
+              {!form.cashbarberProfissionalId ? (
+                <p className="text-red-400/80 text-xs flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> Obrigatório — sem este ID o profissional não aparece no ranking.
+                </p>
+              ) : (
+                <p className="text-green-400/70 text-xs flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> ID vinculado ao CashBarber.
+                </p>
+              )}
               <p className="text-white/30 text-xs">
                 Encontre em: CashBarber → Minha Empresa → Listagem Profissionais → coluna ID.
               </p>

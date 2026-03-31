@@ -203,7 +203,7 @@ const profissionaisRouter = router({
         fotoUrl: z.string().nullable().optional(),
         exibirNoRanking: z.boolean().optional(),
         ativo: z.boolean().optional(),
-        cashbarberProfissionalId: z.number().nullable().optional(),
+        cashbarberProfissionalId: z.number().int().positive().nullable().optional(),
         empresaSlug: z.string().optional(),
         categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
         pinAcesso: z.string().nullable().optional(),
