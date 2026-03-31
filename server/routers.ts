@@ -3612,7 +3612,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           path: '/',
         });
       }
-      return { ok: true, nome: profissional.nome, id: profissional.id, empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo' };
+      return { ok: true, nome: profissional.nome, id: profissional.id, empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo', fotoUrl: profissional.fotoUrl ?? null, apelido: profissional.apelido ?? null };
     }),
 
   meProfissional: publicProcedure.query(async ({ ctx }) => {

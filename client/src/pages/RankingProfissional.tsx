@@ -37,11 +37,17 @@ function empresaLabel(slug: string | null | undefined) {
 }
 
 // ─── Tela de Login por PIN ────────────────────────────────────────────────────
-function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string) => void }) {
+function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fotoUrl: string | null, id: number, apelido: string | null) => void }) {
   const [pin, setPin] = useState("");
+  const [loginOk, setLoginOk] = useState<{ nome: string; fotoUrl: string | null; apelido: string | null } | null>(null);
   const loginMut = trpc.loginProfissional.useMutation({
     onSuccess: (data) => {
-      onLogin(data.nome, data.empresaSlug);
+      const nomeExibido = data.apelido || data.nome.split(" ")[0];
+      setLoginOk({ nome: nomeExibido, fotoUrl: data.fotoUrl, apelido: data.apelido });
+      // Pequeno delay para mostrar a tela de boas-vindas antes de navegar
+      setTimeout(() => {
+        onLogin(data.nome, data.empresaSlug, data.fotoUrl, data.id, data.apelido);
+      }, 1200);
     },
     onError: () => {
       toast.error("PIN inválido — Verifique o PIN e tente novamente.");
@@ -57,6 +63,40 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string) =>
     }
   };
   const handleDelete = () => setPin((p) => p.slice(0, -1));
+
+  // Tela de boas-vindas após login bem-sucedido
+  if (loginOk) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-6">
+        <div
+          className="flex flex-col items-center gap-4"
+          style={{ animation: "rankingSlideIn 0.5s ease-out both" }}
+        >
+          {/* Foto de perfil grande */}
+          {loginOk.fotoUrl ? (
+            <img
+              src={loginOk.fotoUrl}
+              alt={loginOk.nome}
+              className="w-28 h-28 rounded-full object-cover border-4 border-blue-400 shadow-2xl shadow-blue-500/40"
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border-4 border-blue-400 shadow-2xl shadow-blue-500/40 flex items-center justify-center">
+              <span className="text-4xl font-bold text-white">{(loginOk.nome || "?")[0].toUpperCase()}</span>
+            </div>
+          )}
+          <div className="text-center">
+            <p className="text-white/60 text-sm">Bem-vindo,</p>
+            <h2 className="text-white text-2xl font-bold mt-0.5">{loginOk.nome}!</h2>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Carregando ranking...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-6">
       {/* Logo */}
@@ -1449,9 +1489,25 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, onLogout }: { m
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b border-white/10 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Avatar nome={meuNome} fotoUrl={meuFotoUrl} isMe={true} size={38} />
+          {/* Avatar com anel de destaque */}
+          <div className="relative flex-shrink-0">
+            {meuFotoUrl ? (
+              <img
+                src={meuFotoUrl}
+                alt={meuNome}
+                className="w-11 h-11 rounded-full object-cover border-2 border-blue-400 shadow-lg shadow-blue-500/30"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border-2 border-blue-400 shadow-lg shadow-blue-500/30 flex items-center justify-center">
+                <span className="text-lg font-bold text-white">{(meuNome || "?")[0].toUpperCase()}</span>
+              </div>
+            )}
+            {/* Indicador online */}
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full" />
+          </div>
           <div>
             <h1 className="text-white font-bold text-base leading-tight">{meuNome.split(" ")[0]}</h1>
             <p className="text-blue-400/70 text-xs">{empresaLabel(minhaEmpresa)}</p>
@@ -1528,9 +1584,11 @@ export default function RankingProfissional() {
   if (!meuNome) {
     return (
       <LoginPIN
-        onLogin={(nome, empresaSlug) => {
+        onLogin={(nome, empresaSlug, fotoUrl, id, _apelido) => {
           setMeuNome(nome);
           setMinhaEmpresa(empresaSlug);
+          setMeuFotoUrl(fotoUrl);
+          setMeuId(id);
         }}
       />
     );
