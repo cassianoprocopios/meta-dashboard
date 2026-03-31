@@ -441,10 +441,16 @@ export default function Home() {
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
       // Dias úteis restantes no mês
-      // Quinzenal: apenas realizados até dia 15 (sem recorrência mensal)
+      // Quinzenal: apenas realizados até dia 15
+      // Inclui cat9 do banco (já distribuído por dia = proporcional correto da recorrência na quinzena)
+      // Quando manual, usa proporcional: recorrênciaManual * (diasQuinzena / diasMes)
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const recorrenciaQuinzenal = usaRecorrenciaManual
+        ? recorrenciaManualValor! * (15 / new Date(ano, mes, 0).getDate())
+        : rowsQuinzenal.reduce((s: number, r: any) => s + parseFloat(r.cat9 || "0"), 0);
+      const totalQuinzenal = totalQuinzenalSemRec + recorrenciaQuinzenal;
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
