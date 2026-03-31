@@ -1077,3 +1077,12 @@
 - [x] Exibir valor que falta para bater a meta por unidade no dashboard visão geral
 - [x] Adicionar valor que falta para a meta na imagem de compartilhamento WhatsApp (ExportCard)
 - [x] Personalizar rodapé da imagem WhatsApp com nome da unidade e mês
+
+## Compartilhamento WhatsApp - Fluxo Melhorado
+
+- [x] Modificar hook useExportarImagem para aceitar callback pós-exportação
+- [x] Ao clicar "Exportar para WhatsApp": baixar imagem + abrir WhatsApp com mensagem pré-preenchida
+- [x] Botão com ícone do WhatsApp (verde) e texto "Compartilhar no WhatsApp"
+- [x] No mobile: abrir app WhatsApp via wa.me link
+- [x] No desktop: abrir WhatsApp Web via web.whatsapp.com
+- [x] Mensagem pré-preenchida com título do ranking e unidade
