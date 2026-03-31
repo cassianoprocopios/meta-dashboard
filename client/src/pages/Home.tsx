@@ -449,8 +449,9 @@ export default function Home() {
       const diasRealizados = rowsRealizados.length;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária = faturamento operacional (cat1..cat8) / dias realizados
-      const mediaDiaria = diasRealizados > 0 ? totalRealizado / diasRealizados : 0;
+      // Média diária = apenas cat1..cat8 realizados / dias realizados
+      // A recorrência é um valor único mensal, não deve inflar a média diária
+      const mediaDiaria = diasRealizados > 0 ? totalRealizadoSemRec / diasRealizados : 0;
 
       // Máximo e mínimo diário (cat1..cat8 por dia)
       const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCatsSemCat9(r));
@@ -478,11 +479,12 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: faturamento operacional (cat1..cat8) dos dias realizados até dia 15
-      // Recorrência não entra na somatoria quinzenal
+      // Quinzenal: cat1..cat8 dos dias realizados até dia 15 + recorrência proporcional (15/totalDiasMes)
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const recorrenciaQuinzenal = !ehMesFuturo ? recorrenciaNoFaturamento * (15 / totalDiasMes) : 0;
+      const totalQuinzenal = totalQuinzenalSemRec + recorrenciaQuinzenal;
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
@@ -495,9 +497,12 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Projeção final = faturamento operacional (cat1..cat8)
-      // = totalRealizado + totalPrevisto + (mediaDiaria × dias úteis sem lançamento)
-      // Recorrência não entra na projeção (apenas informativo)
+      // Projeção final:
+      // = recorrenciaNoFaturamento (valor único mensal, já incluído em totalRealizado)
+      //   + totalRealizadoSemRec (cat1..cat8 já realizados)
+      //   + totalPrevisto (cat1..cat8 previstos)
+      //   + mediaDiaria × dias úteis restantes sem lançamento
+      // Nota: mediaDiaria já é só cat1..cat8; recorrência entra uma única vez via totalRealizado
       const diasComLancamento = new Set(rows.map((r: any) => r.data)).size;
       const diasUteisRestantesSemLancamento = Math.max(0, diasUteis - diasComLancamento);
       const projecaoFinal = diasRealizados > 0

@@ -1,0 +1,21 @@
+{
+  "query": "\nSELECT \n  fc.colaboradorId,\n  fc.empresaSlug,\n  fc.mes,\n  fc.ano,\n  fc.totalServicos,\n  fc.totalProdutos,\n  (fc.totalServicos + fc.totalProdutos) as total,\n  c.nome,\n  c.cashbarberProfissionalId\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.colaboradorId = 22\n  AND fc.mes = 3 AND fc.ano = 2026\nORDER BY fc.id DESC LIMIT 5;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  fc.colaboradorId,\n  fc.empresaSlug,\n  fc.mes,\n  fc.ano,\n  fc.totalServicos,\n  fc.totalProdutos,\n  (fc.totalServicos + fc.totalProdutos) as total,\n  c.nome,\n  c.cashbarberProfissionalId\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.colaboradorId = 22\n  AND fc.mes = 3 AND fc.ano = 2026\nORDER BY fc.id DESC LIMIT 5;\n",
+  "rows": [
+    {
+      "colaboradorId": "22",
+      "empresaSlug": "MASCOTE",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1371.70",
+      "totalProdutos": "296.68",
+      "total": "1668.38",
+      "nome": "Felipe",
+      "cashbarberProfissionalId": "34288"
+    }
+  ],
+  "messages": [],
+  "stdout": "colaboradorId\tempresaSlug\tmes\tano\ttotalServicos\ttotalProdutos\ttotal\tnome\tcashbarberProfissionalId\n22\tMASCOTE\t3\t2026\t1371.70\t296.68\t1668.38\tFelipe\t34288\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

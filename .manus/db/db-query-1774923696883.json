@@ -1,0 +1,90 @@
+{
+  "query": "\nSELECT \n  c.nome,\n  c.empresaSlug,\n  c.cashbarberProfissionalId,\n  COALESCE(fc.totalServicos, 0) as totalServicos,\n  COALESCE(fc.totalProdutos, 0) as totalProdutos,\n  COALESCE(fc.totalServicos + fc.totalProdutos, 0) as totalGeral\nFROM colaboradores c\nLEFT JOIN faturamentoColaboradores fc \n  ON fc.colaboradorId = c.id \n  AND fc.mes = 3 AND fc.ano = 2026\nWHERE c.empresaSlug = 'MASCOTE'\nORDER BY totalGeral DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  c.nome,\n  c.empresaSlug,\n  c.cashbarberProfissionalId,\n  COALESCE(fc.totalServicos, 0) as totalServicos,\n  COALESCE(fc.totalProdutos, 0) as totalProdutos,\n  COALESCE(fc.totalServicos + fc.totalProdutos, 0) as totalGeral\nFROM colaboradores c\nLEFT JOIN faturamentoColaboradores fc \n  ON fc.colaboradorId = c.id \n  AND fc.mes = 3 AND fc.ano = 2026\nWHERE c.empresaSlug = 'MASCOTE'\nORDER BY totalGeral DESC;\n",
+  "rows": [
+    {
+      "nome": "Karen",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "29459",
+      "totalServicos": "3532.10",
+      "totalProdutos": "0.00",
+      "totalGeral": "3532.10"
+    },
+    {
+      "nome": "Edinho",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "22436",
+      "totalServicos": "1895.60",
+      "totalProdutos": "698.53",
+      "totalGeral": "2594.13"
+    },
+    {
+      "nome": "Vinicius",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "24720",
+      "totalServicos": "2290.10",
+      "totalProdutos": "250.74",
+      "totalGeral": "2540.84"
+    },
+    {
+      "nome": "Recepção Mascote",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "23105",
+      "totalServicos": "520.00",
+      "totalProdutos": "1526.33",
+      "totalGeral": "2046.33"
+    },
+    {
+      "nome": "Renan",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "32423",
+      "totalServicos": "750.80",
+      "totalProdutos": "940.26",
+      "totalGeral": "1691.06"
+    },
+    {
+      "nome": "Felipe",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "34288",
+      "totalServicos": "1371.70",
+      "totalProdutos": "296.68",
+      "totalGeral": "1668.38"
+    },
+    {
+      "nome": "Neudo",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "22435",
+      "totalServicos": "1152.10",
+      "totalProdutos": "480.73",
+      "totalGeral": "1632.83"
+    },
+    {
+      "nome": "Caio",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "27520",
+      "totalServicos": "1370.70",
+      "totalProdutos": "92.92",
+      "totalGeral": "1463.62"
+    },
+    {
+      "nome": "Isabella",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "23224",
+      "totalServicos": "1048.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "1048.00"
+    },
+    {
+      "nome": "Mell",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "25571",
+      "totalServicos": "555.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "555.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tempresaSlug\tcashbarberProfissionalId\ttotalServicos\ttotalProdutos\ttotalGeral\nKaren\tMASCOTE\t29459\t3532.10\t0.00\t3532.10\nEdinho\tMASCOTE\t22436\t1895.60\t698.53\t2594.13\nVinicius\tMASCOTE\t24720\t2290.10\t250.74\t2540.84\nRecepção Mascote\tMASCOTE\t23105\t520.00\t1526.33\t2046.33\nRenan\tMASCOTE\t32423\t750.80\t940.26\t1691.06\nFelipe\tMASCOTE\t34288\t1371.70\t296.68\t1668.38\nNeudo\tMASCOTE\t22435\t1152.10\t480.73\t1632.83\nCaio\tMASCOTE\t27520\t1370.70\t92.92\t1463.62\nIsabella\tMASCOTE\t23224\t1048.00\t0.00\t1048.00\nMell\tMASCOTE\t25571\t555.00\t0.00\t555.00\n",
+  "stderr": "",
+  "execution_time_ms": 69
+}

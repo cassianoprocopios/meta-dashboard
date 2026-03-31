@@ -1,0 +1,8 @@
+{
+  "query": "\n-- Verificar faturamento do Felipe (cashbarberProfissionalId = 34288) em março/2026\nSELECT \n  fc.profissionalId,\n  fc.profissionalNome,\n  fc.empresaSlug,\n  SUM(fc.valor) as totalMes,\n  COUNT(*) as diasComFaturamento\nFROM faturamentoColaboradores fc\nWHERE fc.profissionalId = 34288\n  AND fc.mes = 3 AND fc.ano = 2026\nGROUP BY fc.profissionalId, fc.profissionalNome, fc.empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar faturamento do Felipe (cashbarberProfissionalId = 34288) em março/2026\nSELECT \n  fc.profissionalId,\n  fc.profissionalNome,\n  fc.empresaSlug,\n  SUM(fc.valor) as totalMes,\n  COUNT(*) as diasComFaturamento\nFROM faturamentoColaboradores fc\nWHERE fc.profissionalId = 34288\n  AND fc.mes = 3 AND fc.ano = 2026\nGROUP BY fc.profissionalId, fc.profissionalNome, fc.empresaSlug;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 3: Unknown column 'fc.profissionalid' in 'group statement'"
+  ]
+}
