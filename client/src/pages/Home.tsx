@@ -458,11 +458,12 @@ export default function Home() {
         catTotals[8] += parseFloat(r.cat9 || "0");
       });
 
-      // Recorrência Dpote: soma de cat9 de todos os dias (distribuído diariamente, um valor por dia)
-      const recorrenciaMes = rows.reduce(
-        (acc: number, r: any) => acc + parseFloat(r.cat9 || "0"),
-        0
-      );
+      // Recorrência Dpote: se fonte for manual, usa o valor manual confirmado;
+      // caso contrário, soma o cat9 distribuído diariamente no banco
+      const dpoteCfgEmp = dpoteConfigMap[emp.slug];
+      const recorrenciaMes = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null
+        ? dpoteCfgEmp.recorrenciaValorManual
+        : rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
       return {
         emp,
@@ -502,7 +503,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosFiltrados, metasData]);
+  }, [empresasVisiveis, faturamentosFiltrados, metasData, dpoteConfigMap]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
