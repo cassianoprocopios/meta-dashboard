@@ -10,8 +10,13 @@ import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cash
 
 // ─── Intervalo fixo: a cada hora ─────────────────────────────────────────────
 
-/** Expressão cron para execução a cada hora (no minuto 0 de cada hora) */
-const CRON_CADA_HORA = "0 0 * * * *";
+/**
+ * Expressão cron para execução a cada hora.
+ * Dispara no segundo 0 do minuto 5 de cada hora (HH:05).
+ * Deslocado do :00 para evitar conflito com o job de ranking (:20/:50)
+ * e com o job diário das 6h10 (que roda 5 min após o job horário das 6h05).
+ */
+const CRON_CADA_HORA = "0 5 * * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -36,11 +41,11 @@ function jobKey(tenantId: number, empresaSlug: string): string {
 }
 
 /**
- * Calcula a próxima execução (início da próxima hora cheia)
+ * Calcula a próxima execução (minuto :05 da próxima hora)
  */
 function calcularProximaExecucao(): Date {
   const proxima = new Date();
-  proxima.setHours(proxima.getHours() + 1, 0, 0, 0);
+  proxima.setHours(proxima.getHours() + 1, 5, 0, 0);
   return proxima;
 }
 
@@ -408,7 +413,8 @@ function dentroDoHorarioFuncionamento(): boolean {
 }
 
 // Job a cada 30 minutos — recalcula ranking apenas no horário de funcionamento
-cron.schedule("0 */30 * * * *", async () => {
+// Dispara nos minutos :20 e :50 (longe do job horário em :05 e do job diário em :10)
+cron.schedule("0 20,50 * * * *", async () => {
   if (!dentroDoHorarioFuncionamento()) return;
 
   const configs = await listAllActiveCashbarberConfigs().catch(() => []);
@@ -532,12 +538,13 @@ cron.schedule("0 0 21 * * *", () => {
   );
 });
 
-// ─── Job diário às 6h da manhã (09:00 UTC = 06:00 BRT) ───────────────────────
-// Garante que o sync do dia seja executado às 6h mesmo que o job horário
+// ─── Job diário às 6h10 da manhã (09:10 UTC = 06:10 BRT) ────────────────────
+// Garante que o sync do dia seja executado cedo mesmo que o job horário
 // tenha sido perdido por hibernação do sandbox.
-// Usa a mesma lógica do endpoint /api/internal/cron-sync.
-cron.schedule("0 0 9 * * *", async () => {
-  console.log("[CashBarber Job] Sync diário das 6h iniciado...");
+// Dispara às 06h10 BRT (5 min após o job horário das 06h05) para evitar
+// conflito de login simultâneo com o CRON_CADA_HORA.
+cron.schedule("0 10 9 * * *", async () => {
+  console.log("[CashBarber Job] Sync diário das 6h10 iniciado...");
   const errosPorEmpresa: Record<string, string> = {};
   try {
     const configs = await listAllActiveCashbarberConfigs();
