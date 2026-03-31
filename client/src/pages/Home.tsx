@@ -463,8 +463,13 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Projeção: realizado + previsto já lançado + (média diária × dias úteis sem lançamento)
-      // Dias úteis sem nenhum lançamento (nem realizado nem previsto)
+      // Projeção final = totalRealizado + totalPrevisto + (média diária × dias úteis sem lançamento)
+      //
+      // Garantias de consistência com a recorrência:
+      //   - totalRealizado já inclui recorrînciaMes (valor manual ou cat9 banco) integralmente
+      //   - totalPrevisto usa sumCatsSemCat9 (exclui cat9 dos dias futuros) → sem dupla contagem
+      //   - mediaDiaria é puramente operacional (cat1..cat8) → correto para extrapolar dias extras
+      //   - A recorrência mensal é um valor único já contabilizado; não deve ser somada novamente
       const diasComLancamento = new Set(rows.map((r: any) => r.data)).size;
       const diasUteisRestantesSemLancamento = Math.max(0, diasUteis - diasComLancamento);
       const projecaoFinal = diasRealizados > 0

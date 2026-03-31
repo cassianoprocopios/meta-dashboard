@@ -1,0 +1,130 @@
+{
+  "query": "\n-- Verificar dias lançados com data > hoje (31/03) em meses futuros ou dias futuros de março\nSELECT \n  empresaSlug,\n  data,\n  cat9,\n  CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n  CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n  CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2)) as total_sem_cat9\nFROM faturamentos\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE')\n  AND (\n    data > '2026-03-31'\n    OR (data LIKE '2026-03-%' AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) > 31)\n  )\nORDER BY empresaSlug, data\nLIMIT 20;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar dias lançados com data > hoje (31/03) em meses futuros ou dias futuros de março\nSELECT \n  empresaSlug,\n  data,\n  cat9,\n  CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n  CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n  CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2)) as total_sem_cat9\nFROM faturamentos\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE')\n  AND (\n    data > '2026-03-31'\n    OR (data LIKE '2026-03-%' AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) > 31)\n  )\nORDER BY empresaSlug, data\nLIMIT 20;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-01",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-02",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-03",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-04",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-05",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-06",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-07",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-08",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-09",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-10",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-11",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-12",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-13",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-14",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-15",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-16",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-17",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-18",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-19",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "data": "2026-04-20",
+      "cat9": "1720.80",
+      "total_sem_cat9": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat9\ttotal_sem_cat9\nMASCOTE\t2026-04-01\t1720.80\t0.00\nMASCOTE\t2026-04-02\t1720.80\t0.00\nMASCOTE\t2026-04-03\t1720.80\t0.00\nMASCOTE\t2026-04-04\t1720.80\t0.00\nMASCOTE\t2026-04-05\t1720.80\t0.00\nMASCOTE\t2026-04-06\t1720.80\t0.00\nMASCOTE\t2026-04-07\t1720.80\t0.00\nMASCOTE\t2026-04-08\t1720.80\t0.00\nMASCOTE\t2026-04-09\t1720.80\t0.00\nMASCOTE\t2026-04-10\t1720.80\t0.00\nMASCOTE\t2026-04-11\t1720.80\t0.00\nMASCOTE\t2026-04-12\t1720.80\t0.00\nMASCOTE\t2026-04-13\t1720.80\t0.00\nMASCOTE\t2026-04-14\t1720.80\t0.00\nMASCOTE\t2026-04-15\t1720.80\t0.00\nMASCOTE\t2026-04-16\t1720.80\t0.00\nMASCOTE\t2026-04-17\t1720.80\t0.00\nMASCOTE\t2026-04-18\t1720.80\t0.00\nMASCOTE\t2026-04-19\t1720.80\t0.00\nMASCOTE\t2026-04-20\t1720.80\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}
