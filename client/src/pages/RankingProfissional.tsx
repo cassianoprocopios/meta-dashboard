@@ -516,24 +516,45 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       {/* Card de faturamento da unidade */}
       {!verGeral && fatUnidade && fatUnidade.total > 0 && (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+            {(fatUnidade as any).pctMeta != null && (
+              <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                (fatUnidade as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                (fatUnidade as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                'bg-red-500/20 text-red-300'
+              }`}>{(fatUnidade as any).pctMeta}%</div>
+            )}
+          </div>
+          <div className="flex items-end justify-between">
             <div>
-              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
               <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidade.total)}</div>
+              {(fatUnidade as any).metaMensal && (
+                <div className="text-xs text-white/40 mt-0.5">Meta: {formatarMoeda((fatUnidade as any).metaMensal)}</div>
+              )}
             </div>
             <div className="text-right">
-              {fatUnidade.totalOperacional > 0 && (
-                <div className="text-xs text-white/40">
-                  Serv/Prod: {formatarMoeda(fatUnidade.totalOperacional)}
-                </div>
-              )}
               {fatUnidade.recorrencia > 0 && (
-                <div className="text-xs text-white/30">
-                  + {formatarMoeda(fatUnidade.recorrencia)} recorr.
-                </div>
+                <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidade.recorrencia)} recorr.</div>
               )}
             </div>
           </div>
+          {(fatUnidade as any).metaMensal && (
+            <div className="mt-2">
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    (fatUnidade as any).pctMeta >= 100 ? 'bg-emerald-400' :
+                    (fatUnidade as any).pctMeta >= 80 ? 'bg-yellow-400' : 'bg-blue-400'
+                  }`}
+                  style={{ width: `${Math.min(100, (fatUnidade as any).pctMeta ?? 0)}%` }}
+                />
+              </div>
+              {(fatUnidade as any).superMeta && (fatUnidade as any).superMeta > 0 && (
+                <div className="text-xs text-white/30 mt-0.5 text-right">Super: {formatarMoeda((fatUnidade as any).superMeta)}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -719,23 +740,20 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
       {/* Card de faturamento da unidade */}
       {!verGeral && fatUnidadeSem && fatUnidadeSem.total > 0 && (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+            <div className="text-xs text-white/30">Esta semana</div>
+          </div>
+          <div className="flex items-end justify-between">
             <div>
-              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
               <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidadeSem.total)}</div>
-            </div>
-            <div className="text-right">
               {fatUnidadeSem.totalOperacional > 0 && (
-                <div className="text-xs text-white/40">
-                  Serv/Prod: {formatarMoeda(fatUnidadeSem.totalOperacional)}
-                </div>
-              )}
-              {fatUnidadeSem.recorrencia > 0 && (
-                <div className="text-xs text-white/30">
-                  + {formatarMoeda(fatUnidadeSem.recorrencia)} recorr.
-                </div>
+                <div className="text-xs text-white/40 mt-0.5">Serv/Prod: {formatarMoeda(fatUnidadeSem.totalOperacional)}</div>
               )}
             </div>
+            {fatUnidadeSem.recorrencia > 0 && (
+              <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidadeSem.recorrencia)} recorr.</div>
+            )}
           </div>
         </div>
       )}
@@ -906,24 +924,45 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       {/* Card de faturamento da unidade */}
       {!verGeral && fatUnidadeMes && fatUnidadeMes.total > 0 && (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+            {(fatUnidadeMes as any).pctMeta != null && (
+              <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                (fatUnidadeMes as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                (fatUnidadeMes as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                'bg-red-500/20 text-red-300'
+              }`}>{(fatUnidadeMes as any).pctMeta}%</div>
+            )}
+          </div>
+          <div className="flex items-end justify-between">
             <div>
-              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-0.5">Faturamento da Unidade</div>
               <div className="text-xl font-bold text-emerald-400">{formatarMoeda(fatUnidadeMes.total)}</div>
+              {(fatUnidadeMes as any).metaMensal && (
+                <div className="text-xs text-white/40 mt-0.5">Meta: {formatarMoeda((fatUnidadeMes as any).metaMensal)}</div>
+              )}
             </div>
             <div className="text-right">
-              {fatUnidadeMes.totalOperacional > 0 && (
-                <div className="text-xs text-white/40">
-                  Serv/Prod: {formatarMoeda(fatUnidadeMes.totalOperacional)}
-                </div>
-              )}
               {fatUnidadeMes.recorrencia > 0 && (
-                <div className="text-xs text-white/30">
-                  + {formatarMoeda(fatUnidadeMes.recorrencia)} recorr.
-                </div>
+                <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidadeMes.recorrencia)} recorr.</div>
               )}
             </div>
           </div>
+          {(fatUnidadeMes as any).metaMensal && (
+            <div className="mt-2">
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    (fatUnidadeMes as any).pctMeta >= 100 ? 'bg-emerald-400' :
+                    (fatUnidadeMes as any).pctMeta >= 80 ? 'bg-yellow-400' : 'bg-blue-400'
+                  }`}
+                  style={{ width: `${Math.min(100, (fatUnidadeMes as any).pctMeta ?? 0)}%` }}
+                />
+              </div>
+              {(fatUnidadeMes as any).superMeta && (fatUnidadeMes as any).superMeta > 0 && (
+                <div className="text-xs text-white/30 mt-0.5 text-right">Super: {formatarMoeda((fatUnidadeMes as any).superMeta)}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

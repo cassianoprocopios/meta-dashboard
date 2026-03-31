@@ -3746,10 +3746,29 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }
 
+      // Buscar meta mensal da empresa (apenas para tipo mensal)
+      let metaMensal: number | null = null;
+      let superMeta: number | null = null;
+      let pctMeta: number | null = null;
+      if (input.tipo === 'mensal' && input.mes && input.ano) {
+        const metasLista = await getMetasByMesAndTenant(tenantId, input.mes, input.ano);
+        const metaEmpresa = metasLista.find((m: any) => m.empresaSlug === input.empresaSlug);
+        if (metaEmpresa) {
+          metaMensal = parseFloat(String(metaEmpresa.metaMensal)) || null;
+          superMeta = parseFloat(String(metaEmpresa.superMeta)) || null;
+          if (metaMensal && metaMensal > 0) {
+            pctMeta = Math.round(((totalOperacional + recorrencia) / metaMensal) * 100);
+          }
+        }
+      }
+
       return {
         total: totalOperacional + recorrencia,
         totalOperacional,
         recorrencia,
+        metaMensal,
+        superMeta,
+        pctMeta,
       };
     }),
 });

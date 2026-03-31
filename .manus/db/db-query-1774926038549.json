@@ -1,0 +1,42 @@
+{
+  "query": "SELECT empresaSlug, mes, ano, metaMensal, metaQuinzenal, superMeta FROM metas WHERE mes = 3 AND ano = 2026 ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, mes, ano, metaMensal, metaQuinzenal, superMeta FROM metas WHERE mes = 3 AND ano = 2026 ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "DOM_",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "250000.00",
+      "metaQuinzenal": "130000.00",
+      "superMeta": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "94000.00",
+      "metaQuinzenal": "50000.00",
+      "superMeta": "105000.00"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "206000.00",
+      "metaQuinzenal": "105000.00",
+      "superMeta": "220000.00"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "mes": "3",
+      "ano": "2026",
+      "metaMensal": "120000.00",
+      "metaQuinzenal": "60000.00",
+      "superMeta": "130000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmes\tano\tmetaMensal\tmetaQuinzenal\tsuperMeta\nDOM_\t3\t2026\t250000.00\t130000.00\t0.00\nMASCOTE\t3\t2026\t94000.00\t50000.00\t105000.00\nMORUMBI\t3\t2026\t206000.00\t105000.00\t220000.00\nSERAPHINE\t3\t2026\t120000.00\t60000.00\t130000.00\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}
