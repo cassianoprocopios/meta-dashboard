@@ -1,0 +1,24 @@
+{
+  "query": "SELECT empresaSlug, recorrenciaFonte, dpoteFilialNome, dpoteValorAssinaturas, cbEmail FROM cashbarberConfig WHERE tenantId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, recorrenciaFonte, dpoteFilialNome, dpoteValorAssinaturas, cbEmail FROM cashbarberConfig WHERE tenantId = 1;",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "recorrenciaFonte": "manual",
+      "dpoteFilialNome": "Morumbi",
+      "dpoteValorAssinaturas": "173366.73",
+      "cbEmail": "barbierobarbearia@gmail.com"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "recorrenciaFonte": "manual",
+      "dpoteFilialNome": "Mascote",
+      "dpoteValorAssinaturas": "173366.73",
+      "cbEmail": "barbierobarbearia@gmail.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\trecorrenciaFonte\tdpoteFilialNome\tdpoteValorAssinaturas\tcbEmail\nMORUMBI\tmanual\tMorumbi\t173366.73\tbarbierobarbearia@gmail.com\nMASCOTE\tmanual\tMascote\t173366.73\tbarbierobarbearia@gmail.com\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

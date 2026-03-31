@@ -59,10 +59,57 @@ interface CashbarberProdutoCatalogo {
 }
 
 /**
+ * Lock global para serializar logins no CashBarber.
+ * Evita que múltiplos jobs concorrentes façam login simultâneo com a mesma conta,
+ * o que causaria erro 429 (Too Many Requests) ou 409 (Conflict).
+ */
+let _loginLockPromise: Promise<string> | null = null;
+let _loginLockToken: string | null = null;
+let _loginLockExpiry: number = 0;
+
+/**
  * Faz login na API do CashBarber e retorna o token JWT.
+ * Serializa chamadas concorrentes: se já houver um login em andamento,
+ * aguarda e reutiliza o token obtido (válido por 5 minutos).
  * Trata 409 Conflict (sessão já ativa) fazendo logout forçado e re-login.
  */
 export async function cashbarberLogin(email: string, senha: string): Promise<string> {
+  // Reutilizar token em cache se ainda válido (evita logins desnecessários)
+  const agora = Date.now();
+  if (_loginLockToken && agora < _loginLockExpiry) {
+    return _loginLockToken;
+  }
+
+  // Se já há um login em andamento, aguardar e reutilizar o resultado
+  if (_loginLockPromise) {
+    return _loginLockPromise;
+  }
+
+  // Iniciar novo login e guardar a promise para que chamadas concorrentes aguardem
+  _loginLockPromise = _cashbarberLoginInterno(email, senha).then((token) => {
+    _loginLockToken = token;
+    _loginLockExpiry = Date.now() + 5 * 60 * 1000; // cache por 5 minutos
+    _loginLockPromise = null;
+    return token;
+  }).catch((err) => {
+    _loginLockPromise = null;
+    _loginLockToken = null;
+    throw err;
+  });
+
+  return _loginLockPromise;
+}
+
+/**
+ * Invalida o cache do token (usar após logout ou erro de autenticação).
+ */
+export function cashbarberInvalidarTokenCache(): void {
+  _loginLockToken = null;
+  _loginLockExpiry = 0;
+  _loginLockPromise = null;
+}
+
+async function _cashbarberLoginInterno(email: string, senha: string): Promise<string> {
   const resp = await fetch("https://api.cashbarber.com.br/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -530,18 +530,11 @@ export async function aplicarDpoteParaTenant(
       continue;
     }
 
-    // PROTEÇÃO: se a empresa usa recorrência manual confirmada, NÃO sobrescrever o cat9
-    // O valor manual já foi distribuído pelo usuário via salvarRecorrenciaManual
+    // O Dpote sempre sobrescreve o cat9, independente da fonte (manual ou automático).
+    // O valor calculado por fichas ponderadas é sempre o mais preciso e atualizado.
     const recorrenciaFonteAtual = (config as any).recorrenciaFonte ?? "cashbarber";
-    if (recorrenciaFonteAtual === "manual") {
-      console.log(`[CashBarber Dpote] ${config.empresaSlug}: fonte=manual, preservando cat9 manual (não sobrescrevendo com API)`);
-      aplicados.push({
-        empresaSlug: config.empresaSlug,
-        filialNome: filial.filialNome,
-        valorDistribuido: filial.valorDistribuido,
-      });
-      continue;
-    }
+    console.log(`[CashBarber Dpote] ${config.empresaSlug}: aplicando Dpote (fonte atual: ${recorrenciaFonteAtual})`);
+
 
     // Valor diário = total ÷ dias JA REALIZADOS (até hoje para mês atual)
     // Garante que a soma até hoje = valor total do Dpote
