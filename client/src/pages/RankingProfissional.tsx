@@ -363,6 +363,7 @@ function ExportCard({
   ranking,
   meuNome,
   unidade,
+  fatMeta,
 }: {
   exportRef: React.RefObject<HTMLDivElement | null>;
   titulo: string;
@@ -370,6 +371,7 @@ function ExportCard({
   ranking: Array<{ id: number; nome: string; apelido?: string | null; fotoUrl?: string | null; totalGeral: number; totalServicos: number; totalProdutos: number; empresaSlug?: string | null }>;
   meuNome: string;
   unidade?: string;
+  fatMeta?: { total: number; metaMensal?: number | null; pctMeta?: number | null; projecaoFinalMes?: number | null; diasPassados?: number | null; diasUteisTotal?: number | null } | null;
 }) {
   return (
     <div
@@ -432,6 +434,54 @@ function ExportCard({
           </div>
         );
       })}
+      {/* Bloco de Meta da Unidade */}
+      {fatMeta && fatMeta.metaMensal && fatMeta.metaMensal > 0 && (
+        <div style={{
+          marginTop: "16px",
+          padding: "12px 14px",
+          borderRadius: "10px",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "700", letterSpacing: "0.05em", textTransform: "uppercase" }}>Meta da Unidade — Mês</span>
+            <span style={{
+              fontSize: "11px", fontWeight: "700",
+              color: (fatMeta.pctMeta ?? 0) >= 100 ? "#10b981" : (fatMeta.pctMeta ?? 0) >= 80 ? "#f59e0b" : "#f87171",
+              background: (fatMeta.pctMeta ?? 0) >= 100 ? "rgba(16,185,129,0.15)" : (fatMeta.pctMeta ?? 0) >= 80 ? "rgba(245,158,11,0.15)" : "rgba(248,113,113,0.15)",
+              padding: "2px 7px", borderRadius: "6px",
+            }}>{fatMeta.pctMeta ?? 0}%</span>
+          </div>
+          {/* Barra de progresso */}
+          <div style={{ height: "5px", background: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+            <div style={{
+              height: "100%", borderRadius: "3px",
+              width: `${Math.min(100, fatMeta.pctMeta ?? 0)}%`,
+              background: (fatMeta.pctMeta ?? 0) >= 100 ? "#10b981" : (fatMeta.pctMeta ?? 0) >= 80 ? "#f59e0b" : "#3b82f6",
+            }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "#e2e8f0" }}>{formatarMoeda(fatMeta.total)}</div>
+              <div style={{ fontSize: "10px", color: "#475569", marginTop: "1px" }}>de {formatarMoeda(fatMeta.metaMensal)}</div>
+            </div>
+            {(fatMeta.pctMeta ?? 0) < 100 ? (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "12px", fontWeight: "700", color: "#fbbf24" }}>
+                  Falta: {formatarMoeda(Math.max(0, fatMeta.metaMensal - fatMeta.total))}
+                </div>
+                {fatMeta.projecaoFinalMes && fatMeta.projecaoFinalMes > 0 && (
+                  <div style={{ fontSize: "10px", color: (fatMeta.projecaoFinalMes >= fatMeta.metaMensal) ? "#10b981" : "#94a3b8", marginTop: "1px" }}>
+                    Proj: {formatarMoeda(fatMeta.projecaoFinalMes)}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "#10b981" }}>✓ Meta atingida!</div>
+            )}
+          </div>
+        </div>
+      )}
       {/* Rodapé */}
       <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: "10px", color: "#475569" }}>Barbeiros</div>
@@ -770,6 +820,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           ranking={rankingFiltrado}
           meuNome={meuNome}
           unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          fatMeta={!verGeral && fatMensal ? { total: fatMensal.total, metaMensal: (fatMensal as any).metaMensal, pctMeta: (fatMensal as any).pctMeta, projecaoFinalMes: (fatMensal as any).projecaoFinalMes } : null}
         />
       )}
     </div>
@@ -1061,6 +1112,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
           ranking={rankingFiltrado}
           meuNome={meuNome}
           unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          fatMeta={!verGeral && fatMensalSem ? { total: fatMensalSem.total, metaMensal: (fatMensalSem as any).metaMensal, pctMeta: (fatMensalSem as any).pctMeta, projecaoFinalMes: (fatMensalSem as any).projecaoFinalMes } : null}
         />
       )}
     </div>
@@ -1322,6 +1374,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           ranking={rankingFiltrado}
           meuNome={meuNome}
           unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          fatMeta={!verGeral && fatUnidadeMes ? { total: fatUnidadeMes.total, metaMensal: (fatUnidadeMes as any).metaMensal, pctMeta: (fatUnidadeMes as any).pctMeta, projecaoFinalMes: (fatUnidadeMes as any).projecaoFinalMes } : null}
         />
       )}
     </div>
