@@ -102,6 +102,8 @@ import {
   cashbarberCalcularDpoteViaHistorico,
   cashbarberRelatorio13,
   filialParaEmpresaSlug,
+  cashbarberBuscarFotoProfissional,
+  cashbarberListarBarbeirosAtivos,
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
@@ -595,6 +597,55 @@ const profissionaisRouter = router({
       }
 
       return { resultados, total: resultados.length };
+    }),
+
+  syncFotos: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      if (!empresas.length) throw new TRPCError({ code: 'NOT_FOUND', message: 'Nenhuma empresa configurada.' });
+
+      // Usar a primeira empresa ativa para fazer login no CashBarber
+      const configs = await listCashbarberConfigs(tenantId);
+      const config = configs.find((c) => c.ativo === 1);
+      if (!config) throw new TRPCError({ code: 'NOT_FOUND', message: 'Nenhuma configuração CashBarber ativa.' });
+
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const barbeiros = await cashbarberListarBarbeirosAtivos(token);
+
+      // Atualizar fotos dos colaboradores que têm cashbarberProfissionalId
+      const colaboradoresList = await listarColaboradores(tenantId);
+      let atualizados = 0;
+      let semFoto = 0;
+
+      for (const col of colaboradoresList) {
+        if (!col.cashbarberProfissionalId) continue;
+        const barbeiro = barbeiros.find((b) => b.id === col.cashbarberProfissionalId);
+        if (!barbeiro) continue;
+
+        const novaFoto = barbeiro.fotoUrl;
+        if (novaFoto !== col.fotoUrl) {
+          await salvarColaborador(tenantId, {
+            id: col.id,
+            nome: col.nome,
+            apelido: col.apelido ?? null,
+            cargo: col.cargo ?? 'Barbeiro',
+            fotoUrl: novaFoto,
+            exibirNoRanking: col.exibirNoRanking ?? 1,
+            ativo: col.ativo ?? 1,
+            cashbarberProfissionalId: col.cashbarberProfissionalId,
+            empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
+            categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+            pinAcesso: col.pinAcesso ?? null,
+            metaMensal: col.metaMensal?.toString() ?? null,
+            telefone: col.telefone ?? null,
+          });
+          if (novaFoto) atualizados++;
+          else semFoto++;
+        }
+      }
+
+      return { ok: true, atualizados, semFoto, totalBarbeiros: barbeiros.length };
     }),
 });
 export const appRouter = router({

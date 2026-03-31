@@ -776,3 +776,46 @@ export function filialParaEmpresaSlug(filial: string | null | undefined): string
   if (f.includes("seraphine") || f.includes("serafine")) return "barbiero-seraphine";
   return "barbiero-grupo";
 }
+
+/**
+ * Busca a URL da foto de um profissional específico do CashBarber.
+ * Retorna null se o profissional não tiver foto.
+ */
+export async function cashbarberBuscarFotoProfissional(
+  token: string,
+  profissionalId: number
+): Promise<string | null> {
+  const resp = await fetch(`https://api.cashbarber.com.br/api/painel/usuarios/${profissionalId}`, {
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  });
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  return data?.foto?.url ?? null;
+}
+
+/**
+ * Busca a lista completa de barbeiros ativos do CashBarber com suas fotos.
+ * Retorna array com { id, usu_name, usu_id_filial, fotoUrl }.
+ */
+export async function cashbarberListarBarbeirosAtivos(
+  token: string
+): Promise<Array<{ id: number; usu_name: string; usu_id_filial: number; fotoUrl: string | null }>> {
+  const resp = await fetch("https://api.cashbarber.com.br/api/painel/usuarios/simpleListBarbeirosAtivos", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!resp.ok) {
+    throw new Error(`CashBarber simpleListBarbeirosAtivos falhou: ${resp.status}`);
+  }
+  const barbeiros: Array<{ id: number; usu_name: string; usu_id_filial: number }> = await resp.json();
+
+  // Buscar foto de cada barbeiro em paralelo
+  const result = await Promise.all(
+    barbeiros.map(async (b) => {
+      const fotoUrl = await cashbarberBuscarFotoProfissional(token, b.id);
+      return { id: b.id, usu_name: b.usu_name, usu_id_filial: b.usu_id_filial, fotoUrl };
+    })
+  );
+  return result;
+}

@@ -36,6 +36,7 @@ import {
   Link2,
   RefreshCw,
   Trophy,
+  Camera,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -120,6 +121,14 @@ export default function Profissionais() {
       toast.success(data.mensagem);
     },
     onError: (err) => toast.error("Erro na sincronização: " + err.message),
+  });
+
+  const syncFotos = trpc.profissionais.syncFotos.useMutation({
+    onSuccess: (data) => {
+      utils.profissionais.listar.invalidate();
+      toast.success(`Fotos sincronizadas! ${data.atualizados} atualizadas, ${data.semFoto} sem foto.`);
+    },
+    onError: (err) => toast.error("Erro ao sincronizar fotos: " + err.message),
   });
 
   const deletar = trpc.profissionais.deletar.useMutation({
@@ -220,6 +229,15 @@ export default function Profissionais() {
                 ))}
               </select>
             </div>
+            <Button
+              onClick={() => syncFotos.mutate()}
+              disabled={syncFotos.isPending}
+              variant="outline"
+              className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+            >
+              <Camera className={`w-4 h-4 mr-2 ${syncFotos.isPending ? 'animate-pulse' : ''}`} />
+              {syncFotos.isPending ? 'Sincronizando...' : 'Sync Fotos'}
+            </Button>
             <Button
               onClick={() => sincronizar.mutate({ mes: syncMes, ano: syncAno })}
               disabled={sincronizar.isPending}
@@ -338,9 +356,13 @@ export default function Profissionais() {
                     {/* Nome */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                          {p.nome.charAt(0).toUpperCase()}
-                        </div>
+                        {p.fotoUrl ? (
+                          <img src={p.fotoUrl} alt={p.nome} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                            {p.nome.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <span className="text-white font-medium">{p.nome}</span>
                       </div>
                     </td>
