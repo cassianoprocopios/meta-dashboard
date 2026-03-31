@@ -1076,3 +1076,4 @@
 ## Dashboard Visão Geral
 - [x] Exibir valor que falta para bater a meta por unidade no dashboard visão geral
 - [x] Adicionar valor que falta para a meta na imagem de compartilhamento WhatsApp (ExportCard)
+- [x] Personalizar rodapé da imagem WhatsApp com nome da unidade e mês

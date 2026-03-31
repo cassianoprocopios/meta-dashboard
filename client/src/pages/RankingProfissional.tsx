@@ -483,10 +483,30 @@ function ExportCard({
         </div>
       )}
       {/* Rodapé */}
-      <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: "10px", color: "#475569" }}>Barbeiros</div>
-        <div style={{ fontSize: "10px", color: "#475569" }}>
-          Gerado em {new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+      <div style={{ marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div style={{
+              width: "20px", height: "20px", borderRadius: "5px",
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "10px", fontWeight: "800", color: "#fff",
+            }}>B</div>
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: "700", color: "#94a3b8" }}>
+                {unidade ?? "Barbiero"}
+              </div>
+              <div style={{ fontSize: "9px", color: "#475569", marginTop: "1px" }}>
+                {subtitulo}
+              </div>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "9px", color: "#475569" }}>
+              {new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+            </div>
+            <div style={{ fontSize: "9px", color: "#334155", marginTop: "1px" }}>performancemeta.sbs</div>
+          </div>
         </div>
       </div>
     </div>
