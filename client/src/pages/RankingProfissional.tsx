@@ -411,7 +411,7 @@ function buildPosMap(lista: Array<{ id: number }>): Map<number, number> {
 function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [data, setData] = useState(hoje());
   const [verGeral, setVerGeral] = useState(false);
-  const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000 });
+  const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   // Ranking do dia anterior para calcular variação de posição
   const dataAnterior = useMemo(() => subtrairDia(data, 1), [data]);
   const { data: rankingAnterior } = trpc.rankingDiario.useQuery(
@@ -583,7 +583,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
 
   const { data: ranking, isLoading } = trpc.rankingSemanal.useQuery(
     { dataInicio, dataFim },
-    { staleTime: 60_000 }
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 }
   );
   const { data: rankingAnteriorSem } = trpc.rankingSemanal.useQuery(
     { dataInicio: dataInicioAnt, dataFim: dataFimAnt },
@@ -714,7 +714,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
     return { mes: d.getMonth() + 1, ano: d.getFullYear() };
   }, [mesOffset]);
 
-  const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000 });
+  const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   const rankingTodos = rankingData?.lista ?? [];
   const ehMesAtual = mesOffset === 0;
 
@@ -867,7 +867,7 @@ function AbaAtendimentos({ meuNome }: { meuNome: string }) {
   const range = getRange(periodo);
   const { data, isLoading, error } = trpc.meusAtendimentos.useQuery(
     { dataInicio: range.dataInicio, dataFim: range.dataFim },
-    { staleTime: 1000 * 60 * 5 }
+    { staleTime: 1000 * 60 * 5, refetchInterval: 20 * 60 * 1000 }
   );
 
   const periodos = [
