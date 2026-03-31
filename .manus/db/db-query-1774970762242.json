@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, nome, apelido, categoriaRanking, empresaSlug, ativo, pinAcesso, fotoUrl FROM colaboradores WHERE nome LIKE '%Karen%' OR apelido LIKE '%Karen%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, apelido, categoriaRanking, empresaSlug, ativo, pinAcesso, fotoUrl FROM colaboradores WHERE nome LIKE '%Karen%' OR apelido LIKE '%Karen%';",
+  "rows": [
+    {
+      "id": "10",
+      "nome": "Karen",
+      "apelido": "NULL",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "pinAcesso": "9969",
+      "fotoUrl": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\tcategoriaRanking\tempresaSlug\tativo\tpinAcesso\tfotoUrl\n10\tKaren\tNULL\tauxiliar\tbarbiero-mascote\t1\t9969\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

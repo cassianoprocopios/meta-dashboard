@@ -1,0 +1,55 @@
+{
+  "query": "SELECT id, nome, categoriaRanking, empresaSlug, ativo, exibirNoRanking, pinAcesso FROM colaboradores WHERE categoriaRanking = 'auxiliar' ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, categoriaRanking, empresaSlug, ativo, exibirNoRanking, pinAcesso FROM colaboradores WHERE categoriaRanking = 'auxiliar' ORDER BY nome;",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "1813"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "9470"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "9969"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "3288"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "3937"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tempresaSlug\tativo\texibirNoRanking\tpinAcesso\n23\tEduarda\tauxiliar\tbarbiero-morumbi\t1\t1\t1813\n8\tIsabella\tauxiliar\tbarbiero-mascote\t1\t1\t9470\n10\tKaren\tauxiliar\tbarbiero-mascote\t1\t1\t9969\n11\tMell\tauxiliar\tbarbiero-mascote\t1\t1\t3288\n20\tMirela\tauxiliar\tbarbiero-morumbi\t1\t1\t3937\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

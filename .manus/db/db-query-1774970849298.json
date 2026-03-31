@@ -1,0 +1,67 @@
+{
+  "query": "SELECT fc.colaboradorId, c.nome, fc.mes, fc.ano, fc.totalGeral, fc.totalServicos, fc.totalProdutos \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE c.nome = 'Karen' \nORDER BY fc.ano DESC, fc.mes DESC LIMIT 5;\n\nSELECT fc.colaboradorId, c.nome, fc.mes, fc.ano, fc.totalGeral \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE fc.mes = 3 AND fc.ano = 2026 AND c.empresaSlug = 'barbiero-mascote'\nORDER BY fc.totalGeral DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT fc.colaboradorId, c.nome, fc.mes, fc.ano, fc.totalGeral, fc.totalServicos, fc.totalProdutos \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE c.nome = 'Karen' \nORDER BY fc.ano DESC, fc.mes DESC LIMIT 5;\n\nSELECT fc.colaboradorId, c.nome, fc.mes, fc.ano, fc.totalGeral \nFROM faturamentoColaboradores fc \nJOIN colaboradores c ON c.id = fc.colaboradorId \nWHERE fc.mes = 3 AND fc.ano = 2026 AND c.empresaSlug = 'barbiero-mascote'\nORDER BY fc.totalGeral DESC LIMIT 10;",
+  "rows": [
+    {
+      "colaboradorId": "10",
+      "nome": "Karen",
+      "mes": "3",
+      "ano": "2026",
+      "totalGeral": "3592.10",
+      "totalServicos": "3592.10",
+      "totalProdutos": "0.00"
+    },
+    {
+      "colaboradorId": "10",
+      "nome": "Karen",
+      "mes": "2",
+      "ano": "2026",
+      "totalGeral": "3288.00",
+      "totalServicos": "3288.00",
+      "totalProdutos": "0.00"
+    },
+    {
+      "colaboradorId": "10",
+      "nome": "Karen",
+      "mes": "1",
+      "ano": "2026",
+      "totalGeral": "2612.00",
+      "totalServicos": "2612.00",
+      "totalProdutos": "0.00"
+    },
+    {
+      "colaboradorId": "10",
+      "nome": "Karen",
+      "mes": "12",
+      "ano": "2025",
+      "totalGeral": "3504.00",
+      "totalServicos": "3504.00",
+      "totalProdutos": "0.00"
+    },
+    {
+      "colaboradorId": "10",
+      "nome": "Karen",
+      "mes": "11",
+      "ano": "2025",
+      "totalGeral": "0.00",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00"
+    }
+  ],
+  "messages": [
+    "colaboradorId\tnome\tmes\tano\ttotalGeral",
+    "10\tKaren\t3\t2026\t3592.10",
+    "6\tEdinho\t3\t2026\t2658.13",
+    "17\tVinicius\t3\t2026\t2540.84",
+    "16\tRecepção Mascote\t3\t2026\t2166.33",
+    "19\tRenan\t3\t2026\t1727.06",
+    "22\tFelipe\t3\t2026\t1668.38",
+    "13\tNeudo\t3\t2026\t1632.83",
+    "5\tCaio\t3\t2026\t1463.62",
+    "8\tIsabella\t3\t2026\t1048.00",
+    "11\tMell\t3\t2026\t579.00"
+  ],
+  "stdout": "colaboradorId\tnome\tmes\tano\ttotalGeral\ttotalServicos\ttotalProdutos\n10\tKaren\t3\t2026\t3592.10\t3592.10\t0.00\n10\tKaren\t2\t2026\t3288.00\t3288.00\t0.00\n10\tKaren\t1\t2026\t2612.00\t2612.00\t0.00\n10\tKaren\t12\t2025\t3504.00\t3504.00\t0.00\n10\tKaren\t11\t2025\t0.00\t0.00\t0.00\ncolaboradorId\tnome\tmes\tano\ttotalGeral\n10\tKaren\t3\t2026\t3592.10\n6\tEdinho\t3\t2026\t2658.13\n17\tVinicius\t3\t2026\t2540.84\n16\tRecepção Mascote\t3\t2026\t2166.33\n19\tRenan\t3\t2026\t1727.06\n22\tFelipe\t3\t2026\t1668.38\n13\tNeudo\t3\t2026\t1632.83\n5\tCaio\t3\t2026\t1463.62\n8\tIsabella\t3\t2026\t1048.00\n11\tMell\t3\t2026\t579.00\n",
+  "stderr": "",
+  "execution_time_ms": 70
+}

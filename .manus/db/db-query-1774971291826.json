@@ -1,0 +1,60 @@
+{
+  "query": "\n-- Mell = 25571, Mirela = 35930, Eduarda = 34191, Karen = 29459, Isabella = 23224\nUPDATE colaboradores SET cashbarberProfissionalId = 25571 WHERE nome = 'Mell';\nUPDATE colaboradores SET cashbarberProfissionalId = 35930 WHERE nome = 'Mirela';\nUPDATE colaboradores SET cashbarberProfissionalId = 34191 WHERE nome = 'Eduarda';\nUPDATE colaboradores SET cashbarberProfissionalId = 29459 WHERE nome = 'Karen';\nUPDATE colaboradores SET cashbarberProfissionalId = 23224 WHERE nome = 'Isabella';\n\n-- Confirmar resultado\nSELECT id, nome, cashbarberProfissionalId, categoriaRanking, empresaSlug, pinAcesso, ativo, exibirNoRanking\nFROM colaboradores\nWHERE nome IN ('Mell', 'Mirela', 'Eduarda', 'Karen', 'Isabella')\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Mell = 25571, Mirela = 35930, Eduarda = 34191, Karen = 29459, Isabella = 23224\nUPDATE colaboradores SET cashbarberProfissionalId = 25571 WHERE nome = 'Mell';\nUPDATE colaboradores SET cashbarberProfissionalId = 35930 WHERE nome = 'Mirela';\nUPDATE colaboradores SET cashbarberProfissionalId = 34191 WHERE nome = 'Eduarda';\nUPDATE colaboradores SET cashbarberProfissionalId = 29459 WHERE nome = 'Karen';\nUPDATE colaboradores SET cashbarberProfissionalId = 23224 WHERE nome = 'Isabella';\n\n-- Confirmar resultado\nSELECT id, nome, cashbarberProfissionalId, categoriaRanking, empresaSlug, pinAcesso, ativo, exibirNoRanking\nFROM colaboradores\nWHERE nome IN ('Mell', 'Mirela', 'Eduarda', 'Karen', 'Isabella')\nORDER BY nome;\n",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "cashbarberProfissionalId": "34191",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "pinAcesso": "1813",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "cashbarberProfissionalId": "23224",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "pinAcesso": "9470",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "cashbarberProfissionalId": "29459",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "pinAcesso": "9969",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "cashbarberProfissionalId": "25571",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "pinAcesso": "3288",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "cashbarberProfissionalId": "35930",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "pinAcesso": "3937",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcashbarberProfissionalId\tcategoriaRanking\tempresaSlug\tpinAcesso\tativo\texibirNoRanking\n23\tEduarda\t34191\tauxiliar\tbarbiero-morumbi\t1813\t1\t1\n8\tIsabella\t23224\tauxiliar\tbarbiero-mascote\t9470\t1\t1\n10\tKaren\t29459\tauxiliar\tbarbiero-mascote\t9969\t1\t1\n11\tMell\t25571\tauxiliar\tbarbiero-mascote\t3288\t1\t1\n20\tMirela\t35930\tauxiliar\tbarbiero-morumbi\t3937\t1\t1\n",
+  "stderr": "",
+  "execution_time_ms": 122
+}

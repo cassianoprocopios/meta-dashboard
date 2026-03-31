@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, nome, cashbarberProfissionalId FROM colaboradores WHERE nome = 'Karen';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, cashbarberProfissionalId FROM colaboradores WHERE nome = 'Karen';",
+  "rows": [
+    {
+      "id": "10",
+      "nome": "Karen",
+      "cashbarberProfissionalId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcashbarberProfissionalId\n10\tKaren\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

@@ -1,0 +1,45 @@
+{
+  "query": "SELECT id, nome, categoriaRanking, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE ativo = 1 AND (cashbarberProfissionalId IS NULL OR cashbarberProfissionalId = '') ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, categoriaRanking, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE ativo = 1 AND (cashbarberProfissionalId IS NULL OR cashbarberProfissionalId = '') ORDER BY nome;",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tempresaSlug\tcashbarberProfissionalId\n23\tEduarda\tauxiliar\tbarbiero-morumbi\tNULL\n8\tIsabella\tauxiliar\tbarbiero-mascote\tNULL\n10\tKaren\tauxiliar\tbarbiero-mascote\tNULL\n11\tMell\tauxiliar\tbarbiero-mascote\tNULL\n20\tMirela\tauxiliar\tbarbiero-morumbi\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 71
+}
