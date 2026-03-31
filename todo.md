@@ -1072,3 +1072,6 @@
 
 ## Projeção com Dias Úteis
 - [x] Recalcular projeção de faturamento usando dias úteis da meta em vez de dias corridos
+
+## Dashboard Visão Geral
+- [x] Exibir valor que falta para bater a meta por unidade no dashboard visão geral

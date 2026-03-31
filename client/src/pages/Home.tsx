@@ -1709,6 +1709,25 @@ export default function Home() {
                             }}
                           />
                         </div>
+                        {/* Linha de falta/atingida por unidade */}
+                        <div className="flex items-center justify-between mt-1 mb-0.5">
+                          {atingiu ? (
+                            <span className="text-[10px] font-semibold text-emerald-500">
+                              ✓ Meta atingida!
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-amber-400 font-medium">
+                              Falta <span className="font-bold">{fmt(s.metaMensal - s.totalRealizado)}</span>
+                            </span>
+                          )}
+                          {!atingiu && projecao > 0 && (
+                            <span className={`text-[10px] font-medium ${
+                              projecaoAtingeMeta ? 'text-emerald-500' : 'text-muted-foreground'
+                            }`}>
+                              Proj: {fmt(projecao)}
+                            </span>
+                          )}
+                        </div>
                         {/* Linha de meta esperada até hoje + marcador de projeção */}
                         <div className="relative h-4 mt-0.5">
                           {/* Marcador: meta esperada até hoje */}
@@ -1967,6 +1986,21 @@ export default function Home() {
                                 width: `${pctMensal}%`,
                                 backgroundColor: atingiuMeta ? '#10b981' : pctMensal >= 80 ? '#f59e0b' : s.emp.cor
                               }} />
+                          </div>
+                          {/* Linha de falta/atingida */}
+                          <div className="flex items-center justify-between mt-2">
+                            {atingiuMeta ? (
+                              <span className="text-xs font-bold text-emerald-400">✓ Meta atingida!</span>
+                            ) : (
+                              <span className="text-xs font-semibold text-amber-400">
+                                Falta: <span className="font-bold">{fmt(s.metaMensal - s.totalRealizado)}</span>
+                              </span>
+                            )}
+                            {!atingiuMeta && (s.metaMensal - s.totalRealizado) > 0 && s.diasUteisRestantes > 0 && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {fmt((s.metaMensal - s.totalRealizado) / s.diasUteisRestantes)}/dia
+                              </span>
+                            )}
                           </div>
                           {/* Meta esperada hoje */}
                           {s.metaMensal > 0 && (() => {
