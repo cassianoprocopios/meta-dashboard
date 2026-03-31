@@ -32,6 +32,7 @@ import DpoteDistribuicao from "@/pages/DpoteDistribuicao";
 import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
 import BottomNav from "@/components/BottomNav";
+import TabPanel from "@/components/TabPanel";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
@@ -1171,7 +1172,7 @@ export default function Home() {
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
           </div>
         )}
-
+        <TabPanel tabKey={activeTab}>
         {/* ─── DASHBOARD ─────────────────────────────────────────────────────── */}
         {activeTab === "dashboard" && !loading && (
           <div className="space-y-6">
@@ -3005,9 +3006,9 @@ export default function Home() {
             mesLabel={MESES[mes - 1]}
             mesAnteriorLabel={MESES[mesAnterior - 1]}
           />
-        )}
+         )}
+        </TabPanel>
        </main>
-
       {/* Barra de navegação inferior — mobile */}
       {isAuthenticated && (
         <BottomNav

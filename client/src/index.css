@@ -165,6 +165,29 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ─── Animações de transição entre abas ─────────────────────────────── */
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-enter {
+  animation: tab-fade-in 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Versão mais rápida para desktop */
+@media (min-width: 768px) {
+  .tab-enter {
+    animation-duration: 160ms;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
