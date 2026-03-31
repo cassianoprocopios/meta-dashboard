@@ -833,7 +833,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center justify-between h-14 sm:h-16 pl-10 md:pl-0">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
@@ -1164,7 +1164,7 @@ export default function Home() {
 
 
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-full overflow-x-hidden">
+      <main className="flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-full overflow-x-hidden">
         {loading && activeTab === "dashboard" && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
@@ -1176,18 +1176,18 @@ export default function Home() {
           <div className="space-y-6">
             {/* Banner de acesso rápido para recepcionista */}
             {isRecepcionista && (
-              <Card className="p-6 border-0 shadow-sm rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                <div className="flex items-center justify-between">
+              <Card className="p-4 sm:p-6 border-0 shadow-sm rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-bold">Olá, {user?.name ?? "Recepcionista"}!</h2>
-                    <p className="text-sm text-blue-100 mt-1">Registre o faturamento do dia clicando no botão ao lado.</p>
+                    <h2 className="text-base sm:text-lg font-bold">Olá, {user?.name ?? "Recepcionista"}!</h2>
+                    <p className="text-sm text-blue-100 mt-1">Registre o faturamento do dia.</p>
                   </div>
                   <Button
                     onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
-                    className="gap-2 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-semibold shadow-md"
-                    size="lg"
+                    className="gap-2 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-semibold shadow-md w-full sm:w-auto"
+                    size="sm"
                   >
-                    <Plus className="w-5 h-5" /> Lançar Faturamento
+                    <Plus className="w-4 h-4" /> Lançar Faturamento
                   </Button>
                 </div>
               </Card>
@@ -1244,10 +1244,9 @@ export default function Home() {
             )}
 
             {/* ===== KPIs EXECUTIVOS — NOVA HIERARQUIA VISUAL ===== */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
               {/* KPI 1: Faturamento Total — card hero principal */}
-              <div className="sm:col-span-2 xl:col-span-2 relative overflow-hidden rounded-2xl p-6"
+              <div className="col-span-2 xl:col-span-2 relative overflow-hidden rounded-2xl p-4 sm:p-6"
                 style={{ background: 'linear-gradient(135deg, #3730a3 0%, #4c1d95 100%)' }}>
                 {/* Glow decorativo */}
                 <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10 pointer-events-none"
@@ -1266,7 +1265,7 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                  <p className="font-display text-4xl sm:text-5xl text-white leading-none tracking-tight">
+                  <p className="font-display text-3xl sm:text-4xl lg:text-5xl text-white leading-none tracking-tight">
                     {fmt(totalGeralRealizado)}
                   </p>
                   <p className="text-white/50 text-sm mt-1">
@@ -1300,16 +1299,16 @@ export default function Home() {
                 const projecaoTotal = statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0);
                 const projecaoAtinge = projecaoTotal >= metaTotalGeral;
                 return (
-                  <div className="rounded-2xl p-5 bg-card border border-border/50">
+                  <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-label text-muted-foreground tracking-widest text-[11px]">META DO MÊS</span>
+                      <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">META DO MÊS</span>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                         atingiu ? 'bg-emerald-500/15 text-emerald-400'
                         : pctMeta >= 80 ? 'bg-amber-500/15 text-amber-400'
                         : 'bg-red-500/15 text-red-400'
                       }`}>{pctMeta}%</span>
                     </div>
-                    <p className="font-display text-3xl text-foreground leading-none">{fmt(metaTotalGeral)}</p>
+                    <p className="font-display text-xl sm:text-3xl text-foreground leading-none">{fmt(metaTotalGeral)}</p>
                     <p className="text-muted-foreground text-xs mt-1">meta mensal total</p>
                     {/* Barra de progresso premium */}
                     <div className="mt-4">
@@ -1333,9 +1332,9 @@ export default function Home() {
               })()}
 
               {/* KPI 3: Falta para Meta / Atingida */}
-              <div className="rounded-2xl p-5 bg-card border border-border/50">
+              <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-label text-muted-foreground tracking-widest text-[11px]">
+                  <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">
                     {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0 ? 'META' : 'FALTA PARA META'}
                   </span>
                   {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0
@@ -1346,12 +1345,12 @@ export default function Home() {
                 {metaTotalGeral > 0 ? (
                   totalGeralRealizado >= metaTotalGeral ? (
                     <>
-                      <p className="font-display text-3xl text-emerald-400 leading-none">Meta!</p>
+                      <p className="font-display text-xl sm:text-3xl text-emerald-400 leading-none">Meta!</p>
                       <p className="text-emerald-400/70 text-xs mt-1">parabéns pela conquista</p>
                     </>
                   ) : (
                     <>
-                      <p className="font-display text-3xl text-foreground leading-none">{fmt(metaTotalGeral - totalGeralRealizado)}</p>
+                      <p className="font-display text-xl sm:text-3xl text-foreground leading-none">{fmt(metaTotalGeral - totalGeralRealizado)}</p>
                       <p className="text-muted-foreground text-xs mt-1">restante para atingir</p>
                       {metaQuinzenalTotal > 0 && (
                         <div className="mt-3 flex items-center gap-1.5">
@@ -1364,7 +1363,7 @@ export default function Home() {
                     </>
                   )
                 ) : (
-                  <p className="font-display text-3xl text-muted-foreground leading-none">—</p>
+                  <p className="font-display text-xl sm:text-3xl text-muted-foreground leading-none">—</p>
                 )}
               </div>
 
@@ -1577,8 +1576,8 @@ export default function Home() {
 
             {/* Gráfico de Progresso da Meta Mensal */}
             {metaTotalGeral > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-                <div className="flex items-center justify-between mb-5">
+              <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
                       <Target className="w-4 h-4 text-primary" />
@@ -1592,10 +1591,10 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-xs text-muted-foreground">Total realizado</p>
-                    <p className="text-lg font-bold text-foreground">{fmt(totalGeralRealizado)}</p>
-                    <p className="text-xs text-muted-foreground">de {fmt(metaTotalGeral)}</p>
+                    <p className="text-base sm:text-lg font-bold text-foreground">{fmt(totalGeralRealizado)}</p>
+                    <p className="text-xs text-muted-foreground hidden sm:block">de {fmt(metaTotalGeral)}</p>
                   </div>
                 </div>
 
@@ -1745,7 +1744,7 @@ export default function Home() {
                 </div>
 
                 {/* Legenda */}
-                <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-border text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-2 rounded-sm bg-primary" />
                     <span>Realizado</span>
@@ -1859,10 +1858,10 @@ export default function Home() {
                 </div>
 
                 {/* Rodapé: consolidado */}
-                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Total realizado: <span className="font-semibold text-foreground">{fmt(totalGeralRealizado)}</span></span>
-                  <span>Meta total: <span className="font-semibold text-foreground">{fmt(metaTotalGeral)}</span></span>
-                  <span className={`font-bold ${
+                <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>Realizado: <span className="font-semibold text-foreground">{fmt(totalGeralRealizado)}</span></span>
+                  <span>Meta: <span className="font-semibold text-foreground">{fmt(metaTotalGeral)}</span></span>
+                  <span className={`font-bold ml-auto ${
                     totalGeralRealizado >= metaTotalGeral ? "text-emerald-400"
                     : (totalGeralRealizado / metaTotalGeral) >= 0.75 ? "text-blue-400"
                     : "text-amber-400"
@@ -2417,8 +2416,9 @@ export default function Home() {
                   </span>
                 </div>
 
-                <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={lineDataDiario} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <div className="h-[200px] sm:h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={lineDataDiario} margin={{ top: 10, right: 5, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis
                       dataKey="diaLabel"
@@ -2521,18 +2521,19 @@ export default function Home() {
                       activeDot={{ r: 4, fill: "#94a3b8", strokeWidth: 2, stroke: "#fff" }}
                       connectNulls={false}
                     />
-                  </LineChart>
+                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               </Card>
             )}
-
             {/* Gráficos */}
             {totalGeral > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Gráfico de barras por empresa */}
-                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-                  <h3 className="font-semibold text-foreground mb-4">Faturamento vs Meta por Empresa</h3>
-                  <ResponsiveContainer width="100%" height={240}>
+                <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
+                  <h3 className="font-semibold text-foreground mb-3 text-sm">Faturamento vs Meta por Empresa</h3>
+                  <div className="h-[180px] sm:h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData as any[]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="empresa" tick={{ fontSize: 11, fill: "#6b7280" }} />
@@ -2546,13 +2547,15 @@ export default function Home() {
                       <Bar dataKey="meta" name="Meta" fill="rgba(255,255,255,0.12)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                  </div>
                 </Card>
 
                 {/* Gráfico de pizza por empresa */}
-                <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
-                  <h3 className="font-semibold text-foreground mb-4">Composição do Faturamento</h3>
+                <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
+                  <h3 className="font-semibold text-foreground mb-3 text-sm">Composição do Faturamento</h3>
                   {pieDataEmpresas.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={240}>
+                    <div className="h-[180px] sm:h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={pieDataEmpresas}
@@ -2570,11 +2573,12 @@ export default function Home() {
                           ))}
                         </Pie>
                         <Tooltip formatter={(v: any) => fmtFull(v)} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
                       </PieChart>
                     </ResponsiveContainer>
+                    </div>
                   ) : (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
+                    <div className="flex items-center justify-center h-36 text-muted-foreground text-sm">
                       Sem dados para exibir
                     </div>
                   )}
@@ -2635,10 +2639,11 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={260}>
+                <div className="h-[220px] sm:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={barDataCategoriasSeraphine.data}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
+                    margin={{ top: 5, right: 5, left: -10, bottom: 40 }}
                     barCategoryGap="20%"
                     barGap={4}
                   >
@@ -2685,6 +2690,7 @@ export default function Home() {
                     ))}
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               </Card>
             )}
 
