@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
@@ -631,9 +631,8 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               const isPodio3 = i === 2 && total > 3; // Após o 3º: divisor pódio
               const isAnteUltimo = total > 3 && i === total - 4 && total - 3 > 3; // Antes da zona lanterna
               return (
-                <>
+                <React.Fragment key={p.id}>
                   <RankingCard
-                    key={p.id}
                     pos={i + 1}
                     nome={p.nome}
                     apelido={p.apelido}
@@ -664,7 +663,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
                     </div>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </div>
@@ -847,9 +846,8 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
               const isPodio3 = i === 2 && total > 3;
               const isAnteUltimo = total > 3 && i === total - 4 && total - 3 > 3;
               return (
-                <>
+                <React.Fragment key={p.id}>
                   <RankingCard
-                    key={p.id}
                     pos={i + 1}
                     nome={p.nome}
                     apelido={p.apelido}
@@ -880,7 +878,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
                     </div>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </div>
