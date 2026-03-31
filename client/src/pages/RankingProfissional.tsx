@@ -157,6 +157,7 @@ function RankingCard({
   isMe,
   empresaSlug,
   mostrarEmpresa = false,
+  isUltimo = false,
 }: {
   pos: number;
   nome: string;
@@ -173,6 +174,7 @@ function RankingCard({
   isMe: boolean;
   empresaSlug?: string | null;
   mostrarEmpresa?: boolean;
+  isUltimo?: boolean;
 }) {
   const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
   const nomeExibido = apelido || nome.split(" ")[0];
@@ -211,6 +213,8 @@ function RankingCard({
         flex items-start gap-3 p-3 rounded-xl transition-all
         ${isMe
           ? "bg-blue-500/20 border border-blue-500/40 shadow-lg shadow-blue-500/10"
+          : isUltimo
+          ? "bg-red-500/10 border border-red-500/20"
           : "bg-white/5 border border-white/10"}
       `}
     >
@@ -218,6 +222,8 @@ function RankingCard({
       <div className="w-7 flex flex-col items-center gap-0.5 flex-shrink-0 pt-0.5">
         {medalha ? (
           <span className="text-lg leading-none">{medalha}</span>
+        ) : isUltimo ? (
+          <span className="text-red-400/70 text-xs font-bold">{pos}º</span>
         ) : (
           <span className="text-white/40 text-xs font-bold">{pos}º</span>
         )}
@@ -521,6 +527,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
+                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
               />
             ))}
           </div>
@@ -672,6 +679,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
+                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
               />
             ))}
           </div>
@@ -809,6 +817,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
                 isMe={p.nome === meuNome || p.apelido === meuNome}
                 empresaSlug={p.empresaSlug}
                 mostrarEmpresa={verGeral}
+                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
               />
             ))}
           </div>
