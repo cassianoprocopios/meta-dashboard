@@ -1069,3 +1069,6 @@
 
 ## Projeção de Faturamento no Card de Meta
 - [x] Adicionar projeção de faturamento para o final do mês no card de meta do ranking
+
+## Projeção com Dias Úteis
+- [x] Recalcular projeção de faturamento usando dias úteis da meta em vez de dias corridos

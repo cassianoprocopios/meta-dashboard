@@ -677,7 +677,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-white/40">Projeção final do mês</span>
-                  <span className="text-xs text-white/25">(dia {(fatMensal as any).diasPassados}/{(fatMensal as any).diasNoMes})</span>
+                  <span className="text-xs text-white/25">({(fatMensal as any).diasPassados}/{(fatMensal as any).diasNoMes} dias úteis)</span>
                 </div>
                 <div className={`text-sm font-bold ${
                   (fatMensal as any).metaMensal && (fatMensal as any).projecaoFinalMes >= (fatMensal as any).metaMensal
@@ -968,7 +968,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-white/40">Projeção final do mês</span>
-                  <span className="text-xs text-white/25">(dia {(fatMensalSem as any).diasPassados}/{(fatMensalSem as any).diasNoMes})</span>
+                  <span className="text-xs text-white/25">({(fatMensalSem as any).diasPassados}/{(fatMensalSem as any).diasNoMes} dias úteis)</span>
                 </div>
                 <div className={`text-sm font-bold ${
                   (fatMensalSem as any).metaMensal && (fatMensalSem as any).projecaoFinalMes >= (fatMensalSem as any).metaMensal
@@ -1226,7 +1226,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-white/40">Projeção final do mês</span>
-                  <span className="text-xs text-white/25">(dia {(fatUnidadeMes as any).diasPassados}/{(fatUnidadeMes as any).diasNoMes})</span>
+                  <span className="text-xs text-white/25">({(fatUnidadeMes as any).diasPassados}/{(fatUnidadeMes as any).diasNoMes} dias úteis)</span>
                 </div>
                 <div className={`text-sm font-bold ${
                   (fatUnidadeMes as any).metaMensal && (fatUnidadeMes as any).projecaoFinalMes >= (fatUnidadeMes as any).metaMensal

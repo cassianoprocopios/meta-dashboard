@@ -3828,24 +3828,32 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             pctMeta = Math.round(((totalOperacional + recorrencia) / metaMensal) * 100);
           }
         }
-        // Calcular projeção com base nos dias passados no mês
+        // Calcular projeção com base nos dias úteis da meta
         const hoje = new Date();
         const mesAtualNum = hoje.getMonth() + 1;
         const anoAtualNum = hoje.getFullYear();
         const ehMesVigente = input.mes === mesAtualNum && input.ano === anoAtualNum;
-        // Total de dias no mês
-        diasNoMes = new Date(input.ano, input.mes, 0).getDate();
+        // Total de dias corridos no mês (para referência)
+        const diasCorridosNoMes = new Date(input.ano, input.mes, 0).getDate();
+        // Usar diasUteis da meta se disponível, senão fallback para dias corridos
+        const diasUteisTotal = (metaEmpresa && (metaEmpresa as any).diasUteis > 0)
+          ? (metaEmpresa as any).diasUteis
+          : diasCorridosNoMes;
+        diasNoMes = diasUteisTotal;
         if (ehMesVigente) {
-          // Dias passados = dia atual (inclusive hoje)
-          diasPassados = hoje.getDate();
+          // Calcular quantos dias úteis já passaram proporcionalmente
+          // Proporção = (dia atual / dias corridos no mês) * dias úteis totais
+          const diaAtual = hoje.getDate();
+          diasPassados = Math.round((diaAtual / diasCorridosNoMes) * diasUteisTotal);
+          diasPassados = Math.max(1, Math.min(diasPassados, diasUteisTotal));
         } else {
-          // Mês passado: todos os dias são passados
-          diasPassados = diasNoMes;
+          // Mês passado: todos os dias úteis são passados
+          diasPassados = diasUteisTotal;
         }
         const totalFaturado = totalOperacional + recorrencia;
-        if (diasPassados > 0 && totalFaturado > 0) {
+        if (diasPassados != null && diasPassados > 0 && totalFaturado > 0) {
           mediaDiaria = totalFaturado / diasPassados;
-          projecaoFinalMes = mediaDiaria * diasNoMes;
+          projecaoFinalMes = mediaDiaria * diasUteisTotal;
         }
       }
 
