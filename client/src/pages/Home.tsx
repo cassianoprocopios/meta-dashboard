@@ -34,6 +34,8 @@ import AppSidebar from "@/components/AppSidebar";
 import BottomNav from "@/components/BottomNav";
 import TabPanel from "@/components/TabPanel";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
+import LancamentosSkeleton from "@/components/LancamentosSkeleton";
+import MetasSkeleton from "@/components/MetasSkeleton";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
@@ -2731,7 +2733,7 @@ export default function Home() {
             </div>
 
             {loadingFat ? (
-              <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+              <LancamentosSkeleton />
             ) : faturamentosData.length === 0 ? (
               <Card className="p-8 border-0 shadow-sm rounded-2xl bg-card text-center">
                 <Calendar className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
@@ -2940,7 +2942,10 @@ export default function Home() {
           </div>
         )}
         {/* METAS */}
-        {activeTab === "metas" && (
+        {activeTab === "metas" && loadingMetas && (
+          <MetasSkeleton cardCount={empresasVisiveis.length || 3} />
+        )}
+        {activeTab === "metas" && !loadingMetas && (
           <MetaConfig
             mes={mes}
             ano={ano}
