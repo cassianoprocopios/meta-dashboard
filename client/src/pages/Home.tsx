@@ -364,9 +364,15 @@ export default function Home() {
   const statsPorEmpresa = useMemo(() => {
     // Dia atual do mês (para calcular dias decorridos até hoje)
     const hoje = new Date();
-    const diaHoje = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear()
+    const mesHoje = hoje.getMonth() + 1;
+    const anoHoje = hoje.getFullYear();
+    // Identifica o tipo do mês selecionado em relação ao mês real
+    const ehMesVigente = mes === mesHoje && ano === anoHoje;
+    const ehMesFuturo = ano > anoHoje || (ano === anoHoje && mes > mesHoje);
+    // const ehMesPassado = !ehMesVigente && !ehMesFuturo; // implicitamente
+    const diaHoje = ehMesVigente
       ? hoje.getDate()
-      : new Date(ano, mes, 0).getDate(); // se mês passado, usa último dia do mês
+      : new Date(ano, mes, 0).getDate(); // se mês passado/futuro, usa último dia do mês
     const ehPrimeiraQuinzena = diaHoje <= 15;
     const diaHojeQuinzenal = Math.min(diaHoje, 15); // cap em 15 para quinzenal
 
@@ -378,39 +384,66 @@ export default function Home() {
       const rowsPrevistos = rows.filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje);
 
       // =====================================================================
-      // REGRA DE FATURAMENTO:
-      //   - Faturamento (total, realizados, previstos) = APENAS cat1..cat8
-      //   - Recorrência Dpote (cat9) = SOMENTE INFORMATIVO, não entra na somatoria
-      //   - Valor informativo da recorrência = cat9 acumulado até o dia vigente
-      //     (dias realizados), ou valor manual confirmado quando fonte=manual
+      // REGRA DE FATURAMENTO E RECORRÊNCIA DPOTE:
+      //
+      // MÊS PASSADO: cat9 já totalmente apurado → entra no faturamento
+      // MÊS VIGENTE: cat9 acumulado até hoje → entra no faturamento (já realizado)
+      // MÊS FUTURO:  cat9 ainda não apurado → NÃO entra; aparece como previsão
+      //              informativa (recorrenciaPrevisao) usando o total do mês anterior
       // =====================================================================
       const dpoteCfgEmp = dpoteConfigMap[emp.slug];
       const usaRecorrenciaManual = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null;
 
-      // Helper: soma apenas cat1..cat8 (faturamento operacional puro)
+      // Helper: soma apenas cat1..cat8 (faturamento operacional)
       const sumCatsSemCat9 = (r: any) =>
         [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
-      // Mantém sumCats como alias para compatibilidade com código legado
-      const sumCats = sumCatsSemCat9;
+      // Helper: soma cat1..cat9 (faturamento completo incluindo recorrência)
+      const sumCats = (r: any) => sumCatsSemCat9(r) + parseFloat(r.cat9 || "0");
 
-      // Faturamento total = cat1..cat8 de TODOS os dias (realizados + previstos)
-      const total = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      // Cat9 acumulado dos dias realizados (cat9 do banco, já distribuído diariamente)
+      const cat9Realizados = rowsRealizados.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
+      // Cat9 total do mês (todos os dias lançados)
+      const cat9Total = rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
-      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje
-      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      // Recorrência que ENTRA no faturamento:
+      //   - Mês passado: cat9 total do mês (já totalmente apurado)
+      //   - Mês vigente: cat9 acumulado até hoje (já realizado)
+      //   - Mês futuro: 0 (não entra no faturamento)
+      // Quando fonte=manual no mês vigente, usa o valor manual confirmado
+      const recorrenciaNoFaturamento = ehMesFuturo
+        ? 0
+        : (ehMesVigente && usaRecorrenciaManual)
+          ? (dpoteCfgEmp!.recorrenciaValorManual as number)
+          : ehMesVigente
+            ? cat9Realizados   // mês vigente sem manual: cat9 acumulado até hoje
+            : cat9Total;       // mês passado: cat9 total do mês
 
-      // Faturamento previsto = cat1..cat8 dos dias > hoje
+      // Recorrência INFORMATIVA (previsão) para mês futuro:
+      //   Usa o cat9 total do mês anterior (já carregado em faturamentosAnteriorData)
+      //   Exibida como linha informativa, igual à projeção de faturamento
+      const rowsAnterioresEmp = faturamentosAnteriorData.filter((f: any) => f.empresaSlug === emp.slug);
+      const recorrenciaPrevisao = ehMesFuturo
+        ? rowsAnterioresEmp.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0)
+        : 0;
+
+      // recorrenciaMes: valor exibido no card (informativo)
+      //   - Mês passado/vigente: o valor que entrou no faturamento
+      //   - Mês futuro: a previsão baseada no mês anterior
+      const recorrenciaMes = ehMesFuturo ? recorrenciaPrevisao : recorrenciaNoFaturamento;
+
+      // Faturamento total = cat1..cat8 + recorrência que entra no faturamento
+      const totalSemRec = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const total = totalSemRec + recorrenciaNoFaturamento;
+
+      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje + recorrência realizada
+      const totalRealizadoSemRec = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const totalRealizado = totalRealizadoSemRec + recorrenciaNoFaturamento;
+
+      // Faturamento previsto = cat1..cat8 dos dias > hoje (sem recorrência)
       const totalPrevisto = rows
         .filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje)
         .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-
-      // Recorrência Dpote (APENAS INFORMATIVO - não entra em nenhuma somatoria)
-      // fonte=manual: usa o valor confirmado manualmente (apurado até o dia vigente)
-      // fonte=cashbarber: soma cat9 dos dias realizados (acumulado até hoje)
-      const recorrenciaMes = usaRecorrenciaManual
-        ? (dpoteCfgEmp!.recorrenciaValorManual as number)
-        : rowsRealizados.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
       const diasLancados = rows.length;
       const diasRealizados = rowsRealizados.length;
@@ -518,12 +551,14 @@ export default function Home() {
         progressoQuinzenal: metaEsperadaQuinzenalAteHoje > 0 ? Math.min((totalQuinzenal / metaEsperadaQuinzenalAteHoje) * 100, 150) : (metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0),
         catTotals,
         recorrenciaMes,
+        recorrenciaPrevisao,
+        ehMesFuturo,
         rows,
         rowsRealizados,
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosFiltrados, metasData, dpoteConfigMap]);
+  }, [empresasVisiveis, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
@@ -1896,7 +1931,10 @@ export default function Home() {
                           )}
                           {s.recorrenciaMes > 0 && (
                             <p className="text-[10px] text-violet-400/80 mt-0.5">
-                              + {fmt(s.recorrenciaMes)} Dpote (informativo)
+                              {s.ehMesFuturo
+                                ? `prev. Dpote: + ${fmt(s.recorrenciaPrevisao)}`
+                                : `+ ${fmt(s.recorrenciaMes)} Dpote`
+                              }
                             </p>
                           )}
                         </div>
