@@ -489,17 +489,29 @@ async function enviarNotificacaoRankingDiario(): Promise<void> {
         if (resultados.length === 0) continue;
         resultados.sort((a, b) => b.total - a.total);
         const top3 = resultados.slice(0, 3);
+        const ultimos3 = resultados.length > 3 ? resultados.slice(-3) : [];
         const fmtBRL = (v: number) =>
           v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-        const linhas = top3.map((r, i) => {
+        const linhasTop = top3.map((r, i) => {
           const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
           return `${medalha} ${r.nome}: ${fmtBRL(r.total)}`;
         });
 
+        const linhasUltimos = ultimos3.map((r, i) => {
+          const posicao = resultados.length - (ultimos3.length - 1 - i);
+          return `🔦 ${posicao}º ${r.nome}: ${fmtBRL(r.total)}`;
+        });
+
+        const conteudo = [
+          ...linhasTop,
+          ...(ultimos3.length > 0 ? ["\n⚠️ Zona de Lanterna:", ...linhasUltimos] : []),
+          `\n${resultados.length} profissionais com dados hoje.`,
+        ].join("\n");
+
         await notifyOwner({
           title: `🏆 Top 3 do Dia — ${hoje.toLocaleDateString("pt-BR")}`,
-          content: linhas.join("\n") + `\n\n${resultados.length} profissionais com dados hoje.`,
+          content: conteudo,
         });
 
         console.log(`[Ranking Notif] Notificação enviada para tenant ${tenantId}: ${top3.map((r) => r.nome).join(", ")}`);

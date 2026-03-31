@@ -158,6 +158,7 @@ function RankingCard({
   empresaSlug,
   mostrarEmpresa = false,
   isUltimo = false,
+  animIndex = 0,
 }: {
   pos: number;
   nome: string;
@@ -175,6 +176,7 @@ function RankingCard({
   empresaSlug?: string | null;
   mostrarEmpresa?: boolean;
   isUltimo?: boolean;
+  animIndex?: number;
 }) {
   const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
   const nomeExibido = apelido || nome.split(" ")[0];
@@ -217,6 +219,10 @@ function RankingCard({
           ? "bg-red-500/10 border border-red-500/20"
           : "bg-white/5 border border-white/10"}
       `}
+      style={{
+        animation: `rankingSlideIn 0.35s ease-out both`,
+        animationDelay: `${animIndex * 55}ms`,
+      }}
     >
       {/* Posição + variação */}
       <div className="w-7 flex flex-col items-center gap-0.5 flex-shrink-0 pt-0.5">
@@ -511,25 +517,47 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       ) : (
         <>
           <div className="space-y-2">
-            {rankingFiltrado.map((p, i) => (
-              <RankingCard
-                key={p.id}
-                pos={i + 1}
-                nome={p.nome}
-                apelido={p.apelido}
-                fotoUrl={p.fotoUrl}
-                totalGeral={p.totalGeral}
-                totalServicos={p.totalServicos}
-                totalProdutos={p.totalProdutos}
-                qtdServicos={(p as any).qtdServicos ?? 0}
-                qtdProdutos={(p as any).qtdProdutos ?? 0}
-                posAnterior={posMapAnterior.get(p.id) ?? null}
-                isMe={p.nome === meuNome || p.apelido === meuNome}
-                empresaSlug={p.empresaSlug}
-                mostrarEmpresa={verGeral}
-                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
-              />
-            ))}
+            {rankingFiltrado.map((p, i) => {
+              const total = rankingFiltrado.length;
+              const isPodio3 = i === 2 && total > 3; // Após o 3º: divisor pódio
+              const isAnteUltimo = total > 3 && i === total - 4 && total - 3 > 3; // Antes da zona lanterna
+              return (
+                <>
+                  <RankingCard
+                    key={p.id}
+                    pos={i + 1}
+                    nome={p.nome}
+                    apelido={p.apelido}
+                    fotoUrl={p.fotoUrl}
+                    totalGeral={p.totalGeral}
+                    totalServicos={p.totalServicos}
+                    totalProdutos={p.totalProdutos}
+                    qtdServicos={(p as any).qtdServicos ?? 0}
+                    qtdProdutos={(p as any).qtdProdutos ?? 0}
+                    posAnterior={posMapAnterior.get(p.id) ?? null}
+                    isMe={p.nome === meuNome || p.apelido === meuNome}
+                    empresaSlug={p.empresaSlug}
+                    mostrarEmpresa={verGeral}
+                    isUltimo={total > 3 && i >= total - 3}
+                    animIndex={i}
+                  />
+                  {isPodio3 && (
+                    <div key={`sep-podio-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                      <span className="text-yellow-500/50 text-xs font-semibold tracking-widest uppercase">Pódio</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                    </div>
+                  )}
+                  {isAnteUltimo && (
+                    <div key={`sep-lanterna-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                      <span className="text-red-400/50 text-xs font-semibold tracking-widest uppercase">Lanterna</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                    </div>
+                  )}
+                </>
+              );
+            })}
           </div>
           {/* Botão exportar */}
           <button
@@ -663,25 +691,47 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
       ) : (
         <>
           <div className="space-y-2">
-            {rankingFiltrado.map((p, i) => (
-              <RankingCard
-                key={p.id}
-                pos={i + 1}
-                nome={p.nome}
-                apelido={p.apelido}
-                fotoUrl={p.fotoUrl}
-                totalGeral={p.totalGeral}
-                totalServicos={p.totalServicos}
-                totalProdutos={p.totalProdutos}
-                qtdServicos={(p as any).qtdServicos ?? 0}
-                qtdProdutos={(p as any).qtdProdutos ?? 0}
-                posAnterior={posMapAnteriorSem.get(p.id) ?? null}
-                isMe={p.nome === meuNome || p.apelido === meuNome}
-                empresaSlug={p.empresaSlug}
-                mostrarEmpresa={verGeral}
-                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
-              />
-            ))}
+            {rankingFiltrado.map((p, i) => {
+              const total = rankingFiltrado.length;
+              const isPodio3 = i === 2 && total > 3;
+              const isAnteUltimo = total > 3 && i === total - 4 && total - 3 > 3;
+              return (
+                <>
+                  <RankingCard
+                    key={p.id}
+                    pos={i + 1}
+                    nome={p.nome}
+                    apelido={p.apelido}
+                    fotoUrl={p.fotoUrl}
+                    totalGeral={p.totalGeral}
+                    totalServicos={p.totalServicos}
+                    totalProdutos={p.totalProdutos}
+                    qtdServicos={(p as any).qtdServicos ?? 0}
+                    qtdProdutos={(p as any).qtdProdutos ?? 0}
+                    posAnterior={posMapAnteriorSem.get(p.id) ?? null}
+                    isMe={p.nome === meuNome || p.apelido === meuNome}
+                    empresaSlug={p.empresaSlug}
+                    mostrarEmpresa={verGeral}
+                    isUltimo={total > 3 && i >= total - 3}
+                    animIndex={i}
+                  />
+                  {isPodio3 && (
+                    <div key={`sep-podio-sem-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                      <span className="text-yellow-500/50 text-xs font-semibold tracking-widest uppercase">Pódio</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                    </div>
+                  )}
+                  {isAnteUltimo && (
+                    <div key={`sep-lanterna-sem-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                      <span className="text-red-400/50 text-xs font-semibold tracking-widest uppercase">Lanterna</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                    </div>
+                  )}
+                </>
+              );
+            })}
           </div>
           {/* Botão exportar */}
           <button
@@ -799,27 +849,49 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       ) : (
         <>
           <div className="space-y-2">
-            {rankingFiltrado.map((p, i) => (
-              <RankingCard
-                key={p.id}
-                pos={i + 1}
-                nome={p.nome}
-                apelido={p.apelido}
-                fotoUrl={p.fotoUrl}
-                totalGeral={p.totalGeral}
-                totalServicos={p.totalServicos}
-                totalProdutos={p.totalProdutos}
-                qtdServicos={(p as any).qtdServicos ?? 0}
-                qtdProdutos={(p as any).qtdProdutos ?? 0}
-                pctMeta={p.pctMeta}
-                metaMensal={p.metaMensal}
-                posAnterior={posMapAnteriorMes.get(p.id) ?? null}
-                isMe={p.nome === meuNome || p.apelido === meuNome}
-                empresaSlug={p.empresaSlug}
-                mostrarEmpresa={verGeral}
-                isUltimo={rankingFiltrado.length > 3 && i >= rankingFiltrado.length - 3}
-              />
-            ))}
+            {rankingFiltrado.map((p, i) => {
+              const total = rankingFiltrado.length;
+              const isPodio3 = i === 2 && total > 3;
+              const isAnteUltimo = total > 3 && i === total - 4 && total - 3 > 3;
+              return (
+                <>
+                  <RankingCard
+                    key={p.id}
+                    pos={i + 1}
+                    nome={p.nome}
+                    apelido={p.apelido}
+                    fotoUrl={p.fotoUrl}
+                    totalGeral={p.totalGeral}
+                    totalServicos={p.totalServicos}
+                    totalProdutos={p.totalProdutos}
+                    qtdServicos={(p as any).qtdServicos ?? 0}
+                    qtdProdutos={(p as any).qtdProdutos ?? 0}
+                    pctMeta={p.pctMeta}
+                    metaMensal={p.metaMensal}
+                    posAnterior={posMapAnteriorMes.get(p.id) ?? null}
+                    isMe={p.nome === meuNome || p.apelido === meuNome}
+                    empresaSlug={p.empresaSlug}
+                    mostrarEmpresa={verGeral}
+                    isUltimo={total > 3 && i >= total - 3}
+                    animIndex={i}
+                  />
+                  {isPodio3 && (
+                    <div key={`sep-podio-mes-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                      <span className="text-yellow-500/50 text-xs font-semibold tracking-widest uppercase">Pódio</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+                    </div>
+                  )}
+                  {isAnteUltimo && (
+                    <div key={`sep-lanterna-mes-${i}`} className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                      <span className="text-red-400/50 text-xs font-semibold tracking-widest uppercase">Lanterna</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                    </div>
+                  )}
+                </>
+              );
+            })}
           </div>
           {/* Botão exportar */}
           <button
