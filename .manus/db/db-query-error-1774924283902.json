@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT empresaSlug, recorrenciaFonte, recorrenciaValorManual, recorrenciaManualAtualizadoEm\nFROM dpoteConfig\nWHERE empresaSlug = 'MORUMBI';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, recorrenciaFonte, recorrenciaValorManual, recorrenciaManualAtualizadoEm\nFROM dpoteConfig\nWHERE empresaSlug = 'MORUMBI';\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 2: Table 'manh2fxvkecbuwjelbl3u8.dpoteConfig' doesn't exist"
+  ]
+}

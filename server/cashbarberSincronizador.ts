@@ -529,6 +529,20 @@ export async function aplicarDpoteParaTenant(
       naoEncontrados.push(config.empresaSlug);
       continue;
     }
+
+    // PROTEÇÃO: se a empresa usa recorrência manual confirmada, NÃO sobrescrever o cat9
+    // O valor manual já foi distribuído pelo usuário via salvarRecorrenciaManual
+    const recorrenciaFonteAtual = (config as any).recorrenciaFonte ?? "cashbarber";
+    if (recorrenciaFonteAtual === "manual") {
+      console.log(`[CashBarber Dpote] ${config.empresaSlug}: fonte=manual, preservando cat9 manual (não sobrescrevendo com API)`);
+      aplicados.push({
+        empresaSlug: config.empresaSlug,
+        filialNome: filial.filialNome,
+        valorDistribuido: filial.valorDistribuido,
+      });
+      continue;
+    }
+
     // Valor diário = total ÷ dias JA REALIZADOS (até hoje para mês atual)
     // Garante que a soma até hoje = valor total do Dpote
     const valorDiario = Math.round((filial.valorDistribuido / diasRealizadosAplic) * 100) / 100;

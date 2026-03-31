@@ -1,0 +1,17 @@
+{
+  "query": "\nSELECT \n  ROUND(SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8), 2) as total_cat1_8,\n  ROUND(SUM(cat9), 2) as total_cat9,\n  ROUND(SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9), 2) as total_geral,\n  COUNT(*) as dias_lancados,\n  SUM(CASE WHEN cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8 > 0 THEN 1 ELSE 0 END) as dias_com_faturamento\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI' \n  AND data LIKE '2026-03-%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  ROUND(SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8), 2) as total_cat1_8,\n  ROUND(SUM(cat9), 2) as total_cat9,\n  ROUND(SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9), 2) as total_geral,\n  COUNT(*) as dias_lancados,\n  SUM(CASE WHEN cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8 > 0 THEN 1 ELSE 0 END) as dias_com_faturamento\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI' \n  AND data LIKE '2026-03-%';\n",
+  "rows": [
+    {
+      "total_cat1_8": "78242.83",
+      "total_cat9": "121741.96",
+      "total_geral": "199984.79",
+      "dias_lancados": "31",
+      "dias_com_faturamento": "25"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_cat1_8\ttotal_cat9\ttotal_geral\tdias_lancados\tdias_com_faturamento\n78242.83\t121741.96\t199984.79\t31\t25\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  data,\n  ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8, 2) as cat1_8,\n  ROUND(cat9, 2) as cat9,\n  ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9, 2) as total_dia\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI' AND mes = 3 AND ano = 2026\nORDER BY data ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  data,\n  ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8, 2) as cat1_8,\n  ROUND(cat9, 2) as cat9,\n  ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9, 2) as total_dia\nFROM faturamentos\nWHERE empresaSlug = 'MORUMBI' AND mes = 3 AND ano = 2026\nORDER BY data ASC;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'mes' in 'where clause'"
+  ]
+}
