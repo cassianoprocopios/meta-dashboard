@@ -76,13 +76,15 @@ async function executarSincronizacaoEmpresa(
 
 /**
  * Após sincronizar todas as empresas de um tenant, aplica a distribuição Dpote
- * atualizando cat5 (Recorrência) de cada unidade com a comissão bruta correta.
+ * atualizando cat9 (Recorrência) de cada unidade com a comissão bruta correta.
  * Isolado em try/catch para não interromper o ciclo do job em caso de falha.
+ * Em caso de falha, envia notificação push imediata para o dono.
  */
-async function executarAplicacaoDpote(tenantId: number): Promise<void> {
+async function executarAplicacaoDpote(tenantId: number, origem: "horario" | "diario" | "manual" = "horario"): Promise<void> {
   const agora = new Date();
   const mes = agora.getMonth() + 1;
   const ano = agora.getFullYear();
+  const dataHora = agora.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
   try {
     const resultado = await aplicarDpoteParaTenant(tenantId, mes, ano);
@@ -90,13 +92,44 @@ async function executarAplicacaoDpote(tenantId: number): Promise<void> {
       .map((a) => `${a.empresaSlug}: R$ ${a.valorDistribuido.toFixed(2)}`)
       .join(" | ");
     console.log(`[CashBarber Job] Dpote aplicado ao dashboard (${mes}/${ano}): ${resumo}`);
+
+    // Avisar se alguma filial não foi encontrada no histórico do Dpote
     if (resultado.naoEncontrados.length > 0) {
-      console.warn(`[CashBarber Job] Dpote não encontrado para: ${resultado.naoEncontrados.join(", ")}`);
+      const filiais = resultado.naoEncontrados.join(", ");
+      console.warn(`[CashBarber Job] Dpote não encontrado para: ${filiais}`);
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `⚠️ Dpote: filial(is) sem dados (${dataHora})`,
+          content:
+            `O Dpote foi calculado mas as seguintes filiais não foram encontradas no histórico:\n\n` +
+            `• ${filiais}\n\n` +
+            `Verifique se os nomes das filiais no painel correspondem aos cadastrados no CashBarber.\n` +
+            `Acesse Configurações > CashBarber para corrigir.`,
+        });
+      } catch { /* silenciar erro de notificação */ }
     }
   } catch (err) {
     // Falha no Dpote não deve interromper o job
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`[CashBarber Job] Falha ao aplicar Dpote para tenant ${tenantId}:`, msg);
+    console.warn(`[CashBarber Job] Falha ao aplicar Dpote para tenant ${tenantId} (${origem}):`, msg);
+
+    // Notificação push imediata para o dono
+    try {
+      const { notifyOwner } = await import("./_core/notification");
+      const origemLabel = origem === "horario" ? "job horário" : origem === "diario" ? "sync diário das 6h10" : "sync manual";
+      await notifyOwner({
+        title: `🔴 Falha no Dpote — ${origemLabel} (${dataHora})`,
+        content:
+          `A distribuição do Dpote falhou durante o ${origemLabel}.\n\n` +
+          `Erro: ${msg}\n\n` +
+          `Os valores de Recorrência (cat9) do mês ${mes}/${ano} podem estar desatualizados.\n` +
+          `Acesse o painel e clique em "Sincronizar Dpote" para corrigir manualmente.`,
+      });
+      console.log(`[CashBarber Job] Alerta de falha do Dpote enviado para tenant ${tenantId}`);
+    } catch (notifErr) {
+      console.error("[CashBarber Job] Falha ao enviar notificação de erro do Dpote:", notifErr);
+    }
   }
 }
 
@@ -226,7 +259,7 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       .sort((a, b) => (a.empresaSlug > b.empresaSlug ? 1 : -1))
       .at(-1);
     if (ultimaEmpresa?.empresaSlug === empresaSlug) {
-      await executarAplicacaoDpote(tenantId);
+      await executarAplicacaoDpote(tenantId, "horario");
       // Após atualizar os dados, verificar se alguma empresa atingiu a meta diária
       await verificarMetaDiariaParaTenant(tenantId);
       // Recalcular ranking dos profissionais para manter /pro sempre atualizado
@@ -561,7 +594,7 @@ cron.schedule("0 10 9 * * *", async () => {
         }
       }
       // Aplicar Dpote após sync de todas as empresas do tenant
-      await executarAplicacaoDpote(tenantId);
+      await executarAplicacaoDpote(tenantId, "diario");
       await verificarMetaDiariaParaTenant(tenantId);
     }
     const totalErros = Object.keys(errosPorEmpresa).length;
