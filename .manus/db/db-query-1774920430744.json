@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm,\n  dpoteValorAssinaturas\nFROM cashbarberConfig\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE', 'barbiero-morumbi', 'barbiero-mascote');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  recorrenciaFonte,\n  recorrenciaValorManual,\n  recorrenciaManualAtualizadoEm,\n  dpoteValorAssinaturas\nFROM cashbarberConfig\nWHERE empresaSlug IN ('MORUMBI', 'MASCOTE', 'barbiero-morumbi', 'barbiero-mascote');\n",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "recorrenciaFonte": "manual",
+      "recorrenciaValorManual": "122031.00",
+      "recorrenciaManualAtualizadoEm": "2026-03-31 00:30:25",
+      "dpoteValorAssinaturas": "173366.73"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "recorrenciaFonte": "manual",
+      "recorrenciaValorManual": "51336.00",
+      "recorrenciaManualAtualizadoEm": "2026-03-31 00:30:25",
+      "dpoteValorAssinaturas": "173366.73"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\trecorrenciaFonte\trecorrenciaValorManual\trecorrenciaManualAtualizadoEm\tdpoteValorAssinaturas\nMORUMBI\tmanual\t122031.00\t2026-03-31 00:30:25\t173366.73\nMASCOTE\tmanual\t51336.00\t2026-03-31 00:30:25\t173366.73\n",
+  "stderr": "",
+  "execution_time_ms": 66
+}

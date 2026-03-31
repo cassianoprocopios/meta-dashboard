@@ -377,24 +377,45 @@ export default function Home() {
       const rowsRealizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje);
       const rowsPrevistos = rows.filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje);
 
-      // Total geral (realizados + previstos) para exibir no card — inclui cat9 (Recorrência Dpote)
-      const sumCats = (r: any) =>
-        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+      // Recorrência Dpote: se fonte for manual, usa o valor manual confirmado;
+      // caso contrário, soma o cat9 distribuído diariamente no banco
+      const dpoteCfgEmp = dpoteConfigMap[emp.slug];
+      const usaRecorrenciaManual = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null;
+      const recorrenciaManualValor = usaRecorrenciaManual ? (dpoteCfgEmp!.recorrenciaValorManual as number) : null;
+
+      // sumCats: soma cat1..cat8 sempre; cat9 só se NÃO usar recorrência manual
+      // (quando manual, o cat9 do banco é substituído pelo valor manual no total final)
+      const sumCatsSemCat9 = (r: any) =>
+        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
-      const total = rows.reduce((s: number, r: any) => s + sumCats(r), 0);
+      const sumCats = (r: any) =>
+        sumCatsSemCat9(r) + (usaRecorrenciaManual ? 0 : parseFloat(r.cat9 || "0"));
+
+      // Total geral: cat1..cat8 de todos os dias + recorrência correta (manual ou banco)
+      const totalSemRecorrencia = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const recorrenciaMes = usaRecorrenciaManual
+        ? recorrenciaManualValor!
+        : rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
+      const total = totalSemRecorrencia + recorrenciaMes;
+
       // Total apenas realizados (para cálculos de média, máximo, mínimo)
-      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => s + sumCats(r), 0);
-      const totalPrevisto = total - totalRealizado;
+      // Realizados: cat1..cat8 dos dias ≤ hoje + recorrência manual (ou cat9 dos dias realizados)
+      const totalRealizadoSemRec = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const totalRealizado = totalRealizadoSemRec + recorrenciaMes;
+      const totalPrevisto = rows
+        .filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje)
+        .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
       const diasLancados = rows.length;
       const diasRealizados = rowsRealizados.length;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária apenas sobre dias realizados
-      const mediaDiaria = diasRealizados > 0 ? totalRealizado / diasRealizados : 0;
+      // Média diária apenas sobre dias realizados (sem recorrência mensal, que é um valor único)
+      const totalRealizadoOperacional = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const mediaDiaria = diasRealizados > 0 ? totalRealizadoOperacional / diasRealizados : 0;
 
-      // Máximo e mínimo diário apenas sobre dias realizados (inclui cat9)
-      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCats(r));
+      // Máximo e mínimo diário apenas sobre dias realizados (sem cat9 para não distorcer com recorrência)
+      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCatsSemCat9(r));
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
 
@@ -420,10 +441,10 @@ export default function Home() {
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
       // Dias úteis restantes no mês
-      // Quinzenal: apenas realizados até dia 15
+      // Quinzenal: apenas realizados até dia 15 (sem recorrência mensal)
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
+      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
@@ -457,13 +478,6 @@ export default function Home() {
         catTotals[7] += parseFloat(r.cat8 || "0");
         catTotals[8] += parseFloat(r.cat9 || "0");
       });
-
-      // Recorrência Dpote: se fonte for manual, usa o valor manual confirmado;
-      // caso contrário, soma o cat9 distribuído diariamente no banco
-      const dpoteCfgEmp = dpoteConfigMap[emp.slug];
-      const recorrenciaMes = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null
-        ? dpoteCfgEmp.recorrenciaValorManual
-        : rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
       return {
         emp,

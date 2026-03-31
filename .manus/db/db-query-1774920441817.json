@@ -1,0 +1,24 @@
+{
+  "query": "\n-- Total sem cat9 (faturamento operacional real, sem o Dpote distribuído diariamente)\nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n      CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n      CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2))) as total_sem_cat9,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as total_cat9_banco,\n  SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n      CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n      CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2)) + CAST(cat9 AS DECIMAL(10,2))) as total_com_cat9_banco\nFROM faturamentos\nWHERE data LIKE '2026-03-%'\n  AND empresaSlug IN ('MORUMBI', 'MASCOTE')\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Total sem cat9 (faturamento operacional real, sem o Dpote distribuído diariamente)\nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n      CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n      CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2))) as total_sem_cat9,\n  SUM(CAST(cat9 AS DECIMAL(10,2))) as total_cat9_banco,\n  SUM(CAST(cat1 AS DECIMAL(10,2)) + CAST(cat2 AS DECIMAL(10,2)) + CAST(cat3 AS DECIMAL(10,2)) + \n      CAST(cat4 AS DECIMAL(10,2)) + CAST(cat5 AS DECIMAL(10,2)) + CAST(cat6 AS DECIMAL(10,2)) + \n      CAST(cat7 AS DECIMAL(10,2)) + CAST(cat8 AS DECIMAL(10,2)) + CAST(cat9 AS DECIMAL(10,2))) as total_com_cat9_banco\nFROM faturamentos\nWHERE data LIKE '2026-03-%'\n  AND empresaSlug IN ('MORUMBI', 'MASCOTE')\nGROUP BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "dias": "31",
+      "total_sem_cat9": "37472.99",
+      "total_cat9_banco": "53289.29",
+      "total_com_cat9_banco": "90762.28"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "dias": "31",
+      "total_sem_cat9": "78242.83",
+      "total_cat9_banco": "121741.96",
+      "total_com_cat9_banco": "199984.79"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias\ttotal_sem_cat9\ttotal_cat9_banco\ttotal_com_cat9_banco\nMASCOTE\t31\t37472.99\t53289.29\t90762.28\nMORUMBI\t31\t78242.83\t121741.96\t199984.79\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

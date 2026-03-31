@@ -1,0 +1,23 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as dias_lancados,\n  SUM(CAST(f.cat1 AS DECIMAL(10,2))) as total_cat1,\n  SUM(CAST(f.cat2 AS DECIMAL(10,2))) as total_cat2,\n  SUM(CAST(f.cat3 AS DECIMAL(10,2))) as total_cat3,\n  SUM(CAST(f.cat4 AS DECIMAL(10,2))) as total_cat4,\n  SUM(CAST(f.cat5 AS DECIMAL(10,2))) as total_cat5,\n  SUM(CAST(f.cat6 AS DECIMAL(10,2))) as total_cat6,\n  SUM(CAST(f.cat7 AS DECIMAL(10,2))) as total_cat7,\n  SUM(CAST(f.cat8 AS DECIMAL(10,2))) as total_cat8,\n  SUM(CAST(f.cat9 AS DECIMAL(10,2))) as total_cat9,\n  SUM(CAST(f.cat1 AS DECIMAL(10,2)) + CAST(f.cat2 AS DECIMAL(10,2)) + CAST(f.cat3 AS DECIMAL(10,2)) + \n      CAST(f.cat4 AS DECIMAL(10,2)) + CAST(f.cat5 AS DECIMAL(10,2)) + CAST(f.cat6 AS DECIMAL(10,2)) + \n      CAST(f.cat7 AS DECIMAL(10,2)) + CAST(f.cat8 AS DECIMAL(10,2)) + CAST(f.cat9 AS DECIMAL(10,2))) as TOTAL_GERAL\nFROM faturamentos f\nWHERE f.empresaSlug = 'MORUMBI'\n  AND f.data LIKE '2026-03-%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  COUNT(*) as dias_lancados,\n  SUM(CAST(f.cat1 AS DECIMAL(10,2))) as total_cat1,\n  SUM(CAST(f.cat2 AS DECIMAL(10,2))) as total_cat2,\n  SUM(CAST(f.cat3 AS DECIMAL(10,2))) as total_cat3,\n  SUM(CAST(f.cat4 AS DECIMAL(10,2))) as total_cat4,\n  SUM(CAST(f.cat5 AS DECIMAL(10,2))) as total_cat5,\n  SUM(CAST(f.cat6 AS DECIMAL(10,2))) as total_cat6,\n  SUM(CAST(f.cat7 AS DECIMAL(10,2))) as total_cat7,\n  SUM(CAST(f.cat8 AS DECIMAL(10,2))) as total_cat8,\n  SUM(CAST(f.cat9 AS DECIMAL(10,2))) as total_cat9,\n  SUM(CAST(f.cat1 AS DECIMAL(10,2)) + CAST(f.cat2 AS DECIMAL(10,2)) + CAST(f.cat3 AS DECIMAL(10,2)) + \n      CAST(f.cat4 AS DECIMAL(10,2)) + CAST(f.cat5 AS DECIMAL(10,2)) + CAST(f.cat6 AS DECIMAL(10,2)) + \n      CAST(f.cat7 AS DECIMAL(10,2)) + CAST(f.cat8 AS DECIMAL(10,2)) + CAST(f.cat9 AS DECIMAL(10,2))) as TOTAL_GERAL\nFROM faturamentos f\nWHERE f.empresaSlug = 'MORUMBI'\n  AND f.data LIKE '2026-03-%';\n",
+  "rows": [
+    {
+      "dias_lancados": "31",
+      "total_cat1": "45829.50",
+      "total_cat2": "20878.20",
+      "total_cat3": "1290.00",
+      "total_cat4": "0.00",
+      "total_cat5": "80.00",
+      "total_cat6": "151.00",
+      "total_cat7": "5920.13",
+      "total_cat8": "4094.00",
+      "total_cat9": "121741.96",
+      "TOTAL_GERAL": "199984.79"
+    }
+  ],
+  "messages": [],
+  "stdout": "dias_lancados\ttotal_cat1\ttotal_cat2\ttotal_cat3\ttotal_cat4\ttotal_cat5\ttotal_cat6\ttotal_cat7\ttotal_cat8\ttotal_cat9\tTOTAL_GERAL\n31\t45829.50\t20878.20\t1290.00\t0.00\t80.00\t151.00\t5920.13\t4094.00\t121741.96\t199984.79\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}
