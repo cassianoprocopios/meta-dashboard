@@ -1,0 +1,230 @@
+{
+  "query": "\nSELECT \n  c.nome, \n  fc.mes, fc.ano,\n  fc.totalServicos, fc.totalProdutos, fc.totalGeral,\n  fc.qtdServicos, fc.qtdProdutos,\n  LEFT(fc.detalhesServicos, 200) as detalhesServicos_sample\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes IN (2, 3) AND fc.ano = 2026\nORDER BY c.nome, fc.mes\nLIMIT 20;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  c.nome, \n  fc.mes, fc.ano,\n  fc.totalServicos, fc.totalProdutos, fc.totalGeral,\n  fc.qtdServicos, fc.qtdProdutos,\n  LEFT(fc.detalhesServicos, 200) as detalhesServicos_sample\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes IN (2, 3) AND fc.ano = 2026\nORDER BY c.nome, fc.mes\nLIMIT 20;\n",
+  "rows": [
+    {
+      "nome": "Adailton",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "1521.40",
+      "totalProdutos": "640.72",
+      "totalGeral": "2162.12",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Limpeza Facial\",\"sum\":90,\"count\":2},{\"ser_nome\":\"Depilação Nariz\",\"sum\":389.5,\"count\":11},{\"ser_nome\":\"Depilação Orelha\",\"sum\":169.5,\"count\":5},{\"ser_nome\":\"Barboterapia\",\"sum\":218.39999"
+    },
+    {
+      "nome": "Adailton",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1691.30",
+      "totalProdutos": "663.65",
+      "totalGeral": "2354.95",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Sobrancelha\",\"sum\":385,\"count\":12},{\"ser_nome\":\"Depilação Nariz\",\"sum\":260,\"count\":7},{\"ser_nome\":\"Barba com Barboterapia\",\"sum\":100,\"count\":1},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":38"
+    },
+    {
+      "nome": "Caio",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "1470.00",
+      "totalProdutos": "521.44",
+      "totalGeral": "1991.44",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":7},{\"ser_nome\":\"Hidratação Barba\",\"sum\":85.5,\"count\":2},{\"ser_nome\":\"Barboterapia\",\"sum\":276.5,\"count\":9},{\"ser_nome\":\"Limpeza Facial\",\"sum\":210,\"co"
+    },
+    {
+      "nome": "Caio",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1370.70",
+      "totalProdutos": "92.92",
+      "totalGeral": "1463.62",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Barboterapia\",\"sum\":285.2,\"count\":8},{\"ser_nome\":\"Limpeza Facial\",\"sum\":175,\"count\":5},{\"ser_nome\":\"Indicação Hidratação\",\"sum\":30,\"count\":2},{\"ser_nome\":\"Depilação Orelha\",\"sum\":108.5,\""
+    },
+    {
+      "nome": "Christian",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "3104.00",
+      "totalProdutos": "656.43",
+      "totalGeral": "3760.43",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Depilação Nariz\",\"sum\":718.5,\"count\":20},{\"ser_nome\":\"Depilação Orelha\",\"sum\":382.5,\"count\":11},{\"ser_nome\":\"Sobrancelha\",\"sum\":1227,\"count\":38},{\"ser_nome\":\"Barboterapia\",\"sum\":90,\"coun"
+    },
+    {
+      "nome": "Christian",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1445.50",
+      "totalProdutos": "745.05",
+      "totalGeral": "2190.55",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Sobrancelha\",\"sum\":729.5,\"count\":23},{\"ser_nome\":\"Depilação Nariz\",\"sum\":361,\"count\":10},{\"ser_nome\":\"Depilação Orelha\",\"sum\":145,\"count\":4},{\"ser_nome\":\"Pigmentação Cabelo\",\"sum\":95,\"co"
+    },
+    {
+      "nome": "Cleison",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "2364.50",
+      "totalProdutos": "939.39",
+      "totalGeral": "3303.89",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":1162,\"count\":9},{\"ser_nome\":\"Depilação Nariz\",\"sum\":140.5,\"count\":4},{\"ser_nome\":\"Depilação Orelha\",\"sum\":212.5,\"count\":6},{\"ser_nome\":\"Sobrancelha\",\"sum\":476,"
+    },
+    {
+      "nome": "Cleison",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "2546.50",
+      "totalProdutos": "581.72",
+      "totalGeral": "3128.22",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Sobrancelha\",\"sum\":637,\"count\":20},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":1064,\"count\":8},{\"ser_nome\":\"Depilação Orelha\",\"sum\":131.5,\"count\":4},{\"ser_nome\":\"Depilação Nariz\",\"sum\":209.5"
+    },
+    {
+      "nome": "Dan",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "1531.70",
+      "totalProdutos": "642.91",
+      "totalGeral": "2174.61",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Depilação Nariz\",\"sum\":220,\"count\":6},{\"ser_nome\":\"Depilação Orelha\",\"sum\":148,\"count\":4},{\"ser_nome\":\"Sobrancelha\",\"sum\":612.5,\"count\":19},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":392,\"c"
+    },
+    {
+      "nome": "Dan",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1662.20",
+      "totalProdutos": "965.81",
+      "totalGeral": "2628.01",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Camuflagem Cabelo\",\"sum\":75,\"count\":1},{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":100,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":867,\"count\":27},{\"ser_nome\":\"Depilação Orelha\""
+    },
+    {
+      "nome": "Edinho",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "1827.40",
+      "totalProdutos": "80.91",
+      "totalGeral": "1908.31",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Camuflagem Barba\",\"sum\":70,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":421.5,\"count\":14},{\"ser_nome\":\"Depilação Nariz\",\"sum\":340,\"count\":10},{\"ser_nome\":\"Depilação Orelha\",\"sum\":165,\"coun"
+    },
+    {
+      "nome": "Edinho",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1895.60",
+      "totalProdutos": "698.53",
+      "totalGeral": "2594.13",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":539,\"count\":7},{\"ser_nome\":\"Sobrancelha\",\"sum\":511,\"count\":16},{\"ser_nome\":\"Barboterapia\",\"sum\":137.60000000000002,\"count\":4},{\"ser_nome\":\"Depila"
+    },
+    {
+      "nome": "Eduarda",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "30.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "30.00",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Lavagem Relaxante\",\"sum\":30,\"count\":1}]"
+    },
+    {
+      "nome": "Eduarda",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "900.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "900.00",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Hidratação Cabelo\",\"sum\":325,\"count\":10},{\"ser_nome\":\"Lavagem Relaxante\",\"sum\":575,\"count\":21}]"
+    },
+    {
+      "nome": "Emerson",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "2105.50",
+      "totalProdutos": "857.77",
+      "totalGeral": "2963.27",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":6},{\"ser_nome\":\"Sobrancelha\",\"sum\":707,\"count\":22},{\"ser_nome\":\"Abordagem Visagista\",\"sum\":190,\"count\":1},{\"ser_nome\":\"Bigode\",\"sum\":50,\"count\":2},{"
+    },
+    {
+      "nome": "Emerson",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "2674.40",
+      "totalProdutos": "1642.79",
+      "totalGeral": "4317.19",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Depilação Nariz\",\"sum\":249,\"count\":7},{\"ser_nome\":\"Depilação Orelha\",\"sum\":173,\"count\":5},{\"ser_nome\":\"Barba com Barboterapia\",\"sum\":200,\"count\":2},{\"ser_nome\":\"Limpeza Facial\",\"sum\":50,"
+    },
+    {
+      "nome": "Fábio",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "2454.50",
+      "totalProdutos": "349.81",
+      "totalGeral": "2804.31",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Depilação Orelha\",\"sum\":361,\"count\":10},{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":9},{\"ser_nome\":\"Sobrancelha\",\"sum\":472.5,\"count\":15},{\"ser_nome\":\"Depilação Nariz\",\"sum\":321,\"c"
+    },
+    {
+      "nome": "Fábio",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1933.70",
+      "totalProdutos": "584.43",
+      "totalGeral": "2518.13",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Camuflagem Cabelo\",\"sum\":67.5,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":679,\"count\":21},{\"ser_nome\":\"Depilação Orelha\",\"sum\":104.5,\"count\":3},{\"ser_nome\":\"Depilação Nariz\",\"sum\":180.5,\""
+    },
+    {
+      "nome": "Felipe",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[]"
+    },
+    {
+      "nome": "Felipe",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "1371.70",
+      "totalProdutos": "296.68",
+      "totalGeral": "1668.38",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "detalhesServicos_sample": "[{\"ser_nome\":\"Sobrancelha\",\"sum\":283.5,\"count\":9},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":392,\"count\":3},{\"ser_nome\":\"Depilação Nariz\",\"sum\":148,\"count\":4},{\"ser_nome\":\"Luzes\",\"sum\":250,\"count\":1},{\"s"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\tqtdServicos\tqtdProdutos\tdetalhesServicos_sample\nAdailton\t2\t2026\t1521.40\t640.72\t2162.12\t0\t0\t[{\"ser_nome\":\"Limpeza Facial\",\"sum\":90,\"count\":2},{\"ser_nome\":\"Depilação Nariz\",\"sum\":389.5,\"count\":11},{\"ser_nome\":\"Depilação Orelha\",\"sum\":169.5,\"count\":5},{\"ser_nome\":\"Barboterapia\",\"sum\":218.39999\nAdailton\t3\t2026\t1691.30\t663.65\t2354.95\t0\t0\t[{\"ser_nome\":\"Sobrancelha\",\"sum\":385,\"count\":12},{\"ser_nome\":\"Depilação Nariz\",\"sum\":260,\"count\":7},{\"ser_nome\":\"Barba com Barboterapia\",\"sum\":100,\"count\":1},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":38\nCaio\t2\t2026\t1470.00\t521.44\t1991.44\t0\t0\t[{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":7},{\"ser_nome\":\"Hidratação Barba\",\"sum\":85.5,\"count\":2},{\"ser_nome\":\"Barboterapia\",\"sum\":276.5,\"count\":9},{\"ser_nome\":\"Limpeza Facial\",\"sum\":210,\"co\nCaio\t3\t2026\t1370.70\t92.92\t1463.62\t0\t0\t[{\"ser_nome\":\"Barboterapia\",\"sum\":285.2,\"count\":8},{\"ser_nome\":\"Limpeza Facial\",\"sum\":175,\"count\":5},{\"ser_nome\":\"Indicação Hidratação\",\"sum\":30,\"count\":2},{\"ser_nome\":\"Depilação Orelha\",\"sum\":108.5,\"\nChristian\t2\t2026\t3104.00\t656.43\t3760.43\t0\t0\t[{\"ser_nome\":\"Depilação Nariz\",\"sum\":718.5,\"count\":20},{\"ser_nome\":\"Depilação Orelha\",\"sum\":382.5,\"count\":11},{\"ser_nome\":\"Sobrancelha\",\"sum\":1227,\"count\":38},{\"ser_nome\":\"Barboterapia\",\"sum\":90,\"coun\nChristian\t3\t2026\t1445.50\t745.05\t2190.55\t0\t0\t[{\"ser_nome\":\"Sobrancelha\",\"sum\":729.5,\"count\":23},{\"ser_nome\":\"Depilação Nariz\",\"sum\":361,\"count\":10},{\"ser_nome\":\"Depilação Orelha\",\"sum\":145,\"count\":4},{\"ser_nome\":\"Pigmentação Cabelo\",\"sum\":95,\"co\nCleison\t2\t2026\t2364.50\t939.39\t3303.89\t0\t0\t[{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":1162,\"count\":9},{\"ser_nome\":\"Depilação Nariz\",\"sum\":140.5,\"count\":4},{\"ser_nome\":\"Depilação Orelha\",\"sum\":212.5,\"count\":6},{\"ser_nome\":\"Sobrancelha\",\"sum\":476,\nCleison\t3\t2026\t2546.50\t581.72\t3128.22\t0\t0\t[{\"ser_nome\":\"Sobrancelha\",\"sum\":637,\"count\":20},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":1064,\"count\":8},{\"ser_nome\":\"Depilação Orelha\",\"sum\":131.5,\"count\":4},{\"ser_nome\":\"Depilação Nariz\",\"sum\":209.5\nDan\t2\t2026\t1531.70\t642.91\t2174.61\t0\t0\t[{\"ser_nome\":\"Depilação Nariz\",\"sum\":220,\"count\":6},{\"ser_nome\":\"Depilação Orelha\",\"sum\":148,\"count\":4},{\"ser_nome\":\"Sobrancelha\",\"sum\":612.5,\"count\":19},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":392,\"c\nDan\t3\t2026\t1662.20\t965.81\t2628.01\t0\t0\t[{\"ser_nome\":\"Camuflagem Cabelo\",\"sum\":75,\"count\":1},{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":100,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":867,\"count\":27},{\"ser_nome\":\"Depilação Orelha\"\nEdinho\t2\t2026\t1827.40\t80.91\t1908.31\t0\t0\t[{\"ser_nome\":\"Camuflagem Barba\",\"sum\":70,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":421.5,\"count\":14},{\"ser_nome\":\"Depilação Nariz\",\"sum\":340,\"count\":10},{\"ser_nome\":\"Depilação Orelha\",\"sum\":165,\"coun\nEdinho\t3\t2026\t1895.60\t698.53\t2594.13\t0\t0\t[{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":539,\"count\":7},{\"ser_nome\":\"Sobrancelha\",\"sum\":511,\"count\":16},{\"ser_nome\":\"Barboterapia\",\"sum\":137.60000000000002,\"count\":4},{\"ser_nome\":\"Depila\nEduarda\t2\t2026\t30.00\t0.00\t30.00\t0\t0\t[{\"ser_nome\":\"Lavagem Relaxante\",\"sum\":30,\"count\":1}]\nEduarda\t3\t2026\t900.00\t0.00\t900.00\t0\t0\t[{\"ser_nome\":\"Hidratação Cabelo\",\"sum\":325,\"count\":10},{\"ser_nome\":\"Lavagem Relaxante\",\"sum\":575,\"count\":21}]\nEmerson\t2\t2026\t2105.50\t857.77\t2963.27\t0\t0\t[{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":6},{\"ser_nome\":\"Sobrancelha\",\"sum\":707,\"count\":22},{\"ser_nome\":\"Abordagem Visagista\",\"sum\":190,\"count\":1},{\"ser_nome\":\"Bigode\",\"sum\":50,\"count\":2},{\nEmerson\t3\t2026\t2674.40\t1642.79\t4317.19\t0\t0\t[{\"ser_nome\":\"Depilação Nariz\",\"sum\":249,\"count\":7},{\"ser_nome\":\"Depilação Orelha\",\"sum\":173,\"count\":5},{\"ser_nome\":\"Barba com Barboterapia\",\"sum\":200,\"count\":2},{\"ser_nome\":\"Limpeza Facial\",\"sum\":50,\nFábio\t2\t2026\t2454.50\t349.81\t2804.31\t0\t0\t[{\"ser_nome\":\"Depilação Orelha\",\"sum\":361,\"count\":10},{\"ser_nome\":\"Pezinho (acabamento)\",\"sum\":0,\"count\":9},{\"ser_nome\":\"Sobrancelha\",\"sum\":472.5,\"count\":15},{\"ser_nome\":\"Depilação Nariz\",\"sum\":321,\"c\nFábio\t3\t2026\t1933.70\t584.43\t2518.13\t0\t0\t[{\"ser_nome\":\"Camuflagem Cabelo\",\"sum\":67.5,\"count\":1},{\"ser_nome\":\"Sobrancelha\",\"sum\":679,\"count\":21},{\"ser_nome\":\"Depilação Orelha\",\"sum\":104.5,\"count\":3},{\"ser_nome\":\"Depilação Nariz\",\"sum\":180.5,\"\nFelipe\t2\t2026\t0.00\t0.00\t0.00\t0\t0\t[]\nFelipe\t3\t2026\t1371.70\t296.68\t1668.38\t0\t0\t[{\"ser_nome\":\"Sobrancelha\",\"sum\":283.5,\"count\":9},{\"ser_nome\":\"Alinhamento de Fios\",\"sum\":392,\"count\":3},{\"ser_nome\":\"Depilação Nariz\",\"sum\":148,\"count\":4},{\"ser_nome\":\"Luzes\",\"sum\":250,\"count\":1},{\"s\n",
+  "stderr": "",
+  "execution_time_ms": 118
+}

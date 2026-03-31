@@ -3771,5 +3771,176 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         pctMeta,
       };
     }),
+
+  // ===== ANÁLISE COMPARATIVA DO PROFISSIONAL =====
+  analiseComparativa: publicProcedure
+    .input(z.object({ profissionalId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const now = new Date();
+      const mesAtual = now.getMonth() + 1;
+      const anoAtual = now.getFullYear();
+      const dataMesAnt = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const mesAnterior = dataMesAnt.getMonth() + 1;
+      const anoAnterior = dataMesAnt.getFullYear();
+
+      // Semana atual (seg–dom)
+      const diaSemana = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      const inicioSemAtual = new Date(now);
+      inicioSemAtual.setDate(now.getDate() - diaSemana);
+      inicioSemAtual.setHours(0, 0, 0, 0);
+      const fimSemAtual = new Date(inicioSemAtual);
+      fimSemAtual.setDate(inicioSemAtual.getDate() + 6);
+      const inicioSemPassada = new Date(inicioSemAtual);
+      inicioSemPassada.setDate(inicioSemAtual.getDate() - 7);
+      const fimSemPassada = new Date(inicioSemPassada);
+      fimSemPassada.setDate(inicioSemPassada.getDate() + 6);
+      const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+
+      // Dados mensais
+      const [{ itens: itensMesAtual }, { itens: itensMesAnt }] = await Promise.all([
+        listarRankingPorPeriodo(tenantId, mesAtual, anoAtual),
+        listarRankingPorPeriodo(tenantId, mesAnterior, anoAnterior),
+      ]);
+
+      const fatMesAtual = itensMesAtual.find((i) => i.colaboradorId === input.profissionalId);
+      const fatMesAnt = itensMesAnt.find((i) => i.colaboradorId === input.profissionalId);
+
+      const rankingMesAtual = [...itensMesAtual].sort((a, b) => b.totalGeral - a.totalGeral);
+      const rankingMesAnt = [...itensMesAnt].sort((a, b) => b.totalGeral - a.totalGeral);
+      const posicaoMesAtual = rankingMesAtual.findIndex((i) => i.colaboradorId === input.profissionalId) + 1 || null;
+      const posicaoMesAnt = rankingMesAnt.findIndex((i) => i.colaboradorId === input.profissionalId) + 1 || null;
+
+      // Dados semanais via CashBarber
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const col = colaboradoresList.find((c) => c.id === input.profissionalId);
+      let fatSemAtual = { totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
+      let fatSemPassada = { totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
+
+      if (col?.cashbarberProfissionalId) {
+        try {
+          const empresas = await getEmpresasByTenant(tenantId);
+          const empresaSlug = col.empresaSlug ?? empresas[0]?.slug ?? 'barbiero-grupo';
+          const config = await getCashbarberConfig(tenantId, empresaSlug);
+          if (config?.cbEmail && config?.cbSenha) {
+            const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+            const EXCL_SVC = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[áa]quina|barba\s*(completa|simples|na\s*tesoura|na\s*m[áa]quina)?$|pezinho)/i;
+            const EXCL_PRD = /^(caixinha|[áa]gua|heineken|refrigerante|corona)/i;
+            const [relSemA, relSemP] = await Promise.all([
+              cashbarberRelatorio15(token, toDateStr(inicioSemAtual), toDateStr(fimSemAtual), null, col.cashbarberProfissionalId),
+              cashbarberRelatorio15(token, toDateStr(inicioSemPassada), toDateStr(fimSemPassada), null, col.cashbarberProfissionalId),
+            ]);
+            const calcFat = (rel: any) => {
+              const svcs = rel.servicos.filter((s: any) => !EXCL_SVC.test(s.ser_nome ?? ''));
+              const prds = rel.produtos.filter((p: any) => !EXCL_PRD.test(p.pro_nome ?? ''));
+              const totalServicos = svcs.reduce((a: number, s: any) => a + (s.sum ?? 0), 0);
+              const totalProdutos = prds.reduce((a: number, p: any) => a + (p.total ?? 0), 0);
+              return { totalServicos, totalProdutos, totalGeral: totalServicos + totalProdutos,
+                qtdServicos: svcs.reduce((a: number, s: any) => a + (Number(s.count) || 0), 0),
+                qtdProdutos: prds.reduce((a: number, p: any) => a + (Number(p.count) || 0), 0) };
+            };
+            fatSemAtual = calcFat(relSemA);
+            fatSemPassada = calcFat(relSemP);
+          }
+        } catch { /* silencia erros de API */ }
+      }
+
+      // Variações
+      const varMensal = fatMesAnt?.totalGeral
+        ? Math.round((((fatMesAtual?.totalGeral ?? 0) - fatMesAnt.totalGeral) / fatMesAnt.totalGeral) * 100)
+        : null;
+      const varSemanal = fatSemPassada.totalGeral
+        ? Math.round(((fatSemAtual.totalGeral - fatSemPassada.totalGeral) / fatSemPassada.totalGeral) * 100)
+        : null;
+      const varPosicao = (posicaoMesAtual && posicaoMesAnt) ? posicaoMesAnt - posicaoMesAtual : null;
+
+      // Insights
+      const insights: Array<{ tipo: 'positivo' | 'atencao' | 'neutro'; titulo: string; descricao: string; estrategia: string }> = [];
+
+      if (varMensal !== null) {
+        if (varMensal >= 10) {
+          insights.push({ tipo: 'positivo', titulo: `📈 Crescimento de ${varMensal}% vs mês passado`,
+            descricao: `Você faturou R$ ${(fatMesAtual?.totalGeral ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} este mês contra R$ ${fatMesAnt!.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} no mês anterior.`,
+            estrategia: 'Continue o ritmo! Foque em fidelizar os clientes que voltaram este mês e ofereça serviços complementares (barba + sobrancelha, por exemplo).' });
+        } else if (varMensal >= 0) {
+          insights.push({ tipo: 'neutro', titulo: `➡️ Estável: +${varMensal}% vs mês passado`,
+            descricao: `Faturamento praticamente igual ao mês anterior. Variação de ${varMensal}%.`,
+            estrategia: 'Para crescer, tente aumentar o ticket médio por cliente: ofereça um serviço adicional em cada atendimento (hidratação, depilação de nariz/orelha).' });
+        } else {
+          insights.push({ tipo: 'atencao', titulo: `📉 Queda de ${Math.abs(varMensal)}% vs mês passado`,
+            descricao: `Faturamento caiu de R$ ${fatMesAnt!.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} para R$ ${(fatMesAtual?.totalGeral ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} este mês.`,
+            estrategia: 'Revise sua agenda: há horários vagos que poderiam ser preenchidos? Ative clientes que não voltaram há mais de 30 dias via WhatsApp.' });
+        }
+      }
+
+      if (varSemanal !== null) {
+        if (varSemanal >= 15) {
+          insights.push({ tipo: 'positivo', titulo: `🔥 Semana forte: +${varSemanal}% vs semana passada`,
+            descricao: `Esta semana: R$ ${fatSemAtual.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} | Semana passada: R$ ${fatSemPassada.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
+            estrategia: 'Ótimo ritmo! Mantenha a consistência nos próximos dias para garantir um mês acima da meta.' });
+        } else if (varSemanal < -10) {
+          insights.push({ tipo: 'atencao', titulo: `⚠️ Semana fraca: ${varSemanal}% vs semana passada`,
+            descricao: `Esta semana: R$ ${fatSemAtual.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} | Semana passada: R$ ${fatSemPassada.totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
+            estrategia: 'Semana abaixo do esperado. Tente preencher os horários restantes e foque em serviços de maior valor agregado.' });
+        }
+      }
+
+      if (fatMesAtual) {
+        const pctProd = fatMesAtual.totalGeral > 0 ? Math.round((fatMesAtual.totalProdutos / fatMesAtual.totalGeral) * 100) : 0;
+        if (pctProd < 15) {
+          insights.push({ tipo: 'atencao', titulo: `🛒 Venda de produtos abaixo do potencial (${pctProd}%)`,
+            descricao: `Apenas ${pctProd}% do seu faturamento vem de produtos. A média ideal é 20–25%.`,
+            estrategia: 'Ao finalizar cada atendimento, apresente 1 produto relacionado ao serviço realizado. Ex: pós-barba para quem fez barba, pomada para quem fez corte.' });
+        } else if (pctProd >= 25) {
+          insights.push({ tipo: 'positivo', titulo: `🛒 Excelente venda de produtos (${pctProd}%)`,
+            descricao: `${pctProd}% do seu faturamento vem de produtos — acima da média da equipe.`,
+            estrategia: 'Mantenha o foco em produtos para sustentar esse diferencial competitivo.' });
+        }
+      }
+
+      if (varPosicao !== null && posicaoMesAtual) {
+        if (varPosicao > 0) {
+          insights.push({ tipo: 'positivo', titulo: `🏆 Subiu ${varPosicao} posição(ões) no ranking`,
+            descricao: `Você estava em ${posicaoMesAnt}º e agora está em ${posicaoMesAtual}º no ranking mensal.`,
+            estrategia: 'Ótima evolução! Para continuar subindo, foque nos dias de menor movimento para não perder faturamento.' });
+        } else if (varPosicao < 0) {
+          insights.push({ tipo: 'atencao', titulo: `📊 Caiu ${Math.abs(varPosicao)} posição(ões) no ranking`,
+            descricao: `Você estava em ${posicaoMesAnt}º e agora está em ${posicaoMesAtual}º no ranking mensal.`,
+            estrategia: 'Analise quais colegas subiram à sua frente e identifique em quais serviços eles estão se destacando.' });
+        }
+      }
+
+      const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
+      const diaAtual = now.getDate();
+      const diasRestantes = diasNoMes - diaAtual;
+      const mediaDiaria = diaAtual > 0 ? (fatMesAtual?.totalGeral ?? 0) / diaAtual : 0;
+      const projecaoFinal = (fatMesAtual?.totalGeral ?? 0) + mediaDiaria * diasRestantes;
+
+      return {
+        mesAtual: { mes: mesAtual, ano: anoAtual,
+          totalServicos: fatMesAtual?.totalServicos ?? 0,
+          totalProdutos: fatMesAtual?.totalProdutos ?? 0,
+          totalGeral: fatMesAtual?.totalGeral ?? 0,
+          qtdServicos: fatMesAtual?.qtdServicos ?? 0,
+          posicao: posicaoMesAtual },
+        mesAnterior: { mes: mesAnterior, ano: anoAnterior,
+          totalServicos: fatMesAnt?.totalServicos ?? 0,
+          totalProdutos: fatMesAnt?.totalProdutos ?? 0,
+          totalGeral: fatMesAnt?.totalGeral ?? 0,
+          qtdServicos: fatMesAnt?.qtdServicos ?? 0,
+          posicao: posicaoMesAnt },
+        semanaAtual: fatSemAtual,
+        semanaPassada: fatSemPassada,
+        variacaoMensal: varMensal,
+        variacaoSemanal: varSemanal,
+        variacaoPosicao: varPosicao,
+        posicaoAtual: posicaoMesAtual,
+        diasRestantes,
+        mediaDiaria: Math.round(mediaDiaria * 100) / 100,
+        projecaoFinal: Math.round(projecaoFinal * 100) / 100,
+        insights,
+        metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
+      };
+    }),
 });
 export type AppRouter = typeof appRouter;

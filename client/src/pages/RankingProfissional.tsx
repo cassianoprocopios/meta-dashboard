@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus, Scissors, ShoppingBag } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
@@ -1239,9 +1239,203 @@ function AbaAtendimentos({ meuNome }: { meuNome: string }) {
   );
 }
 
+// ─── Aba Análise Comparativa ─────────────────────────────────────────────────
+function AbaAnalise({ profissionalId }: { profissionalId: number }) {
+  const { data, isLoading, error } = trpc.analiseComparativa.useQuery(
+    { profissionalId },
+    { staleTime: 1000 * 60 * 10, refetchInterval: 30 * 60 * 1000 }
+  );
+
+  const now = new Date();
+  const mesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+  if (error || !data) {
+    return (
+      <div className="text-center py-10 text-red-400 text-sm">
+        Erro ao carregar análise. Tente novamente.
+      </div>
+    );
+  }
+
+  const varMensal = data.variacaoMensal;
+  const varSemanal = data.variacaoSemanal;
+  const varPos = data.variacaoPosicao;
+
+  const corVariacao = (v: number | null) =>
+    v == null ? "text-white/40" : v > 0 ? "text-emerald-400" : v < 0 ? "text-red-400" : "text-white/40";
+  const iconVariacao = (v: number | null) =>
+    v == null ? null : v > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : v < 0 ? <TrendingDown className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />;
+
+  const pctMeta = data.metaMensal && data.metaMensal > 0
+    ? Math.round((data.mesAtual.totalGeral / data.metaMensal) * 100)
+    : null;
+
+  return (
+    <div className="space-y-4">
+
+      {/* ── Comparativo Mensal ── */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Comparativo Mensal</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Mês atual */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+            <p className="text-blue-300/70 text-xs mb-1">{mesNomes[data.mesAtual.mes - 1]} {data.mesAtual.ano}</p>
+            <p className="text-white font-bold text-lg">{formatarMoeda(data.mesAtual.totalGeral)}</p>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-white/40 text-xs">Serv.</span>
+              <span className="text-blue-300 text-xs font-medium">{formatarMoeda(data.mesAtual.totalServicos)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-white/40 text-xs">Prod.</span>
+              <span className="text-emerald-300 text-xs font-medium">{formatarMoeda(data.mesAtual.totalProdutos)}</span>
+            </div>
+            {data.mesAtual.posicao && (
+              <p className="text-white/50 text-xs mt-1">{data.mesAtual.posicao}º no ranking</p>
+            )}
+          </div>
+          {/* Mês anterior */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+            <p className="text-white/40 text-xs mb-1">{mesNomes[data.mesAnterior.mes - 1]} {data.mesAnterior.ano}</p>
+            <p className="text-white/70 font-bold text-lg">{formatarMoeda(data.mesAnterior.totalGeral)}</p>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-white/40 text-xs">Serv.</span>
+              <span className="text-blue-300/60 text-xs">{formatarMoeda(data.mesAnterior.totalServicos)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-white/40 text-xs">Prod.</span>
+              <span className="text-emerald-300/60 text-xs">{formatarMoeda(data.mesAnterior.totalProdutos)}</span>
+            </div>
+            {data.mesAnterior.posicao && (
+              <p className="text-white/30 text-xs mt-1">{data.mesAnterior.posicao}º no ranking</p>
+            )}
+          </div>
+        </div>
+        {/* Variação mensal */}
+        {varMensal !== null && (
+          <div className={`flex items-center gap-1.5 mt-3 ${corVariacao(varMensal)}`}>
+            {iconVariacao(varMensal)}
+            <span className="text-sm font-semibold">
+              {varMensal > 0 ? "+" : ""}{varMensal}% vs mês passado
+            </span>
+          </div>
+        )}
+        {/* Barra de meta */}
+        {pctMeta !== null && (
+          <div className="mt-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-white/40">Meta: {formatarMoeda(data.metaMensal!)}</span>
+              <span className={pctMeta >= 100 ? "text-emerald-400 font-bold" : pctMeta >= 75 ? "text-blue-400" : "text-amber-400"}>{pctMeta}%</span>
+            </div>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${pctMeta >= 100 ? "bg-emerald-400" : pctMeta >= 75 ? "bg-blue-400" : pctMeta >= 50 ? "bg-amber-400" : "bg-red-400"}`}
+                style={{ width: `${Math.min(pctMeta, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Comparativo Semanal ── */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Comparativo Semanal</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+            <p className="text-blue-300/70 text-xs mb-1">Esta semana</p>
+            <p className="text-white font-bold text-base">{formatarMoeda(data.semanaAtual.totalGeral)}</p>
+            <p className="text-white/40 text-xs mt-1">{data.semanaAtual.qtdServicos} serv. · {data.semanaAtual.qtdProdutos} prod.</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+            <p className="text-white/40 text-xs mb-1">Semana passada</p>
+            <p className="text-white/70 font-bold text-base">{formatarMoeda(data.semanaPassada.totalGeral)}</p>
+            <p className="text-white/30 text-xs mt-1">{data.semanaPassada.qtdServicos} serv. · {data.semanaPassada.qtdProdutos} prod.</p>
+          </div>
+        </div>
+        {varSemanal !== null && (
+          <div className={`flex items-center gap-1.5 mt-3 ${corVariacao(varSemanal)}`}>
+            {iconVariacao(varSemanal)}
+            <span className="text-sm font-semibold">
+              {varSemanal > 0 ? "+" : ""}{varSemanal}% vs semana passada
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Projeção ── */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Projeção do Mês</h2>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="text-center">
+            <p className="text-white/40 text-xs mb-1">Média/dia</p>
+            <p className="text-white font-bold text-sm">{formatarMoeda(data.mediaDiaria)}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white/40 text-xs mb-1">Dias restantes</p>
+            <p className="text-white font-bold text-sm">{data.diasRestantes}d</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white/40 text-xs mb-1">Projeção final</p>
+            <p className="text-emerald-300 font-bold text-sm">{formatarMoeda(data.projecaoFinal)}</p>
+          </div>
+        </div>
+        {varPos !== null && (
+          <div className={`flex items-center gap-1.5 mt-3 ${corVariacao(varPos)}`}>
+            {iconVariacao(varPos)}
+            <span className="text-sm font-semibold">
+              {varPos > 0 ? `Subiu ${varPos} posição(ões)` : varPos < 0 ? `Caiu ${Math.abs(varPos)} posição(ões)` : "Mesma posição"} no ranking
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Insights e Estratégias ── */}
+      {data.insights.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Insights & Estratégias</h2>
+          {data.insights.map((ins, i) => (
+            <div
+              key={i}
+              className={`rounded-2xl p-4 border ${
+                ins.tipo === 'positivo'
+                  ? 'bg-emerald-500/10 border-emerald-500/20'
+                  : ins.tipo === 'atencao'
+                  ? 'bg-amber-500/10 border-amber-500/20'
+                  : 'bg-white/5 border-white/10'
+              }`}
+              style={{ animation: `rankingSlideIn 0.35s ease-out both`, animationDelay: `${i * 80}ms` }}
+            >
+              <p className={`font-semibold text-sm mb-1 ${
+                ins.tipo === 'positivo' ? 'text-emerald-300' : ins.tipo === 'atencao' ? 'text-amber-300' : 'text-white/70'
+              }`}>{ins.titulo}</p>
+              <p className="text-white/60 text-xs mb-2">{ins.descricao}</p>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-400 text-xs mt-0.5">💡</span>
+                <p className="text-blue-200/80 text-xs">{ins.estrategia}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.insights.length === 0 && (
+        <div className="text-center py-6 text-white/30 text-sm">
+          Dados insuficientes para gerar insights. Continue registrando atendimentos!
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Tela principal do ranking ────────────────────────────────────────────────
-function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; onLogout: () => void }) {
-  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos">("diario");
+function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; meuId: number; onLogout: () => void }) {
+  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
   const abas = [
@@ -1249,6 +1443,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome:
     { id: "semanal" as const, label: "Semana", icon: TrendingUp },
     { id: "mensal" as const, label: "Mês", icon: Trophy },
     { id: "atendimentos" as const, label: "Meus", icon: Scissors },
+    { id: "analise" as const, label: "Análise", icon: BarChart2 },
   ];
 
   return (
@@ -1296,6 +1491,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, onLogout }: { meuNome:
         {aba === "semanal" && <AbaSemanal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
         {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
+        {aba === "analise" && <AbaAnalise profissionalId={meuId} />}
       </div>
     </div>
   );
@@ -1306,6 +1502,7 @@ export default function RankingProfissional() {
   const [meuNome, setMeuNome] = useState<string | null>(null);
   const [minhaEmpresa, setMinhaEmpresa] = useState<string>("barbiero-grupo");
   const [meuFotoUrl, setMeuFotoUrl] = useState<string | null>(null);
+  const [meuId, setMeuId] = useState<number>(0);
   const { data: sessao, isLoading } = trpc.meProfissional.useQuery(undefined, {
     retry: false,
     staleTime: 1000 * 60 * 5,
@@ -1316,6 +1513,7 @@ export default function RankingProfissional() {
       setMeuNome(sessao.nome);
       setMinhaEmpresa(sessao.empresaSlug ?? "barbiero-grupo");
       setMeuFotoUrl(sessao.fotoUrl ?? null);
+      setMeuId(sessao.profissionalId ?? 0);
     }
   }, [sessao]);
 
@@ -1343,10 +1541,12 @@ export default function RankingProfissional() {
       meuNome={meuNome}
       minhaEmpresa={minhaEmpresa}
       meuFotoUrl={meuFotoUrl}
+      meuId={meuId}
       onLogout={() => {
         setMeuNome(null);
         setMinhaEmpresa("barbiero-grupo");
         setMeuFotoUrl(null);
+        setMeuId(0);
       }}
     />
   );
