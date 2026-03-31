@@ -1066,3 +1066,6 @@
 ## Correções e Melhorias - Ranking WhatsApp e Meta por Unidade
 - [x] Corrigir erro no envio do ranking pelo WhatsApp
 - [x] Exibir valor que falta para a meta por unidade no ranking dos profissionais
+
+## Projeção de Faturamento no Card de Meta
+- [x] Adicionar projeção de faturamento para o final do mês no card de meta do ranking

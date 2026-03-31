@@ -3813,6 +3813,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       let metaMensal: number | null = null;
       let superMeta: number | null = null;
       let pctMeta: number | null = null;
+      // Projeção de faturamento ao final do mês
+      let projecaoFinalMes: number | null = null;
+      let mediaDiaria: number | null = null;
+      let diasPassados: number | null = null;
+      let diasNoMes: number | null = null;
       if (input.tipo === 'mensal' && input.mes && input.ano) {
         const metasLista = await getMetasByMesAndTenant(tenantId, input.mes, input.ano);
         const metaEmpresa = metasLista.find((m: any) => m.empresaSlug === empresaSlugNorm);
@@ -3823,6 +3828,25 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             pctMeta = Math.round(((totalOperacional + recorrencia) / metaMensal) * 100);
           }
         }
+        // Calcular projeção com base nos dias passados no mês
+        const hoje = new Date();
+        const mesAtualNum = hoje.getMonth() + 1;
+        const anoAtualNum = hoje.getFullYear();
+        const ehMesVigente = input.mes === mesAtualNum && input.ano === anoAtualNum;
+        // Total de dias no mês
+        diasNoMes = new Date(input.ano, input.mes, 0).getDate();
+        if (ehMesVigente) {
+          // Dias passados = dia atual (inclusive hoje)
+          diasPassados = hoje.getDate();
+        } else {
+          // Mês passado: todos os dias são passados
+          diasPassados = diasNoMes;
+        }
+        const totalFaturado = totalOperacional + recorrencia;
+        if (diasPassados > 0 && totalFaturado > 0) {
+          mediaDiaria = totalFaturado / diasPassados;
+          projecaoFinalMes = mediaDiaria * diasNoMes;
+        }
       }
 
       return {
@@ -3832,6 +3856,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         metaMensal,
         superMeta,
         pctMeta,
+        projecaoFinalMes,
+        mediaDiaria,
+        diasPassados,
+        diasNoMes,
       };
     }),
 

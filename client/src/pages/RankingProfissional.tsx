@@ -671,6 +671,31 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               />
             </div>
           </div>
+          {/* Projeção ao final do mês */}
+          {(fatMensal as any).projecaoFinalMes != null && (fatMensal as any).diasPassados != null && (
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-white/40">Projeção final do mês</span>
+                  <span className="text-xs text-white/25">(dia {(fatMensal as any).diasPassados}/{(fatMensal as any).diasNoMes})</span>
+                </div>
+                <div className={`text-sm font-bold ${
+                  (fatMensal as any).metaMensal && (fatMensal as any).projecaoFinalMes >= (fatMensal as any).metaMensal
+                    ? 'text-emerald-400'
+                    : (fatMensal as any).metaMensal && (fatMensal as any).projecaoFinalMes >= (fatMensal as any).metaMensal * 0.85
+                    ? 'text-yellow-400'
+                    : 'text-red-400'
+                }`}>
+                  {formatarMoeda((fatMensal as any).projecaoFinalMes)}
+                </div>
+              </div>
+              {(fatMensal as any).mediaDiaria != null && (
+                <div className="text-xs text-white/25 mt-0.5 text-right">
+                  Média: {formatarMoeda((fatMensal as any).mediaDiaria)}/dia
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -937,6 +962,31 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
               />
             </div>
           </div>
+          {/* Projeção ao final do mês */}
+          {(fatMensalSem as any).projecaoFinalMes != null && (fatMensalSem as any).diasPassados != null && (
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-white/40">Projeção final do mês</span>
+                  <span className="text-xs text-white/25">(dia {(fatMensalSem as any).diasPassados}/{(fatMensalSem as any).diasNoMes})</span>
+                </div>
+                <div className={`text-sm font-bold ${
+                  (fatMensalSem as any).metaMensal && (fatMensalSem as any).projecaoFinalMes >= (fatMensalSem as any).metaMensal
+                    ? 'text-emerald-400'
+                    : (fatMensalSem as any).metaMensal && (fatMensalSem as any).projecaoFinalMes >= (fatMensalSem as any).metaMensal * 0.85
+                    ? 'text-yellow-400'
+                    : 'text-red-400'
+                }`}>
+                  {formatarMoeda((fatMensalSem as any).projecaoFinalMes)}
+                </div>
+              </div>
+              {(fatMensalSem as any).mediaDiaria != null && (
+                <div className="text-xs text-white/25 mt-0.5 text-right">
+                  Média: {formatarMoeda((fatMensalSem as any).mediaDiaria)}/dia
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1167,6 +1217,31 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               </div>
               {(fatUnidadeMes as any).superMeta && (fatUnidadeMes as any).superMeta > 0 && (
                 <div className="text-xs text-white/30 mt-0.5 text-right">Super: {formatarMoeda((fatUnidadeMes as any).superMeta)}</div>
+              )}
+            </div>
+          )}
+          {/* Projeção de faturamento ao final do mês */}
+          {(fatUnidadeMes as any).projecaoFinalMes != null && (fatUnidadeMes as any).diasPassados != null && (fatUnidadeMes as any).diasNoMes != null && (
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-white/40">Projeção final do mês</span>
+                  <span className="text-xs text-white/25">(dia {(fatUnidadeMes as any).diasPassados}/{(fatUnidadeMes as any).diasNoMes})</span>
+                </div>
+                <div className={`text-sm font-bold ${
+                  (fatUnidadeMes as any).metaMensal && (fatUnidadeMes as any).projecaoFinalMes >= (fatUnidadeMes as any).metaMensal
+                    ? 'text-emerald-400'
+                    : (fatUnidadeMes as any).metaMensal && (fatUnidadeMes as any).projecaoFinalMes >= (fatUnidadeMes as any).metaMensal * 0.85
+                    ? 'text-yellow-400'
+                    : 'text-red-400'
+                }`}>
+                  {formatarMoeda((fatUnidadeMes as any).projecaoFinalMes)}
+                </div>
+              </div>
+              {(fatUnidadeMes as any).mediaDiaria != null && (
+                <div className="text-xs text-white/25 mt-0.5 text-right">
+                  Média: {formatarMoeda((fatUnidadeMes as any).mediaDiaria)}/dia
+                </div>
               )}
             </div>
           )}
