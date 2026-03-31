@@ -33,6 +33,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
 import BottomNav from "@/components/BottomNav";
 import TabPanel from "@/components/TabPanel";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
@@ -1168,9 +1169,7 @@ export default function Home() {
 
       <main className="flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 md:pb-6 max-w-full overflow-x-hidden">
         {loading && activeTab === "dashboard" && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-          </div>
+          <DashboardSkeleton />
         )}
         <TabPanel tabKey={activeTab}>
         {/* ─── DASHBOARD ─────────────────────────────────────────────────────── */}
@@ -3015,6 +3014,8 @@ export default function Home() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           tabsVisiveis={tabsVisiveis}
+          showFab={podeLancarFaturamento}
+          onFabClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }}
         />
       )}
       </div>{/* end flex-1 content */}

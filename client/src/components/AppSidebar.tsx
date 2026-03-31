@@ -299,35 +299,36 @@ export default function AppSidebar({
                 onClick={() => handleTabClick(item.id)}
                 title={isCollapsed ? item.label : undefined}
                 className={`
-                  w-full flex items-center gap-2.5 rounded-xl transition-all duration-150
+                  relative w-full flex items-center gap-2.5 rounded-xl transition-all duration-150
                   ${isCollapsed ? "justify-center p-2" : "px-2.5 py-2.5"}
                   ${
                     isActive
-                      ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
-                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.05] border border-transparent"
+                      ? "bg-indigo-500/15 text-indigo-200 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.35)]"
+                      : "text-white/50 hover:text-white/90 hover:bg-white/[0.05]"
                   }
                 `}
               >
-                <span className={`flex-shrink-0 ${isActive ? "text-indigo-400" : ""}`}>
+                {/* Barra lateral indicadora */}
+                {isActive && !isCollapsed && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
+                )}
+                <span className={`flex-shrink-0 transition-transform duration-150 ${isActive ? "text-indigo-300 scale-110" : ""}`}>
                   {item.icon}
                 </span>
                 {!isCollapsed && (
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium truncate">{item.label}</span>
+                      <span className={`text-xs truncate transition-all duration-150 ${isActive ? "font-semibold" : "font-medium"}`}>{item.label}</span>
                       {item.badge && (
                         <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${item.badgeColor} text-white leading-none`}>
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
+                    <p className={`text-[10px] truncate leading-none mt-0.5 transition-colors duration-150 ${isActive ? "text-indigo-300/60" : "text-white/25"}`}>
                       {item.description}
                     </p>
                   </div>
-                )}
-                {!isCollapsed && isActive && (
-                  <div className="w-1 h-1 rounded-full bg-indigo-400 flex-shrink-0" />
                 )}
               </button>
             );
