@@ -423,6 +423,7 @@ function buildPosMap(lista: Array<{ id: number }>): Map<number, number> {
 function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [data, setData] = useState(hoje());
   const [verGeral, setVerGeral] = useState(false);
+  const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   // Ranking do dia anterior para calcular variação de posição
   const dataAnterior = useMemo(() => subtrairDia(data, 1), [data]);
@@ -454,12 +455,15 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   const [dia, mes, ano] = formatarData(data).split("/");
   const subtitulo = ehHoje ? "Hoje" : `${dia}/${mes}/${ano}`;
 
-  // Filtrar por unidade ou mostrar geral
+  // Filtrar por unidade ou mostrar geral, depois por categoria
   const rankingFiltrado = useMemo(() => {
     if (!ranking) return [];
-    if (verGeral) return ranking;
-    return ranking.filter((p) => p.empresaSlug === minhaEmpresa);
-  }, [ranking, minhaEmpresa, verGeral]);
+    let lista = verGeral ? ranking : ranking.filter((p) => p.empresaSlug === minhaEmpresa);
+    if (filtroCategoria !== 'todos') {
+      lista = lista.filter((p) => (p as any).categoriaRanking === filtroCategoria);
+    }
+    return lista;
+  }, [ranking, minhaEmpresa, verGeral, filtroCategoria]);
 
   // Posição do profissional no geral
   const minhaPosicaoGeral = useMemo(() => {
@@ -485,7 +489,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       </div>
 
       {/* Toggle Unidade / Geral */}
-      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+      <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
         <button
           onClick={() => setVerGeral(false)}
           className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
@@ -501,6 +505,21 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
             <span className="ml-1 bg-blue-400/20 text-blue-300 text-xs px-1.5 rounded-full">{minhaPosicaoGeral}º</span>
           )}
         </button>
+      </div>
+
+      {/* Filtro de Categoria */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        {(['todos', 'barbeiro', 'auxiliar', 'recepcao'] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFiltroCategoria(cat)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              filtroCategoria === cat ? 'bg-white/15 text-white shadow' : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            {cat === 'todos' ? 'Todos' : cat === 'barbeiro' ? '✂️ Barb.' : cat === 'auxiliar' ? '💇 Aux.' : '💼 Recep.'}
+          </button>
+        ))}
       </div>
 
       {/* Posição no geral (quando na aba da unidade) */}
@@ -640,6 +659,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
 function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [semanaOffset, setSemanaOffset] = useState(0);
   const [verGeral, setVerGeral] = useState(false);
+  const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
@@ -712,7 +732,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
       </div>
 
       {/* Toggle Unidade / Geral */}
-      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+      <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
         <button
           onClick={() => setVerGeral(false)}
           className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
@@ -725,6 +745,21 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
         >
           <Globe className="w-3 h-3" />Geral
         </button>
+      </div>
+
+      {/* Filtro de Categoria */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        {(['todos', 'barbeiro', 'auxiliar', 'recepcao'] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFiltroCategoria(cat)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              filtroCategoria === cat ? 'bg-white/15 text-white shadow' : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            {cat === 'todos' ? 'Todos' : cat === 'barbeiro' ? '✂️ Barb.' : cat === 'auxiliar' ? '💇 Aux.' : '💼 Recep.'}
+          </button>
+        ))}
       </div>
 
       {/* Posição no geral */}
@@ -840,6 +875,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
 function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
   const [mesOffset, setMesOffset] = useState(0);
   const [verGeral, setVerGeral] = useState(false);
+  const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
 
   const { mes, ano } = useMemo(() => {
@@ -870,9 +906,12 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   );
 
   const rankingFiltrado = useMemo(() => {
-    if (verGeral) return rankingTodos;
-    return rankingTodos.filter((p) => p.empresaSlug === minhaEmpresa);
-  }, [rankingTodos, minhaEmpresa, verGeral]);
+    let lista = verGeral ? rankingTodos : rankingTodos.filter((p) => p.empresaSlug === minhaEmpresa);
+    if (filtroCategoria !== 'todos') {
+      lista = lista.filter((p) => (p as any).categoriaRanking === filtroCategoria);
+    }
+    return lista;
+  }, [rankingTodos, minhaEmpresa, verGeral, filtroCategoria]);
 
   const minhaPosicaoGeral = useMemo(() => {
     const idx = rankingTodos.findIndex((p) => p.nome === meuNome || p.apelido === meuNome);
@@ -896,7 +935,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
       </div>
 
       {/* Toggle Unidade / Geral */}
-      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+      <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
         <button
           onClick={() => setVerGeral(false)}
           className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
@@ -909,6 +948,21 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
         >
           <Globe className="w-3 h-3" />Geral
         </button>
+      </div>
+
+      {/* Filtro de Categoria */}
+      <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+        {(['todos', 'barbeiro', 'auxiliar', 'recepcao'] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFiltroCategoria(cat)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              filtroCategoria === cat ? 'bg-white/15 text-white shadow' : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            {cat === 'todos' ? 'Todos' : cat === 'barbeiro' ? '✂️ Barb.' : cat === 'auxiliar' ? '💇 Aux.' : '💼 Recep.'}
+          </button>
+        ))}
       </div>
 
       {/* Posição no geral */}

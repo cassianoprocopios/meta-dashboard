@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Corrigir slugs de Eduarda e Isabella\nUPDATE colaboradores SET empresaSlug = 'MORUMBI' WHERE id = 23 AND nome = 'Eduarda';\nUPDATE colaboradores SET empresaSlug = 'MASCOTE' WHERE id = 8 AND nome = 'Isabella';\n\n-- Corrigir categorias das recepções para 'recepcao'\nUPDATE colaboradores SET categoriaRanking = 'recepcao' WHERE nome LIKE '%Recep%';\nUPDATE colaboradores SET categoriaRanking = 'recepcao' WHERE nome = 'Mirela';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Corrigir slugs de Eduarda e Isabella\nUPDATE colaboradores SET empresaSlug = 'MORUMBI' WHERE id = 23 AND nome = 'Eduarda';\nUPDATE colaboradores SET empresaSlug = 'MASCOTE' WHERE id = 8 AND nome = 'Isabella';\n\n-- Corrigir categorias das recepções para 'recepcao'\nUPDATE colaboradores SET categoriaRanking = 'recepcao' WHERE nome LIKE '%Recep%';\nUPDATE colaboradores SET categoriaRanking = 'recepcao' WHERE nome = 'Mirela';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 107
+}

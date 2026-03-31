@@ -1,0 +1,171 @@
+{
+  "query": "SELECT id, nome, apelido, empresaSlug, cargo FROM colaboradores ORDER BY empresaSlug, nome LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, apelido, empresaSlug, cargo FROM colaboradores ORDER BY empresaSlug, nome LIMIT 30;",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "apelido": "NULL",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "apelido": "NULL",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\tempresaSlug\tcargo\n5\tCaio\tNULL\tMASCOTE\tBarbeiro\n6\tEdinho\tNULL\tMASCOTE\tBarbeiro\n22\tFelipe\tNULL\tMASCOTE\tBarbeiro\n8\tIsabella\tNULL\tMASCOTE\tBarbeiro\n10\tKaren\tNULL\tMASCOTE\tBarbeiro\n11\tMell\tNULL\tMASCOTE\tBarbeiro\n13\tNeudo\tNULL\tMASCOTE\tBarbeiro\n16\tRecepção Mascote\tNULL\tMASCOTE\tBarbeiro\n19\tRenan\tNULL\tMASCOTE\tBarbeiro\n17\tVinicius\tNULL\tMASCOTE\tBarbeiro\n1\tAdailton\tNULL\tMORUMBI\tBarbeiro\n7\tChristian\tNULL\tMORUMBI\tBarbeiro\n12\tCleison\tNULL\tMORUMBI\tBarbeiro\n2\tDan\tNULL\tMORUMBI\tBarbeiro\n23\tEduarda\tNULL\tMORUMBI\tBarbeiro\n3\tEmerson\tNULL\tMORUMBI\tBarbeiro\n18\tFábio\tNULL\tMORUMBI\tBarbeiro\n14\tJoão\tNULL\tMORUMBI\tBarbeiro\n21\tKaleb\tNULL\tMORUMBI\tBarbeiro\n20\tMirela\tNULL\tMORUMBI\tBarbeiro\n4\tRecepção Morumbi\tNULL\tMORUMBI\tBarbeiro\n9\tSamuel\tNULL\tMORUMBI\tBarbeiro\n15\tVanilson\tNULL\tMORUMBI\tBarbeiro\n",
+  "stderr": "",
+  "execution_time_ms": 150
+}

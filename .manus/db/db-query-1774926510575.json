@@ -1,0 +1,171 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cargo, categoriaRanking FROM colaboradores ORDER BY empresaSlug, nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cargo, categoriaRanking FROM colaboradores ORDER BY empresaSlug, nome;",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "empresaSlug": "barbiero-grupo",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "auxiliar"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-grupo",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "auxiliar"
+    },
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "MASCOTE",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "MORUMBI",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcargo\tcategoriaRanking\n23\tEduarda\tbarbiero-grupo\tBarbeiro\tauxiliar\n8\tIsabella\tbarbiero-grupo\tBarbeiro\tauxiliar\n5\tCaio\tMASCOTE\tBarbeiro\tbarbeiro\n6\tEdinho\tMASCOTE\tBarbeiro\tbarbeiro\n22\tFelipe\tMASCOTE\tBarbeiro\tbarbeiro\n10\tKaren\tMASCOTE\tBarbeiro\tbarbeiro\n11\tMell\tMASCOTE\tBarbeiro\tbarbeiro\n13\tNeudo\tMASCOTE\tBarbeiro\tbarbeiro\n16\tRecepção Mascote\tMASCOTE\tBarbeiro\tbarbeiro\n19\tRenan\tMASCOTE\tBarbeiro\tbarbeiro\n17\tVinicius\tMASCOTE\tBarbeiro\tbarbeiro\n1\tAdailton\tMORUMBI\tBarbeiro\tbarbeiro\n7\tChristian\tMORUMBI\tBarbeiro\tbarbeiro\n12\tCleison\tMORUMBI\tBarbeiro\tbarbeiro\n2\tDan\tMORUMBI\tBarbeiro\tbarbeiro\n3\tEmerson\tMORUMBI\tBarbeiro\tbarbeiro\n18\tFábio\tMORUMBI\tBarbeiro\tbarbeiro\n14\tJoão\tMORUMBI\tBarbeiro\tbarbeiro\n21\tKaleb\tMORUMBI\tBarbeiro\tbarbeiro\n20\tMirela\tMORUMBI\tBarbeiro\tbarbeiro\n4\tRecepção Morumbi\tMORUMBI\tBarbeiro\tbarbeiro\n9\tSamuel\tMORUMBI\tBarbeiro\tbarbeiro\n15\tVanilson\tMORUMBI\tBarbeiro\tbarbeiro\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}
