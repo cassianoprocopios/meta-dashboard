@@ -1,0 +1,22 @@
+{
+  "query": "\nSELECT empresaSlug, COUNT(*) as total, \n  SUM(CASE WHEN pinAcesso IS NULL OR pinAcesso = 'NULL' THEN 1 ELSE 0 END) as sem_pin,\n  SUM(CASE WHEN pinAcesso IS NOT NULL AND pinAcesso != 'NULL' THEN 1 ELSE 0 END) as com_pin\nFROM colaboradores\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, COUNT(*) as total, \n  SUM(CASE WHEN pinAcesso IS NULL OR pinAcesso = 'NULL' THEN 1 ELSE 0 END) as sem_pin,\n  SUM(CASE WHEN pinAcesso IS NOT NULL AND pinAcesso != 'NULL' THEN 1 ELSE 0 END) as com_pin\nFROM colaboradores\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "total": "10",
+      "sem_pin": "9",
+      "com_pin": "1"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "total": "13",
+      "sem_pin": "1",
+      "com_pin": "12"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal\tsem_pin\tcom_pin\nMASCOTE\t10\t9\t1\nMORUMBI\t13\t1\t12\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}

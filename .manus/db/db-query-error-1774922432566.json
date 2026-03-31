@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  id,\n  nome,\n  empresaSlug,\n  pin,\n  ativo,\n  cargo\nFROM profissionais\nWHERE empresaSlug = 'MASCOTE'\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  id,\n  nome,\n  empresaSlug,\n  pin,\n  ativo,\n  cargo\nFROM profissionais\nWHERE empresaSlug = 'MASCOTE'\nORDER BY nome;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 2: Table 'manh2fxvkecbuwjelbl3u8.profissionais' doesn't exist"
+  ]
+}

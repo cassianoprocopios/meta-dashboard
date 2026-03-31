@@ -1,0 +1,16 @@
+{
+  "query": "\nSELECT DISTINCT empresaSlug FROM cashbarberMapeamento\nUNION\nSELECT DISTINCT empresaSlug FROM cashbarberConfig\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT DISTINCT empresaSlug FROM cashbarberMapeamento\nUNION\nSELECT DISTINCT empresaSlug FROM cashbarberConfig\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE"
+    },
+    {
+      "empresaSlug": "MORUMBI"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\nMASCOTE\nMORUMBI\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

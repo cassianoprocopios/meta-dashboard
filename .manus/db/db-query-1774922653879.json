@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE colaboradores SET pinAcesso = '1106' WHERE id = 5;\nUPDATE colaboradores SET pinAcesso = '9018' WHERE id = 6;\nUPDATE colaboradores SET pinAcesso = '2123' WHERE id = 22;\nUPDATE colaboradores SET pinAcesso = '4511' WHERE id = 8;\nUPDATE colaboradores SET pinAcesso = '6869' WHERE id = 10;\nUPDATE colaboradores SET pinAcesso = '1539' WHERE id = 11;\nUPDATE colaboradores SET pinAcesso = '6501' WHERE id = 13;\nUPDATE colaboradores SET pinAcesso = '1336' WHERE id = 16;\nUPDATE colaboradores SET pinAcesso = '5427' WHERE id = 17;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE colaboradores SET pinAcesso = '1106' WHERE id = 5;\nUPDATE colaboradores SET pinAcesso = '9018' WHERE id = 6;\nUPDATE colaboradores SET pinAcesso = '2123' WHERE id = 22;\nUPDATE colaboradores SET pinAcesso = '4511' WHERE id = 8;\nUPDATE colaboradores SET pinAcesso = '6869' WHERE id = 10;\nUPDATE colaboradores SET pinAcesso = '1539' WHERE id = 11;\nUPDATE colaboradores SET pinAcesso = '6501' WHERE id = 13;\nUPDATE colaboradores SET pinAcesso = '1336' WHERE id = 16;\nUPDATE colaboradores SET pinAcesso = '5427' WHERE id = 17;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 195
+}

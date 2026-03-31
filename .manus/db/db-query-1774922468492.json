@@ -1,0 +1,26 @@
+{
+  "query": "SELECT slug, nome FROM empresas ORDER BY slug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT slug, nome FROM empresas ORDER BY slug;",
+  "rows": [
+    {
+      "slug": "DOM_",
+      "nome": "Dom Pablo"
+    },
+    {
+      "slug": "MASCOTE",
+      "nome": "Mascote"
+    },
+    {
+      "slug": "MORUMBI",
+      "nome": "Morumbi"
+    },
+    {
+      "slug": "SERAPHINE",
+      "nome": "Seraphine"
+    }
+  ],
+  "messages": [],
+  "stdout": "slug\tnome\nDOM_\tDom Pablo\nMASCOTE\tMascote\nMORUMBI\tMorumbi\nSERAPHINE\tSeraphine\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

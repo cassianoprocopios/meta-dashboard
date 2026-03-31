@@ -1,0 +1,87 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, pinAcesso, ativo\nFROM colaboradores\nWHERE empresaSlug LIKE '%mascote%' OR empresaSlug LIKE '%barbiero-grupo%'\nORDER BY empresaSlug, nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, pinAcesso, ativo\nFROM colaboradores\nWHERE empresaSlug LIKE '%mascote%' OR empresaSlug LIKE '%barbiero-grupo%'\nORDER BY empresaSlug, nome;\n",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL",
+      "ativo": "1"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "pinAcesso": "7819",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tpinAcesso\tativo\n5\tCaio\tbarbiero-grupo\tNULL\t1\n6\tEdinho\tbarbiero-grupo\tNULL\t1\n22\tFelipe\tbarbiero-grupo\tNULL\t1\n8\tIsabella\tbarbiero-grupo\tNULL\t1\n10\tKaren\tbarbiero-grupo\tNULL\t1\n11\tMell\tbarbiero-grupo\tNULL\t1\n13\tNeudo\tbarbiero-grupo\tNULL\t1\n16\tRecepção Mascote\tbarbiero-grupo\tNULL\t1\n4\tRecepção Morumbi\tbarbiero-grupo\tNULL\t1\n17\tVinicius\tbarbiero-grupo\tNULL\t1\n19\tRenan\tbarbiero-mascote\t7819\t1\n",
+  "stderr": "",
+  "execution_time_ms": 77
+}

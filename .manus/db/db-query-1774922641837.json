@@ -1,0 +1,49 @@
+{
+  "query": "\nSELECT pinAcesso FROM colaboradores WHERE pinAcesso IS NOT NULL AND pinAcesso != 'NULL';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT pinAcesso FROM colaboradores WHERE pinAcesso IS NOT NULL AND pinAcesso != 'NULL';\n",
+  "rows": [
+    {
+      "pinAcesso": "6737"
+    },
+    {
+      "pinAcesso": "7818"
+    },
+    {
+      "pinAcesso": "2585"
+    },
+    {
+      "pinAcesso": "7166"
+    },
+    {
+      "pinAcesso": "2923"
+    },
+    {
+      "pinAcesso": "2014"
+    },
+    {
+      "pinAcesso": "2484"
+    },
+    {
+      "pinAcesso": "7934"
+    },
+    {
+      "pinAcesso": "7442"
+    },
+    {
+      "pinAcesso": "7819"
+    },
+    {
+      "pinAcesso": "1016"
+    },
+    {
+      "pinAcesso": "7523"
+    },
+    {
+      "pinAcesso": "1007"
+    }
+  ],
+  "messages": [],
+  "stdout": "pinAcesso\n6737\n7818\n2585\n7166\n2923\n2014\n2484\n7934\n7442\n7819\n1016\n7523\n1007\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

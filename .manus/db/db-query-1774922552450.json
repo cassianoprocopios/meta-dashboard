@@ -1,0 +1,70 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, pinAcesso\nFROM colaboradores\nWHERE empresaSlug = 'barbiero-grupo'\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, pinAcesso\nFROM colaboradores\nWHERE empresaSlug = 'barbiero-grupo'\nORDER BY nome;\n",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "barbiero-grupo",
+      "pinAcesso": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tpinAcesso\n5\tCaio\tbarbiero-grupo\tNULL\n6\tEdinho\tbarbiero-grupo\tNULL\n22\tFelipe\tbarbiero-grupo\tNULL\n8\tIsabella\tbarbiero-grupo\tNULL\n10\tKaren\tbarbiero-grupo\tNULL\n11\tMell\tbarbiero-grupo\tNULL\n13\tNeudo\tbarbiero-grupo\tNULL\n16\tRecepção Mascote\tbarbiero-grupo\tNULL\n4\tRecepção Morumbi\tbarbiero-grupo\tNULL\n17\tVinicius\tbarbiero-grupo\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

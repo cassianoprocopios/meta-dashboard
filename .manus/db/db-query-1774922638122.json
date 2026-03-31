@@ -1,0 +1,60 @@
+{
+  "query": "\nSELECT id, nome, pinAcesso\nFROM colaboradores\nWHERE empresaSlug = 'MASCOTE'\nORDER BY nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, pinAcesso\nFROM colaboradores\nWHERE empresaSlug = 'MASCOTE'\nORDER BY nome;\n",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "pinAcesso": "NULL"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "pinAcesso": "7819"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "pinAcesso": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tpinAcesso\n5\tCaio\tNULL\n6\tEdinho\tNULL\n22\tFelipe\tNULL\n8\tIsabella\tNULL\n10\tKaren\tNULL\n11\tMell\tNULL\n13\tNeudo\tNULL\n16\tRecepção Mascote\tNULL\n19\tRenan\t7819\n17\tVinicius\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

@@ -1,0 +1,148 @@
+{
+  "query": "\nSELECT empresaSlug, id, nome, pinAcesso\nFROM colaboradores\nORDER BY empresaSlug, nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, id, nome, pinAcesso\nFROM colaboradores\nORDER BY empresaSlug, nome;\n",
+  "rows": [
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "5",
+      "nome": "Caio",
+      "pinAcesso": "1106"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "6",
+      "nome": "Edinho",
+      "pinAcesso": "9018"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "22",
+      "nome": "Felipe",
+      "pinAcesso": "2123"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "8",
+      "nome": "Isabella",
+      "pinAcesso": "4511"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "10",
+      "nome": "Karen",
+      "pinAcesso": "6869"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "11",
+      "nome": "Mell",
+      "pinAcesso": "1539"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "13",
+      "nome": "Neudo",
+      "pinAcesso": "6501"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "pinAcesso": "1336"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "19",
+      "nome": "Renan",
+      "pinAcesso": "7819"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "id": "17",
+      "nome": "Vinicius",
+      "pinAcesso": "5427"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "1",
+      "nome": "Adailton",
+      "pinAcesso": "6737"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "7",
+      "nome": "Christian",
+      "pinAcesso": "7166"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "12",
+      "nome": "Cleison",
+      "pinAcesso": "2014"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "2",
+      "nome": "Dan",
+      "pinAcesso": "7818"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "23",
+      "nome": "Eduarda",
+      "pinAcesso": "1007"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "3",
+      "nome": "Emerson",
+      "pinAcesso": "2585"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "18",
+      "nome": "Fábio",
+      "pinAcesso": "7442"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "14",
+      "nome": "João",
+      "pinAcesso": "2484"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "21",
+      "nome": "Kaleb",
+      "pinAcesso": "7523"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "20",
+      "nome": "Mirela",
+      "pinAcesso": "1016"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "pinAcesso": "NULL"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "9",
+      "nome": "Samuel",
+      "pinAcesso": "2923"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "id": "15",
+      "nome": "Vanilson",
+      "pinAcesso": "7934"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tid\tnome\tpinAcesso\nMASCOTE\t5\tCaio\t1106\nMASCOTE\t6\tEdinho\t9018\nMASCOTE\t22\tFelipe\t2123\nMASCOTE\t8\tIsabella\t4511\nMASCOTE\t10\tKaren\t6869\nMASCOTE\t11\tMell\t1539\nMASCOTE\t13\tNeudo\t6501\nMASCOTE\t16\tRecepção Mascote\t1336\nMASCOTE\t19\tRenan\t7819\nMASCOTE\t17\tVinicius\t5427\nMORUMBI\t1\tAdailton\t6737\nMORUMBI\t7\tChristian\t7166\nMORUMBI\t12\tCleison\t2014\nMORUMBI\t2\tDan\t7818\nMORUMBI\t23\tEduarda\t1007\nMORUMBI\t3\tEmerson\t2585\nMORUMBI\t18\tFábio\t7442\nMORUMBI\t14\tJoão\t2484\nMORUMBI\t21\tKaleb\t7523\nMORUMBI\t20\tMirela\t1016\nMORUMBI\t4\tRecepção Morumbi\tNULL\nMORUMBI\t9\tSamuel\t2923\nMORUMBI\t15\tVanilson\t7934\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}
