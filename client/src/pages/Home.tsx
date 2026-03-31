@@ -377,44 +377,49 @@ export default function Home() {
       const rowsRealizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje);
       const rowsPrevistos = rows.filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje);
 
-      // Recorrência Dpote: se fonte for manual, usa o valor manual confirmado;
-      // caso contrário, soma o cat9 distribuído diariamente no banco
+      // =====================================================================
+      // REGRA DE FATURAMENTO:
+      //   - Faturamento (total, realizados, previstos) = APENAS cat1..cat8
+      //   - Recorrência Dpote (cat9) = SOMENTE INFORMATIVO, não entra na somatoria
+      //   - Valor informativo da recorrência = cat9 acumulado até o dia vigente
+      //     (dias realizados), ou valor manual confirmado quando fonte=manual
+      // =====================================================================
       const dpoteCfgEmp = dpoteConfigMap[emp.slug];
       const usaRecorrenciaManual = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null;
-      const recorrenciaManualValor = usaRecorrenciaManual ? (dpoteCfgEmp!.recorrenciaValorManual as number) : null;
 
-      // sumCats: soma cat1..cat8 sempre; cat9 só se NÃO usar recorrência manual
-      // (quando manual, o cat9 do banco é substituído pelo valor manual no total final)
+      // Helper: soma apenas cat1..cat8 (faturamento operacional puro)
       const sumCatsSemCat9 = (r: any) =>
         [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
           .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
-      const sumCats = (r: any) =>
-        sumCatsSemCat9(r) + (usaRecorrenciaManual ? 0 : parseFloat(r.cat9 || "0"));
+      // Mantém sumCats como alias para compatibilidade com código legado
+      const sumCats = sumCatsSemCat9;
 
-      // Total geral: cat1..cat8 de todos os dias + recorrência correta (manual ou banco)
-      const totalSemRecorrencia = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const recorrenciaMes = usaRecorrenciaManual
-        ? recorrenciaManualValor!
-        : rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
-      const total = totalSemRecorrencia + recorrenciaMes;
+      // Faturamento total = cat1..cat8 de TODOS os dias (realizados + previstos)
+      const total = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
-      // Total apenas realizados (para cálculos de média, máximo, mínimo)
-      // Realizados: cat1..cat8 dos dias ≤ hoje + recorrência manual (ou cat9 dos dias realizados)
-      const totalRealizadoSemRec = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const totalRealizado = totalRealizadoSemRec + recorrenciaMes;
+      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje
+      const totalRealizado = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+
+      // Faturamento previsto = cat1..cat8 dos dias > hoje
       const totalPrevisto = rows
         .filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje)
         .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+
+      // Recorrência Dpote (APENAS INFORMATIVO - não entra em nenhuma somatoria)
+      // fonte=manual: usa o valor confirmado manualmente (apurado até o dia vigente)
+      // fonte=cashbarber: soma cat9 dos dias realizados (acumulado até hoje)
+      const recorrenciaMes = usaRecorrenciaManual
+        ? (dpoteCfgEmp!.recorrenciaValorManual as number)
+        : rowsRealizados.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
       const diasLancados = rows.length;
       const diasRealizados = rowsRealizados.length;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária apenas sobre dias realizados (sem recorrência mensal, que é um valor único)
-      const totalRealizadoOperacional = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const mediaDiaria = diasRealizados > 0 ? totalRealizadoOperacional / diasRealizados : 0;
+      // Média diária = faturamento operacional (cat1..cat8) / dias realizados
+      const mediaDiaria = diasRealizados > 0 ? totalRealizado / diasRealizados : 0;
 
-      // Máximo e mínimo diário apenas sobre dias realizados (sem cat9 para não distorcer com recorrência)
+      // Máximo e mínimo diário (cat1..cat8 por dia)
       const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCatsSemCat9(r));
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
@@ -440,17 +445,11 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Dias úteis restantes no mês
-      // Quinzenal: apenas realizados até dia 15
-      // Inclui cat9 do banco (já distribuído por dia = proporcional correto da recorrência na quinzena)
-      // Quando manual, usa proporcional: recorrênciaManual * (diasQuinzena / diasMes)
+      // Quinzenal: faturamento operacional (cat1..cat8) dos dias realizados até dia 15
+      // Recorrência não entra na somatoria quinzenal
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const recorrenciaQuinzenal = usaRecorrenciaManual
-        ? recorrenciaManualValor! * (15 / new Date(ano, mes, 0).getDate())
-        : rowsQuinzenal.reduce((s: number, r: any) => s + parseFloat(r.cat9 || "0"), 0);
-      const totalQuinzenal = totalQuinzenalSemRec + recorrenciaQuinzenal;
+      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
       const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
@@ -463,13 +462,9 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Projeção final = totalRealizado + totalPrevisto + (média diária × dias úteis sem lançamento)
-      //
-      // Garantias de consistência com a recorrência:
-      //   - totalRealizado já inclui recorrînciaMes (valor manual ou cat9 banco) integralmente
-      //   - totalPrevisto usa sumCatsSemCat9 (exclui cat9 dos dias futuros) → sem dupla contagem
-      //   - mediaDiaria é puramente operacional (cat1..cat8) → correto para extrapolar dias extras
-      //   - A recorrência mensal é um valor único já contabilizado; não deve ser somada novamente
+      // Projeção final = faturamento operacional (cat1..cat8)
+      // = totalRealizado + totalPrevisto + (mediaDiaria × dias úteis sem lançamento)
+      // Recorrência não entra na projeção (apenas informativo)
       const diasComLancamento = new Set(rows.map((r: any) => r.data)).size;
       const diasUteisRestantesSemLancamento = Math.max(0, diasUteis - diasComLancamento);
       const projecaoFinal = diasRealizados > 0
@@ -1901,7 +1896,7 @@ export default function Home() {
                           )}
                           {s.recorrenciaMes > 0 && (
                             <p className="text-[10px] text-violet-400/80 mt-0.5">
-                              incl. {fmt(s.recorrenciaMes)} recorr.
+                              + {fmt(s.recorrenciaMes)} Dpote (informativo)
                             </p>
                           )}
                         </div>
