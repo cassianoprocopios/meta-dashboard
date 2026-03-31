@@ -618,31 +618,38 @@ const profissionaisRouter = router({
       let atualizados = 0;
       let semFoto = 0;
 
-      for (const col of colaboradoresList) {
-        if (!col.cashbarberProfissionalId) continue;
-        const barbeiro = barbeiros.find((b) => b.id === col.cashbarberProfissionalId);
-        if (!barbeiro) continue;
+      // Importar drizzle para fazer UPDATE cirúrgico apenas em fotoUrl
+      const { drizzle: drizzleImport } = await import('drizzle-orm/mysql2');
+      const mysql2Import = await import('mysql2/promise');
+      const { colaboradores: colaboradoresTable } = await import('../drizzle/schema');
+      const { eq: eqImport, and: andImport } = await import('drizzle-orm');
+      const dbUrl = process.env.DATABASE_URL;
+      if (!dbUrl) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DATABASE_URL não configurado' });
+      const conn = await mysql2Import.createConnection(dbUrl);
+      const dbDirect = drizzleImport(conn);
 
-        const novaFoto = barbeiro.fotoUrl;
-        if (novaFoto !== col.fotoUrl) {
-          await salvarColaborador(tenantId, {
-            id: col.id,
-            nome: col.nome,
-            apelido: col.apelido ?? null,
-            cargo: col.cargo ?? 'Barbeiro',
-            fotoUrl: novaFoto,
-            exibirNoRanking: col.exibirNoRanking ?? 1,
-            ativo: col.ativo ?? 1,
-            cashbarberProfissionalId: col.cashbarberProfissionalId,
-            empresaSlug: col.empresaSlug ?? 'barbiero-grupo',
-            categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
-            pinAcesso: col.pinAcesso ?? null,
-            metaMensal: col.metaMensal?.toString() ?? null,
-            telefone: col.telefone ?? null,
-          });
-          if (novaFoto) atualizados++;
-          else semFoto++;
+      try {
+        for (const col of colaboradoresList) {
+          if (!col.cashbarberProfissionalId) continue;
+          const barbeiro = barbeiros.find((b) => b.id === col.cashbarberProfissionalId);
+          if (!barbeiro) continue;
+
+          const novaFoto = barbeiro.fotoUrl ?? null;
+          if (novaFoto !== col.fotoUrl) {
+            // UPDATE cirúrgico: apenas fotoUrl, sem tocar em categoriaRanking, pinAcesso ou outros campos
+            await dbDirect
+              .update(colaboradoresTable)
+              .set({ fotoUrl: novaFoto, updatedAt: new Date() })
+              .where(andImport(
+                eqImport(colaboradoresTable.id, col.id),
+                eqImport(colaboradoresTable.tenantId, tenantId)
+              ));
+            if (novaFoto) atualizados++;
+            else semFoto++;
+          }
         }
+      } finally {
+        await conn.end();
       }
 
       return { ok: true, atualizados, semFoto, totalBarbeiros: barbeiros.length };

@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Corrigir as auxiliares: categoriaRanking e pinAcesso\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '1813', empresaSlug = 'barbiero-morumbi' WHERE id = 23 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '9470', empresaSlug = 'barbiero-morumbi' WHERE id = 8 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '9969', empresaSlug = 'barbiero-morumbi' WHERE id = 10 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '3288', empresaSlug = 'barbiero-morumbi' WHERE id = 11 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '3937', empresaSlug = 'barbiero-morumbi' WHERE id = 20 AND tenantId = 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Corrigir as auxiliares: categoriaRanking e pinAcesso\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '1813', empresaSlug = 'barbiero-morumbi' WHERE id = 23 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '9470', empresaSlug = 'barbiero-morumbi' WHERE id = 8 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '9969', empresaSlug = 'barbiero-morumbi' WHERE id = 10 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '3288', empresaSlug = 'barbiero-morumbi' WHERE id = 11 AND tenantId = 1;\nUPDATE colaboradores SET categoriaRanking = 'auxiliar', pinAcesso = '3937', empresaSlug = 'barbiero-morumbi' WHERE id = 20 AND tenantId = 1;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 137
+}

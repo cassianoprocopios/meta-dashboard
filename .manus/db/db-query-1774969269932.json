@@ -1,0 +1,45 @@
+{
+  "query": "\nSELECT id, nome, categoriaRanking, pinAcesso, empresaSlug\nFROM colaboradores\nWHERE tenantId = 1 AND id IN (8, 10, 11, 20, 23)\nORDER BY empresaSlug, nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, categoriaRanking, pinAcesso, empresaSlug\nFROM colaboradores\nWHERE tenantId = 1 AND id IN (8, 10, 11, 20, 23)\nORDER BY empresaSlug, nome;\n",
+  "rows": [
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "9470",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "9969",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "3288",
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "1813",
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "categoriaRanking": "auxiliar",
+      "pinAcesso": "3937",
+      "empresaSlug": "barbiero-morumbi"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tpinAcesso\tempresaSlug\n8\tIsabella\tauxiliar\t9470\tbarbiero-mascote\n10\tKaren\tauxiliar\t9969\tbarbiero-mascote\n11\tMell\tauxiliar\t3288\tbarbiero-mascote\n23\tEduarda\tauxiliar\t1813\tbarbiero-morumbi\n20\tMirela\tauxiliar\t3937\tbarbiero-morumbi\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}
