@@ -2354,7 +2354,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
 
         // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
-        const dia1 = `${input.ano}-${String(input.mes).padStart(2, "0")}-01`;
+        const diasDoMes = new Date(input.ano, input.mes, 0).getDate();
         const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
 
@@ -2367,27 +2367,32 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             continue;
           }
 
-          // Buscar faturamento existente no dia 1 para preservar outras categorias
-          const existente = await getFaturamentoByDataEmpresaTenant(dia1, config.empresaSlug, tenantId);
-
-          // Atualizar cat9 (Recorrência) no dia 1 com o valor distribuído da filial
-          await upsertFaturamento({
-            tenantId,
-            empresaSlug: config.empresaSlug,
-            data: dia1,
-            cat1: existente?.cat1 ?? "0",
-            cat2: existente?.cat2 ?? "0",
-            cat3: existente?.cat3 ?? "0",
-            cat4: existente?.cat4 ?? "0",
-            cat5: existente?.cat5 ?? "0",
-            cat6: existente?.cat6 ?? "0",
-            cat7: existente?.cat7 ?? "0",
-            cat8: existente?.cat8 ?? "0",
-            cat9: String(filial.valorDistribuido),
-            sincronizadoCB: existente?.sincronizadoCB ?? 0,
-            observacao: existente?.observacao ?? undefined,
-            lancadoPor: existente?.lancadoPor ?? undefined,
-          });
+          // Propagar o valor do Dpote em TODOS os dias do mês para manter consistência
+          // O valor diário = valorDistribuido / diasDoMes (distribuição uniforme)
+          const valorDiario = filial.valorDistribuido / diasDoMes;
+          for (let dia = 1; dia <= diasDoMes; dia++) {
+            const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+            const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
+            if (existente) {
+              await upsertFaturamento({
+                tenantId,
+                empresaSlug: config.empresaSlug,
+                data: dataStr,
+                cat1: existente.cat1 ?? "0",
+                cat2: existente.cat2 ?? "0",
+                cat3: existente.cat3 ?? "0",
+                cat4: existente.cat4 ?? "0",
+                cat5: existente.cat5 ?? "0",
+                cat6: existente.cat6 ?? "0",
+                cat7: existente.cat7 ?? "0",
+                cat8: existente.cat8 ?? "0",
+                cat9: valorDiario.toFixed(2),
+                sincronizadoCB: existente.sincronizadoCB ?? 0,
+                observacao: existente.observacao ?? undefined,
+                lancadoPor: existente.lancadoPor ?? undefined,
+              });
+            }
+          }
 
           aplicados.push({
             empresaSlug: config.empresaSlug,
