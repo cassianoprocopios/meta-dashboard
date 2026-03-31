@@ -2773,6 +2773,11 @@ export default function Home() {
                               ? hojeRef.getDate()
                               : new Date(ano, mes, 0).getDate();
                             const isFuturo = parseInt(dia) > diaHojeRef;
+                            // Calcular o dia da semana para a data do lançamento
+                            const dataLancamento = new Date(ano, mes - 1, parseInt(dia));
+                            const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+                            const diaSemana = DIAS_SEMANA[dataLancamento.getDay()];
+                            const isFimDeSemana = dataLancamento.getDay() === 0 || dataLancamento.getDay() === 6;
                             return (
                               <tr
                                 key={row.id}
@@ -2786,6 +2791,15 @@ export default function Home() {
                                   <div className="flex items-center gap-2">
                                     <span className={isFuturo ? "text-amber-700 dark:text-amber-300" : "text-foreground"}>
                                       {parseInt(dia)}/{mes.toString().padStart(2, "0")}
+                                    </span>
+                                    <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                                      isFuturo
+                                        ? "text-amber-600/70 dark:text-amber-400/70"
+                                        : isFimDeSemana
+                                          ? "text-violet-500 dark:text-violet-400 bg-violet-500/10"
+                                          : "text-muted-foreground"
+                                    }`}>
+                                      {diaSemana}
                                     </span>
                                     {isFuturo && (
                                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wide">

@@ -225,6 +225,21 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
             </span>
           )}
         </div>
+        {/* Dia da semana abaixo do campo de data */}
+        {data && (() => {
+          const DIAS_SEMANA_FULL = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+          const [y, m, d] = data.split("-").map(Number);
+          const dt = new Date(y, m - 1, d);
+          const nomeDia = DIAS_SEMANA_FULL[dt.getDay()];
+          const fimDeSemana = dt.getDay() === 0 || dt.getDay() === 6;
+          return (
+            <p className={`mt-1 text-xs font-medium ${
+              futuro ? "text-amber-600" : fimDeSemana ? "text-violet-500" : "text-slate-500"
+            }`}>
+              {nomeDia}
+            </p>
+          );
+        })()}
       </div>
 
       {/* Categorias */}
