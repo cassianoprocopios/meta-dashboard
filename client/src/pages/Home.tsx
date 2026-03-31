@@ -31,6 +31,7 @@ import TenantBloqueado from "@/pages/TenantBloqueado";
 import DpoteDistribuicao from "@/pages/DpoteDistribuicao";
 import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
+import BottomNav from "@/components/BottomNav";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 
 const MESES = [
@@ -1164,7 +1165,7 @@ export default function Home() {
 
 
 
-      <main className="flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-full overflow-x-hidden">
+      <main className="flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 md:pb-6 max-w-full overflow-x-hidden">
         {loading && activeTab === "dashboard" && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
@@ -2416,7 +2417,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="h-[200px] sm:h-[280px]">
+                <div className="h-[200px] sm:h-[280px] min-h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={lineDataDiario} margin={{ top: 10, right: 5, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -2532,7 +2533,7 @@ export default function Home() {
                 {/* Gráfico de barras por empresa */}
                 <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
                   <h3 className="font-semibold text-foreground mb-3 text-sm">Faturamento vs Meta por Empresa</h3>
-                  <div className="h-[180px] sm:h-[240px]">
+                  <div className="h-[180px] sm:h-[240px] min-h-[180px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData as any[]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -2554,7 +2555,7 @@ export default function Home() {
                 <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
                   <h3 className="font-semibold text-foreground mb-3 text-sm">Composição do Faturamento</h3>
                   {pieDataEmpresas.length > 0 ? (
-                    <div className="h-[180px] sm:h-[240px]">
+                    <div className="h-[180px] sm:h-[240px] min-h-[180px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -2639,7 +2640,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <div className="h-[220px] sm:h-[300px]">
+                <div className="h-[220px] sm:h-[300px] min-h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={barDataCategoriasSeraphine.data}
@@ -3006,6 +3007,15 @@ export default function Home() {
           />
         )}
        </main>
+
+      {/* Barra de navegação inferior — mobile */}
+      {isAuthenticated && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          tabsVisiveis={tabsVisiveis}
+        />
+      )}
       </div>{/* end flex-1 content */}
       {/* Modal de lançamento */}
       {showFaturamentoForm && (

@@ -160,6 +160,11 @@
   }
 }
 
+/* Safe area para iPhones com notch/home indicator */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
