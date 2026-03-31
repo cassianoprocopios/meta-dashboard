@@ -1,0 +1,33 @@
+{
+  "query": "\n-- Verificar faturamentos de março/2026 por unidade\nSELECT empresaSlug, COUNT(*) as dias, SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalOp, SUM(cat9) as totalRec\nFROM faturamentos\nWHERE tenantId = 1 AND data LIKE '2026-03-%'\nGROUP BY empresaSlug;\n\n-- Verificar metas cadastradas para março/2026\nSELECT empresaSlug, metaMensal, superMeta, mes, ano\nFROM metas\nWHERE tenantId = 1 AND mes = 3 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar faturamentos de março/2026 por unidade\nSELECT empresaSlug, COUNT(*) as dias, SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalOp, SUM(cat9) as totalRec\nFROM faturamentos\nWHERE tenantId = 1 AND data LIKE '2026-03-%'\nGROUP BY empresaSlug;\n\n-- Verificar metas cadastradas para março/2026\nSELECT empresaSlug, metaMensal, superMeta, mes, ano\nFROM metas\nWHERE tenantId = 1 AND mes = 3 AND ano = 2026;\n",
+  "rows": [
+    {
+      "empresaSlug": "MORUMBI",
+      "dias": "31",
+      "totalOp": "78406.33",
+      "totalRec": "122870.98"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "dias": "20",
+      "totalOp": "117409.85",
+      "totalRec": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "dias": "31",
+      "totalOp": "37716.99",
+      "totalRec": "52274.99"
+    }
+  ],
+  "messages": [
+    "empresaSlug\tmetaMensal\tsuperMeta\tmes\tano",
+    "MORUMBI\t206000.00\t220000.00\t3\t2026",
+    "MASCOTE\t94000.00\t105000.00\t3\t2026",
+    "SERAPHINE\t120000.00\t130000.00\t3\t2026"
+  ],
+  "stdout": "empresaSlug\tdias\ttotalOp\ttotalRec\nMORUMBI\t31\t78406.33\t122870.98\nSERAPHINE\t20\t117409.85\t0.00\nMASCOTE\t31\t37716.99\t52274.99\nempresaSlug\tmetaMensal\tsuperMeta\tmes\tano\nMORUMBI\t206000.00\t220000.00\t3\t2026\nMASCOTE\t94000.00\t105000.00\t3\t2026\nSERAPHINE\t120000.00\t130000.00\t3\t2026\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

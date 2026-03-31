@@ -3740,21 +3740,26 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       mes: z.number().int().min(1).max(12).optional(),
       ano: z.number().int().min(2020).optional(),
     }))
-    .query(async ({ ctx, input }) => {
+     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtxPublic(ctx);
       const db = await (await import('./db')).getDb();
       if (!db) return { total: 0, totalOperacional: 0, recorrencia: 0 };
-
       const { faturamentos: fatTable } = await import('../drizzle/schema.js');
       const { and: drizzleAnd, eq: drizzleEq } = await import('drizzle-orm');
-
+      // Mapeamento: slug do colaborador → slug usado nos faturamentos
+      const slugMap: Record<string, string> = {
+        'barbiero-morumbi': 'MORUMBI',
+        'barbiero-mascote': 'MASCOTE',
+        'barbiero-seraphine': 'SERAPHINE',
+        'barbiero-grupo': 'GRUPO',
+      };
+      const empresaSlugNorm = slugMap[input.empresaSlug] ?? input.empresaSlug;
       let rows: any[] = [];
-
       if (input.tipo === 'diario' && input.data) {
         rows = await db.select().from(fatTable).where(
           drizzleAnd(
             drizzleEq(fatTable.tenantId, tenantId),
-            drizzleEq(fatTable.empresaSlug, input.empresaSlug),
+            drizzleEq(fatTable.empresaSlug, empresaSlugNorm),
             drizzleEq(fatTable.data, input.data)
           )
         );
@@ -3762,7 +3767,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const allRows = await db.select().from(fatTable).where(
           drizzleAnd(
             drizzleEq(fatTable.tenantId, tenantId),
-            drizzleEq(fatTable.empresaSlug, input.empresaSlug)
+            drizzleEq(fatTable.empresaSlug, empresaSlugNorm)
           )
         );
         rows = allRows.filter((r: any) => r.data >= input.dataInicio! && r.data <= input.dataFim!);
@@ -3770,7 +3775,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const allRows = await db.select().from(fatTable).where(
           drizzleAnd(
             drizzleEq(fatTable.tenantId, tenantId),
-            drizzleEq(fatTable.empresaSlug, input.empresaSlug)
+            drizzleEq(fatTable.empresaSlug, empresaSlugNorm)
           )
         );
         const mesStr = String(input.mes).padStart(2, '0');
@@ -3790,7 +3795,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       // Para o mensal: usar recorrenciaValorManual se fonte=manual
       let recorrencia = cat9Acumulado;
       if (input.tipo === 'mensal' && input.mes && input.ano) {
-        const config = await getCashbarberConfig(tenantId, input.empresaSlug);
+        const config = await getCashbarberConfig(tenantId, empresaSlugNorm);
         const hoje = new Date();
         const mesAtualNum = hoje.getMonth() + 1;
         const anoAtualNum = hoje.getFullYear();
@@ -3810,7 +3815,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       let pctMeta: number | null = null;
       if (input.tipo === 'mensal' && input.mes && input.ano) {
         const metasLista = await getMetasByMesAndTenant(tenantId, input.mes, input.ano);
-        const metaEmpresa = metasLista.find((m: any) => m.empresaSlug === input.empresaSlug);
+        const metaEmpresa = metasLista.find((m: any) => m.empresaSlug === empresaSlugNorm);
         if (metaEmpresa) {
           metaMensal = parseFloat(String(metaEmpresa.metaMensal)) || null;
           superMeta = parseFloat(String(metaEmpresa.superMeta)) || null;
