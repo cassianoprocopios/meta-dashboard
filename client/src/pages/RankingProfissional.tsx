@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { trpc } from "@/lib/trpc";
 import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Download, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
@@ -336,15 +336,13 @@ function useExportarImagem() {
     if (!exportRef.current || exportando) return;
     setExportando(true);
     try {
-      const canvas = await html2canvas(exportRef.current, {
+      const dataUrl = await toPng(exportRef.current, {
         backgroundColor: "#0f172a",
-        scale: 2,
-        useCORS: true,
-        logging: false,
+        pixelRatio: 2,
       });
       const link = document.createElement("a");
       link.download = `${nomeArquivo}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
       toast.success("Imagem gerada! Pronta para compartilhar.");
     } catch (e) {
@@ -478,6 +476,13 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
     { empresaSlug: minhaEmpresa, tipo: 'diario', data },
     { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
   );
+  // Faturamento mensal acumulado (para mostrar meta e valor que falta)
+  const mesNum = useMemo(() => parseInt(formatarData(data).split('/')[1], 10), [data]);
+  const anoNum = useMemo(() => parseInt(formatarData(data).split('/')[2], 10), [data]);
+  const { data: fatMensal } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes: mesNum, ano: anoNum },
+    { staleTime: 60_000, enabled: !verGeral }
+  );
 
   const anterior = () => {
     const d = new Date(data + "T12:00:00");
@@ -593,8 +598,16 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               )}
             </div>
             <div className="text-right">
+              {(fatUnidade as any).metaMensal && (fatUnidade as any).pctMeta != null && (fatUnidade as any).pctMeta < 100 && (
+                <div className="text-xs font-semibold text-amber-400">
+                  Falta: {formatarMoeda(Math.max(0, (fatUnidade as any).metaMensal - fatUnidade.total))}
+                </div>
+              )}
+              {(fatUnidade as any).pctMeta != null && (fatUnidade as any).pctMeta >= 100 && (
+                <div className="text-xs font-semibold text-emerald-400">✓ Meta atingida!</div>
+              )}
               {fatUnidade.recorrencia > 0 && (
-                <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidade.recorrencia)} recorr.</div>
+                <div className="text-xs text-white/30 mt-0.5">incl. {formatarMoeda(fatUnidade.recorrencia)} recorr.</div>
               )}
             </div>
           </div>
@@ -614,6 +627,50 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               )}
             </div>
           )}
+        </div>
+      )}
+      {/* Card de progresso mensal da unidade */}
+      {!verGeral && fatMensal && (fatMensal as any).metaMensal && (
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 px-4 py-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Meta do Mês — Unidade</div>
+            {(fatMensal as any).pctMeta != null && (
+              <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                (fatMensal as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                (fatMensal as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                'bg-red-500/20 text-red-300'
+              }`}>{(fatMensal as any).pctMeta}%</div>
+            )}
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-lg font-bold text-indigo-300">{formatarMoeda(fatMensal.total)}</div>
+              <div className="text-xs text-white/40 mt-0.5">Meta: {formatarMoeda((fatMensal as any).metaMensal)}</div>
+            </div>
+            <div className="text-right">
+              {(fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta < 100 ? (
+                <div className="text-sm font-bold text-amber-400">
+                  Falta: {formatarMoeda(Math.max(0, (fatMensal as any).metaMensal - fatMensal.total))}
+                </div>
+              ) : (
+                <div className="text-sm font-bold text-emerald-400">✓ Meta atingida!</div>
+              )}
+              {(fatMensal as any).superMeta && (fatMensal as any).superMeta > 0 && (
+                <div className="text-xs text-white/30 mt-0.5">Super: {formatarMoeda((fatMensal as any).superMeta)}</div>
+              )}
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  (fatMensal as any).pctMeta >= 100 ? 'bg-emerald-400' :
+                  (fatMensal as any).pctMeta >= 80 ? 'bg-yellow-400' : 'bg-indigo-400'
+                }`}
+                style={{ width: `${Math.min(100, (fatMensal as any).pctMeta ?? 0)}%` }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
@@ -741,6 +798,13 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
     { empresaSlug: minhaEmpresa, tipo: 'semanal', dataInicio, dataFim },
     { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
   );
+  // Faturamento mensal acumulado (para mostrar meta e valor que falta)
+  const mesSemNum = useMemo(() => parseInt(dataInicio.split('-')[1], 10), [dataInicio]);
+  const anoSemNum = useMemo(() => parseInt(dataInicio.split('-')[0], 10), [dataInicio]);
+  const { data: fatMensalSem } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes: mesSemNum, ano: anoSemNum },
+    { staleTime: 60_000, enabled: !verGeral }
+  );
 
   const rankingFiltrado = useMemo(() => {
     if (!ranking) return [];
@@ -828,6 +892,50 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
             {fatUnidadeSem.recorrencia > 0 && (
               <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidadeSem.recorrencia)} recorr.</div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Card de progresso mensal da unidade */}
+      {!verGeral && fatMensalSem && (fatMensalSem as any).metaMensal && (
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 px-4 py-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Meta do Mês — Unidade</div>
+            {(fatMensalSem as any).pctMeta != null && (
+              <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                (fatMensalSem as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                (fatMensalSem as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                'bg-red-500/20 text-red-300'
+              }`}>{(fatMensalSem as any).pctMeta}%</div>
+            )}
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-lg font-bold text-indigo-300">{formatarMoeda(fatMensalSem.total)}</div>
+              <div className="text-xs text-white/40 mt-0.5">Meta: {formatarMoeda((fatMensalSem as any).metaMensal)}</div>
+            </div>
+            <div className="text-right">
+              {(fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta < 100 ? (
+                <div className="text-sm font-bold text-amber-400">
+                  Falta: {formatarMoeda(Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total))}
+                </div>
+              ) : (
+                <div className="text-sm font-bold text-emerald-400">✓ Meta atingida!</div>
+              )}
+              {(fatMensalSem as any).superMeta && (fatMensalSem as any).superMeta > 0 && (
+                <div className="text-xs text-white/30 mt-0.5">Super: {formatarMoeda((fatMensalSem as any).superMeta)}</div>
+              )}
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  (fatMensalSem as any).pctMeta >= 100 ? 'bg-emerald-400' :
+                  (fatMensalSem as any).pctMeta >= 80 ? 'bg-yellow-400' : 'bg-indigo-400'
+                }`}
+                style={{ width: `${Math.min(100, (fatMensalSem as any).pctMeta ?? 0)}%` }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -1034,8 +1142,15 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               )}
             </div>
             <div className="text-right">
+              {(fatUnidadeMes as any).metaMensal && (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta < 100 ? (
+                <div className="text-sm font-bold text-amber-400">
+                  Falta: {formatarMoeda(Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total))}
+                </div>
+              ) : (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100 ? (
+                <div className="text-sm font-bold text-emerald-400">✓ Meta atingida!</div>
+              ) : null}
               {fatUnidadeMes.recorrencia > 0 && (
-                <div className="text-xs text-white/30">incl. {formatarMoeda(fatUnidadeMes.recorrencia)} recorr.</div>
+                <div className="text-xs text-white/30 mt-0.5">incl. {formatarMoeda(fatUnidadeMes.recorrencia)} recorr.</div>
               )}
             </div>
           </div>

@@ -1062,3 +1062,7 @@
 - [x] Frontend: página /sync-status com painel de status dos jobs no dashboard
 - [x] Frontend: card de status do último sync na sidebar/dashboard
 - [x] Frontend: botão de sync manual no painel de status
+
+## Correções e Melhorias - Ranking WhatsApp e Meta por Unidade
+- [x] Corrigir erro no envio do ranking pelo WhatsApp
+- [x] Exibir valor que falta para a meta por unidade no ranking dos profissionais
