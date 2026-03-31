@@ -1,0 +1,148 @@
+{
+  "query": "\nSELECT \n  c.id,\n  c.nome,\n  c.empresaSlug,\n  c.cashbarberProfissionalId\nFROM colaboradores c\nWHERE c.ativo = 1\nORDER BY c.empresaSlug, c.nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  c.id,\n  c.nome,\n  c.empresaSlug,\n  c.cashbarberProfissionalId\nFROM colaboradores c\nWHERE c.ativo = 1\nORDER BY c.empresaSlug, c.nome;\n",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "32423"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "24575"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "19442"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "585"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "24784"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "34191"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "23173"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "580"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "587"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "34337"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "35930"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "12372"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "2603"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\n5\tCaio\tMASCOTE\tNULL\n6\tEdinho\tMASCOTE\tNULL\n22\tFelipe\tMASCOTE\tNULL\n8\tIsabella\tMASCOTE\tNULL\n10\tKaren\tMASCOTE\tNULL\n11\tMell\tMASCOTE\tNULL\n13\tNeudo\tMASCOTE\tNULL\n16\tRecepção Mascote\tMASCOTE\tNULL\n19\tRenan\tMASCOTE\t32423\n17\tVinicius\tMASCOTE\tNULL\n1\tAdailton\tMORUMBI\t24575\n7\tChristian\tMORUMBI\t19442\n12\tCleison\tMORUMBI\t585\n2\tDan\tMORUMBI\t24784\n23\tEduarda\tMORUMBI\t34191\n3\tEmerson\tMORUMBI\t23173\n18\tFábio\tMORUMBI\t580\n14\tJoão\tMORUMBI\t587\n21\tKaleb\tMORUMBI\t34337\n20\tMirela\tMORUMBI\t35930\n4\tRecepção Morumbi\tMORUMBI\tNULL\n9\tSamuel\tMORUMBI\t12372\n15\tVanilson\tMORUMBI\t2603\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

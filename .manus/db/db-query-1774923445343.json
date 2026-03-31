@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, cashbarberProfissionalId \nFROM colaboradores \nWHERE id NOT IN (5,6,22,8,10,11,13,16,19,17,1,7,12,2,23,3,18,14,21,20)\nORDER BY empresaSlug, nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, cashbarberProfissionalId \nFROM colaboradores \nWHERE id NOT IN (5,6,22,8,10,11,13,16,19,17,1,7,12,2,23,3,18,14,21,20)\nORDER BY empresaSlug, nome;\n",
+  "rows": [
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "23104"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "12372"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "2603"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\n4\tRecepção Morumbi\tMORUMBI\t23104\n9\tSamuel\tMORUMBI\t12372\n15\tVanilson\tMORUMBI\t2603\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

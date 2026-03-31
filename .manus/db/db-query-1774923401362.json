@@ -1,0 +1,70 @@
+{
+  "query": "\nSELECT id, nome, empresaSlug, cashbarberProfissionalId \nFROM colaboradores \nWHERE cashbarberProfissionalId IS NULL OR cashbarberProfissionalId = 0\nORDER BY empresaSlug, nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT id, nome, empresaSlug, cashbarberProfissionalId \nFROM colaboradores \nWHERE cashbarberProfissionalId IS NULL OR cashbarberProfissionalId = 0\nORDER BY empresaSlug, nome;\n",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "MASCOTE",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "MORUMBI",
+      "cashbarberProfissionalId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\n5\tCaio\tMASCOTE\tNULL\n6\tEdinho\tMASCOTE\tNULL\n22\tFelipe\tMASCOTE\tNULL\n8\tIsabella\tMASCOTE\tNULL\n10\tKaren\tMASCOTE\tNULL\n11\tMell\tMASCOTE\tNULL\n13\tNeudo\tMASCOTE\tNULL\n16\tRecepção Mascote\tMASCOTE\tNULL\n17\tVinicius\tMASCOTE\tNULL\n4\tRecepção Morumbi\tMORUMBI\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE colaboradores SET cashbarberProfissionalId = 27520 WHERE id = 5;\nUPDATE colaboradores SET cashbarberProfissionalId = 22436 WHERE id = 6;\nUPDATE colaboradores SET cashbarberProfissionalId = 34288 WHERE id = 22;\nUPDATE colaboradores SET cashbarberProfissionalId = 23224 WHERE id = 8;\nUPDATE colaboradores SET cashbarberProfissionalId = 29459 WHERE id = 10;\nUPDATE colaboradores SET cashbarberProfissionalId = 25571 WHERE id = 11;\nUPDATE colaboradores SET cashbarberProfissionalId = 22435 WHERE id = 13;\nUPDATE colaboradores SET cashbarberProfissionalId = 23105 WHERE id = 16;\nUPDATE colaboradores SET cashbarberProfissionalId = 24720 WHERE id = 17;\nUPDATE colaboradores SET cashbarberProfissionalId = 23104 WHERE id = 4;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE colaboradores SET cashbarberProfissionalId = 27520 WHERE id = 5;\nUPDATE colaboradores SET cashbarberProfissionalId = 22436 WHERE id = 6;\nUPDATE colaboradores SET cashbarberProfissionalId = 34288 WHERE id = 22;\nUPDATE colaboradores SET cashbarberProfissionalId = 23224 WHERE id = 8;\nUPDATE colaboradores SET cashbarberProfissionalId = 29459 WHERE id = 10;\nUPDATE colaboradores SET cashbarberProfissionalId = 25571 WHERE id = 11;\nUPDATE colaboradores SET cashbarberProfissionalId = 22435 WHERE id = 13;\nUPDATE colaboradores SET cashbarberProfissionalId = 23105 WHERE id = 16;\nUPDATE colaboradores SET cashbarberProfissionalId = 24720 WHERE id = 17;\nUPDATE colaboradores SET cashbarberProfissionalId = 23104 WHERE id = 4;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 185
+}
