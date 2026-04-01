@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { trpc } from "@/lib/trpc";
 import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
-import { toPng } from "html-to-image";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
@@ -41,7 +40,7 @@ function empresaLabel(slug: string | null | undefined) {
 function gerarTextoRanking(
   titulo: string,
   subtitulo: string,
-  ranking: Array<{ nome: string; apelido?: string | null; totalGeral: number; totalServicos?: number; totalProdutos?: number; pctMeta?: number | null }>,
+  ranking: Array<{ nome: string; apelido?: string | null; totalGeral: number; totalServicos?: number; totalProdutos?: number; qtdServicos?: number; qtdProdutos?: number; pctMeta?: number | null }>,
   rodape?: string
 ): string {
   const medalhas = ["🥇", "🥈", "🥉"];
@@ -54,8 +53,12 @@ function gerarTextoRanking(
     const pos = medalhas[i] ?? `${i + 1}º`;
     const nome = p.apelido || p.nome.split(" ")[0];
     const valor = formatarMoeda(p.totalGeral);
-    const pct = p.pctMeta ? ` (${p.pctMeta}% meta)` : "";
-    linhas.push(`${pos} ${nome} — ${valor}${pct}`);
+    const pct = p.pctMeta ? ` | ${p.pctMeta}% meta` : "";
+    const svcs = (p.qtdServicos != null && p.qtdServicos > 0) ? `✂️ ${p.qtdServicos} serv` : "";
+    const prds = (p.qtdProdutos != null && p.qtdProdutos > 0) ? `🛍️ ${p.qtdProdutos} prod` : "";
+    const detalhe = [svcs, prds].filter(Boolean).join(" ");
+    linhas.push(`${pos} *${nome}* — ${valor}${pct}`);
+    if (detalhe) linhas.push(`   ${detalhe}`);
   });
   if (rodape) {
     linhas.push("");
@@ -356,53 +359,27 @@ function RankingCard({
   );
 }
 
-// ─── Hook de exportação de imagem ─────────────────────────────────────────────
+// ─── Hook de compartilhamento WhatsApp ───────────────────────────────────────
 function useExportarImagem() {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState(false);
-  const uploadMutation = trpc.uploadRankingImagem.useMutation();
 
   /**
-   * Gera a imagem do ranking, faz upload para S3 e abre o WhatsApp
-   * com a mensagem de texto + link público da imagem.
-   * Se grupoLink for fornecido, copia a mensagem e abre o grupo.
+   * Monta o texto informativo do ranking e abre o WhatsApp.
+   * Se grupoLink for fornecido, copia a mensagem e abre o grupo diretamente.
    */
   const exportar = useCallback(async (
-    nomeArquivo: string,
+    _nomeArquivo: string,
     mensagemTexto?: string,
     grupoLink?: string | null
   ) => {
-    if (!exportRef.current || exportando) return;
+    if (exportando) return;
     setExportando(true);
     try {
-      // 1. Gerar imagem PNG
-      const dataUrl = await toPng(exportRef.current, {
-        backgroundColor: "#0f172a",
-        pixelRatio: 2,
-      });
+      // Usar apenas o texto informativo (sem imagem)
+      const mensagemFinal = mensagemTexto ?? "🏆 Confira o ranking!";
 
-      // 2. Fazer upload para S3 e obter URL pública
-      toast.loading("Enviando imagem...", { id: "upload-ranking" });
-      let imagemUrl: string | null = null;
-      try {
-        const result = await uploadMutation.mutateAsync({
-          imageBase64: dataUrl,
-          nomeArquivo: nomeArquivo.replace(/[^a-z0-9-]/gi, '-'),
-        });
-        imagemUrl = result.url;
-        toast.dismiss("upload-ranking");
-      } catch (uploadErr) {
-        toast.dismiss("upload-ranking");
-        console.warn("Upload falhou, usando apenas texto:", uploadErr);
-      }
-
-      // 3. Montar mensagem com texto do ranking + link da imagem
-      const textoBase = mensagemTexto ?? "🏆 Confira o ranking!";
-      const mensagemFinal = imagemUrl
-        ? `${textoBase}\n\n🖼️ Ver imagem: ${imagemUrl}`
-        : textoBase;
-
-      // 4. Abrir WhatsApp com a mensagem
+      // Abrir WhatsApp com a mensagem
       const encodedText = encodeURIComponent(mensagemFinal);
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       let url: string;
@@ -419,13 +396,12 @@ function useExportarImagem() {
       }
       setTimeout(() => window.open(url, "_blank"), 300);
     } catch (e) {
-      toast.dismiss("upload-ranking");
-      console.error("Erro ao exportar imagem:", e);
-      toast.error("Erro ao gerar imagem.");
+      console.error("Erro ao enviar para WhatsApp:", e);
+      toast.error("Erro ao preparar mensagem.");
     } finally {
       setExportando(false);
     }
-  }, [exportando, uploadMutation]);
+  }, [exportando]);
   return { exportRef, exportando, exportar };
 }
 
