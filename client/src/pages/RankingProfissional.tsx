@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 
@@ -1836,9 +1836,250 @@ function AbaAnalise({ profissionalId }: { profissionalId: number }) {
   );
 }
 
+// ─── Aba Meu Desempenho ─────────────────────────────────────────────────────
+function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
+  const { data, isLoading, error } = trpc.desempenhoHistorico.useQuery(
+    { profissionalId },
+    { staleTime: 1000 * 60 * 10, refetchInterval: 30 * 60 * 1000 }
+  );
+  const mesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+  if (error || !data) {
+    return (
+      <div className="text-center py-10 text-red-400 text-sm">
+        Erro ao carregar desempenho. Tente novamente.
+      </div>
+    );
+  }
+
+  const mesAtualData = data.historico[data.historico.length - 1];
+  const pctMeta = data.metaMensal && data.metaMensal > 0
+    ? Math.min(100, Math.round((mesAtualData.totalGeral / data.metaMensal) * 100))
+    : null;
+  const faltaMeta = data.metaMensal && data.metaMensal > 0
+    ? Math.max(0, data.metaMensal - mesAtualData.totalGeral)
+    : null;
+  const corBarra = pctMeta == null ? 'bg-blue-400'
+    : pctMeta >= 100 ? 'bg-emerald-400'
+    : pctMeta >= 75  ? 'bg-blue-400'
+    : pctMeta >= 50  ? 'bg-amber-400'
+    : 'bg-red-400';
+  const corTexto = pctMeta == null ? 'text-blue-300'
+    : pctMeta >= 100 ? 'text-emerald-300'
+    : pctMeta >= 75  ? 'text-blue-300'
+    : pctMeta >= 50  ? 'text-amber-300'
+    : 'text-red-300';
+
+  // Calcular melhor posição histórica
+  const melhorPosicao = data.historico.reduce((best, h) => {
+    if (h.posicao && (!best || h.posicao < best)) return h.posicao;
+    return best;
+  }, null as number | null);
+
+  // Calcular tendência (último mês vs penúltimo)
+  const penultimoMes = data.historico[data.historico.length - 2];
+  const variacaoMensal = penultimoMes.totalGeral > 0
+    ? Math.round(((mesAtualData.totalGeral - penultimoMes.totalGeral) / penultimoMes.totalGeral) * 100)
+    : null;
+
+  // Altura máxima para o gráfico de barras
+  const maxFat = Math.max(...data.historico.map(h => h.totalGeral), 1);
+
+  return (
+    <div className="space-y-4">
+      {/* ── Card de Meta Individual ── */}
+      {data.metaMensal ? (
+        <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-blue-400" />
+              <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider">Meta do Mês</h2>
+            </div>
+            {pctMeta != null && (
+              <span className={`text-lg font-bold ${corTexto}`}>{pctMeta}%</span>
+            )}
+          </div>
+          {/* Barra de progresso grande */}
+          <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-2">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ${corBarra}`}
+              style={{ width: `${pctMeta ?? 0}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-bold text-xl">{formatarMoeda(mesAtualData.totalGeral)}</p>
+              <p className="text-white/40 text-xs">de {formatarMoeda(data.metaMensal)}</p>
+            </div>
+            {faltaMeta != null && faltaMeta > 0 && (
+              <div className="text-right">
+                <p className="text-amber-300 font-semibold text-sm">{formatarMoeda(faltaMeta)}</p>
+                <p className="text-white/40 text-xs">falta para a meta</p>
+              </div>
+            )}
+            {pctMeta != null && pctMeta >= 100 && (
+              <div className="flex items-center gap-1 text-emerald-400">
+                <Award className="w-5 h-5" />
+                <span className="text-sm font-bold">Meta batida!</span>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+          <Target className="w-6 h-6 text-white/30 mx-auto mb-2" />
+          <p className="text-white/40 text-sm">Meta individual não configurada</p>
+          <p className="text-white/25 text-xs mt-1">Peça ao gestor para cadastrar sua meta mensal</p>
+        </div>
+      )}
+
+      {/* ── KPIs do Mês Atual ── */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <p className="text-white/50 text-xs">Posição Atual</p>
+          </div>
+          <p className="text-white font-bold text-2xl">
+            {mesAtualData.posicao ? `${mesAtualData.posicao}º` : '—'}
+          </p>
+          {mesAtualData.totalParticipantes > 0 && (
+            <p className="text-white/30 text-xs">de {mesAtualData.totalParticipantes} profissionais</p>
+          )}
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Zap className="w-3.5 h-3.5 text-blue-400" />
+            <p className="text-white/50 text-xs">Ticket Médio</p>
+          </div>
+          <p className="text-white font-bold text-lg">{formatarMoeda(data.ticketMedio)}</p>
+          <p className="text-white/30 text-xs">{mesAtualData.qtdServicos} atend.</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+            <p className="text-white/50 text-xs">Projeção Final</p>
+          </div>
+          <p className="text-white font-bold text-lg">{formatarMoeda(data.projecaoFinal)}</p>
+          <p className="text-white/30 text-xs">{data.diasRestantes}d restantes</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Star className="w-3.5 h-3.5 text-purple-400" />
+            <p className="text-white/50 text-xs">Melhor Posição</p>
+          </div>
+          <p className="text-white font-bold text-2xl">
+            {melhorPosicao ? `${melhorPosicao}º` : '—'}
+          </p>
+          <p className="text-white/30 text-xs">nos últimos 6 meses</p>
+        </div>
+      </div>
+
+      {/* ── Gráfico de Faturamento (últimos 6 meses) ── */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Faturamento · Últimos 6 Meses</h2>
+        {variacaoMensal != null && (
+          <div className={`flex items-center gap-1 mb-3 text-xs font-semibold ${
+            variacaoMensal > 0 ? 'text-emerald-400' : variacaoMensal < 0 ? 'text-red-400' : 'text-white/40'
+          }`}>
+            {variacaoMensal > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : variacaoMensal < 0 ? <TrendingDown className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
+            {variacaoMensal > 0 ? '+' : ''}{variacaoMensal}% vs mês passado
+          </div>
+        )}
+        {/* Gráfico de barras manual (sem dependência externa) */}
+        <div className="flex items-end gap-2 h-28">
+          {data.historico.map((h, idx) => {
+            const isAtual = idx === data.historico.length - 1;
+            const pct = maxFat > 0 ? (h.totalGeral / maxFat) * 100 : 0;
+            return (
+              <div key={`${h.mes}-${h.ano}`} className="flex-1 flex flex-col items-center gap-1">
+                <p className="text-white/50 text-[9px] leading-none">
+                  {h.totalGeral > 0 ? `R$${Math.round(h.totalGeral / 1000)}k` : ''}
+                </p>
+                <div className="w-full rounded-t-md transition-all duration-500" style={{
+                  height: `${Math.max(pct, h.totalGeral > 0 ? 4 : 0)}%`,
+                  background: isAtual
+                    ? 'linear-gradient(to top, #3b82f6, #60a5fa)'
+                    : 'rgba(255,255,255,0.15)',
+                  minHeight: h.totalGeral > 0 ? '4px' : '0',
+                }} />
+                <p className={`text-[9px] leading-none ${isAtual ? 'text-blue-300 font-bold' : 'text-white/30'}`}>
+                  {mesNomes[h.mes - 1]}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Evolução de Posição no Ranking ── */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Posição no Ranking · Últimos 6 Meses</h2>
+        <div className="space-y-2">
+          {[...data.historico].reverse().map((h, idx) => {
+            const isAtual = idx === 0;
+            const pctPos = h.posicao && h.totalParticipantes > 0
+              ? Math.round(((h.totalParticipantes - h.posicao + 1) / h.totalParticipantes) * 100)
+              : null;
+            return (
+              <div key={`${h.mes}-${h.ano}`} className={`flex items-center gap-3 p-2.5 rounded-xl ${
+                isAtual ? 'bg-blue-500/15 border border-blue-500/25' : 'bg-white/3'
+              }`}>
+                <div className="w-12 text-right">
+                  <p className={`text-xs font-semibold ${isAtual ? 'text-blue-300' : 'text-white/40'}`}>
+                    {mesNomes[h.mes - 1]}/{String(h.ano).slice(2)}
+                  </p>
+                </div>
+                <div className="flex-1">
+                  {h.totalGeral > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            pctPos != null && pctPos >= 75 ? 'bg-emerald-400'
+                            : pctPos != null && pctPos >= 50 ? 'bg-blue-400'
+                            : 'bg-amber-400'
+                          }`}
+                          style={{ width: `${pctPos ?? 0}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-bold w-6 text-right ${
+                        h.posicao === 1 ? 'text-amber-400'
+                        : h.posicao === 2 ? 'text-slate-300'
+                        : h.posicao === 3 ? 'text-amber-600'
+                        : 'text-white/60'
+                      }`}>
+                        {h.posicao ? `${h.posicao}º` : '—'}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-white/20 text-xs">Sem dados</p>
+                  )}
+                </div>
+                <div className="w-20 text-right">
+                  <p className={`text-xs font-semibold ${isAtual ? 'text-white' : 'text-white/40'}`}>
+                    {h.totalGeral > 0 ? formatarMoeda(h.totalGeral) : '—'}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tela principal do ranking ────────────────────────────────────────────────
 function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; meuId: number; onLogout: () => void }) {
-  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise">("diario");
+  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise" | "desempenho">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
   // Indicador fixo de faturamento mensal da unidade no header
@@ -1860,6 +2101,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, onLogout }: { m
     { id: "mensal" as const, label: "Mês", icon: Trophy },
     { id: "atendimentos" as const, label: "Meus", icon: Scissors },
     { id: "analise" as const, label: "Análise", icon: BarChart2 },
+    { id: "desempenho" as const, label: "Meu", icon: Star },
   ];
 
   return (
@@ -1956,6 +2198,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, onLogout }: { m
         {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
         {aba === "analise" && <AbaAnalise profissionalId={meuId} />}
+        {aba === "desempenho" && <AbaDesempenho profissionalId={meuId} />}
       </div>
     </div>
   );

@@ -4126,5 +4126,66 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
       };
     }),
+
+  // ─── Histórico de desempenho dos últimos 6 meses por profissional ────────────────
+  desempenhoHistorico: publicProcedure
+    .input(z.object({ profissionalId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const now = new Date();
+      // Gerar lista dos últimos 6 meses (incluindo o atual)
+      const meses: Array<{ mes: number; ano: number }> = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        meses.push({ mes: d.getMonth() + 1, ano: d.getFullYear() });
+      }
+      // Buscar dados de todos os meses em paralelo
+      const resultados = await Promise.all(
+        meses.map(({ mes, ano }) => listarRankingPorPeriodo(tenantId, mes, ano))
+      );
+      // Buscar dados do colaborador
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const col = colaboradoresList.find((c) => c.id === input.profissionalId);
+      // Montar histórico
+      const historico = meses.map(({ mes, ano }, idx) => {
+        const { itens } = resultados[idx];
+        const meuFat = itens.find((i) => i.colaboradorId === input.profissionalId);
+        // Ranking apenas da mesma empresa (para posicionamento correto)
+        const mesmaEmpresa = col?.empresaSlug
+          ? itens.filter((i) => i.empresaSlug === col.empresaSlug)
+          : itens;
+        const rankingOrdenado = [...mesmaEmpresa].sort((a, b) => b.totalGeral - a.totalGeral);
+        const posicao = rankingOrdenado.findIndex((i) => i.colaboradorId === input.profissionalId) + 1 || null;
+        return {
+          mes,
+          ano,
+          totalGeral: meuFat?.totalGeral ?? 0,
+          totalServicos: meuFat?.totalServicos ?? 0,
+          totalProdutos: meuFat?.totalProdutos ?? 0,
+          qtdServicos: meuFat?.qtdServicos ?? 0,
+          qtdProdutos: meuFat?.qtdProdutos ?? 0,
+          posicao,
+          totalParticipantes: rankingOrdenado.length,
+        };
+      });
+      // Calcular ticket médio e projeção do mês atual
+      const mesAtualData = historico[historico.length - 1];
+      const ticketMedio = mesAtualData.qtdServicos > 0
+        ? Math.round((mesAtualData.totalServicos / mesAtualData.qtdServicos) * 100) / 100
+        : 0;
+      const diaAtual = now.getDate();
+      const diasNoMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const diasRestantes = diasNoMes - diaAtual;
+      const mediaDiaria = diaAtual > 0 ? mesAtualData.totalGeral / diaAtual : 0;
+      const projecaoFinal = mesAtualData.totalGeral + mediaDiaria * diasRestantes;
+      return {
+        historico,
+        metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
+        ticketMedio,
+        projecaoFinal: Math.round(projecaoFinal * 100) / 100,
+        diasRestantes,
+        mediaDiaria: Math.round(mediaDiaria * 100) / 100,
+      };
+    }),
 });
 export type AppRouter = typeof appRouter;

@@ -1102,3 +1102,12 @@
 - [x] Mensagem personalizada por profissional: posição, faturamento, valor para subir
 - [x] Botão "Ranking WhatsApp" na página de Profissionais abre modal com todos os links
 - [x] Modal exibe posição, faturamento, falta para subir e botão "Abrir WhatsApp" por profissional
+
+## Tela "Meu Desempenho" para Profissional
+
+- [x] Procedure desempenhoHistorico: retorna faturamento + posição dos últimos 6 meses por profissional
+- [x] Nova aba "Meu" no RankingView com ícone de estrela
+- [x] Card de meta individual: barra de progresso grande com % atingido e valor faltante
+- [x] Gráfico de barras: faturamento dos últimos 6 meses (CSS puro, sem dependência)
+- [x] Evolução de posição no ranking: lista dos 6 meses com barra de percentual
+- [x] Cards de KPIs: posição atual, ticket médio, projeção final, melhor posição histórica
