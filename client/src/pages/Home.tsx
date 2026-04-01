@@ -502,6 +502,20 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
+      // Faturamento do dia atual (para o semáforo)
+      const dataHojeStr = `${ano}-${String(mes).padStart(2, '0')}-${String(diaHoje).padStart(2, '0')}`;
+      const rowHoje = rows.find((r: any) => r.data === dataHojeStr);
+      const fatHoje = rowHoje ? sumCatsSemCat9(rowHoje) : 0;
+      // Meta diária proporcional: metaMensal / diasUteis
+      const metaDiariaHoje = metaDiariaMensal;
+      // Semáforo: verde ≥ 100%, amarelo 70–99%, vermelho < 70%
+      const pctMetaDiaria = metaDiariaHoje > 0 ? (fatHoje / metaDiariaHoje) * 100 : null;
+      const semaforo: 'verde' | 'amarelo' | 'vermelho' | null =
+        !ehMesVigente || metaDiariaHoje === 0 ? null
+        : pctMetaDiaria! >= 100 ? 'verde'
+        : pctMetaDiaria! >= 70 ? 'amarelo'
+        : 'vermelho';
+
       // Projeção final:
       // = recorrenciaNoFaturamento (valor único mensal, já incluído em totalRealizado)
       //   + totalRealizadoSemRec (cat1..cat8 já realizados)
@@ -559,6 +573,10 @@ export default function Home() {
         // Progresso real vs meta esperada até hoje (baseado em realizados)
         progressoMensal: metaEsperadaAteHoje > 0 ? Math.min((totalRealizado / metaEsperadaAteHoje) * 100, 150) : (metaMensal > 0 ? Math.min((totalRealizado / metaMensal) * 100, 100) : 0),
         progressoQuinzenal: metaEsperadaQuinzenalAteHoje > 0 ? Math.min((totalQuinzenal / metaEsperadaQuinzenalAteHoje) * 100, 150) : (metaQuinzenal > 0 ? Math.min((totalQuinzenal / metaQuinzenal) * 100, 100) : 0),
+        fatHoje,
+        metaDiariaHoje,
+        pctMetaDiaria,
+        semaforo,
         catTotals,
         recorrenciaMes,
         recorrenciaPrevisao,
@@ -1675,6 +1693,24 @@ export default function Home() {
                             <span className="text-sm font-medium text-foreground">{s.emp.nome}</span>
                             {atingiu && (
                               <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">✓ Meta!</span>
+                            )}
+                            {/* Semáforo de meta diária — exibido apenas no mês vigente */}
+                            {s.semaforo !== null && (
+                              <span
+                                title={`Hoje: ${fmt(s.fatHoje)} / meta diária ${fmt(s.metaDiariaHoje)} (${s.pctMetaDiaria !== null ? Math.round(s.pctMetaDiaria) : 0}%)`}
+                                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                  s.semaforo === 'verde' ? 'bg-emerald-500/15 text-emerald-400'
+                                  : s.semaforo === 'amarelo' ? 'bg-amber-500/15 text-amber-400'
+                                  : 'bg-red-500/15 text-red-400'
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  s.semaforo === 'verde' ? 'bg-emerald-400'
+                                  : s.semaforo === 'amarelo' ? 'bg-amber-400'
+                                  : 'bg-red-400'
+                                }`} />
+                                {s.semaforo === 'verde' ? 'Dia OK' : s.semaforo === 'amarelo' ? 'Dia parcial' : 'Dia baixo'}
+                              </span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 text-right">

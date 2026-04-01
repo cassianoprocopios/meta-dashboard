@@ -1092,3 +1092,13 @@
 - [x] Criar hook useCopiarMensagem com estado de feedback (copiado/não copiado)
 - [x] Adicionar botão de cópia ao lado do botão WhatsApp nas 3 abas (diária, semanal, mensal)
 - [x] Feedback visual: ícone muda de "copiar" para "check" por 2 segundos após copiar
+
+## Semáforo de Meta Diária e Notificação WhatsApp para Profissionais
+
+- [x] Semáforo de meta diária no card de progresso por unidade (verde/amarelo/vermelho)
+- [x] Calcular faturamento do dia atual por unidade para o semáforo
+- [x] Exibir meta diária proporcional vs realizado do dia com indicador visual
+- [x] Procedure trpc gerarMensagensRankingWhatsApp: gera links wa.me personalizados por profissional
+- [x] Mensagem personalizada por profissional: posição, faturamento, valor para subir
+- [x] Botão "Ranking WhatsApp" na página de Profissionais abre modal com todos os links
+- [x] Modal exibe posição, faturamento, falta para subir e botão "Abrir WhatsApp" por profissional

@@ -654,6 +654,91 @@ const profissionaisRouter = router({
 
       return { ok: true, atualizados, semFoto, totalBarbeiros: barbeiros.length };
     }),
+
+  /**
+   * Gera mensagens personalizadas de ranking para WhatsApp de cada profissional.
+   * Retorna links wa.me pré-preenchidos com a posição atual, faturamento e quanto
+   * falta para subir uma posição no ranking do mês vigente.
+   */
+  gerarMensagensRankingWhatsApp: protectedProcedure
+    .input(z.object({
+      appUrl: z.string().url(),
+      mes: z.number().int().min(1).max(12).optional(),
+      ano: z.number().int().min(2020).max(2100).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const agora = new Date();
+      const mes = input.mes ?? (agora.getMonth() + 1);
+      const ano = input.ano ?? agora.getFullYear();
+      const { itens } = await listarRankingPorPeriodo(tenantId, mes, ano);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      // Ordenar por totalGeral desc
+      const rankingOrdenado = itens
+        .filter((i) => i.totalGeral > 0)
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+      const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const nomeMes = MESES_PT[mes - 1];
+      const resultados: Array<{
+        colaboradorId: number;
+        nome: string;
+        apelido: string | null;
+        telefone: string | null;
+        posicao: number;
+        totalGeral: number;
+        faltaParaSubir: number | null;
+        mensagem: string;
+        linkWhatsApp: string | null;
+      }> = [];
+      for (let i = 0; i < rankingOrdenado.length; i++) {
+        const item = rankingOrdenado[i];
+        const posicao = i + 1;
+        const acimaDele = i > 0 ? rankingOrdenado[i - 1] : null;
+        const faltaParaSubir = acimaDele ? Math.max(0, acimaDele.totalGeral - item.totalGeral + 0.01) : null;
+        const col = colaboradoresList.find((c) => c.id === item.colaboradorId);
+        const nomeExib = item.apelido || item.nome.split(' ')[0];
+        const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : `${posicao}º`;
+        let mensagem = `Olá ${nomeExib}! ✂️\n\n`;
+        mensagem += `📊 *Ranking ${nomeMes}/${ano}*\n`;
+        mensagem += `Sua posição atual: *${medalha} ${posicao}º lugar*\n`;
+        mensagem += `Seu faturamento: *${fmtBRL(item.totalGeral)}*\n`;
+        if (faltaParaSubir !== null && faltaParaSubir > 0) {
+          mensagem += `\n🎯 Para subir uma posição: *${fmtBRL(faltaParaSubir)}*\n`;
+        } else if (posicao === 1) {
+          mensagem += `\n👑 Você está em 1º lugar! Continue assim!\n`;
+        }
+        mensagem += `\n📱 Acompanhe o ranking completo: ${input.appUrl}/pro`;
+        const telefone = col?.telefone ?? null;
+        const telefoneFormatado = telefone ? telefone.replace(/\D/g, '') : null;
+        const numeroFinal = telefoneFormatado
+          ? (telefoneFormatado.startsWith('55') ? telefoneFormatado : `55${telefoneFormatado}`)
+          : null;
+        const linkWa = numeroFinal
+          ? `https://wa.me/${numeroFinal}?text=${encodeURIComponent(mensagem)}`
+          : null;
+        resultados.push({
+          colaboradorId: item.colaboradorId,
+          nome: item.nome,
+          apelido: item.apelido ?? null,
+          telefone: telefone,
+          posicao,
+          totalGeral: item.totalGeral,
+          faltaParaSubir: faltaParaSubir,
+          mensagem,
+          linkWhatsApp: linkWa,
+        });
+      }
+      return {
+        resultados,
+        total: resultados.length,
+        comTelefone: resultados.filter((r) => r.linkWhatsApp !== null).length,
+        semTelefone: resultados.filter((r) => r.linkWhatsApp === null).length,
+        mes,
+        ano,
+        nomeMes,
+      };
+    }),
 });
 export const appRouter = router({
   system: systemRouter,

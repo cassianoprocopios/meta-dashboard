@@ -37,6 +37,10 @@ import {
   RefreshCw,
   Trophy,
   Camera,
+  MessageSquare,
+  Send,
+  ExternalLink,
+  Phone,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -96,6 +100,20 @@ export default function Profissionais() {
   const hoje = new Date();
   const [syncMes, setSyncMes] = useState(hoje.getMonth() + 1);
   const [syncAno, setSyncAno] = useState(hoje.getFullYear());
+  const [modalRankingWa, setModalRankingWa] = useState(false);
+  type MensagemRanking = {
+    colaboradorId: number;
+    nome: string;
+    apelido: string | null;
+    telefone: string | null;
+    posicao: number;
+    totalGeral: number;
+    faltaParaSubir: number | null;
+    mensagem: string;
+    linkWhatsApp: string | null;
+  };
+  const [mensagensRanking, setMensagensRanking] = useState<MensagemRanking[]>([]);
+  const [mensagensRankingMeta, setMensagensRankingMeta] = useState<{ comTelefone: number; semTelefone: number; nomeMes: string; ano: number } | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -138,6 +156,16 @@ export default function Profissionais() {
       toast.success("Profissional removido.");
     },
     onError: (err) => toast.error("Erro ao remover: " + err.message),
+  });
+
+  const gerarMensagensRanking = trpc.profissionais.gerarMensagensRankingWhatsApp.useMutation({
+    onSuccess: (data) => {
+      setMensagensRanking(data.resultados);
+      setMensagensRankingMeta({ comTelefone: data.comTelefone, semTelefone: data.semTelefone, nomeMes: data.nomeMes, ano: data.ano });
+      setModalRankingWa(true);
+      toast.success(`${data.total} mensagens geradas! ${data.comTelefone} com link WhatsApp.`);
+    },
+    onError: (err) => toast.error("Erro ao gerar mensagens: " + err.message),
   });
 
   const abrirNovo = () => {
@@ -259,6 +287,15 @@ export default function Profissionais() {
             >
               <Trophy className="w-4 h-4 mr-2" />
               Ver Ranking
+            </Button>
+            <Button
+              onClick={() => gerarMensagensRanking.mutate({ appUrl: window.location.origin })}
+              disabled={gerarMensagensRanking.isPending}
+              variant="outline"
+              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+            >
+              <MessageSquare className={`w-4 h-4 mr-2 ${gerarMensagensRanking.isPending ? 'animate-pulse' : ''}`} />
+              {gerarMensagensRanking.isPending ? 'Gerando...' : 'Ranking WhatsApp'}
             </Button>
             <Button
               onClick={abrirNovo}
@@ -719,6 +756,94 @@ export default function Profissionais() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               {deletar.isPending ? "Removendo..." : "Remover"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Mensagens de Ranking WhatsApp */}
+      <Dialog open={modalRankingWa} onOpenChange={setModalRankingWa}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-emerald-400" />
+              Mensagens de Ranking — {mensagensRankingMeta?.nomeMes}/{mensagensRankingMeta?.ano}
+            </DialogTitle>
+          </DialogHeader>
+          {mensagensRankingMeta && (
+            <div className="flex gap-3 mb-4">
+              <div className="flex-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-center">
+                <p className="text-emerald-400 text-xl font-bold">{mensagensRankingMeta.comTelefone}</p>
+                <p className="text-white/50 text-xs">Com link WhatsApp</p>
+              </div>
+              <div className="flex-1 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-center">
+                <p className="text-amber-400 text-xl font-bold">{mensagensRankingMeta.semTelefone}</p>
+                <p className="text-white/50 text-xs">Sem telefone cadastrado</p>
+              </div>
+              <div className="flex-1 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
+                <p className="text-blue-400 text-xl font-bold">{mensagensRanking.length}</p>
+                <p className="text-white/50 text-xs">Total no ranking</p>
+              </div>
+            </div>
+          )}
+          <p className="text-white/40 text-xs mb-3">
+            Clique em “Abrir WhatsApp” para enviar a mensagem diretamente para cada profissional.
+            Profissionais sem telefone cadastrado não terão o botão disponível.
+          </p>
+          <div className="space-y-3">
+            {mensagensRanking.map((m) => {
+              const medalha = m.posicao === 1 ? '🥇' : m.posicao === 2 ? '🥈' : m.posicao === 3 ? '🥉' : `${m.posicao}º`;
+              return (
+                <div key={m.colaboradorId} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-base">{medalha}</span>
+                        <span className="text-white font-semibold text-sm">{m.apelido || m.nome}</span>
+                        {m.telefone ? (
+                          <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                            <Phone className="w-2.5 h-2.5" />{m.telefone}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">Sem telefone</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-white/50 mb-2">
+                        <span>Faturamento: <span className="text-white/80 font-medium">{m.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></span>
+                        {m.faltaParaSubir !== null && m.faltaParaSubir > 0 && (
+                          <span className="text-amber-400">Falta {m.faltaParaSubir.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para subir</span>
+                        )}
+                      </div>
+                      <pre className="text-white/40 text-[10px] whitespace-pre-wrap font-mono bg-white/5 rounded p-2 leading-relaxed">{m.mensagem}</pre>
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      {m.linkWhatsApp ? (
+                        <a
+                          href={m.linkWhatsApp}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                        >
+                          <Send className="w-3 h-3" />
+                          Abrir WhatsApp
+                          <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-white/30 text-center">Sem telefone</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="ghost"
+              onClick={() => setModalRankingWa(false)}
+              className="text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
