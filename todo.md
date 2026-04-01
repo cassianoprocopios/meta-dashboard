@@ -1148,3 +1148,9 @@
 - [x] Corrigir: comparativoMesAnterior agora usa apenas dias ≤ hoje (totalAtualMesmosDias) no mês vigente
 - [x] Corrigir: sincronizador distribui cat9 pelo total de dias do mês (não pelos dias realizados), garantindo valor diário consistente para comparativo correto
 - [x] Todos os 86 testes passando após a correção
+
+## Bug: Comparativo com Março - Filtro por Dia Exato
+
+- [x] Corrigir comparativoMesAnterior para somar apenas os dias de março ≤ dia atual do mês (dia 1 de março = dia 1 de abril)
+- [x] Filtrar dias futuros (pré-lançados) do mês vigente antes de calcular o comparativo
+- [x] Usar totalAtualRealizado (sem futuros) no card de comparativo em vez de totalGeral

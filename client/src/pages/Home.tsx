@@ -595,32 +595,48 @@ export default function Home() {
   const metaQuinzenalTotal = statsPorEmpresa.reduce((s, e) => s + e.metaQuinzenal, 0);
   const superMetaTotalGeral = statsPorEmpresa.reduce((s, e) => s + e.superMeta, 0);
 
-  // Comparativo com mês anterior: usar apenas os mesmos dias já apurados no mês atual
+  // Comparativo com mês anterior: usar apenas os mesmos dias já realizados no mês atual
   const comparativoMesAnterior = useMemo(() => {
-    // Dias já lançados no mês atual (por empresa e global)
+    // No mês vigente, considera apenas dias ≤ hoje (ignora lançamentos futuros pré-lançados)
+    const hojeComp = new Date();
+    const mesHojeComp = hojeComp.getMonth() + 1;
+    const anoHojeComp = hojeComp.getFullYear();
+    const ehMesVigenteComp = mes === mesHojeComp && ano === anoHojeComp;
+    const diaLimiteComp = ehMesVigenteComp ? hojeComp.getDate() : new Date(ano, mes, 0).getDate();
+
+    // Dias já realizados no mês atual (por empresa e global) — excluindo dias futuros no mês vigente
     const diasAtualPorEmpresa: Record<string, Set<number>> = {};
     const diasAtualGlobal = new Set<number>();
     faturamentosFiltrados.forEach((f: any) => {
       const dia = parseInt(f.data.split("-")[2]);
+      // No mês vigente, ignora dias futuros para o comparativo
+      if (ehMesVigenteComp && dia > diaLimiteComp) return;
       if (!diasAtualPorEmpresa[f.empresaSlug]) diasAtualPorEmpresa[f.empresaSlug] = new Set();
       diasAtualPorEmpresa[f.empresaSlug].add(dia);
       diasAtualGlobal.add(dia);
     });
 
-    // Período exato: dia mínimo e máximo lançados no mês atual
+    // Período exato: dia mínimo e máximo realizados no mês atual
     const diasOrdenados = Array.from(diasAtualGlobal).sort((a, b) => a - b);
     const diaInicio = diasOrdenados.length > 0 ? diasOrdenados[0] : 1;
     const diaFim = diasOrdenados.length > 0 ? diasOrdenados[diasOrdenados.length - 1] : 0;
     const periodoLabel = diaFim > 0 ? `dias ${diaInicio}–${diaFim}` : "sem lançamentos";
 
-    // Total do mês anterior nos mesmos dias
+    // Total realizado no mês atual (apenas dias realizados) por empresa
+    let totalAtualRealizado = 0;
     let totalAnteriorMesmosDias = 0;
     const porEmpresa: Record<string, { totalAtual: number; totalAnterior: number; diasAtual: number; diasAnterior: number }> = {};
     empresasVisiveis.forEach((emp) => {
       const diasAtual = diasAtualPorEmpresa[emp.slug] ?? new Set<number>();
-      const rowsAtual = faturamentosFiltrados.filter((f: any) => f.empresaSlug === emp.slug);
+      // Total atual: apenas dias realizados (sem futuros)
+      const rowsAtual = faturamentosFiltrados.filter((f: any) => {
+        if (f.empresaSlug !== emp.slug) return false;
+        const dia = parseInt(f.data.split("-")[2]);
+        return !ehMesVigenteComp || dia <= diaLimiteComp;
+      });
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+      totalAtualRealizado += totalAtual;
       const rowsAnterior = faturamentosAnteriorFiltrados.filter((f: any) => {
         if (f.empresaSlug !== emp.slug) return false;
         const dia = parseInt(f.data.split("-")[2]);
@@ -631,11 +647,12 @@ export default function Home() {
       totalAnteriorMesmosDias += totalAnterior;
       porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
-    const variacaoTotal = totalGeral > 0 && totalAnteriorMesmosDias > 0
-      ? ((totalGeral - totalAnteriorMesmosDias) / totalAnteriorMesmosDias) * 100
+    // Variação usa totalAtualRealizado (sem futuros) vs mês anterior nos mesmos dias
+    const variacaoTotal = totalAtualRealizado > 0 && totalAnteriorMesmosDias > 0
+      ? ((totalAtualRealizado - totalAnteriorMesmosDias) / totalAnteriorMesmosDias) * 100
       : null;
-    return { totalAnteriorMesmosDias, variacaoTotal, porEmpresa, periodoLabel, diaInicio, diaFim };
-  }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, totalGeral]);
+    return { totalAnteriorMesmosDias, totalAtualRealizado, variacaoTotal, porEmpresa, periodoLabel, diaInicio, diaFim };
+  }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
 
 
   // Empresas em risco: projeção de fechamento abaixo de 80% da meta mensal
@@ -1549,7 +1566,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-blue-50 rounded-xl p-3">
                     <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
-                    <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(totalGeral)}</p>
+                    <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMesAnterior.totalAtualRealizado)}</p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3">
                     <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
