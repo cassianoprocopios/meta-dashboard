@@ -254,6 +254,29 @@ export async function sincronizarFaturamentoCashbarber(
   const ultimoDia = ehMesAtual
     ? hoje.getDate()
     : new Date(ano, mes, 0).getDate();
+  const totalDiasMesAtual = new Date(ano, mes, 0).getDate();
+
+  // 6b. Para o mês vigente: buscar o valor de cat9 (Recorrência) do mês passado
+  //     para usar como previsão nos dias futuros (após o dia vigente).
+  let valorDiarioPrevisto = 0;
+  if (ehMesAtual) {
+    try {
+      const mesAnterior = mes === 1 ? 12 : mes - 1;
+      const anoAnterior = mes === 1 ? ano - 1 : ano;
+      const faturamentosMesAnterior = await getAllFaturamentosByTenant(tenantId, mesAnterior, anoAnterior, empresaSlug);
+      const totalCat9MesAnterior = faturamentosMesAnterior.reduce(
+        (acc, row) => acc + parseFloat(row.cat9 ?? "0"),
+        0
+      );
+      const totalDiasMesAnterior = new Date(anoAnterior, mesAnterior, 0).getDate();
+      // Valor diário proporcional ao total de dias do mês vigente
+      if (totalCat9MesAnterior > 0) {
+        valorDiarioPrevisto = Math.round((totalCat9MesAnterior / totalDiasMesAnterior) * 100) / 100;
+      }
+    } catch {
+      // Se falhar, mantém 0 (sem previsão)
+    }
+  }
 
   const detalhes: ResultadoSincronizacao["detalhes"] = [];
   let diasSincronizados = 0;
@@ -313,28 +336,36 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra: o valor total apurado no Dpote é distribuído igualmente pelos
-      // dias do mês (total fixo). Dias futuros recebem "0".
-      // Ex: Dpote = R$ 5.000 em abril (30 dias) → R$ 166,67/dia
-      // Isso garante comparativo correto com meses anteriores.
+      // Regra:
+      //   - Dias 1 até hoje: valor diário calculado pelo Dpote do mês vigente
+      //     (recorrenciaValor dividido pelo total de dias do mês)
+      //   - Dias futuros (após hoje): valor diário do mês passado como previsão
+      //     (valorDiarioPrevisto, calculado antes do loop)
+      //   - Meses passados: valor diário calculado pelo Dpote do mês
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
         const hoje2 = new Date();
         const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
         const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
         if (diaFuturo) {
-          cat9 = "0";
+          // Dia futuro: usar previsão baseada no mês passado
+          cat9 = valorDiarioPrevisto > 0 ? String(valorDiarioPrevisto) : (existente?.cat9 ?? "0");
         } else {
-          // Dividir sempre pelo total de dias do mês (não pelos dias realizados).
-          // Isso garante que o valor diário é consistente durante todo o mês e
-          // o comparativo com meses anteriores fica correto.
-          const totalDiasMes = new Date(ano, mes, 0).getDate();
-          const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
+          // Dia realizado: usar valor do Dpote do mês vigente
+          const valorDiario = Math.round((recorrenciaValor / totalDiasMesAtual) * 100) / 100;
           cat9 = String(valorDiario);
         }
       } else {
-        // Dpote falhou: preservar valor existente (ou "0" se novo registro)
-        cat9 = existente?.cat9 ?? "0";
+        // Dpote falhou ou não configurado:
+        // Para dias futuros do mês vigente, usar previsão do mês passado
+        const hoje2 = new Date();
+        const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
+        const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
+        if (diaFuturo && valorDiarioPrevisto > 0) {
+          cat9 = String(valorDiarioPrevisto);
+        } else {
+          cat9 = existente?.cat9 ?? "0";
+        }
       }
 
       // Salvar no banco (upsert com merge seletivo)
