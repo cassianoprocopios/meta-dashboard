@@ -757,6 +757,51 @@ export default function Home() {
     });
   }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
 
+  // Dados para gráfico de barras diário (faturamento por dia — realizados vs previstos)
+  const barDataDiario = useMemo(() => {
+    const hoje = new Date();
+    const diaHojeGlobal = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear()
+      ? hoje.getDate()
+      : new Date(ano, mes, 0).getDate();
+
+    // Todos os dias do mês
+    const totalDiasMes = new Date(ano, mes, 0).getDate();
+    const dias = Array.from({ length: totalDiasMes }, (_, i) => i + 1);
+
+    // Somar faturamento total (todas as empresas visíveis) por dia
+    const mapaAtual: Record<number, number> = {};
+    faturamentosFiltrados.forEach((f: any) => {
+      if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
+      const dia = parseInt(f.data.split("-")[2]);
+      const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
+        .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
+      mapaAtual[dia] = (mapaAtual[dia] ?? 0) + total;
+    });
+
+    // Previsão: cat1..cat8 dos dias futuros já lançados (sem cat9 — cat9 futuro é 0 no banco)
+    // + cat9 previsto baseado no mês anterior (calculado no frontend)
+    const totalCat9MesAnterior = faturamentosAnteriorFiltrados
+      .filter((f: any) => empresasVisiveis.find((e) => e.slug === f.empresaSlug))
+      .reduce((s: number, f: any) => s + parseFloat(f.cat9 || "0"), 0);
+    const cat9DiariopPrevisto = totalCat9MesAnterior > 0
+      ? Math.round((totalCat9MesAnterior / totalDiasMes) * 100) / 100
+      : 0;
+
+    return dias.map((dia) => {
+      const isPrevisto = dia > diaHojeGlobal;
+      const valorBanco = mapaAtual[dia] ?? 0;
+      // Para dias futuros: adicionar cat9 previsto ao valor do banco (que tem cat9=0)
+      const valor = isPrevisto ? valorBanco + cat9DiariopPrevisto : valorBanco;
+      return {
+        dia,
+        diaLabel: `${dia}`,
+        isPrevisto,
+        realizado: !isPrevisto ? valor : 0,
+        previsto: isPrevisto ? valor : 0,
+      };
+    }).filter((d) => d.realizado > 0 || d.previsto > 0);
+  }, [faturamentosFiltrados, faturamentosAnteriorFiltrados, empresasVisiveis, mes, ano]);
+
   // Dados para gráfico de barras de categorias Seraphine (usa nomes do banco)
   const barDataCategoriasSeraphine = useMemo(() => {
     const COLORS_CAT = ["#3b82f6", "#a855f7", "#10b981", "#f59e0b", "#ef4444"];
@@ -2616,6 +2661,72 @@ export default function Home() {
                 </div>
               </Card>
             )}
+            {/* Gráfico de barras diário — realizados (azul) vs previstos (âmbar) */}
+            {barDataDiario.length > 0 && (
+              <Card className="p-4 sm:p-5 border-0 shadow-sm rounded-2xl bg-card">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-foreground text-sm">Faturamento Diário</h3>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded-sm bg-blue-500"></span> Realizado
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded-sm bg-amber-400/60"></span> Previsto
+                    </span>
+                  </div>
+                </div>
+                <div className="h-[180px] sm:h-[240px] min-h-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barDataDiario} margin={{ top: 5, right: 5, left: -10, bottom: 0 }} barCategoryGap="20%">
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis
+                      dataKey="diaLabel"
+                      tick={{ fontSize: 10, fill: "#6b7280" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                      interval={barDataDiario.length > 20 ? 4 : barDataDiario.length > 10 ? 1 : 0}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "#6b7280" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                      width={38}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null;
+                        const entry = barDataDiario.find((d) => d.diaLabel === label);
+                        const val = (payload[0]?.value as number) ?? 0;
+                        return (
+                          <div className="bg-popover border border-border shadow-lg rounded-xl p-3 text-xs min-w-[150px]">
+                            <p className="font-semibold text-foreground mb-1">Dia {label}</p>
+                            <p className={entry?.isPrevisto ? "text-amber-400" : "text-blue-400"}>
+                              {entry?.isPrevisto ? "Previsto" : "Realizado"}: <span className="font-bold text-foreground">{fmtFull(val)}</span>
+                            </p>
+                            {entry?.isPrevisto && (
+                              <p className="text-muted-foreground mt-1">Estimativa baseada em {MESES[mesAnterior - 1]}</p>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    <Bar dataKey="realizado" name="Realizado" radius={[3, 3, 0, 0]} maxBarSize={24}>
+                      {barDataDiario.map((_, index) => (
+                        <Cell key={index} fill="#3b82f6" />
+                      ))}
+                    </Bar>
+                    <Bar dataKey="previsto" name="Previsto" radius={[3, 3, 0, 0]} maxBarSize={24}>
+                      {barDataDiario.map((_, index) => (
+                        <Cell key={index} fill="rgba(245,158,11,0.55)" />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                </div>
+              </Card>
+            )}
+
             {/* Gráficos */}
             {totalGeral > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
