@@ -362,3 +362,23 @@ export const faturamentoColaboradores = mysqlTable("faturamentoColaboradores", {
 });
 export type FaturamentoColaborador = typeof faturamentoColaboradores.$inferSelect;
 export type InsertFaturamentoColaborador = typeof faturamentoColaboradores.$inferInsert;
+
+// ─── PUSH SUBSCRIPTIONS (Notificações PWA dos Profissionais) ─────────────────
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  colaboradorId: int("colaboradorId").notNull(),
+  /** Endpoint único do browser para envio da notificação */
+  endpoint: text("endpoint").notNull(),
+  /** Chave p256dh da subscription */
+  p256dh: text("p256dh").notNull(),
+  /** Chave auth da subscription */
+  auth: text("auth").notNull(),
+  /** User agent do dispositivo para referência */
+  userAgent: varchar("userAgent", { length: 256 }),
+  ativo: int("ativo").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscriptionRow = typeof pushSubscriptions.$inferInsert;

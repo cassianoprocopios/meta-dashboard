@@ -739,6 +739,66 @@ const profissionaisRouter = router({
         nomeMes,
       };
     }),
+
+  // ─── PUSH SUBSCRIPTIONS (PWA) ────────────────────────────────────────────
+  salvarPushSubscription: publicProcedure
+    .input(z.object({
+      profissionalId: z.number().int().positive(),
+      endpoint: z.string().min(1),
+      p256dh: z.string().min(1),
+      auth: z.string().min(1),
+      userAgent: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const { salvarPushSubscription } = await import("./pushNotifications");
+      await salvarPushSubscription(
+        tenantId,
+        input.profissionalId,
+        input.endpoint,
+        input.p256dh,
+        input.auth,
+        input.userAgent
+      );
+      return { ok: true };
+    }),
+
+  removerPushSubscription: publicProcedure
+    .input(z.object({ profissionalId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const { removerPushSubscription } = await import("./pushNotifications");
+      await removerPushSubscription(tenantId, input.profissionalId);
+      return { ok: true };
+    }),
+
+  temPushSubscription: publicProcedure
+    .input(z.object({ profissionalId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const { temPushSubscription } = await import("./pushNotifications");
+      const ativo = await temPushSubscription(tenantId, input.profissionalId);
+      return { ativo };
+    }),
+
+  enviarPushRankingManual: protectedProcedure
+    .input(z.object({
+      profissionalId: z.number().int().positive(),
+      titulo: z.string().min(1),
+      mensagem: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const { enviarPushParaProfissional } = await import("./pushNotifications");
+      const enviou = await enviarPushParaProfissional(tenantId, input.profissionalId, {
+        title: input.titulo,
+        body: input.mensagem,
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        tag: "ranking",
+      });
+      return { enviou };
+    }),
 });
 export const appRouter = router({
   system: systemRouter,
@@ -4178,6 +4238,18 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const diasRestantes = diasNoMes - diaAtual;
       const mediaDiaria = diaAtual > 0 ? mesAtualData.totalGeral / diaAtual : 0;
       const projecaoFinal = mesAtualData.totalGeral + mediaDiaria * diasRestantes;
+      // Calcular falta para subir uma posição no ranking do mês atual
+      const rankingMesAtual = resultados[resultados.length - 1];
+      const mesmaEmpresaAtual = col?.empresaSlug
+        ? rankingMesAtual.itens.filter((i) => i.empresaSlug === col!.empresaSlug)
+        : rankingMesAtual.itens;
+      const rankingOrdenadoAtual = [...mesmaEmpresaAtual].sort((a, b) => b.totalGeral - a.totalGeral);
+      const minhaPosicaoIdx = rankingOrdenadoAtual.findIndex((i) => i.colaboradorId === input.profissionalId);
+      const acimaDele = minhaPosicaoIdx > 0 ? rankingOrdenadoAtual[minhaPosicaoIdx - 1] : null;
+      const faltaParaSubir = acimaDele
+        ? Math.max(0, Math.round((acimaDele.totalGeral - mesAtualData.totalGeral + 0.01) * 100) / 100)
+        : null;
+      const nomeProximo = acimaDele?.nome ?? null;
       return {
         historico,
         metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
@@ -4185,6 +4257,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         projecaoFinal: Math.round(projecaoFinal * 100) / 100,
         diasRestantes,
         mediaDiaria: Math.round(mediaDiaria * 100) / 100,
+        faltaParaSubir,
+        nomeProximo,
       };
     }),
 });

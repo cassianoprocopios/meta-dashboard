@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
@@ -1842,6 +1843,7 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
     { profissionalId },
     { staleTime: 1000 * 60 * 10, refetchInterval: 30 * 60 * 1000 }
   );
+  const { status: pushStatus, isRegistering, ativar: ativarPush, desativar: desativarPush } = usePushNotifications(profissionalId);
   const mesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
   if (isLoading) {
@@ -1891,9 +1893,110 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
 
   // Altura máxima para o gráfico de barras
   const maxFat = Math.max(...data.historico.map(h => h.totalGeral), 1);
-
+  // Mensagem motivacional dinâmica
+  const fmtMoeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const posicaoAtual = mesAtualData.posicao;
+  let motivEmoji = '💪';
+  let motivTitulo = '';
+  let motivSubtitulo = '';
+  if (pctMeta !== null && pctMeta >= 100) {
+    motivEmoji = '🏆';
+    motivTitulo = 'Meta batida! Incrível!';
+    motivSubtitulo = 'Você superou sua meta do mês. Continue assim!';
+  } else if (data.faltaParaSubir !== null && data.faltaParaSubir > 0 && data.faltaParaSubir < 500) {
+    motivEmoji = '🔥';
+    motivTitulo = `Só falta ${fmtMoeda(data.faltaParaSubir)} para subir!`;
+    motivSubtitulo = data.nomeProximo ? `Você está quase ultrapassando ${data.nomeProximo.split(' ')[0]}!` : 'Você está muito perto de subir uma posição!';
+  } else if (data.faltaParaSubir !== null && data.faltaParaSubir > 0) {
+    motivEmoji = '🎯';
+    motivTitulo = `${fmtMoeda(data.faltaParaSubir)} para subir uma posição`;
+    motivSubtitulo = data.nomeProximo ? `Supere ${data.nomeProximo.split(' ')[0]} e avance no ranking!` : 'Foque no próximo atendimento!';
+  } else if (posicaoAtual === 1) {
+    motivEmoji = '👑';
+    motivTitulo = 'Você está em 1º lugar!';
+    motivSubtitulo = 'Mantenha o ritmo e feche o mês no topo!';
+  } else if (pctMeta !== null && pctMeta >= 75) {
+    motivEmoji = '⚡';
+    motivTitulo = 'Ótimo ritmo! Quase lá!';
+    motivSubtitulo = `Faltam ${fmtMoeda(faltaMeta ?? 0)} para bater a meta. Você consegue!`;
+  } else if (pctMeta !== null && pctMeta >= 50) {
+    motivEmoji = '📈';
+    motivTitulo = 'Na metade do caminho!';
+    motivSubtitulo = `Acelere o ritmo — faltam ${fmtMoeda(faltaMeta ?? 0)} para a meta.`;
+  } else if (pctMeta !== null) {
+    motivEmoji = '💡';
+    motivTitulo = 'Hora de acelerar!';
+    motivSubtitulo = `Cada atendimento conta. Faltam ${fmtMoeda(faltaMeta ?? 0)} para a meta.`;
+  } else {
+    motivEmoji = '💪';
+    motivTitulo = 'Continue focado!';
+    motivSubtitulo = 'Peça ao gestor para configurar sua meta individual.';
+  }
   return (
     <div className="space-y-4">
+      {/* ── Card Motivacional ── */}
+      <div className={`rounded-2xl p-4 border ${
+        pctMeta !== null && pctMeta >= 100
+          ? 'bg-emerald-500/15 border-emerald-500/30'
+          : mesAtualData.posicao === 1
+          ? 'bg-amber-500/15 border-amber-500/30'
+          : data.faltaParaSubir !== null && data.faltaParaSubir < 500
+          ? 'bg-orange-500/15 border-orange-500/30'
+          : 'bg-white/5 border-white/10'
+      }`}>
+        <div className="flex items-start gap-3">
+          <span className="text-2xl leading-none mt-0.5">{motivEmoji}</span>
+          <div>
+            <p className="text-white font-bold text-base leading-snug">{motivTitulo}</p>
+            <p className="text-white/55 text-sm mt-0.5 leading-snug">{motivSubtitulo}</p>
+          </div>
+        </div>
+      </div>
+      {/* ── Botão de Notificações Push ── */}
+      {pushStatus !== 'unsupported' && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                pushStatus === 'active' ? 'bg-emerald-500/20' : 'bg-white/10'
+              }`}>
+                {pushStatus === 'active'
+                  ? <Bell className="w-4 h-4 text-emerald-400" />
+                  : <BellOff className="w-4 h-4 text-white/40" />
+                }
+              </div>
+              <div>
+                <p className="text-white text-sm font-semibold leading-snug">
+                  {pushStatus === 'active' ? 'Notificações ativas' : 'Ativar notificações'}
+                </p>
+                <p className="text-white/45 text-xs mt-0.5 leading-snug">
+                  {pushStatus === 'active'
+                    ? 'Você receberá alertas de ranking no celular'
+                    : pushStatus === 'denied'
+                    ? 'Bloqueado nas configurações do browser'
+                    : 'Receba alertas do ranking direto no celular'
+                  }
+                </p>
+              </div>
+            </div>
+            {pushStatus !== 'denied' && (
+              <button
+                onClick={pushStatus === 'active' ? desativarPush : ativarPush}
+                disabled={isRegistering || pushStatus === 'loading'}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  pushStatus === 'active'
+                    ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                } disabled:opacity-50`}
+              >
+                {isRegistering ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : pushStatus === 'active' ? 'Desativar' : 'Ativar'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {/* ── Card de Meta Individual ── */}
       {data.metaMensal ? (
         <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-2xl p-4">

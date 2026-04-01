@@ -1111,3 +1111,17 @@
 - [x] Gráfico de barras: faturamento dos últimos 6 meses (CSS puro, sem dependência)
 - [x] Evolução de posição no ranking: lista dos 6 meses com barra de percentual
 - [x] Cards de KPIs: posição atual, ticket médio, projeção final, melhor posição histórica
+
+## Mensagem Motivacional e PWA Push
+
+- [x] Adicionar campo faltaParaSubir na procedure desempenhoHistorico
+- [x] Mensagem motivacional dinâmica na aba "Meu" baseada no % da meta e posição no ranking
+- [x] Frases diferentes para: meta batida, acima de 75%, acima de 50%, abaixo de 50%, sem meta
+- [x] Frase especial quando está a menos de R$ X de subir uma posição
+- [x] PWA: criar manifest.json com ícone, nome e cores do app
+- [x] PWA: criar service worker (sw.js) com suporte a push notifications
+- [x] PWA: tabela pushSubscriptions no banco para armazenar endpoints dos profissionais
+- [x] PWA: procedure para salvar/remover subscription do profissional
+- [x] PWA: botão "Ativar notificações" na aba Meu Desempenho
+- [ ] PWA: job automático às 12h envia push para todos os profissionais com subscription ativa (requer Z-API ou envio manual)
+- [x] PWA: gerar chaves VAPID e configurar no servidor
