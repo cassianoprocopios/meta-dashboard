@@ -1141,3 +1141,10 @@
 - [x] Procedure dispararPushRankingParaTodos no servidor (protectedProcedure)
 - [x] Botão "Testar Push" na toolbar da página de Profissionais (laranja, com ícone de sino)
 - [x] Feedback visual: toast com resultado (X receberam, Y falhas, Z sem notificação ativa)
+
+## Bug: Comparativo com Março (dia atual)
+
+- [x] Identificar causa: comparativoMesAnterior usava totalGeral (incluindo dias futuros) em vez de totalGeralRealizado
+- [x] Corrigir: comparativoMesAnterior agora usa apenas dias ≤ hoje (totalAtualMesmosDias) no mês vigente
+- [x] Corrigir: sincronizador distribui cat9 pelo total de dias do mês (não pelos dias realizados), garantindo valor diário consistente para comparativo correto
+- [x] Todos os 86 testes passando após a correção

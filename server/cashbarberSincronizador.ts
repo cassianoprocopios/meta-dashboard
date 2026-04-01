@@ -313,11 +313,10 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat8 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra: o valor total apurado no Dpote é distribuído igualmente pelos dias
-      // JÁ REALIZADOS até o dia vigente (não pelos 31 dias do mês).
-      // Isso garante que o total acumulado até hoje = valor total do Dpote.
-      // Dias futuros (ainda não aconteceram) recebem "0".
-      // Ex: Dpote = R$ 46.206 com 27 dias realizados → R$ 1.711,33/dia
+      // Regra: o valor total apurado no Dpote é distribuído igualmente pelos
+      // dias do mês (total fixo). Dias futuros recebem "0".
+      // Ex: Dpote = R$ 5.000 em abril (30 dias) → R$ 166,67/dia
+      // Isso garante comparativo correto com meses anteriores.
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
         const hoje2 = new Date();
@@ -326,9 +325,11 @@ export async function sincronizarFaturamentoCashbarber(
         if (diaFuturo) {
           cat9 = "0";
         } else {
-          // Dividir pelo número de dias realizados (até hoje para mês atual, ou total do mês para meses passados)
-          const diasRealizados = ehMesAtualSync ? hoje2.getDate() : new Date(ano, mes, 0).getDate();
-          const valorDiario = Math.round((recorrenciaValor / diasRealizados) * 100) / 100;
+          // Dividir sempre pelo total de dias do mês (não pelos dias realizados).
+          // Isso garante que o valor diário é consistente durante todo o mês e
+          // o comparativo com meses anteriores fica correto.
+          const totalDiasMes = new Date(ano, mes, 0).getDate();
+          const valorDiario = Math.round((recorrenciaValor / totalDiasMes) * 100) / 100;
           cat9 = String(valorDiario);
         }
       } else {
