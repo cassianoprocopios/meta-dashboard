@@ -1135,3 +1135,9 @@
 - [x] Criar função enviarPushRankingDiario no pushNotifications.ts
 - [x] Job automático de push às 12h BRT (15h UTC) no server index.ts
 - [x] Job envia mensagem personalizada: posição, faturamento, falta para subir, % da meta
+
+## Botão "Testar Push Agora" no Painel
+
+- [x] Procedure dispararPushRankingParaTodos no servidor (protectedProcedure)
+- [x] Botão "Testar Push" na toolbar da página de Profissionais (laranja, com ícone de sino)
+- [x] Feedback visual: toast com resultado (X receberam, Y falhas, Z sem notificação ativa)

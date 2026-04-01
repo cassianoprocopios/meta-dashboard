@@ -799,6 +799,15 @@ const profissionaisRouter = router({
       });
       return { enviou };
     }),
+
+  // Dispara o push de ranking para TODOS os profissionais com subscription ativa
+  dispararPushRankingParaTodos: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const { enviarPushRankingDiario } = await import("./pushNotifications");
+      const result = await enviarPushRankingDiario(tenantId);
+      return result;
+    }),
 });
 export const appRouter = router({
   system: systemRouter,

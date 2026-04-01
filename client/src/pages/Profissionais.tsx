@@ -41,6 +41,7 @@ import {
   Send,
   ExternalLink,
   Phone,
+  Bell,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -166,6 +167,21 @@ export default function Profissionais() {
       toast.success(`${data.total} mensagens geradas! ${data.comTelefone} com link WhatsApp.`);
     },
     onError: (err) => toast.error("Erro ao gerar mensagens: " + err.message),
+  });
+
+  const dispararPushRanking = trpc.profissionais.dispararPushRankingParaTodos.useMutation({
+    onSuccess: (data) => {
+      if (data.enviados === 0 && data.falhas === 0) {
+        toast.info("Nenhum profissional com notificação ativa. Peça para eles ativarem na aba \"Meu\".");
+      } else {
+        toast.success(
+          `Push enviado! ✅ ${data.enviados} recebeu${data.enviados !== 1 ? 'ram' : ''}.` +
+          (data.falhas > 0 ? ` ⚠️ ${data.falhas} falha(s).` : '') +
+          (data.semSubscription > 0 ? ` ℹ️ ${data.semSubscription} sem notificação ativa.` : '')
+        );
+      }
+    },
+    onError: (err) => toast.error("Erro ao enviar push: " + err.message),
   });
 
   const abrirNovo = () => {
@@ -296,6 +312,16 @@ export default function Profissionais() {
             >
               <MessageSquare className={`w-4 h-4 mr-2 ${gerarMensagensRanking.isPending ? 'animate-pulse' : ''}`} />
               {gerarMensagensRanking.isPending ? 'Gerando...' : 'Ranking WhatsApp'}
+            </Button>
+            <Button
+              onClick={() => dispararPushRanking.mutate()}
+              disabled={dispararPushRanking.isPending}
+              variant="outline"
+              className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+              title="Envia push de ranking agora para todos os profissionais com notificação ativa"
+            >
+              <Bell className={`w-4 h-4 mr-2 ${dispararPushRanking.isPending ? 'animate-pulse' : ''}`} />
+              {dispararPushRanking.isPending ? 'Enviando...' : 'Testar Push'}
             </Button>
             <Button
               onClick={abrirNovo}
