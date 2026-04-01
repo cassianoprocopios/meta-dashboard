@@ -372,7 +372,7 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
     }
   });
 
-  it("mês atual: dias passados e hoje recebem valor diário do Dpote; dias futuros recebem previsão do mês passado", async () => {
+  it("mês atual: dias passados e hoje recebem valor diário do Dpote; dias futuros recebem '0' no banco", async () => {
     const hoje = new Date();
     const mes = hoje.getMonth() + 1;
     const ano = hoje.getFullYear();
@@ -383,9 +383,6 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
     const valorDiarioDpote = String(Math.round((5000 / totalDias) * 100) / 100);
-    // Previsão do mês passado: R$ 5.000 em 30 dias = R$ 166,67/dia
-    const valorDiarioPrevisto = String(Math.round((5000 / 30) * 100) / 100);
-
     // Dias 1 até hoje: devem ter cat9 = valor diário do Dpote do mês vigente
     for (let dia = 1; dia <= diaHoje; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -394,12 +391,12 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
       expect(chamada![0].cat9).toBe(valorDiarioDpote);
     }
 
-    // Dias após hoje: devem ter cat9 = previsão baseada no mês passado
+    // Dias após hoje: devem ter cat9 = "0" no banco (previsão é calculada no frontend)
     for (let dia = diaHoje + 1; dia <= totalDias; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const chamada = calls.find((c) => c[0].data === dataStr);
       if (chamada) {
-        expect(chamada![0].cat9).toBe(valorDiarioPrevisto);
+        expect(chamada![0].cat9).toBe("0");
       }
     }
   });
