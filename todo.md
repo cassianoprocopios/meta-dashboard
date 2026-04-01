@@ -1086,3 +1086,9 @@
 - [x] No mobile: abrir app WhatsApp via wa.me link
 - [x] No desktop: abrir WhatsApp Web via web.whatsapp.com
 - [x] Mensagem pré-preenchida com título do ranking e unidade
+
+## Botão de Cópia Rápida da Mensagem WhatsApp
+
+- [x] Criar hook useCopiarMensagem com estado de feedback (copiado/não copiado)
+- [x] Adicionar botão de cópia ao lado do botão WhatsApp nas 3 abas (diária, semanal, mensal)
+- [x] Feedback visual: ícone muda de "copiar" para "check" por 2 segundos após copiar

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2 } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 
@@ -367,6 +367,33 @@ function useExportarImagem() {
   return { exportRef, exportando, exportar };
 }
 
+// ─── Hook de cópia de mensagem ─────────────────────────────────────────────
+function useCopiarMensagem() {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = useCallback(async (texto: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado(true);
+      toast.success("Mensagem copiada!", { duration: 2000 });
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Fallback para browsers sem suporte a clipboard API
+      const el = document.createElement("textarea");
+      el.value = texto;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopiado(true);
+      toast.success("Mensagem copiada!", { duration: 2000 });
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  }, []);
+  return { copiado, copiar };
+}
+
 // ─── Elemento de exportação (oculto) ─────────────────────────────────────────
 function ExportCard({
   exportRef,
@@ -553,6 +580,7 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   );
   const posMapAnterior = useMemo(() => buildPosMap(rankingAnterior ?? []), [rankingAnterior]);
   const { exportRef, exportando, exportar } = useExportarImagem();
+  const { copiado: copiadoDiario, copiar: copiarDiario } = useCopiarMensagem();
   // Faturamento da unidade do dia
   const { data: fatUnidade } = trpc.faturamentoUnidade.useQuery(
     { empresaSlug: minhaEmpresa, tipo: 'diario', data },
@@ -831,24 +859,35 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               );
             })}
           </div>
-          {/* Botão exportar */}
-          <button
-            onClick={() => exportar(
-              `ranking-diario-${data}`,
-              `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-            )}
-            disabled={exportando}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-          >
-            {exportando ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-            )}
-            {exportando ? "Gerando imagem..." : "Compartilhar no WhatsApp"}
-          </button>
+          {/* Botões exportar + copiar */}
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => exportar(
+                `ranking-diario-${data}`,
+                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              disabled={exportando}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+            >
+              {exportando ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              )}
+              {exportando ? "Gerando..." : "WhatsApp"}
+            </button>
+            <button
+              onClick={() => copiarDiario(
+                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
+              title="Copiar mensagem"
+            >
+              {copiadoDiario ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
         </>
       )}
 
@@ -874,6 +913,7 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
   const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
+  const { copiado: copiadoSemanal, copiar: copiarSemanal } = useCopiarMensagem();
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
     const dia = d.getDay();
@@ -1132,24 +1172,35 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
               );
             })}
           </div>
-          {/* Botão exportar */}
-          <button
-            onClick={() => exportar(
-              `ranking-semanal-${dataInicio}`,
-              `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-            )}
-            disabled={exportando}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-          >
-            {exportando ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-            )}
-            {exportando ? "Gerando imagem..." : "Compartilhar no WhatsApp"}
-          </button>
+          {/* Botões exportar + copiar */}
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => exportar(
+                `ranking-semanal-${dataInicio}`,
+                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              disabled={exportando}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+            >
+              {exportando ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              )}
+              {exportando ? "Gerando..." : "WhatsApp"}
+            </button>
+            <button
+              onClick={() => copiarSemanal(
+                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
+              title="Copiar mensagem"
+            >
+              {copiadoSemanal ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
         </>
       )}
 
@@ -1175,6 +1226,7 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
+  const { copiado: copiadoMensal, copiar: copiarMensal } = useCopiarMensagem();
 
   const { mes, ano } = useMemo(() => {
     const d = new Date();
@@ -1403,24 +1455,35 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
               );
             })}
           </div>
-          {/* Botão exportar */}
-          <button
-            onClick={() => exportar(
-              `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
-              `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-            )}
-            disabled={exportando}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-          >
-            {exportando ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-            )}
-            {exportando ? "Gerando imagem..." : "Compartilhar no WhatsApp"}
-          </button>
+          {/* Botões exportar + copiar */}
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => exportar(
+                `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
+                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              disabled={exportando}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+            >
+              {exportando ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              )}
+              {exportando ? "Gerando..." : "WhatsApp"}
+            </button>
+            <button
+              onClick={() => copiarMensal(
+                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+              )}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
+              title="Copiar mensagem"
+            >
+              {copiadoMensal ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
         </>
       )}
 
