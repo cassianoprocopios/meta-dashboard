@@ -1125,3 +1125,13 @@
 - [x] PWA: botão "Ativar notificações" na aba Meu Desempenho
 - [ ] PWA: job automático às 12h envia push para todos os profissionais com subscription ativa (requer Z-API ou envio manual)
 - [x] PWA: gerar chaves VAPID e configurar no servidor
+
+## PWA - Ícone Personalizado, Banner de Instalação e Job Push às 12h
+
+- [x] Gerar ícone personalizado do app com tema de salão (coroa dourada + tesoura) em 192x192 e 512x512
+- [x] Substituir ícones no manifest.json e no index.html com URLs CDN
+- [x] Melhorar meta tags PWA para iOS (apple-touch-icon, apple-mobile-web-app-capable)
+- [x] Atualizar service worker com ícones CDN e limpeza de cache antigo
+- [x] Criar função enviarPushRankingDiario no pushNotifications.ts
+- [x] Job automático de push às 12h BRT (15h UTC) no server index.ts
+- [x] Job envia mensagem personalizada: posição, faturamento, falta para subir, % da meta
