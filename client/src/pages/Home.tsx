@@ -1591,8 +1591,8 @@ export default function Home() {
                       <TrendingUp className="w-4 h-4 text-indigo-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 text-sm">Comparativo com {MESES[mesAnterior - 1]}</h3>
-                      <p className="text-xs text-slate-400">{comparativoMesAnterior.periodoLabel} — mesmos dias apurados</p>
+                      <h3 className="font-semibold text-foreground text-sm">Comparativo com {MESES[mesAnterior - 1]}</h3>
+                      <p className="text-xs text-muted-foreground">{comparativoMesAnterior.periodoLabel} — mesmos dias apurados</p>
                     </div>
                   </div>
                   {comparativoMesAnterior.variacaoTotal !== null && (
@@ -1613,9 +1613,9 @@ export default function Home() {
                     <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
                     <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMesAnterior.totalAtualRealizado)}</p>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
-                    <p className="text-xl font-bold text-slate-700 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
+                  <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-xl p-3">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
+                    <p className="text-xl font-bold text-zinc-700 dark:text-zinc-200 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
                   </div>
                 </div>
 
@@ -1628,17 +1628,17 @@ export default function Home() {
                       ? ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100
                       : null;
                     return (
-                      <div key={emp.slug} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
+                      <div key={emp.slug} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
-                        <span className="text-sm text-slate-700 flex-1 font-medium">{emp.nome}</span>
+                        <span className="text-sm text-foreground flex-1 font-medium">{emp.nome}</span>
                         <div className="flex items-center gap-3 text-right">
                           <div>
-                            <p className="text-xs text-slate-400">{MESES[mesAnterior - 1]}</p>
-                            <p className="text-sm font-semibold text-slate-600">{comp.totalAnterior > 0 ? fmt(comp.totalAnterior) : "—"}</p>
+                            <p className="text-xs text-muted-foreground">{MESES[mesAnterior - 1]}</p>
+                            <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">{comp.totalAnterior > 0 ? fmt(comp.totalAnterior) : "—"}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-slate-400">{MESES[mes - 1]}</p>
-                            <p className="text-sm font-semibold text-slate-900">{fmt(comp.totalAtual)}</p>
+                            <p className="text-xs text-muted-foreground">{MESES[mes - 1]}</p>
+                            <p className="text-sm font-semibold text-foreground">{fmt(comp.totalAtual)}</p>
                           </div>
                           {variacao !== null ? (
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -1647,7 +1647,7 @@ export default function Home() {
                               {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}%
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400 px-2">sem dados</span>
+                            <span className="text-xs text-muted-foreground px-2">sem dados</span>
                           )}
                         </div>
                       </div>
@@ -2649,11 +2649,11 @@ export default function Home() {
                       type="monotone"
                       dataKey="acumAnterior"
                       name={MESES[mesAnterior - 1]}
-                      stroke="#94a3b8"
+                      stroke="#a1a1aa"
                       strokeWidth={2}
-                      strokeDasharray="5 3"
+                      strokeDasharray="6 3"
                       dot={false}
-                      activeDot={{ r: 4, fill: "#94a3b8", strokeWidth: 2, stroke: "#fff" }}
+                      activeDot={{ r: 4, fill: "#a1a1aa", strokeWidth: 2, stroke: "#fff" }}
                       connectNulls={false}
                     />
                    </LineChart>
