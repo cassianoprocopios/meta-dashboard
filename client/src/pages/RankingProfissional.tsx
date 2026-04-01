@@ -37,6 +37,33 @@ function empresaLabel(slug: string | null | undefined) {
   return EMPRESA_LABEL[slug] ?? slug;
 }
 
+// ─── Gerador de texto do ranking para WhatsApp ───────────────────────────────
+function gerarTextoRanking(
+  titulo: string,
+  subtitulo: string,
+  ranking: Array<{ nome: string; apelido?: string | null; totalGeral: number; totalServicos?: number; totalProdutos?: number; pctMeta?: number | null }>,
+  rodape?: string
+): string {
+  const medalhas = ["🥇", "🥈", "🥉"];
+  const linhas: string[] = [
+    `🏆 *${titulo}*`,
+    `📅 ${subtitulo}`,
+    "",
+  ];
+  ranking.forEach((p, i) => {
+    const pos = medalhas[i] ?? `${i + 1}º`;
+    const nome = p.apelido || p.nome.split(" ")[0];
+    const valor = formatarMoeda(p.totalGeral);
+    const pct = p.pctMeta ? ` (${p.pctMeta}% meta)` : "";
+    linhas.push(`${pos} ${nome} — ${valor}${pct}`);
+  });
+  if (rodape) {
+    linhas.push("");
+    linhas.push(rodape);
+  }
+  return linhas.join("\n");
+}
+
 // ─── Tela de Login por PIN ────────────────────────────────────────────────────
 function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fotoUrl: string | null, id: number, apelido: string | null) => void }) {
   const [pin, setPin] = useState("");
@@ -333,49 +360,72 @@ function RankingCard({
 function useExportarImagem() {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState(false);
+  const uploadMutation = trpc.uploadRankingImagem.useMutation();
+
   /**
-   * @param nomeArquivo - Nome do arquivo PNG a ser baixado
-   * @param mensagemWhatsApp - Texto da mensagem (usado quando não há grupoLink)
-   * @param grupoLink - Link direto do grupo WhatsApp (ex: https://chat.whatsapp.com/XXX).
-   *   Se fornecido, abre o grupo diretamente. Caso contrário, abre o WhatsApp genérico.
+   * Gera a imagem do ranking, faz upload para S3 e abre o WhatsApp
+   * com a mensagem de texto + link público da imagem.
+   * Se grupoLink for fornecido, copia a mensagem e abre o grupo.
    */
-  const exportar = useCallback(async (nomeArquivo: string, mensagemWhatsApp?: string, grupoLink?: string | null) => {
+  const exportar = useCallback(async (
+    nomeArquivo: string,
+    mensagemTexto?: string,
+    grupoLink?: string | null
+  ) => {
     if (!exportRef.current || exportando) return;
     setExportando(true);
     try {
+      // 1. Gerar imagem PNG
       const dataUrl = await toPng(exportRef.current, {
         backgroundColor: "#0f172a",
         pixelRatio: 2,
       });
-      // 1. Baixar a imagem automaticamente
-      const link = document.createElement("a");
-      link.download = `${nomeArquivo}.png`;
-      link.href = dataUrl;
-      link.click();
-      // 2. Após breve delay (para o download iniciar), abrir WhatsApp
-      setTimeout(() => {
-        let url: string;
-        if (grupoLink) {
-          // Link direto do grupo — abre o grupo específico da unidade
-          url = grupoLink;
-        } else {
-          const texto = mensagemWhatsApp ?? "🏆 Confira o ranking! Imagem salva na galeria.";
-          const encodedText = encodeURIComponent(texto);
-          const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-          url = isMobile
-            ? `whatsapp://send?text=${encodedText}`
-            : `https://web.whatsapp.com/`;
-        }
-        window.open(url, "_blank");
-      }, 800);
-      toast.success("Imagem salva! Abrindo WhatsApp...", { duration: 4000 });
+
+      // 2. Fazer upload para S3 e obter URL pública
+      toast.loading("Enviando imagem...", { id: "upload-ranking" });
+      let imagemUrl: string | null = null;
+      try {
+        const result = await uploadMutation.mutateAsync({
+          imageBase64: dataUrl,
+          nomeArquivo: nomeArquivo.replace(/[^a-z0-9-]/gi, '-'),
+        });
+        imagemUrl = result.url;
+        toast.dismiss("upload-ranking");
+      } catch (uploadErr) {
+        toast.dismiss("upload-ranking");
+        console.warn("Upload falhou, usando apenas texto:", uploadErr);
+      }
+
+      // 3. Montar mensagem com texto do ranking + link da imagem
+      const textoBase = mensagemTexto ?? "🏆 Confira o ranking!";
+      const mensagemFinal = imagemUrl
+        ? `${textoBase}\n\n🖼️ Ver imagem: ${imagemUrl}`
+        : textoBase;
+
+      // 4. Abrir WhatsApp com a mensagem
+      const encodedText = encodeURIComponent(mensagemFinal);
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      let url: string;
+      if (grupoLink) {
+        // Copia a mensagem para a área de transferência e abre o grupo
+        try { await navigator.clipboard.writeText(mensagemFinal); } catch {}
+        url = grupoLink;
+        toast.success("📋 Mensagem copiada! Cole no grupo.", { duration: 6000 });
+      } else {
+        url = isMobile
+          ? `whatsapp://send?text=${encodedText}`
+          : `https://web.whatsapp.com/send?text=${encodedText}`;
+        toast.success("Abrindo WhatsApp com o ranking!", { duration: 4000 });
+      }
+      setTimeout(() => window.open(url, "_blank"), 300);
     } catch (e) {
+      toast.dismiss("upload-ranking");
       console.error("Erro ao exportar imagem:", e);
       toast.error("Erro ao gerar imagem.");
     } finally {
       setExportando(false);
     }
-  }, [exportando]);
+  }, [exportando, uploadMutation]);
   return { exportRef, exportando, exportar };
 }
 
@@ -882,7 +932,12 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
             <button
               onClick={() => exportar(
                 `ranking-diario-${data}`,
-                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                gerarTextoRanking(
+                  `Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
+                  formatarData(data),
+                  rankingFiltrado,
+                  "performancemeta.sbs"
+                ),
                 grupoWhatsApp
               )}
               disabled={exportando}
@@ -1202,7 +1257,12 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
             <button
               onClick={() => exportar(
                 `ranking-semanal-${dataInicio}`,
-                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                gerarTextoRanking(
+                  `Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
+                  `Semana de ${labelSemana}`,
+                  rankingFiltrado,
+                  "performancemeta.sbs"
+                ),
                 grupoWhatsAppSem
               )}
               disabled={exportando}
@@ -1492,7 +1552,12 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
             <button
               onClick={() => exportar(
                 `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
-                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                gerarTextoRanking(
+                  `Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
+                  `${nomeMes(mes)} ${ano}`,
+                  rankingFiltrado,
+                  "performancemeta.sbs"
+                ),
                 grupoWhatsAppMes
               )}
               disabled={exportando}

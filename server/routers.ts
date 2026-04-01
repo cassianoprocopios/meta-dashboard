@@ -3583,6 +3583,23 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       }),
   }),
 
+  // ===== UPLOAD DE IMAGEM DO RANKING PARA S3 =====
+  uploadRankingImagem: publicProcedure
+    .input(z.object({
+      imageBase64: z.string(), // data URL base64 (ex: "data:image/png;base64,...")
+      nomeArquivo: z.string().max(128),
+    }))
+    .mutation(async ({ input }) => {
+      // Converter base64 para Buffer
+      const base64Data = input.imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+      const { storagePut } = await import('./storage');
+      const suffix = Date.now();
+      const key = `rankings/${input.nomeArquivo}-${suffix}.png`;
+      const { url } = await storagePut(key, buffer, 'image/png');
+      return { url };
+    }),
+
   // ===== RANKING DIÁRIO E SEMANAL =====
   rankingDiario: publicProcedure
     .input(z.object({ data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
