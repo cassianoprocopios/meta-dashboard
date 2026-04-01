@@ -2496,12 +2496,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           idInicial = savedId ?? 68539; // fallback para o ID conhecido com dados
         }
 
-        // Buscar o histórico mais recente com fichas > 0 (retroativamente)
-        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial);
+        // Verificar se o mês selecionado é o mês vigente
+        const agora = new Date();
+        const esMesVigente = input.mes === (agora.getMonth() + 1) && input.ano === agora.getFullYear();
+        // Para o mês vigente, aceita históricos parciais (mês em andamento)
+        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial, esMesVigente);
         if (!resultado) return { filiais: [], totalAssinaturas: 0, totalFichas: 0, historicoId: null };
-
         // Salvar o ID do histórico ativo e o valor de assinaturas no banco para todas as empresas configuradas
-        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
+        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;;
         for (const cfg of configs) {
           await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla, resultado.valorAssinaturas);
         }
@@ -2554,12 +2556,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           idInicial = savedId ?? 68539;
         }
 
-        // Buscar o histórico mais recente com fichas > 0 (retroativamente)
-        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial);
+         // Verificar se o mês selecionado é o mês vigente
+        const agoraAplicar = new Date();
+        const esMesVigenteAplicar = input.mes === (agoraAplicar.getMonth() + 1) && input.ano === agoraAplicar.getFullYear();
+        // Para o mês vigente, aceita históricos parciais (mês em andamento)
+        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial, esMesVigenteAplicar);
         if (!resultado) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum histórico Dpote com dados válidos encontrado." });
         }
-
         // Salvar o ID do histórico ativo e o valor de assinaturas no banco
         const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
         for (const cfg of configs) {

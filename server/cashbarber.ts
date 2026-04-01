@@ -707,11 +707,13 @@ export async function cashbarberCalcularDpotePorFichas(
 export async function cashbarberBuscarHistoricoAtivo(
   token: string,
   idInicial: number,
-  maxTentativas = 60
+  maxTentativas = 60,
+  esMesVigente = false
 ): Promise<{ historicoId: number; historico: CashbarberDpoteHistorico } | null> {
-  // Limiar mínimo de fichas para considerar um histórico como completo do mês.
-  // Históricos parciais (poucos dias) têm poucas fichas e devem ser ignorados.
-  const MIN_FICHAS = 10000;
+  // Para o mês vigente: aceita qualquer histórico com pelo menos 1 ficha
+  // (o mês ainda está em andamento, não há histórico completo).
+  // Para meses anteriores: exige limiar alto para garantir histórico mensal completo.
+  const MIN_FICHAS = esMesVigente ? 1 : 10000;
 
   for (let i = 0; i < maxTentativas; i++) {
     const id = idInicial - i;
@@ -722,7 +724,6 @@ export async function cashbarberBuscarHistoricoAtivo(
         (acc, fs) => acc + fs.servicos.reduce((a, s) => a + (s.fichas || 0), 0),
         0
       );
-      // Exige fichas acima do limiar para garantir que é um histórico mensal completo
       if (totalFichas >= MIN_FICHAS && historico.faturamento.valor_ganho_assinaturas > 0) {
         return { historicoId: id, historico };
       }
@@ -739,7 +740,8 @@ export async function cashbarberBuscarHistoricoAtivo(
  */
 export async function cashbarberCalcularDpoteViaHistorico(
   token: string,
-  idHistoricoRecente: number
+  idHistoricoRecente: number,
+  esMesVigente = false
 ): Promise<{
   historicoId: number;
   valorAssinaturas: number;
@@ -747,7 +749,7 @@ export async function cashbarberCalcularDpoteViaHistorico(
   totalFichas: number;
   filiais: DpoteResultadoPorFilial[];
 } | null> {
-  const resultado = await cashbarberBuscarHistoricoAtivo(token, idHistoricoRecente);
+  const resultado = await cashbarberBuscarHistoricoAtivo(token, idHistoricoRecente, 60, esMesVigente);
   if (!resultado) return null;
 
   const { historicoId, historico } = resultado;
