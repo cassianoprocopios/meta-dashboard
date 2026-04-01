@@ -1584,7 +1584,7 @@ export default function Home() {
 
             {/* Card Comparativo com Mês Anterior */}
             {comparativoMesAnterior.totalAnteriorMesmosDias > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-white">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-zinc-100 dark:bg-zinc-800">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
@@ -1613,7 +1613,7 @@ export default function Home() {
                     <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
                     <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMesAnterior.totalAtualRealizado)}</p>
                   </div>
-                  <div className="bg-zinc-200 dark:bg-zinc-700 rounded-xl p-3">
+                  <div className="bg-zinc-300 dark:bg-zinc-600 rounded-xl p-3">
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
                     <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
                   </div>
