@@ -480,6 +480,7 @@ export async function updateEmpresa(
     cat7Nome?: string;
     cat8Nome?: string;
     cat9Nome?: string;
+    whatsappGrupoLink?: string | null;
   }
 ) {
   const db = await getDb();

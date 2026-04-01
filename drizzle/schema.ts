@@ -92,6 +92,8 @@ export const empresas = mysqlTable("empresas", {
   cat8Nome: varchar("cat8Nome", { length: 64 }).notNull().default("Bar"),
   cat9Nome: varchar("cat9Nome", { length: 64 }).notNull().default("Recorrência"),
   ativo: int("ativo").notNull().default(1),
+  /** Link de convite do grupo WhatsApp da unidade (ex: https://chat.whatsapp.com/XXXXX) */
+  whatsappGrupoLink: varchar("whatsappGrupoLink", { length: 512 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

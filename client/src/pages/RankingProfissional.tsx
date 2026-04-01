@@ -333,7 +333,13 @@ function RankingCard({
 function useExportarImagem() {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exportando, setExportando] = useState(false);
-  const exportar = useCallback(async (nomeArquivo: string, mensagemWhatsApp?: string) => {
+  /**
+   * @param nomeArquivo - Nome do arquivo PNG a ser baixado
+   * @param mensagemWhatsApp - Texto da mensagem (usado quando não há grupoLink)
+   * @param grupoLink - Link direto do grupo WhatsApp (ex: https://chat.whatsapp.com/XXX).
+   *   Se fornecido, abre o grupo diretamente. Caso contrário, abre o WhatsApp genérico.
+   */
+  const exportar = useCallback(async (nomeArquivo: string, mensagemWhatsApp?: string, grupoLink?: string | null) => {
     if (!exportRef.current || exportando) return;
     setExportando(true);
     try {
@@ -348,13 +354,18 @@ function useExportarImagem() {
       link.click();
       // 2. Após breve delay (para o download iniciar), abrir WhatsApp
       setTimeout(() => {
-        const texto = mensagemWhatsApp ?? "🏆 Confira o ranking! Imagem salva na galeria.";
-        const encodedText = encodeURIComponent(texto);
-        // No mobile: abre o app WhatsApp; no desktop: abre WhatsApp Web
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const url = isMobile
-          ? `whatsapp://send?text=${encodedText}`
-          : `https://web.whatsapp.com/`;
+        let url: string;
+        if (grupoLink) {
+          // Link direto do grupo — abre o grupo específico da unidade
+          url = grupoLink;
+        } else {
+          const texto = mensagemWhatsApp ?? "🏆 Confira o ranking! Imagem salva na galeria.";
+          const encodedText = encodeURIComponent(texto);
+          const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+          url = isMobile
+            ? `whatsapp://send?text=${encodedText}`
+            : `https://web.whatsapp.com/`;
+        }
         window.open(url, "_blank");
       }, 800);
       toast.success("Imagem salva! Abrindo WhatsApp...", { duration: 4000 });
@@ -573,6 +584,12 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
+  // Link do grupo WhatsApp da unidade
+  const { data: empresas } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
+  const grupoWhatsApp = useMemo(() => {
+    if (!empresas || verGeral) return null;
+    return empresas.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
+  }, [empresas, minhaEmpresa, verGeral]);
   // Ranking do dia anterior para calcular variação de posição
   const dataAnterior = useMemo(() => subtrairDia(data, 1), [data]);
   const { data: rankingAnterior } = trpc.rankingDiario.useQuery(
@@ -865,7 +882,8 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
             <button
               onClick={() => exportar(
                 `ranking-diario-${data}`,
-                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                grupoWhatsApp
               )}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
@@ -915,6 +933,12 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { copiado: copiadoSemanal, copiar: copiarSemanal } = useCopiarMensagem();
+  // Link do grupo WhatsApp da unidade
+  const { data: empresasSem } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
+  const grupoWhatsAppSem = useMemo(() => {
+    if (!empresasSem || verGeral) return null;
+    return empresasSem.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
+  }, [empresasSem, minhaEmpresa, verGeral]);
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
     const dia = d.getDay();
@@ -1178,7 +1202,8 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
             <button
               onClick={() => exportar(
                 `ranking-semanal-${dataInicio}`,
-                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                grupoWhatsAppSem
               )}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
@@ -1228,6 +1253,12 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { copiado: copiadoMensal, copiar: copiarMensal } = useCopiarMensagem();
+  // Link do grupo WhatsApp da unidade
+  const { data: empresasMes } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
+  const grupoWhatsAppMes = useMemo(() => {
+    if (!empresasMes || verGeral) return null;
+    return empresasMes.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
+  }, [empresasMes, minhaEmpresa, verGeral]);
 
   const { mes, ano } = useMemo(() => {
     const d = new Date();
@@ -1461,7 +1492,8 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
             <button
               onClick={() => exportar(
                 `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
-                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`,
+                grupoWhatsAppMes
               )}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"

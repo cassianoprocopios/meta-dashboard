@@ -1154,3 +1154,14 @@
 - [x] Corrigir comparativoMesAnterior para somar apenas os dias de março ≤ dia atual do mês (dia 1 de março = dia 1 de abril)
 - [x] Filtrar dias futuros (pré-lançados) do mês vigente antes de calcular o comparativo
 - [x] Usar totalAtualRealizado (sem futuros) no card de comparativo em vez de totalGeral
+
+## Bug: Seraphine - Comparativo com Mês Anterior
+
+- [ ] Verificar como a Seraphine é tratada no comparativo (pode ter estrutura diferente de faturamento)
+- [ ] Garantir que a Seraphine também filtra apenas dias realizados (≤ hoje) no mês vigente
+
+## Feature: Compartilhamento de Ranking Direto para Grupo WhatsApp por Unidade
+
+- [ ] Adicionar campo whatsappGrupoLink na tabela empresas (schema + migration)
+- [ ] Adicionar configuração do link do grupo WhatsApp no AdminPanel por empresa
+- [ ] Atualizar botão "Compartilhar no WhatsApp" do ranking para usar o link do grupo da unidade selecionada

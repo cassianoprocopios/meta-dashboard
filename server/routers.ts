@@ -1044,6 +1044,7 @@ export const appRouter = router({
         cat3Nome: z.string().min(1).max(64).optional(),
         cat4Nome: z.string().min(1).max(64).optional(),
         cat5Nome: z.string().min(1).max(64).optional(),
+        whatsappGrupoLink: z.string().max(512).nullable().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         if (ctx.user.role !== "admin" && ctx.user.perfil !== "gerente") {
