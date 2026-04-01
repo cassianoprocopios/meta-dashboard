@@ -1613,9 +1613,9 @@ export default function Home() {
                     <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
                     <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMesAnterior.totalAtualRealizado)}</p>
                   </div>
-                  <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-xl p-3">
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
-                    <p className="text-xl font-bold text-zinc-700 dark:text-zinc-200 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
+                  <div className="bg-zinc-200 dark:bg-zinc-700 rounded-xl p-3">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
+                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
                   </div>
                 </div>
 
