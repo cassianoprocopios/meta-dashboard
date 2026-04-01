@@ -53,12 +53,11 @@ function gerarTextoRanking(
     const pos = medalhas[i] ?? `${i + 1}º`;
     const nome = p.apelido || p.nome.split(" ")[0];
     const valor = formatarMoeda(p.totalGeral);
-    const pct = p.pctMeta ? ` | ${p.pctMeta}% meta` : "";
     const svcs = (p.qtdServicos != null && p.qtdServicos > 0) ? `✂️ ${p.qtdServicos} serv` : "";
     const prds = (p.qtdProdutos != null && p.qtdProdutos > 0) ? `🛍️ ${p.qtdProdutos} prod` : "";
     const detalhe = [svcs, prds].filter(Boolean).join(" ");
-    linhas.push(`${pos} *${nome}* — ${valor}${pct}`);
-    if (detalhe) linhas.push(`   ${detalhe}`);
+    const sufixo = detalhe ? ` | ${detalhe}` : "";
+    linhas.push(`${pos} *${nome}* — ${valor}${sufixo}`);
   });
   if (rodape) {
     linhas.push("");
