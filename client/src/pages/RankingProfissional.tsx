@@ -905,16 +905,26 @@ function AbaDiario({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           {/* Botões exportar + copiar */}
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => exportar(
-                `ranking-diario-${data}`,
-                gerarTextoRanking(
-                  `Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
-                  formatarData(data),
-                  rankingFiltrado,
-                  "performancemeta.sbs"
-                ),
-                grupoWhatsApp
-              )}
+              onClick={() => {
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const totalDia = (!verGeral && fatUnidade?.total != null)
+                  ? `\n\n📊 Total ${nomeEmp}: ${formatarMoeda(fatUnidade.total)}`
+                  : "";
+                const pctMensalStr = (!verGeral && fatMensal?.pctMeta != null)
+                  ? ` | ${fatMensal.pctMeta}% da meta mensal`
+                  : "";
+                const rodape = `${totalDia}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                exportar(
+                  `ranking-diario-${data}`,
+                  gerarTextoRanking(
+                    `Ranking Diário — ${nomeEmp}`,
+                    formatarData(data),
+                    rankingFiltrado,
+                    rodape
+                  ),
+                  grupoWhatsApp
+                );
+              }}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
             >
@@ -1230,16 +1240,26 @@ function AbaSemanal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: 
           {/* Botões exportar + copiar */}
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => exportar(
-                `ranking-semanal-${dataInicio}`,
-                gerarTextoRanking(
-                  `Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
-                  `Semana de ${labelSemana}`,
-                  rankingFiltrado,
-                  "performancemeta.sbs"
-                ),
-                grupoWhatsAppSem
-              )}
+              onClick={() => {
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const totalSem = (!verGeral && fatUnidadeSem?.total != null)
+                  ? `\n\n📊 Total ${nomeEmp} na semana: ${formatarMoeda(fatUnidadeSem.total)}`
+                  : "";
+                const pctMensalStr = (!verGeral && fatMensalSem?.pctMeta != null)
+                  ? ` | ${fatMensalSem.pctMeta}% da meta mensal`
+                  : "";
+                const rodape = `${totalSem}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                exportar(
+                  `ranking-semanal-${dataInicio}`,
+                  gerarTextoRanking(
+                    `Ranking Semanal — ${nomeEmp}`,
+                    `Semana de ${labelSemana}`,
+                    rankingFiltrado,
+                    rodape
+                  ),
+                  grupoWhatsAppSem
+                );
+              }}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
             >
@@ -1525,16 +1545,26 @@ function AbaMensal({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: s
           {/* Botões exportar + copiar */}
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => exportar(
-                `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
-                gerarTextoRanking(
-                  `Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}`,
-                  `${nomeMes(mes)} ${ano}`,
-                  rankingFiltrado,
-                  "performancemeta.sbs"
-                ),
-                grupoWhatsAppMes
-              )}
+              onClick={() => {
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const totalMes = (!verGeral && fatUnidadeMes?.total != null)
+                  ? `\n\n📊 Total ${nomeEmp} em ${nomeMes(mes)}: ${formatarMoeda(fatUnidadeMes.total)}`
+                  : "";
+                const pctMensalStr = (!verGeral && fatUnidadeMes?.pctMeta != null)
+                  ? ` | ${fatUnidadeMes.pctMeta}% da meta`
+                  : "";
+                const rodape = `${totalMes}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                exportar(
+                  `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
+                  gerarTextoRanking(
+                    `Ranking de ${nomeMes(mes)}/${ano} — ${nomeEmp}`,
+                    `${nomeMes(mes)} ${ano}`,
+                    rankingFiltrado,
+                    rodape
+                  ),
+                  grupoWhatsAppMes
+                );
+              }}
               disabled={exportando}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/30 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
             >
