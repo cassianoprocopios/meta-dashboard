@@ -122,6 +122,12 @@ export default function Home() {
 
   // ─── Sync Avec (Seraphine) ────────────────────────────────────────────────
   const [syncingAvec, setSyncingAvec] = useState(false);
+  // Polling do status do job automático do Avec (a cada 10s)
+  const { data: avecJobStatus } = trpc.avec.statusJob.useQuery(undefined, {
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
+  });
+  const avecJobRodando = avecJobStatus?.status === "running";
   const sincronizarAvecMutation = trpc.avec.sincronizar.useMutation({
     onSuccess: (data) => {
       setSyncingAvec(false);
@@ -1079,14 +1085,14 @@ export default function Home() {
                       sincronizarAvecMutation.mutate({ empresaSlug: seraphineEmp.slug, mes, ano });
                     }
                   }}
-                  disabled={syncingAvec}
-                  title="Sincronizar faturamento da Seraphine via Avec agora"
+                  disabled={syncingAvec || avecJobRodando}
+                  title={avecJobRodando ? "Sync Avec em andamento (job automático)" : "Sincronizar faturamento da Seraphine via Avec agora"}
                   className="flex items-center gap-1.5 text-sm text-pink-600 hover:text-pink-700 px-3 py-1.5 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {syncingAvec
+                  {(syncingAvec || avecJobRodando)
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : <RefreshCw className="w-4 h-4" />}
-                  {syncingAvec ? "Sincronizando..." : "Sync Avec"}
+                  {syncingAvec ? "Sincronizando..." : avecJobRodando ? "Sync em andamento..." : "Sync Avec"}
                 </button>
               )}
 
@@ -1290,13 +1296,13 @@ export default function Home() {
                     }
                     setMobileMenuOpen(false);
                   }}
-                  disabled={syncingAvec}
+                  disabled={syncingAvec || avecJobRodando}
                   className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors font-medium disabled:opacity-50"
                 >
-                  {syncingAvec
+                  {(syncingAvec || avecJobRodando)
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : <RefreshCw className="w-4 h-4" />}
-                  {syncingAvec ? "Sincronizando Avec..." : "Sincronizar Avec"}
+                  {syncingAvec ? "Sincronizando Avec..." : avecJobRodando ? "Sync Avec em andamento..." : "Sincronizar Avec"}
                 </button>
               )}
             </div>

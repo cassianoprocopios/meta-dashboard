@@ -86,10 +86,14 @@ export async function avecBrowserLogin(
     const emailInput = await page.$('input[type="email"]');
     if (!emailInput) throw new Error("[Avec Browser] Campo de email não encontrado.");
 
+    // Limpar campo e digitar email (triple-click + Ctrl+A para garantir limpeza)
     await emailInput.click({ clickCount: 3 });
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.keyboard.press('Backspace');
     await emailInput.type(email, { delay: 50 });
-    await page.keyboard.press("Enter");
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 500));
 
     // ── 3. Preencher senha ────────────────────────────────────────────────────
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
@@ -97,12 +101,34 @@ export async function avecBrowserLogin(
     if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado.");
 
     await senhaInput.click({ clickCount: 3 });
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.keyboard.press('Backspace');
     await senhaInput.type(senha, { delay: 50 });
+    await new Promise(r => setTimeout(r, 500));
 
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {}),
-      page.keyboard.press("Enter"),
-    ]);
+    // ── 4. Clicar no botão Entrar ─────────────────────────────────────────────
+    // Buscar botão Entrar via evaluate e clicar via click() direto
+    const botaoClicado = await page.evaluate(() => {
+      const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
+      const botao = botoes.find(b => b.textContent?.includes('Entrar') || (b as HTMLInputElement).value?.includes('Entrar') || (b as HTMLButtonElement).type === 'submit');
+      if (botao) {
+        botao.click();
+        return true;
+      }
+      return false;
+    });
+    
+    if (botaoClicado) {
+      await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
+    } else {
+      // Fallback: pressionar Enter na senha
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {}),
+        page.keyboard.press("Enter"),
+      ]);
+    }
     await new Promise(r => setTimeout(r, 2000));
 
     const urlAposLogin = page.url();

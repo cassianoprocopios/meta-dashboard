@@ -1165,3 +1165,8 @@
 - [ ] Adicionar campo whatsappGrupoLink na tabela empresas (schema + migration)
 - [ ] Adicionar configuração do link do grupo WhatsApp no AdminPanel por empresa
 - [ ] Atualizar botão "Compartilhar no WhatsApp" do ranking para usar o link do grupo da unidade selecionada
+
+## Integração Avec - Sincronização Automática
+
+- [ ] Testar painel Avec ao vivo no Admin (configurar email/senha, mapear categorias, sincronizar abril/2026)
+- [ ] Adicionar indicador visual "Sincronizando..." no botão Sync Avec quando job estiver executando
