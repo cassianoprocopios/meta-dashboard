@@ -4,15 +4,14 @@
  * Automação browser headless (Puppeteer) para autenticação no Avec.
  *
  * Fluxo:
- *   1. Acessa terminal.avec.beauty e busca o salão pelo email
- *   2. Preenche email e senha na tela de login do salão
+ *   1. Acessa admin.avec.beauty/{slug}/admin/?email={email} (URL direta com email pré-preenchido)
+ *   2. Preenche a senha na tela de login do salão
  *   3. Extrai os cookies de sessão após login bem-sucedido
  *   4. Usa os cookies para acessar os endpoints de faturamento do admin
  */
 
 import puppeteer from "puppeteer-core";
 
-const TERMINAL_URL = "https://terminal.avec.beauty";
 const ADMIN_URL = "https://admin.avec.beauty";
 const CHROMIUM_PATH = "/usr/bin/chromium-browser";
 
@@ -44,6 +43,10 @@ export async function avecBrowserLogin(
 
   console.log(`[Avec Browser] Iniciando login para ${email}...`);
 
+  // Extrair slug do email (assumir seraphine-beauty-ltda por padrão)
+  const salaoSlug = "seraphine-beauty-ltda";
+  const loginUrl = `${ADMIN_URL}/${salaoSlug}/admin/?email=${encodeURIComponent(email)}`;
+
   const browser = await puppeteer.launch({
     executablePath: CHROMIUM_PATH,
     headless: true,
@@ -62,54 +65,21 @@ export async function avecBrowserLogin(
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 900 });
 
-    // ── 1. Buscar salão pelo email ────────────────────────────────────────────
-    console.log("[Avec Browser] Acessando terminal.avec.beauty...");
-    await page.goto(TERMINAL_URL, { waitUntil: "networkidle2", timeout: 30000 });
+    // ── 1. Acessar URL direta do admin com email pré-preenchido ────────────────
+    console.log(`[Avec Browser] Acessando ${loginUrl}...`);
+    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await new Promise(r => setTimeout(r, 1000));
 
-    await page.waitForSelector('input[type="text"], input[name="text"]', { timeout: 10000 });
-    const searchInput = await page.$('input[type="text"], input[name="text"]');
-    if (!searchInput) throw new Error("[Avec Browser] Campo de busca não encontrado.");
-
-    await searchInput.click({ clickCount: 3 });
-    await searchInput.type(email, { delay: 50 });
-    await page.keyboard.press("Enter");
-    await new Promise(r => setTimeout(r, 2000));
-
-    // Extrair o slug do salão da URL
-    const urlAposBusca = page.url();
-    const slugMatch = urlAposBusca.match(/\/login\/([^/?]+)/);
-    const salaoSlug = slugMatch ? slugMatch[1] : "seraphine-beauty-ltda";
-    console.log(`[Avec Browser] Slug do salão: ${salaoSlug}`);
-
-    // ── 2. Preencher email na tela de login ───────────────────────────────────
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
-    const emailInput = await page.$('input[type="email"]');
-    if (!emailInput) throw new Error("[Avec Browser] Campo de email não encontrado.");
-
-    // Limpar campo e digitar email (triple-click + Ctrl+A para garantir limpeza)
-    await emailInput.click({ clickCount: 3 });
-    await page.keyboard.down('Control');
-    await page.keyboard.press('a');
-    await page.keyboard.up('Control');
-    await page.keyboard.press('Backspace');
-    await emailInput.type(email, { delay: 50 });
-    await new Promise(r => setTimeout(r, 500));
-
-    // ── 3. Preencher senha ────────────────────────────────────────────────────
+    // ── 2. Preencher senha ────────────────────────────────────
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
     const senhaInput = await page.$('input[type="password"]');
     if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado.");
 
     await senhaInput.click({ clickCount: 3 });
-    await page.keyboard.down('Control');
-    await page.keyboard.press('a');
-    await page.keyboard.up('Control');
-    await page.keyboard.press('Backspace');
     await senhaInput.type(senha, { delay: 50 });
     await new Promise(r => setTimeout(r, 500));
 
-    // ── 4. Clicar no botão Entrar ─────────────────────────────────────────────
-    // Buscar botão Entrar via evaluate e clicar via click() direto
+    // ── 3. Clicar no botão Entrar ─────────────────────────────────
     const botaoClicado = await page.evaluate(() => {
       const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
       const botao = botoes.find(b => b.textContent?.includes('Entrar') || (b as HTMLInputElement).value?.includes('Entrar') || (b as HTMLButtonElement).type === 'submit');

@@ -1166,7 +1166,8 @@
 - [ ] Adicionar configuração do link do grupo WhatsApp no AdminPanel por empresa
 - [ ] Atualizar botão "Compartilhar no WhatsApp" do ranking para usar o link do grupo da unidade selecionada
 
-## Integração Avec - Sincronização Automática
-
-- [ ] Testar painel Avec ao vivo no Admin (configurar email/senha, mapear categorias, sincronizar abril/2026)
-- [ ] Adicionar indicador visual "Sincronizando..." no botão Sync Avec quando job estiver executando
+### Integração Avec - Sincronização Automática
+- [x] Testar painel Avec ao vivo no Admin (configurar email/senha, mapear categorias, sincronizar abril/2026)
+- [x] Adicionar indicador visual "Sincronizando..." no botão Sync Avec quando job estiver executando
+- [x] Atualizar login do Avec para usar URL direta com email como parâmetro (mais rápido e confiável)
+- [x] Polling do status do job a cada 10s para mostrar "Sync em andamento..." em tempo real
