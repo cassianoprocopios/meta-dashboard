@@ -2573,6 +2573,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
 
         // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
         const diasDoMes = new Date(input.ano, input.mes, 0).getDate();
+        // Limitar a distribuição ao dia vigente quando for o mês atual
+        const agoraDistrib = new Date();
+        const ehMesAtual = input.mes === (agoraDistrib.getMonth() + 1) && input.ano === agoraDistrib.getFullYear();
+        // Para o mês atual: distribui apenas até hoje. Para meses passados: distribui em todos os dias.
+        const diaLimite = ehMesAtual ? agoraDistrib.getDate() : diasDoMes;
         const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
         const naoEncontrados: string[] = [];
 
@@ -2585,12 +2590,35 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             continue;
           }
 
-          // Propagar o valor do Dpote em TODOS os dias do mês para manter consistência
-          // O valor diário = valorDistribuido / diasDoMes (distribuição uniforme)
-          const valorDiario = filial.valorDistribuido / diasDoMes;
+          // Distribuir o valor diário apenas até o diaLimite (dia vigente no mês atual)
+          // O valor diário = valorDistribuido / diaLimite (distribuição uniforme pelos dias já passados)
+          const valorDiario = diaLimite > 0 ? filial.valorDistribuido / diaLimite : 0;
           for (let dia = 1; dia <= diasDoMes; dia++) {
             const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
             const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
+            // Para dias futuros no mês atual: zerar o D-Pote se houver valor anterior
+            if (ehMesAtual && dia > diaLimite) {
+              if (existente && parseFloat(existente.cat9 ?? "0") > 0) {
+                await upsertFaturamento({
+                  tenantId,
+                  empresaSlug: config.empresaSlug,
+                  data: dataStr,
+                  cat1: existente.cat1 ?? "0",
+                  cat2: existente.cat2 ?? "0",
+                  cat3: existente.cat3 ?? "0",
+                  cat4: existente.cat4 ?? "0",
+                  cat5: existente.cat5 ?? "0",
+                  cat6: existente.cat6 ?? "0",
+                  cat7: existente.cat7 ?? "0",
+                  cat8: existente.cat8 ?? "0",
+                  cat9: "0",
+                  sincronizadoCB: existente.sincronizadoCB ?? 0,
+                  observacao: existente.observacao ?? undefined,
+                  lancadoPor: existente.lancadoPor ?? undefined,
+                });
+              }
+              continue;
+            }
             if (existente) {
               await upsertFaturamento({
                 tenantId,

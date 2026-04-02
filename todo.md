@@ -1176,3 +1176,7 @@
 - [ ] Investigar logs e identificar causa raiz do erro de sync automático
 - [ ] Corrigir o problema de importação de faturamento por categoria
 - [ ] Testar sync completo e validar dados importados
+
+## Correção D-Pote - Distribuição até dia vigente
+
+- [x] Corrigir cálculo de distribuição do D-Pote para limitar ao dia vigente (não até o final do mês)
