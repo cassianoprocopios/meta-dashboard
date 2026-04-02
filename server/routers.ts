@@ -359,7 +359,7 @@ const profissionaisRouter = router({
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           // Excluir produtos de bar/bebidas/caixinha do ranking
-          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
           const produtosRanking = relatorio.produtos.filter(
             (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
           );
@@ -453,7 +453,7 @@ const profissionaisRouter = router({
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           // Excluir produtos de bar/bebidas/caixinha do ranking
-          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
           const produtosRanking = relatorio.produtos.filter(
             (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
           );
@@ -3648,7 +3648,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const colaboradoresList = await listarColaboradores(tenantId);
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
         comId.map(async (col) => {
           try {
@@ -3708,7 +3708,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const colaboradoresList = await listarColaboradores(tenantId);
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
         comId.map(async (col) => {
           try {
@@ -3903,7 +3903,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const relatorio = await cashbarberRelatorio15(cbToken, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
 
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
 
       const servicosFiltrados = (relatorio.servicos ?? []).filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
       const produtosFiltrados = (relatorio.produtos ?? []).filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));

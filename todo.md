@@ -1180,3 +1180,7 @@
 ## Correção D-Pote - Distribuição até dia vigente
 
 - [x] Corrigir cálculo de distribuição do D-Pote para limitar ao dia vigente (não até o final do mês)
+
+## Ranking de Profissionais - Exclusão de Produtos
+
+- [x] Excluir produtos "Pod v400", "Red Bull" e "Brownie" do cálculo do ranking de profissionais

@@ -676,7 +676,7 @@ export async function executarRecalculoRanking(tenantId: number): Promise<{ sinc
     console.warn("[Ranking Job] Não foi possível buscar relatório 13:", e);
   }
   const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-  const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona)/i;
+  const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
   let sincronizados = 0;
   let erros = 0;
   for (const col of comId) {
