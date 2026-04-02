@@ -384,3 +384,57 @@ export const pushSubscriptions = mysqlTable("pushSubscriptions", {
 });
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscriptionRow = typeof pushSubscriptions.$inferInsert;
+
+// ─── AVEC CONFIG (Configuração de integração com o Avec) ─────────────────────
+export const avecConfig = mysqlTable("avecConfig", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  avecEmail: varchar("avecEmail", { length: 255 }),
+  avecSenha: varchar("avecSenha", { length: 255 }),
+  avecSalaoId: varchar("avecSalaoId", { length: 64 }),
+  avecSalaoNome: varchar("avecSalaoNome", { length: 255 }),
+  ultimaSincronizacao: timestamp("ultimaSincronizacao"),
+  statusUltimaSinc: varchar("statusUltimaSinc", { length: 64 }),
+  ativo: int("ativo").notNull().default(1),
+  sincAutoAtiva: int("sincAutoAtiva").notNull().default(0),
+  horarioSinc: varchar("horarioSinc", { length: 8 }),
+  avecSessionCookie: text("avecSessionCookie"),
+  cookieConfiguradoEm: timestamp("cookieConfiguradoEm"),
+  avecApiToken: text("avecApiToken"),
+  apiTokenConfiguradoEm: timestamp("apiTokenConfiguradoEm"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type AvecConfig = typeof avecConfig.$inferSelect;
+export type InsertAvecConfig = typeof avecConfig.$inferInsert;
+
+// ─── AVEC MAPEAMENTO (Mapeamento de categorias Avec -> Meta) ─────────────────
+export const avecMapeamento = mysqlTable("avecMapeamento", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  avecCategoria: varchar("avecCategoria", { length: 128 }).notNull(),
+  metaCategoria: varchar("metaCategoria", { length: 16 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type AvecMapeamento = typeof avecMapeamento.$inferSelect;
+export type InsertAvecMapeamento = typeof avecMapeamento.$inferInsert;
+
+// ─── AVEC SYNC LOG (Log de sincronizações do Avec) ───────────────────────────
+export const avecSyncLog = mysqlTable("avecSyncLog", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  origem: varchar("origem", { length: 32 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  diasSincronizados: int("diasSincronizados").notNull().default(0),
+  diasIgnorados: int("diasIgnorados").notNull().default(0),
+  erros: text("erros"),
+  executadoEm: timestamp("executadoEm").defaultNow().notNull(),
+});
+export type AvecSyncLogRow = typeof avecSyncLog.$inferSelect;
+export type InsertAvecSyncLog = typeof avecSyncLog.$inferInsert;

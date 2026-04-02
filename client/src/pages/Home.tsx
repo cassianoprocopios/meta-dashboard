@@ -119,6 +119,25 @@ export default function Home() {
   });
 
   const [syncingDpote, setSyncingDpote] = useState(false);
+
+  // ─── Sync Avec (Seraphine) ────────────────────────────────────────────────
+  const [syncingAvec, setSyncingAvec] = useState(false);
+  const sincronizarAvecMutation = trpc.avec.sincronizar.useMutation({
+    onSuccess: (data) => {
+      setSyncingAvec(false);
+      if (data.erros) {
+        toast.error(`Erro no Sync Avec: ${data.erros}`);
+      } else {
+        toast.success(`\u26A1 Sync Avec conclu\u00eddo! ${data.diasSincronizados} dias importados, ${data.diasFechados} fechados.`);
+        refetchFat();
+      }
+    },
+    onError: (err) => {
+      setSyncingAvec(false);
+      toast.error(`Erro no Sync Avec: ${err.message}`);
+    },
+  });
+
   // Estado para o painel de entrada manual de Recorrência
   const [recorrenciaManualSlug, setRecorrenciaManualSlug] = useState<string | null>(null);
   const [recorrenciaManualValor, setRecorrenciaManualValor] = useState("");
@@ -1051,6 +1070,25 @@ export default function Home() {
                   {syncingDpote ? "Atualizando..." : "Sync Dpote"}
                 </button>
               )}
+              {isGerente && empresasData.some((e) => e.tipoCategorias === "seraphine") && (
+                <button
+                  onClick={() => {
+                    setSyncingAvec(true);
+                    const seraphineEmp = empresasData.find((e) => e.tipoCategorias === "seraphine");
+                    if (seraphineEmp) {
+                      sincronizarAvecMutation.mutate({ empresaSlug: seraphineEmp.slug, mes, ano });
+                    }
+                  }}
+                  disabled={syncingAvec}
+                  title="Sincronizar faturamento da Seraphine via Avec agora"
+                  className="flex items-center gap-1.5 text-sm text-pink-600 hover:text-pink-700 px-3 py-1.5 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingAvec
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingAvec ? "Sincronizando..." : "Sync Avec"}
+                </button>
+              )}
 
               {podeLancarFaturamento && (
                 <Button onClick={() => { setEditingFaturamento(null); setShowFaturamentoForm(true); }} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm" size="sm">
@@ -1240,6 +1278,25 @@ export default function Home() {
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : <Repeat2 className="w-4 h-4" />}
                   {syncingDpote ? "Atualizando Dpote..." : "Sincronizar Dpote"}
+                </button>
+              )}
+              {isGerente && empresasData.some((e) => e.tipoCategorias === "seraphine") && (
+                <button
+                  onClick={() => {
+                    setSyncingAvec(true);
+                    const seraphineEmp = empresasData.find((e) => e.tipoCategorias === "seraphine");
+                    if (seraphineEmp) {
+                      sincronizarAvecMutation.mutate({ empresaSlug: seraphineEmp.slug, mes, ano });
+                    }
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={syncingAvec}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors font-medium disabled:opacity-50"
+                >
+                  {syncingAvec
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  {syncingAvec ? "Sincronizando Avec..." : "Sincronizar Avec"}
                 </button>
               )}
             </div>

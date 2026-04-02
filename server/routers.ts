@@ -1,3 +1,4 @@
+import { avecRouter } from "./avecRouter";
 import bcrypt from "bcryptjs";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -4292,5 +4293,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         nomeProximo,
       };
     }),
+  avec: avecRouter,
 });
+
 export type AppRouter = typeof appRouter;

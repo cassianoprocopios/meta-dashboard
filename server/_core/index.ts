@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
+import { iniciarJobAvec } from "../avecJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import * as cron from "node-cron";
 import { enviarPushRankingDiario } from "../pushNotifications";
@@ -121,6 +122,13 @@ async function startServer() {
     inicializarJobsCashbarber().catch((err) => {
       console.error("[CashBarber Job] Falha na inicialização:", err);
     });
+
+    // Inicializar job de sincronização automática do Avec (a cada 1 hora)
+    try {
+      iniciarJobAvec();
+    } catch (err) {
+      console.error("[Avec Job] Falha na inicialização:", err);
+    }
 
     // ─── Job de push de ranking às 12h (horário de Brasília = UTC-3) ─────────
     // Cron: 0 0 15 * * * = todo dia às 15:00 UTC = 12:00 BRT
