@@ -15,6 +15,7 @@
     "migrate:empresa:dry": "node scripts/migrate-empresa-vinculada.mjs --dry-run"
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1022.0",
     "@aws-sdk/client-s3": "^3.693.0",
     "@aws-sdk/s3-request-presigner": "^3.693.0",
     "@hookform/resolvers": "^5.2.2",

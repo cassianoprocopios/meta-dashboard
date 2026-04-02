@@ -15,7 +15,9 @@ async function getTenantIdFromCtx(ctx: { user?: { tenantId?: number | null } | n
 }
 
 export const avecRouter = router({
-  // Buscar configuração do Avec para uma empresa
+  // ── Configuração ────────────────────────────────────────────────────────────
+
+  // Buscar configuração do Avec para uma empresa (alias: getConfig e listarConfig)
   getConfig: protectedProcedure
     .input(z.object({ empresaSlug: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -35,10 +37,40 @@ export const avecRouter = router({
         id: cfg.id,
         empresaSlug: cfg.empresaSlug,
         avecEmail: cfg.avecEmail,
+        avecSenha: cfg.avecSenha,
         avecSalaoNome: cfg.avecSalaoNome,
         ultimaSincronizacao: cfg.ultimaSincronizacao,
         statusUltimaSinc: cfg.statusUltimaSinc,
-        sincAutoAtiva: cfg.sincAutoAtiva === 1,
+        sincAutoAtiva: cfg.sincAutoAtiva === 1 ? 1 : 0,
+        ativo: cfg.ativo === 1,
+      };
+    }),
+
+  // Alias para getConfig (compatibilidade com o componente AvecIntegracao)
+  listarConfig: protectedProcedure
+    .input(z.object({ empresaSlug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const db = await getDb();
+      if (!db) return null;
+      const { avecConfig } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const rows = await db
+        .select()
+        .from(avecConfig)
+        .where(and(eq(avecConfig.tenantId, tenantId), eq(avecConfig.empresaSlug, input.empresaSlug)))
+        .limit(1);
+      const cfg = rows[0];
+      if (!cfg) return null;
+      return {
+        id: cfg.id,
+        empresaSlug: cfg.empresaSlug,
+        avecEmail: cfg.avecEmail ?? "",
+        avecSenha: cfg.avecSenha ?? "",
+        avecSalaoNome: cfg.avecSalaoNome,
+        ultimaSincronizacao: cfg.ultimaSincronizacao,
+        statusUltimaSinc: cfg.statusUltimaSinc,
+        sincAutoAtiva: cfg.sincAutoAtiva === 1 ? 1 : 0,
         ativo: cfg.ativo === 1,
       };
     }),
@@ -124,6 +156,81 @@ export const avecRouter = router({
       return { sucesso: true };
     }),
 
+  // Testar conexão com o Avec (faz login via browser headless)
+  testarConexao: protectedProcedure
+    .input(z.object({
+      empresaSlug: z.string(),
+      email: z.string().email(),
+      senha: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const { avecBrowserLogin, avecBrowserInvalidarSessao } = await import("./avecBrowser");
+        // Invalidar cache para forçar novo login
+        avecBrowserInvalidarSessao();
+        await avecBrowserLogin(input.email, input.senha);
+        return { sucesso: true, mensagem: "Conexão estabelecida com sucesso!" };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        return { sucesso: false, mensagem: msg };
+      }
+    }),
+
+  // ── Mapeamento de Categorias ─────────────────────────────────────────────────
+
+  // Listar mapeamento de categorias
+  listarMapeamento: protectedProcedure
+    .input(z.object({ empresaSlug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const db = await getDb();
+      if (!db) return [];
+      const { avecMapeamento } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      return db
+        .select()
+        .from(avecMapeamento)
+        .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, input.empresaSlug)));
+    }),
+
+  // Salvar mapeamento de categorias
+  salvarMapeamento: protectedProcedure
+    .input(z.object({
+      empresaSlug: z.string(),
+      mapeamento: z.array(z.object({
+        avecCategoria: z.string(),
+        metaCategoria: z.string(),
+      })),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { avecMapeamento } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+
+      // Remover mapeamentos existentes
+      await db
+        .delete(avecMapeamento)
+        .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, input.empresaSlug)));
+
+      // Inserir novos mapeamentos
+      for (const m of input.mapeamento) {
+        await db.insert(avecMapeamento).values({
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          avecCategoria: m.avecCategoria,
+          metaCategoria: m.metaCategoria,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+
+      return { sucesso: true };
+    }),
+
+  // ── Sincronização ────────────────────────────────────────────────────────────
+
   // Disparar sincronização manual
   sincronizar: protectedProcedure
     .input(
@@ -151,8 +258,27 @@ export const avecRouter = router({
     return getStatusJobAvec();
   }),
 
-  // Buscar últimos logs de sync
+  // ── Logs ─────────────────────────────────────────────────────────────────────
+
+  // Buscar últimos logs de sync (alias: logs e listarLogs)
   logs: protectedProcedure
+    .input(z.object({ empresaSlug: z.string(), limit: z.number().int().min(1).max(50).default(10) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const db = await getDb();
+      if (!db) return [];
+      const { avecSyncLog } = await import("../drizzle/schema");
+      const { eq, and, desc } = await import("drizzle-orm");
+      return db
+        .select()
+        .from(avecSyncLog)
+        .where(and(eq(avecSyncLog.tenantId, tenantId), eq(avecSyncLog.empresaSlug, input.empresaSlug)))
+        .orderBy(desc(avecSyncLog.executadoEm))
+        .limit(input.limit);
+    }),
+
+  // Alias para logs (compatibilidade com o componente AvecIntegracao)
+  listarLogs: protectedProcedure
     .input(z.object({ empresaSlug: z.string(), limit: z.number().int().min(1).max(50).default(10) }))
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);

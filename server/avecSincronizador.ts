@@ -5,14 +5,13 @@
  * usando o mapeamento configurado (avecMapeamento).
  *
  * Estratégia de coleta:
- * 1. Login no Avec com as credenciais salvas em avecConfig
- * 2. Para cada dia do período, busca o total via histórico de caixas
- * 3. Distribui o total pelas categorias usando proporções do mês
- * 4. Salva no banco via upsertFaturamento (preservando cats não mapeadas)
+ * 1. Login no Avec via browser headless (terminal.avec.beauty)
+ * 2. Para cada dia do período, busca o faturamento por categoria
+ * 3. Salva no banco via upsertFaturamento (preservando cats não mapeadas)
  */
 
 import { getDb } from "./db";
-import { avecLogin, avecBuscarCaixaDia, avecBuscarProporcoesMes, avecInvalidarSessao } from "./avec";
+import { avecBrowserLogin, avecBrowserBuscarFaturamentoDia, avecBrowserInvalidarSessao } from "./avecBrowser";
 
 export interface ResultadoSincAvec {
   diasSincronizados: number;
@@ -199,19 +198,15 @@ export async function sincronizarFaturamentoAvec(
       }
     }
 
-    // 3. Login no Avec
-    let sessionCookie: string;
+    // 3. Fazer login no Avec via browser headless (valida credenciais)
     try {
-      sessionCookie = await avecLogin(config.avecEmail, config.avecSenha);
+      await avecBrowserLogin(config.avecEmail, config.avecSenha);
     } catch (e) {
-      avecInvalidarSessao();
+      avecBrowserInvalidarSessao();
       throw new Error(`Falha no login do Avec: ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    // 4. Buscar proporções do mês para distribuir por categoria
-    const proporcoes = await avecBuscarProporcoesMes(sessionCookie, mes, ano);
-
-    // 5. Iterar por cada dia do mês
+    // 4. Iterar por cada dia do mês
     const ultimoDia = new Date(ano, mes, 0).getDate();
     const hoje = new Date();
     const mesStr = String(mes).padStart(2, "0");
@@ -219,7 +214,6 @@ export async function sincronizarFaturamentoAvec(
     for (let d = 1; d <= ultimoDia; d++) {
       const diaStr = String(d).padStart(2, "0");
       const dataYMD = `${ano}-${mesStr}-${diaStr}`;
-      const dataDMY = `${diaStr}/${mesStr}/${ano}`;
 
       // Não sincronizar dias futuros
       const dataDia = new Date(`${dataYMD}T12:00:00Z`);
@@ -230,29 +224,29 @@ export async function sincronizarFaturamentoAvec(
       }
 
       try {
-        const totalDia = await avecBuscarCaixaDia(sessionCookie, dataDMY);
+        // Buscar faturamento do dia por categoria via browser headless
+        const dadosDia = await avecBrowserBuscarFaturamentoDia(config.avecEmail, config.avecSenha, dataYMD);
 
-        if (totalDia === 0) {
+        if (dadosDia.total === 0) {
           resultado.diasFechados++;
           resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem caixa (fechado)" });
           continue;
         }
 
-        // Distribuir total por categoria usando proporções do mês
+        // Mapear categorias Avec -> cats do meta usando o mapeamento configurado
         const valores: Partial<Record<"cat1" | "cat2" | "cat3" | "cat4" | "cat5", number>> = {};
 
-        // Mapear categorias Avec -> cats do meta
         const catCabelo = mapaCategoria["cabelo"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
         const catManicure = mapaCategoria["manicure e pedicure"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
         const catSobrancelha = mapaCategoria["sobrancelha"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
         const catPacote = mapaCategoria["pacote"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
         const catRecorrencia = mapaCategoria["recorrência"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
 
-        if (catCabelo) valores[catCabelo] = Math.round(totalDia * proporcoes.cabelo * 100) / 100;
-        if (catManicure) valores[catManicure] = Math.round(totalDia * proporcoes.manicurePedicure * 100) / 100;
-        if (catSobrancelha) valores[catSobrancelha] = Math.round(totalDia * proporcoes.sobrancelha * 100) / 100;
-        if (catPacote) valores[catPacote] = Math.round(totalDia * proporcoes.pacote * 100) / 100;
-        if (catRecorrencia) valores[catRecorrencia] = Math.round(totalDia * proporcoes.recorrencia * 100) / 100;
+        if (catCabelo) valores[catCabelo] = dadosDia.cabelo;
+        if (catManicure) valores[catManicure] = dadosDia.manicurePedicure;
+        if (catSobrancelha) valores[catSobrancelha] = dadosDia.sobrancelha;
+        if (catPacote) valores[catPacote] = dadosDia.pacote;
+        if (catRecorrencia) valores[catRecorrencia] = dadosDia.recorrencia;
 
         await upsertFaturamentoAvec({
           tenantId,
@@ -263,7 +257,7 @@ export async function sincronizarFaturamentoAvec(
         });
 
         resultado.diasSincronizados++;
-        resultado.detalhes.push({ data: dataYMD, status: "sincronizado", total: totalDia });
+        resultado.detalhes.push({ data: dataYMD, status: "sincronizado", total: dadosDia.total });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });
@@ -271,7 +265,7 @@ export async function sincronizarFaturamentoAvec(
       }
     }
 
-    // 6. Atualizar status de sincronização
+    // 5. Atualizar status de sincronização
     const statusFinal = resultado.diasSincronizados > 0 ? "sucesso" : "sem_dados";
     await atualizarStatusSync(tenantId, empresaSlug, statusFinal);
     await salvarSyncLog({
