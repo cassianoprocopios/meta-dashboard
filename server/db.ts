@@ -427,7 +427,7 @@ export async function createEmpresa(input: InsertEmpresa) {
   const empresaId = (result as any).insertId;
   // Inicializar categorias padrão na tabela categorias
   const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
-  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Pacotes", "Cat 6", "Cat 7", "Cat 8", "Recorrência"];
+  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "", "", "", "", "Recorrência"];
   const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
   // Usar cat1Nome..cat9Nome se fornecidos, senão usar padrão do tipo
   const nomes = [
@@ -764,7 +764,7 @@ export async function inicializarCategorias(
     .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.tenantId, tenantId)));
   if (existing.length > 0) return; // já tem categorias, não sobrescrever
   const CATS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-  const CATS_SERAPHINE = ["Cabelo", "Produtos", "Unha", "Outros", "Recorrência"];
+  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "Recorrência"];
   const nomes = tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({ tenantId, empresaSlug, nome, ordem: i + 1, ativo: 1 }))
