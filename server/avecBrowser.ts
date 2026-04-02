@@ -3,11 +3,12 @@
  *
  * Automação browser headless (Puppeteer) para autenticação no Avec.
  *
- * Fluxo:
- *   1. Acessa admin.avec.beauty/{slug}/admin/?email={email} (URL direta com email pré-preenchido)
- *   2. Preenche a senha na tela de login do salão
- *   3. Extrai os cookies de sessão após login bem-sucedido
- *   4. Usa os cookies para acessar os endpoints de faturamento do admin
+ * Fluxo de sincronização de faturamento por categoria:
+ *   1. Login no admin.avec.beauty via browser headless
+ *   2. Buscar lista de comandas finalizadas do dia via /admin/financeiro/comanda/lista
+ *   3. Para cada comanda, buscar o print via /admin/financeiro/comanda/print?id=TOKEN
+ *   4. Extrair os itens (serviço + valor) e mapear para categorias
+ *   5. Somar os valores por categoria
  */
 
 import puppeteer from "puppeteer-core";
@@ -28,8 +29,8 @@ let _sessaoCache: AvecSessao | null = null;
 // ─── Login via Browser Headless ───────────────────────────────────────────────
 
 /**
- * Faz login no Avec via browser headless (terminal.avec.beauty) e retorna
- * os cookies de sessão. Reutiliza sessão em cache por até 50 minutos.
+ * Faz login no Avec via browser headless e retorna os cookies de sessão.
+ * Reutiliza sessão em cache por até 50 minutos.
  */
 export async function avecBrowserLogin(
   email: string,
@@ -43,7 +44,6 @@ export async function avecBrowserLogin(
 
   console.log(`[Avec Browser] Iniciando login para ${email}...`);
 
-  // Extrair slug do email (assumir seraphine-beauty-ltda por padrão)
   const salaoSlug = "seraphine-beauty-ltda";
   const loginUrl = `${ADMIN_URL}/${salaoSlug}/admin/?email=${encodeURIComponent(email)}`;
 
@@ -65,12 +65,10 @@ export async function avecBrowserLogin(
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 900 });
 
-    // ── 1. Acessar URL direta do admin com email pré-preenchido ────────────────
     console.log(`[Avec Browser] Acessando ${loginUrl}...`);
     await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
     await new Promise(r => setTimeout(r, 1000));
 
-    // ── 2. Preencher senha ────────────────────────────────────
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
     const senhaInput = await page.$('input[type="password"]');
     if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado.");
@@ -79,7 +77,6 @@ export async function avecBrowserLogin(
     await senhaInput.type(senha, { delay: 50 });
     await new Promise(r => setTimeout(r, 500));
 
-    // ── 3. Clicar no botão Entrar ─────────────────────────────────
     const botaoClicado = await page.evaluate(() => {
       const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
       const botao = botoes.find(b => b.textContent?.includes('Entrar') || (b as HTMLInputElement).value?.includes('Entrar') || (b as HTMLButtonElement).type === 'submit');
@@ -89,11 +86,10 @@ export async function avecBrowserLogin(
       }
       return false;
     });
-    
+
     if (botaoClicado) {
       await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
     } else {
-      // Fallback: pressionar Enter na senha
       await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {}),
         page.keyboard.press("Enter"),
@@ -105,7 +101,6 @@ export async function avecBrowserLogin(
     console.log(`[Avec Browser] URL após login: ${urlAposLogin}`);
 
     if (urlAposLogin.includes("/login/")) {
-      // Verificar mensagens de erro
       const erros = await page.evaluate(() => {
         const els = document.querySelectorAll(".error, .alert-danger, [class*='error'], [class*='danger'], .toast");
         return Array.from(els).map(e => e.textContent?.trim()).filter(Boolean);
@@ -113,7 +108,6 @@ export async function avecBrowserLogin(
       throw new Error(`[Avec Browser] Login falhou. Erros: ${erros.join(", ") || "Credenciais inválidas"}`);
     }
 
-    // ── 4. Extrair cookies ────────────────────────────────────────────────────
     const cookies = await page.cookies();
     const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join("; ");
 
@@ -139,11 +133,135 @@ export function avecBrowserInvalidarSessao(): void {
   console.log("[Avec Browser] Cache de sessão invalidado.");
 }
 
-// ─── Busca de faturamento via admin.avec.beauty ───────────────────────────────
+// ─── Mapeamento de serviços para categorias ───────────────────────────────────
+
+/**
+ * Mapeamento de nomes de serviços para categorias.
+ * Baseado nos serviços reais da Seraphine Beauty.
+ */
+const MAPA_SERVICO_CATEGORIA: Array<{ palavras: string[]; categoria: "cabelo" | "manicurePedicure" | "sobrancelha" | "pacote" | "recorrencia" }> = [
+  // Cabelo
+  {
+    palavras: ["escova", "corte", "tintura", "coloração", "tonalização", "botox", "progressiva", "relaxamento", "hidratação", "chapinha", "prancha", "mechas", "luzes", "ombré", "balayage", "capilar", "penteado", "finalização", "finaliz", "tratamento capilar", "keratina", "alisamento", "permanente", "descoloração", "descolorac"],
+    categoria: "cabelo",
+  },
+  // Manicure e Pedicure
+  {
+    palavras: ["manicure", "pedicure", "unhas", "nail", "esmalt", "gel", "fibra", "acrigel", "acrílico", "acrilico", "mãos", "maos", "pés", "pes", "francesinha", "spa dos pés", "spa dos pes"],
+    categoria: "manicurePedicure",
+  },
+  // Sobrancelha
+  {
+    palavras: ["sobrancelha", "design", "henna", "micropigmentação", "micropigmentacao", "brow", "cílios", "cilios", "lash", "depilação", "depilacao", "buço", "buco", "bigode"],
+    categoria: "sobrancelha",
+  },
+  // Pacote
+  {
+    palavras: ["pacote", "combo", "clube", "kit", "plano", "assinatura"],
+    categoria: "pacote",
+  },
+  // Recorrência
+  {
+    palavras: ["recorrência", "recorrencia", "mensalidade", "fidelidade", "dpote", "d-pote"],
+    categoria: "recorrencia",
+  },
+];
+
+/**
+ * Mapeia o nome de um serviço para uma categoria.
+ */
+function mapearServicoParaCategoria(nomeServico: string): "cabelo" | "manicurePedicure" | "sobrancelha" | "pacote" | "recorrencia" | "outros" {
+  const nomeLower = nomeServico.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  for (const mapa of MAPA_SERVICO_CATEGORIA) {
+    for (const palavra of mapa.palavras) {
+      const palavraNorm = palavra.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (nomeLower.includes(palavraNorm)) {
+        return mapa.categoria;
+      }
+    }
+  }
+
+  return "outros";
+}
+
+// ─── Extração de faturamento via lista de comandas ────────────────────────────
+
+/**
+ * Extrai os tokens de print das comandas a partir da resposta da lista de comandas.
+ * A lista retorna HTML com links no formato:
+ * <a href="https://admin.avec.beauty/admin/financeiro/comanda/print?id=TOKEN">
+ */
+function extrairTokensPrintDaLista(htmlLista: string): string[] {
+  const tokens: string[] = [];
+  // Regex para capturar tokens de print no JSON escapado
+  const regex = /comanda\\\/print\?id=([^"\\]+)/g;
+  let match;
+  while ((match = regex.exec(htmlLista)) !== null) {
+    tokens.push(match[1]);
+  }
+  // Regex alternativa para HTML não escapado
+  const regex2 = /comanda\/print\?id=([^"&\s]+)/g;
+  while ((match = regex2.exec(htmlLista)) !== null) {
+    if (!tokens.includes(match[1])) {
+      tokens.push(match[1]);
+    }
+  }
+  return tokens;
+}
+
+/**
+ * Extrai os itens de uma comanda a partir do HTML do print.
+ * O print retorna uma tabela com: Qtd | Item | Profissional | Valor
+ */
+function extrairItensDoPrint(htmlPrint: string): Array<{ servico: string; valor: number }> {
+  const itens: Array<{ servico: string; valor: number }> = [];
+
+  // Extrair linhas de tabela com itens
+  // Padrão: <tr><td>1</td><td>Manicure</td><td>Bia</td><td>43,00</td></tr>
+  const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let trMatch;
+
+  while ((trMatch = trRegex.exec(htmlPrint)) !== null) {
+    const trContent = trMatch[1];
+
+    // Extrair células
+    const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    const tds: string[] = [];
+    let tdMatch;
+
+    while ((tdMatch = tdRegex.exec(trContent)) !== null) {
+      const texto = tdMatch[1].replace(/<[^>]+>/g, "").trim();
+      tds.push(texto);
+    }
+
+    // Verificar se é uma linha de item (4 células: Qtd, Item, Profissional, Valor)
+    if (tds.length >= 4) {
+      const qtd = parseInt(tds[0], 10);
+      const servico = tds[1].trim();
+      const valorStr = tds[tds.length - 1].replace(/[^\d,]/g, "").replace(",", ".");
+      const valor = parseFloat(valorStr) || 0;
+
+      // Filtrar linhas de cabeçalho e total
+      if (!isNaN(qtd) && qtd > 0 && servico && !servico.toLowerCase().includes("item") && !servico.toLowerCase().includes("total")) {
+        itens.push({ servico, valor });
+      }
+    }
+  }
+
+  return itens;
+}
+
+// ─── Busca de faturamento via lista de comandas ───────────────────────────────
 
 /**
  * Busca o faturamento por categoria para um dia específico via admin.avec.beauty.
- * Usa o Puppeteer para navegar até a página de histórico de caixas e extrair os dados.
+ *
+ * Estratégia:
+ * 1. Buscar lista de comandas finalizadas do dia via /admin/financeiro/comanda/lista
+ * 2. Para cada comanda, buscar o print via /admin/financeiro/comanda/print?id=TOKEN
+ * 3. Extrair os itens (serviço + valor) e mapear para categorias
+ * 4. Somar os valores por categoria
  */
 export async function avecBrowserBuscarFaturamentoDia(
   email: string,
@@ -155,6 +273,7 @@ export async function avecBrowserBuscarFaturamentoDia(
   sobrancelha: number;
   pacote: number;
   recorrencia: number;
+  outros: number;
   total: number;
 }> {
   const resultado = {
@@ -163,82 +282,117 @@ export async function avecBrowserBuscarFaturamentoDia(
     sobrancelha: 0,
     pacote: 0,
     recorrencia: 0,
+    outros: 0,
     total: 0,
   };
 
-  const { cookies, salaoSlug } = await avecBrowserLogin(email, senha);
+  const { cookies } = await avecBrowserLogin(email, senha);
 
   const [ano, mes, dia] = data.split("-");
   const dataFormatada = `${dia}/${mes}/${ano}`;
-  const dataHifen = `${dia}-${mes}-${ano}`;
 
-  // Tentar endpoint de consultoria por dia (retorna dados por categoria)
-  const consultoriaUrl = `${ADMIN_URL}/admin/consultoria/dados?dashboard=262&periodo=periodo&dataInicio=${dataHifen}&dataFim=${dataHifen}`;
+  console.log(`[Avec Browser] Buscando faturamento de ${dataFormatada}...`);
 
-  const consultoriaRes = await fetch(consultoriaUrl, {
-    headers: {
-      Cookie: cookies,
-      Accept: "application/json",
-      "X-Requested-With": "XMLHttpRequest",
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
-    },
-  });
+  // ── 1. Buscar lista de comandas finalizadas do dia ────────────────────────────
+  const listaUrl = `${ADMIN_URL}/admin/financeiro/comanda/lista?status=2&parTipoComanda=1&parDataIni=${dataFormatada}&parDataFim=${dataFormatada}&draw=1&start=0&length=500`;
 
-  if (consultoriaRes.ok) {
+  let listaHtml: string;
+  try {
+    const listaRes = await fetch(listaUrl, {
+      headers: {
+        Cookie: cookies,
+        Accept: "application/json, text/javascript, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+      },
+    });
+
+    if (!listaRes.ok) {
+      console.warn(`[Avec Browser] Lista de comandas retornou ${listaRes.status} para ${dataFormatada}`);
+      return resultado;
+    }
+
+    listaHtml = await listaRes.text();
+  } catch (e) {
+    console.error(`[Avec Browser] Erro ao buscar lista de comandas para ${dataFormatada}:`, e);
+    return resultado;
+  }
+
+  // ── 2. Extrair tokens de print das comandas ───────────────────────────────────
+  const printTokens = extrairTokensPrintDaLista(listaHtml);
+
+  if (printTokens.length === 0) {
+    console.log(`[Avec Browser] Nenhuma comanda encontrada para ${dataFormatada}`);
+    return resultado;
+  }
+
+  console.log(`[Avec Browser] ${printTokens.length} comandas encontradas para ${dataFormatada}`);
+
+  // ── 3. Para cada comanda, buscar o print e extrair itens ──────────────────────
+  let totalComandas = 0;
+  let errosConsecutivos = 0;
+
+  for (const token of printTokens) {
     try {
-      const json = await consultoriaRes.json() as any;
-      const servicos = json?.servicos ?? json?.data?.servicos ?? json?.data ?? [];
+      const printUrl = `${ADMIN_URL}/admin/financeiro/comanda/print?id=${encodeURIComponent(token)}`;
 
-      if (Array.isArray(servicos) && servicos.length > 0) {
-        for (const s of servicos) {
-          const nome = (s.nome ?? s.servico ?? s.categoria ?? s.name ?? "").toLowerCase();
-          const valor = parseFloat(s.faturamento ?? s.valor ?? s.total ?? s.revenue ?? 0);
+      const printRes = await fetch(printUrl, {
+        headers: {
+          Cookie: cookies,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        },
+      });
 
-          if (nome.includes("cabelo") || nome.includes("hair")) {
-            resultado.cabelo += valor;
-          } else if (nome.includes("manicure") || nome.includes("pedicure") || nome.includes("unha")) {
-            resultado.manicurePedicure += valor;
-          } else if (nome.includes("sobrancelha") || nome.includes("design")) {
-            resultado.sobrancelha += valor;
-          } else if (nome.includes("pacote") || nome.includes("package")) {
-            resultado.pacote += valor;
-          } else if (nome.includes("recorr") || nome.includes("assinatura") || nome.includes("plano")) {
-            resultado.recorrencia += valor;
-          }
+      if (!printRes.ok) {
+        console.warn(`[Avec Browser] Print retornou ${printRes.status} para token ${token.substring(0, 20)}...`);
+        errosConsecutivos++;
+        if (errosConsecutivos >= 5) {
+          console.error("[Avec Browser] Muitos erros consecutivos, abortando.");
+          break;
         }
-        resultado.total = resultado.cabelo + resultado.manicurePedicure + resultado.sobrancelha + resultado.pacote + resultado.recorrencia;
-        return resultado;
+        continue;
       }
-    } catch {
-      // Silenciar erros de parse
+
+      errosConsecutivos = 0;
+      const printHtml = await printRes.text();
+
+      // Extrair itens do print
+      const itens = extrairItensDoPrint(printHtml);
+
+      for (const item of itens) {
+        const categoria = mapearServicoParaCategoria(item.servico);
+        resultado[categoria] += item.valor;
+        totalComandas++;
+      }
+
+      // Pequena pausa para não sobrecarregar o servidor
+      await new Promise(r => setTimeout(r, 100));
+    } catch (e) {
+      console.warn(`[Avec Browser] Erro ao processar comanda:`, e);
+      errosConsecutivos++;
     }
   }
 
-  // Fallback: buscar via histórico de caixas (HTML scraping)
-  const caixaUrl = `${ADMIN_URL}/admin/financeiro/caixa/historico?fechamento=${encodeURIComponent(dataFormatada)}`;
-  const caixaRes = await fetch(caixaUrl, {
-    headers: {
-      Cookie: cookies,
-      Accept: "text/html,application/xhtml+xml",
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
-    },
-  });
+  resultado.total = resultado.cabelo + resultado.manicurePedicure + resultado.sobrancelha + resultado.pacote + resultado.recorrencia + resultado.outros;
 
-  if (caixaRes.ok) {
-    const html = await caixaRes.text();
-
-    // Extrair total geral
-    const totalMatch = html.match(/TOTAL FATURADO[\s\S]*?R\$\s*([\d.,]+)/i);
-    if (totalMatch) {
-      resultado.total = parseFloat(totalMatch[1].replace(/\./g, "").replace(",", "."));
-    }
-  }
+  console.log(
+    `[Avec Browser] Faturamento de ${dataFormatada}: ` +
+    `Cabelo R$${resultado.cabelo.toFixed(2)}, ` +
+    `Manicure R$${resultado.manicurePedicure.toFixed(2)}, ` +
+    `Sobrancelha R$${resultado.sobrancelha.toFixed(2)}, ` +
+    `Pacote R$${resultado.pacote.toFixed(2)}, ` +
+    `Recorrência R$${resultado.recorrencia.toFixed(2)}, ` +
+    `Outros R$${resultado.outros.toFixed(2)}, ` +
+    `Total R$${resultado.total.toFixed(2)} ` +
+    `(${totalComandas} itens em ${printTokens.length} comandas)`
+  );
 
   return resultado;
 }
 
 /**
- * Busca o faturamento por categoria para um mês inteiro usando o dashboard do Avec.
+ * Busca o faturamento por categoria para um mês inteiro.
  * Retorna um mapa de data (YYYY-MM-DD) para valores por categoria.
  */
 export async function avecBrowserBuscarFaturamentoMes(
@@ -252,69 +406,36 @@ export async function avecBrowserBuscarFaturamentoMes(
   sobrancelha: number;
   pacote: number;
   recorrencia: number;
+  outros: number;
   total: number;
 }>> {
-  const { cookies } = await avecBrowserLogin(email, senha);
-  const resultado = new Map<string, { cabelo: number; manicurePedicure: number; sobrancelha: number; pacote: number; recorrencia: number; total: number }>();
+  const resultado = new Map<string, {
+    cabelo: number;
+    manicurePedicure: number;
+    sobrancelha: number;
+    pacote: number;
+    recorrencia: number;
+    outros: number;
+    total: number;
+  }>();
 
-  const mesStr = String(mes).padStart(2, "0");
   const ultimoDia = new Date(ano, mes, 0).getDate();
+  const mesStr = String(mes).padStart(2, "0");
+  const hoje = new Date();
 
-  // Buscar dados do mês inteiro via dashboard de consultoria
-  const dataInicio = `01-${mesStr}-${ano}`;
-  const dataFim = `${String(ultimoDia).padStart(2, "0")}-${mesStr}-${ano}`;
+  for (let d = 1; d <= ultimoDia; d++) {
+    const diaStr = String(d).padStart(2, "0");
+    const dataYMD = `${ano}-${mesStr}-${diaStr}`;
 
-  const url = `${ADMIN_URL}/admin/consultoria/dados?dashboard=262&periodo=mes&mesFiltro=${mesStr}-${ano}`;
-  console.log(`[Avec Browser] Buscando faturamento do mês ${mes}/${ano}...`);
+    // Não sincronizar dias futuros
+    const dataDia = new Date(`${dataYMD}T12:00:00Z`);
+    if (dataDia > hoje) break;
 
-  const res = await fetch(url, {
-    headers: {
-      Cookie: cookies,
-      Accept: "application/json",
-      "X-Requested-With": "XMLHttpRequest",
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
-    },
-  });
-
-  if (res.ok) {
     try {
-      const json = await res.json() as any;
-      console.log(`[Avec Browser] Resposta consultoria mês:`, JSON.stringify(json).substring(0, 300));
-
-      // Processar dados por dia
-      const diasData = json?.dias ?? json?.data?.dias ?? json?.porDia ?? [];
-      if (Array.isArray(diasData)) {
-        for (const dia of diasData) {
-          const dataStr = dia.data ?? dia.date ?? "";
-          if (!dataStr) continue;
-
-          // Normalizar para YYYY-MM-DD
-          let dataFormatada = dataStr;
-          if (dataStr.includes("/")) {
-            const [d, m, a] = dataStr.split("/");
-            dataFormatada = `${a}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-          }
-
-          const servicos = dia.servicos ?? dia.categorias ?? [];
-          const diaResult = { cabelo: 0, manicurePedicure: 0, sobrancelha: 0, pacote: 0, recorrencia: 0, total: 0 };
-
-          for (const s of servicos) {
-            const nome = (s.nome ?? s.categoria ?? "").toLowerCase();
-            const valor = parseFloat(s.faturamento ?? s.valor ?? 0);
-
-            if (nome.includes("cabelo")) diaResult.cabelo += valor;
-            else if (nome.includes("manicure") || nome.includes("pedicure")) diaResult.manicurePedicure += valor;
-            else if (nome.includes("sobrancelha")) diaResult.sobrancelha += valor;
-            else if (nome.includes("pacote")) diaResult.pacote += valor;
-            else if (nome.includes("recorr")) diaResult.recorrencia += valor;
-          }
-
-          diaResult.total = diaResult.cabelo + diaResult.manicurePedicure + diaResult.sobrancelha + diaResult.pacote + diaResult.recorrencia;
-          resultado.set(dataFormatada, diaResult);
-        }
-      }
-    } catch {
-      // Silenciar erros de parse
+      const dadosDia = await avecBrowserBuscarFaturamentoDia(email, senha, dataYMD);
+      resultado.set(dataYMD, dadosDia);
+    } catch (e) {
+      console.error(`[Avec Browser] Erro ao buscar dia ${dataYMD}:`, e);
     }
   }
 

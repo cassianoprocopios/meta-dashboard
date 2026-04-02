@@ -277,6 +277,123 @@ export const avecRouter = router({
         .limit(input.limit);
     }),
 
+  // ── Setup / Manutenção ──────────────────────────────────────────────────────
+
+  // Criar tabelas Avec e inserir dados iniciais (idempotente)
+  setupTabelas: protectedProcedure.mutation(async ({ ctx }) => {
+    const tenantId = await getTenantIdFromCtx(ctx);
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB não disponível" });
+
+    // Usar SQL direto via drizzle para criar tabelas se não existirem
+    const { sql } = await import("drizzle-orm");
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS avecConfig (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenantId INT NOT NULL,
+        empresaSlug VARCHAR(64) NOT NULL,
+        avecEmail VARCHAR(255),
+        avecSenha VARCHAR(255),
+        avecSalaoId VARCHAR(64),
+        avecSalaoNome VARCHAR(255),
+        ultimaSincronizacao TIMESTAMP NULL,
+        statusUltimaSinc VARCHAR(64),
+        ativo INT NOT NULL DEFAULT 1,
+        sincAutoAtiva INT NOT NULL DEFAULT 0,
+        horarioSinc VARCHAR(8),
+        avecSessionCookie TEXT,
+        cookieConfiguradoEm TIMESTAMP NULL,
+        avecApiToken TEXT,
+        apiTokenConfiguradoEm TIMESTAMP NULL,
+        createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_tenant_empresa (tenantId, empresaSlug)
+      )
+    `);
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS avecMapeamento (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenantId INT NOT NULL,
+        empresaSlug VARCHAR(64) NOT NULL,
+        avecCategoria VARCHAR(128) NOT NULL,
+        metaCategoria VARCHAR(16) NOT NULL,
+        createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_tenant_empresa_cat (tenantId, empresaSlug, avecCategoria)
+      )
+    `);
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS avecSyncLog (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenantId INT NOT NULL,
+        empresaSlug VARCHAR(64) NOT NULL,
+        origem VARCHAR(32) NOT NULL,
+        status VARCHAR(32) NOT NULL,
+        mes INT NOT NULL,
+        ano INT NOT NULL,
+        diasSincronizados INT NOT NULL DEFAULT 0,
+        diasIgnorados INT NOT NULL DEFAULT 0,
+        erros TEXT,
+        executadoEm TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Inserir config da Seraphine se não existir
+    const { avecConfig, avecMapeamento } = await import("../drizzle/schema");
+    const { eq, and } = await import("drizzle-orm");
+
+    const existeConfig = await db
+      .select({ id: avecConfig.id })
+      .from(avecConfig)
+      .where(and(eq(avecConfig.tenantId, tenantId), eq(avecConfig.empresaSlug, "seraphine")))
+      .limit(1);
+
+    if (existeConfig.length === 0) {
+      await db.insert(avecConfig).values({
+        tenantId,
+        empresaSlug: "seraphine",
+        avecEmail: "seraphinebeauty24@gmail.com",
+        avecSenha: "Dxj4oue@",
+        ativo: 1,
+        sincAutoAtiva: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    // Inserir mapeamento padrão se não existir
+    const existeMapeamento = await db
+      .select({ id: avecMapeamento.id })
+      .from(avecMapeamento)
+      .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, "seraphine")))
+      .limit(1);
+
+    if (existeMapeamento.length === 0) {
+      const mapeamentos = [
+        { avecCategoria: "Cabelo", metaCategoria: "cat1" },
+        { avecCategoria: "Manicure e Pedicure", metaCategoria: "cat2" },
+        { avecCategoria: "Sobrancelha", metaCategoria: "cat3" },
+        { avecCategoria: "Pacote", metaCategoria: "cat4" },
+        { avecCategoria: "Recorrência", metaCategoria: "cat5" },
+      ];
+      for (const m of mapeamentos) {
+        await db.insert(avecMapeamento).values({
+          tenantId,
+          empresaSlug: "seraphine",
+          avecCategoria: m.avecCategoria,
+          metaCategoria: m.metaCategoria,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+    }
+
+    return { ok: true, message: "Tabelas Avec criadas e dados iniciais inseridos com sucesso!" };
+  }),
+
   // Alias para logs (compatibilidade com o componente AvecIntegracao)
   listarLogs: protectedProcedure
     .input(z.object({ empresaSlug: z.string(), limit: z.number().int().min(1).max(50).default(10) }))

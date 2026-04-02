@@ -1171,3 +1171,8 @@
 - [x] Adicionar indicador visual "Sincronizando..." no botão Sync Avec quando job estiver executando
 - [x] Atualizar login do Avec para usar URL direta com email como parâmetro (mais rápido e confiável)
 - [x] Polling do status do job a cada 10s para mostrar "Sync em andamento..." em tempo real
+
+## Bug: Sync Avec - Erro na Importação de Faturamento por Categoria
+- [ ] Investigar logs e identificar causa raiz do erro de sync automático
+- [ ] Corrigir o problema de importação de faturamento por categoria
+- [ ] Testar sync completo e validar dados importados
