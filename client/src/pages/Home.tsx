@@ -417,9 +417,11 @@ export default function Home() {
       // REGRA DE FATURAMENTO E RECORRÊNCIA DPOTE:
       //
       // MÊS PASSADO: cat9 já totalmente apurado → entra no faturamento
-      // MÊS VIGENTE: cat9 acumulado até hoje → entra no faturamento (já realizado)
-      // MÊS FUTURO:  cat9 ainda não apurado → NÃO entra; aparece como previsão
-      //              informativa (recorrenciaPrevisao) usando o total do mês anterior
+      // MÊS VIGENTE:
+      //   - cat9 do banco (Dpote distribuído dia a dia) = valor REAL já realizado
+      //   - cat9 do mês anterior = PREVISÃO de recorrência para o mês inteiro
+      //   - Faturamento = operacional realizado + cat9 real acumulado + previsão dos dias restantes
+      // MÊS FUTURO:  cat9 ainda não apurado → aparece como previsão informativa
       // =====================================================================
       const dpoteCfgEmp = dpoteConfigMap[emp.slug];
       const usaRecorrenciaManual = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null;
@@ -431,42 +433,58 @@ export default function Home() {
       // Helper: soma cat1..cat9 (faturamento completo incluindo recorrência)
       const sumCats = (r: any) => sumCatsSemCat9(r) + parseFloat(r.cat9 || "0");
 
-      // Cat9 acumulado dos dias realizados (cat9 do banco, já distribuído diariamente)
+      // Cat9 acumulado dos dias realizados (Dpote real distribuído até hoje)
       const cat9Realizados = rowsRealizados.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
       // Cat9 total do mês (todos os dias lançados)
       const cat9Total = rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
+      // Cat9 do mês anterior = base de previsão de recorrência para o mês vigente
+      const rowsAnterioresEmp = faturamentosAnteriorData.filter((f: any) => f.empresaSlug === emp.slug);
+      const cat9MesAnterior = rowsAnterioresEmp.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
+
+      // Previsão de recorrência para os dias que ainda não têm Dpote distribuído:
+      //   = cat9 do mês anterior × (dias restantes / total de dias do mês)
+      // Isso representa o valor esperado de recorrência para os dias futuros
+      const totalDiasMesCalc = new Date(ano, mes, 0).getDate();
+      const diasComDpote = rowsRealizados.filter((r: any) => parseFloat(r.cat9 || "0") > 0).length;
+      const diasSemDpote = Math.max(0, totalDiasMesCalc - diasComDpote);
+      const recorrenciaPrevisaoDiasRestantes = ehMesVigente && cat9MesAnterior > 0
+        ? cat9MesAnterior * (diasSemDpote / totalDiasMesCalc)
+        : 0;
+
       // Recorrência que ENTRA no faturamento:
       //   - Mês passado: cat9 total do mês (já totalmente apurado)
-      //   - Mês vigente: cat9 acumulado até hoje (já realizado)
-      //   - Mês futuro: 0 (não entra no faturamento)
+      //   - Mês vigente: cat9 real acumulado (Dpote distribuído) + previsão dos dias restantes
+      //   - Mês futuro: previsão baseada no mês anterior (total)
       // Quando fonte=manual no mês vigente, usa o valor manual confirmado
       const recorrenciaNoFaturamento = ehMesFuturo
         ? 0
         : (ehMesVigente && usaRecorrenciaManual)
           ? (dpoteCfgEmp!.recorrenciaValorManual as number)
           : ehMesVigente
-            ? cat9Realizados   // mês vigente sem manual: cat9 acumulado até hoje
+            ? cat9Realizados + recorrenciaPrevisaoDiasRestantes  // real + previsão dos dias restantes
             : cat9Total;       // mês passado: cat9 total do mês
 
       // Recorrência INFORMATIVA (previsão) para mês futuro:
-      //   Usa o cat9 total do mês anterior (já carregado em faturamentosAnteriorData)
-      //   Exibida como linha informativa, igual à projeção de faturamento
-      const rowsAnterioresEmp = faturamentosAnteriorData.filter((f: any) => f.empresaSlug === emp.slug);
+      //   Usa o cat9 total do mês anterior
       const recorrenciaPrevisao = ehMesFuturo
-        ? rowsAnterioresEmp.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0)
+        ? cat9MesAnterior
         : 0;
 
+      // Valores informativos para exibição no card:
+      //   recorrenciaRealizada: Dpote já distribuído (cat9 real dos dias realizados)
+      //   recorrenciaPrevisaoRestante: estimativa dos dias que ainda não têm Dpote
+      const recorrenciaRealizada = ehMesVigente ? cat9Realizados : (ehMesFuturo ? 0 : cat9Total);
+      const recorrenciaPrevisaoRestante = ehMesVigente ? recorrenciaPrevisaoDiasRestantes : (ehMesFuturo ? cat9MesAnterior : 0);
+
       // recorrenciaMes: valor exibido no card (informativo)
-      //   - Mês passado/vigente: o valor que entrou no faturamento
-      //   - Mês futuro: a previsão baseada no mês anterior
       const recorrenciaMes = ehMesFuturo ? recorrenciaPrevisao : recorrenciaNoFaturamento;
 
       // Faturamento total = cat1..cat8 + recorrência que entra no faturamento
       const totalSemRec = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
       const total = totalSemRec + recorrenciaNoFaturamento;
 
-      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje + recorrência realizada
+      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje + recorrência (real + previsão restante)
       const totalRealizadoSemRec = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
       const totalRealizado = totalRealizadoSemRec + recorrenciaNoFaturamento;
 
@@ -607,6 +625,8 @@ export default function Home() {
         catTotals,
         recorrenciaMes,
         recorrenciaPrevisao,
+        recorrenciaRealizada,
+        recorrenciaPrevisaoRestante,
         ehMesFuturo,
         rows,
         rowsRealizados,
@@ -2373,6 +2393,20 @@ export default function Home() {
                               </div>
                             )}
                           </div>
+                          {/* Detalhe: Dpote real vs previsão dos dias restantes (mês vigente) */}
+                          {s.recorrenciaPrevisaoRestante > 0 && !s.ehMesFuturo && (
+                            <div className="mt-2 pt-2 border-t border-violet-500/20 grid grid-cols-2 gap-2">
+                              <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5">
+                                <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">✅ Dpote realizado</p>
+                                <p className="text-[11px] font-bold text-emerald-300">{fmtFull(s.recorrenciaRealizada)}</p>
+                              </div>
+                              <div className="rounded-lg bg-violet-500/10 px-2 py-1.5">
+                                <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">🔮 Previsão restante</p>
+                                <p className="text-[11px] font-bold text-violet-300">{fmtFull(s.recorrenciaPrevisaoRestante)}</p>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Painel de entrada manual */}
                           {isEditandoEsta && isGerente && fonteAtual === "manual" && (
                             <div className="mt-3 pt-3 border-t border-violet-500/20">
