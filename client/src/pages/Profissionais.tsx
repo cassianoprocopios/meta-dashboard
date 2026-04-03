@@ -843,12 +843,14 @@ export default function Profissionais() {
           <div className="space-y-3">
             {mensagensRanking.map((m) => {
               const medalha = m.posicao === 1 ? '🥇' : m.posicao === 2 ? '🥈' : m.posicao === 3 ? '🥉' : `${m.posicao}º`;
+              const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
               return (
                 <div key={m.colaboradorId} className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-base">{medalha}</span>
+                      {/* Cabeçalho do profissional */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{medalha}</span>
                         <span className="text-white font-semibold text-sm">{m.apelido || m.nome}</span>
                         {m.telefone ? (
                           <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
@@ -858,13 +860,29 @@ export default function Profissionais() {
                           <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">Sem telefone</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-white/50 mb-2">
-                        <span>Faturamento: <span className="text-white/80 font-medium">{m.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></span>
+                      {/* Stats rápidos */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs mb-3">
+                        <span className="bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full">
+                          Fat. {fmtBRL(m.totalGeral)}
+                        </span>
                         {m.faltaParaSubir !== null && m.faltaParaSubir > 0 && (
-                          <span className="text-amber-400">Falta {m.faltaParaSubir.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para subir</span>
+                          <span className="bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">
+                            🎯 Falta {fmtBRL(m.faltaParaSubir)} para subir
+                          </span>
+                        )}
+                        {m.posicao === 1 && (
+                          <span className="bg-yellow-500/15 text-yellow-300 px-2 py-0.5 rounded-full">
+                            👑 Líder do ranking
+                          </span>
                         )}
                       </div>
-                      <pre className="text-white/40 text-[10px] whitespace-pre-wrap font-mono bg-white/5 rounded p-2 leading-relaxed">{m.mensagem}</pre>
+                      {/* Preview da mensagem */}
+                      <details className="group">
+                        <summary className="text-white/30 text-[10px] cursor-pointer hover:text-white/50 transition-colors mb-1 select-none">
+                          Ver prévia da mensagem ▾
+                        </summary>
+                        <pre className="text-white/50 text-[10px] whitespace-pre-wrap font-mono bg-black/20 rounded-lg p-3 leading-relaxed mt-1 border border-white/5">{m.mensagem}</pre>
+                      </details>
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
                       {m.linkWhatsApp ? (
@@ -875,7 +893,7 @@ export default function Profissionais() {
                           className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors"
                         >
                           <Send className="w-3 h-3" />
-                          Abrir WhatsApp
+                          Enviar
                           <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                         </a>
                       ) : (

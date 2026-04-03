@@ -676,15 +676,61 @@ const profissionaisRouter = router({
       const agora = new Date();
       const mes = input.mes ?? (agora.getMonth() + 1);
       const ano = input.ano ?? agora.getFullYear();
-      const { itens } = await listarRankingPorPeriodo(tenantId, mes, ano);
-      const colaboradoresList = await listarColaboradores(tenantId);
+      const [{ itens }, colaboradoresList, empresasList, metasList, faturamentosMes] = await Promise.all([
+        listarRankingPorPeriodo(tenantId, mes, ano),
+        listarColaboradores(tenantId),
+        getEmpresasByTenant(tenantId),
+        getMetasByMesAndTenant(tenantId, mes, ano),
+        getAllFaturamentosByTenant(tenantId, mes, ano),
+      ]);
+
+      // Calcular faturamento acumulado por empresa no mês
+      const fatPorEmpresa = new Map<string, number>();
+      for (const f of faturamentosMes) {
+        const slug = f.empresaSlug;
+        const total = (Number(f.cat1) || 0) + (Number(f.cat2) || 0) + (Number(f.cat3) || 0) +
+          (Number(f.cat4) || 0) + (Number(f.cat5) || 0) + (Number(f.cat6) || 0) +
+          (Number(f.cat7) || 0) + (Number(f.cat8) || 0) + (Number(f.cat9) || 0);
+        fatPorEmpresa.set(slug, (fatPorEmpresa.get(slug) ?? 0) + total);
+      }
+      // Meta por empresa
+      const metaPorEmpresa = new Map<string, number>();
+      for (const m of metasList) {
+        if (m.empresaSlug) metaPorEmpresa.set(m.empresaSlug, Number(m.metaMensal) || 0);
+      }
+
       // Ordenar por totalGeral desc
       const rankingOrdenado = itens
         .filter((i) => i.totalGeral > 0)
         .sort((a, b) => b.totalGeral - a.totalGeral);
+
       const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       const nomeMes = MESES_PT[mes - 1];
+
+      // Banco de frases motivacionais de alto impacto — varia por profissional (por índice)
+      const FRASES_1 = [ // 1º lugar
+        `👑 Você é o líder! Cada cliente que entra é uma chance de ampliar sua vantagem. Não dê respiro!`,
+        `🔥 Número 1 não é sorte — é consistência. Mantenha o ritmo e feche o mês com chave de ouro!`,
+        `🎯 Você está no topo! Campeões não tiram o pé do acelerador. Vamos ao próximo nível!`,
+        `⚡ 1º lugar é seu! Agora é hora de transformar liderança em resultado histórico. Bora!`,
+      ];
+      const FRASES_SUBIR = [ // tem alguém acima
+        `💪 Você está perto! Falta pouco para virar o jogo. Um cliente a mais pode mudar tudo!`,
+        `🚀 A distância para o próximo é pequena. Foco total até o fim do mês — você consegue!`,
+        `🔥 Cada serviço conta! Você está a um passo de subir. Não deixe essa oportunidade escapar!`,
+        `🎯 Alta performance é sobre não desistir quando está perto. Empurra até o fim!`,
+        `⚡ Você tem tudo para virar essa posição. Acredita no seu trabalho e vai com tudo!`,
+        `💰 Cada atendimento é dinheiro no bolso e ponto no ranking. Bora fechar forte!`,
+      ];
+      const FRASES_GERAL = [ // qualquer posição
+        `💪 Equipe de alta performance não para. Cada dia é uma nova chance de superar o limite!`,
+        `🔥 Resultados extraordinários exigem esforço extraordinário. Você está no caminho certo!`,
+        `🎯 Foco, consistência e atitude. É assim que campeões são feitos. Continue!`,
+        `⚡ O ranking muda a cada serviço. Mantenha a intensidade e suba mais!`,
+        `🚀 Grandes profissionais não esperam a oportunidade — eles criam. Vai com tudo hoje!`,
+      ];
+
       const resultados: Array<{
         colaboradorId: number;
         nome: string;
@@ -696,6 +742,7 @@ const profissionaisRouter = router({
         mensagem: string;
         linkWhatsApp: string | null;
       }> = [];
+
       for (let i = 0; i < rankingOrdenado.length; i++) {
         const item = rankingOrdenado[i];
         const posicao = i + 1;
@@ -704,16 +751,55 @@ const profissionaisRouter = router({
         const col = colaboradoresList.find((c) => c.id === item.colaboradorId);
         const nomeExib = item.apelido || item.nome.split(' ')[0];
         const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : `${posicao}º`;
+
+        // Dados da unidade do profissional
+        const empresaSlug = col?.empresaSlug ?? item.empresaSlug ?? '';
+        const empresa = empresasList.find((e) => e.slug === empresaSlug);
+        const nomeEmpresa = empresa?.nome ?? empresaSlug;
+        const fatUnidade = fatPorEmpresa.get(empresaSlug) ?? 0;
+        const metaUnidade = metaPorEmpresa.get(empresaSlug) ?? 0;
+        const pctMeta = metaUnidade > 0 ? Math.round((fatUnidade / metaUnidade) * 100) : null;
+        const faltaMeta = metaUnidade > 0 ? Math.max(0, metaUnidade - fatUnidade) : null;
+
+        // Selecionar frase motivacional variada (por índice do profissional no ranking)
+        let fraseMotiv: string;
+        if (posicao === 1) {
+          fraseMotiv = FRASES_1[i % FRASES_1.length];
+        } else if (faltaParaSubir !== null && faltaParaSubir > 0) {
+          fraseMotiv = FRASES_SUBIR[i % FRASES_SUBIR.length];
+        } else {
+          fraseMotiv = FRASES_GERAL[i % FRASES_GERAL.length];
+        }
+
+        // Montar mensagem
         let mensagem = `Olá ${nomeExib}! ✂️\n\n`;
-        mensagem += `📊 *Ranking ${nomeMes}/${ano}*\n`;
-        mensagem += `Sua posição atual: *${medalha} ${posicao}º lugar*\n`;
+        mensagem += `${fraseMotiv}\n\n`;
+        mensagem += `━━━━━━━━━━━━━━━━━━━━\n`;
+        mensagem += `🏆 *Ranking ${nomeMes}/${ano}*\n`;
+        mensagem += `Sua posição: *${medalha} ${posicao}º lugar*\n`;
         mensagem += `Seu faturamento: *${fmtBRL(item.totalGeral)}*\n`;
+        if (item.qtdServicos > 0) mensagem += `Serviços: *${item.qtdServicos}* atendimentos\n`;
         if (faltaParaSubir !== null && faltaParaSubir > 0) {
           mensagem += `\n🎯 Para subir uma posição: *${fmtBRL(faltaParaSubir)}*\n`;
-        } else if (posicao === 1) {
-          mensagem += `\n👑 Você está em 1º lugar! Continue assim!\n`;
         }
-        mensagem += `\n📱 Acompanhe o ranking completo: ${input.appUrl}/pro`;
+        // Bloco da unidade
+        if (fatUnidade > 0) {
+          mensagem += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+          mensagem += `🏢 *${nomeEmpresa} — ${nomeMes}/${ano}*\n`;
+          mensagem += `Faturamento: *${fmtBRL(fatUnidade)}*`;
+          if (metaUnidade > 0) {
+            const semaforo = pctMeta! >= 100 ? '🟢' : pctMeta! >= 70 ? '🟡' : '🔴';
+            mensagem += ` ${semaforo} *${pctMeta}% da meta*`;
+            if (faltaMeta! > 0) {
+              mensagem += `\nFalta para a meta: *${fmtBRL(faltaMeta!)}*`;
+            } else {
+              mensagem += `\n🎉 Meta atingida! Vamos superar!`;
+            }
+          }
+          mensagem += `\n`;
+        }
+        mensagem += `\n📱 Ranking completo: ${input.appUrl}/pro`;
+
         const telefone = col?.telefone ?? null;
         const telefoneFormatado = telefone ? telefone.replace(/\D/g, '') : null;
         const numeroFinal = telefoneFormatado
