@@ -209,8 +209,9 @@ export async function sincronizarFaturamentoAvec(
       const diaStr = String(d).padStart(2, "0");
       const dataYMD = `${ano}-${mesStr}-${diaStr}`;
 
-      // Não sincronizar dias futuros
-      const dataDia = new Date(`${dataYMD}T12:00:00Z`);
+      // Não sincronizar dias futuros (usa fim do dia em BRT = UTC-3, ou seja 03:00 UTC do dia seguinte)
+      // Isso garante que o dia atual seja sempre sincronizado a partir de 00:00 BRT
+      const dataDia = new Date(`${dataYMD}T03:00:00Z`); // 00:00 BRT = 03:00 UTC
       if (dataDia > hoje) {
         resultado.diasIgnorados++;
         resultado.detalhes.push({ data: dataYMD, status: "ignorado", mensagem: "Dia futuro" });
