@@ -2217,7 +2217,7 @@ export default function Home() {
                           </div>
                           {/* Meta esperada hoje */}
                           {s.metaMensal > 0 && (() => {
-                            const diasUteisTotal = 26;
+                            const diasUteisTotal = s.diasUteis ?? 26;
                             const diasDecorridos = Math.min(s.diasRealizados, diasUteisTotal);
                             const metaEsperadaHoje = diasUteisTotal > 0 ? (s.metaMensal / diasUteisTotal) * diasDecorridos : 0;
                             const pctEsperado = s.metaMensal > 0 ? Math.min((metaEsperadaHoje / s.metaMensal) * 100, 100) : 0;
