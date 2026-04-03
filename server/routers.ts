@@ -843,12 +843,14 @@ const profissionaisRouter = router({
   /**
    * Gera uma mensagem de texto com o ranking completo da unidade para ser
    * compartilhada no grupo de WhatsApp da equipe.
+   * Suporta período mensal e semanal (semana atual).
    */
   gerarRankingGrupoWhatsApp: protectedProcedure
     .input(z.object({
       empresaSlug: z.string().min(1),
       mes: z.number().int().min(1).max(12).optional(),
       ano: z.number().int().min(2020).max(2100).optional(),
+      periodo: z.enum(['mensal', 'semanal']).default('mensal'),
       appUrl: z.string().url(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -856,18 +858,118 @@ const profissionaisRouter = router({
       const agora = new Date();
       const mes = input.mes ?? (agora.getMonth() + 1);
       const ano = input.ano ?? agora.getFullYear();
+      const periodo = input.periodo ?? 'mensal';
 
-      const [{ itens }, empresasList, metasList, faturamentosMes] = await Promise.all([
-        listarRankingPorPeriodo(tenantId, mes, ano),
-        getEmpresasByTenant(tenantId),
-        getMetasByMesAndTenant(tenantId, mes, ano),
-        getAllFaturamentosByTenant(tenantId, mes, ano, input.empresaSlug),
-      ]);
+      // Calcular datas da semana atual (segunda a domingo)
+      const hoje = new Date();
+      const diaSemana = hoje.getDay(); // 0=dom, 1=seg, ..., 6=sab
+      const diffSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+      const segunda = new Date(hoje);
+      segunda.setDate(hoje.getDate() + diffSegunda);
+      const domingo = new Date(segunda);
+      domingo.setDate(segunda.getDate() + 6);
+      const fmtDataISO = (d: Date) => d.toISOString().slice(0, 10);
+      const fmtDt = (d: Date) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+      const dataInicioSemana = fmtDataISO(segunda);
+      const dataFimSemana = fmtDataISO(domingo);
 
-      const empresa = empresasList.find((e) => e.slug === input.empresaSlug);
+      const empresasAll = await getEmpresasByTenant(tenantId);
+      const empresa = empresasAll.find((e) => e.slug === input.empresaSlug);
       const nomeEmpresa = empresa?.nome ?? input.empresaSlug;
       const grupoLink = empresa?.whatsappGrupoLink ?? null;
 
+      // Mapeamento inverso: slug da empresa (MORUMBI) -> slug do colaborador (barbiero-morumbi)
+      const SLUG_MAP_INV: Record<string, string> = {
+        'MORUMBI': 'barbiero-morumbi',
+        'MASCOTE': 'barbiero-mascote',
+        'SERAPHINE': 'barbiero-seraphine',
+        'GRUPO': 'barbiero-grupo',
+      };
+      const empresaSlugColaborador = SLUG_MAP_INV[input.empresaSlug] ?? input.empresaSlug;
+
+      const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const nomeMes = MESES_PT[mes - 1];
+      const diaDoMes = agora.getDate();
+
+      // ─── PERÍODO SEMANAL ───────────────────────────────────────────────────
+      if (periodo === 'semanal') {
+        const empresaSlugCB = empresasAll[0]?.slug ?? 'barbiero-grupo';
+        const config = await getCashbarberConfig(tenantId, empresaSlugCB);
+        if (!config || !config.cbEmail || !config.cbSenha) {
+          throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Configuração do CashBarber não encontrada para ranking semanal.' });
+        }
+        const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+        const colaboradoresList = await listarColaboradores(tenantId);
+        const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+        const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+        const colsUnidade = colaboradoresList.filter(
+          (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1 &&
+          c.cashbarberProfissionalId &&
+          (c.empresaSlug === input.empresaSlug || c.empresaSlug === empresaSlugColaborador)
+        );
+        const resultadosSemana = await Promise.all(
+          colsUnidade.map(async (col) => {
+            try {
+              const relatorio = await cashbarberRelatorio15(token, dataInicioSemana, dataFimSemana, null, col.cashbarberProfissionalId);
+              const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+              const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+              const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+              const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+              const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+              return { nome: col.nome, apelido: col.apelido, totalGeral: totalServicos + totalProdutos, qtdServicos };
+            } catch {
+              return { nome: col.nome, apelido: col.apelido, totalGeral: 0, qtdServicos: 0 };
+            }
+          })
+        );
+        const rankingSemana = resultadosSemana.filter((r) => r.totalGeral > 0).sort((a, b) => b.totalGeral - a.totalGeral);
+        const ABERTURAS_SEM = [
+          `⚡ *Semana em chamas! Veja quem está dominando!*`,
+          `🔥 *${nomeEmpresa} — A semana é de quem não para!*`,
+          `🚀 *Alta performance semanal — confira o placar!*`,
+          `💪 *${nomeEmpresa} — Cada dia conta. Cada serviço importa!*`,
+          `🎯 *Foco total! Veja o ranking da semana!*`,
+        ];
+        const aberturaSem = ABERTURAS_SEM[diaDoMes % ABERTURAS_SEM.length];
+        let msg = `${aberturaSem}\n\n`;
+        msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+        msg += `🏆 *Ranking Semanal*\n`;
+        msg += `📍 Unidade: *${nomeEmpresa}*\n`;
+        msg += `📅 Semana: *${fmtDt(segunda)} a ${fmtDt(domingo)}*\n`;
+        msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+        rankingSemana.forEach((item, idx) => {
+          const pos = idx + 1;
+          const medalha = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`;
+          const nome = item.apelido || item.nome.split(' ')[0];
+          msg += `${medalha} *${nome}* — ${fmtBRL(item.totalGeral)}`;
+          if (item.qtdServicos > 0) msg += ` (${item.qtdServicos} serv.)`;
+          msg += `\n`;
+        });
+        if (rankingSemana.length === 0) msg += `_Nenhum dado disponível para esta semana._\n`;
+        msg += `\n📱 Ranking completo: ${input.appUrl}/pro`;
+        const linkCompartilhar = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        return {
+          mensagem: msg,
+          linkCompartilhar,
+          grupoLink,
+          nomeEmpresa,
+          nomeMes: `Semana ${fmtDt(segunda)}–${fmtDt(domingo)}`,
+          mes,
+          ano,
+          fatUnidade: 0,
+          metaUnidade: 0,
+          pctMeta: null,
+          totalProfissionais: rankingSemana.length,
+        };
+      }
+
+      // ─── PERÍODO MENSAL (padrão) ───────────────────────────────────────────
+      const [{ itens }, metasList, faturamentosMes] = await Promise.all([
+        listarRankingPorPeriodo(tenantId, mes, ano),
+        getMetasByMesAndTenant(tenantId, mes, ano),
+        getAllFaturamentosByTenant(tenantId, mes, ano, input.empresaSlug),
+      ]);
       // Faturamento acumulado da unidade no mês
       let fatUnidade = 0;
       for (const f of faturamentosMes) {
@@ -880,25 +982,10 @@ const profissionaisRouter = router({
       const pctMeta = metaUnidade > 0 ? Math.round((fatUnidade / metaUnidade) * 100) : null;
       const faltaMeta = metaUnidade > 0 ? Math.max(0, metaUnidade - fatUnidade) : null;
 
-      // Filtrar ranking da unidade (excluindo gerência)
-      // Mapeamento inverso: slug da empresa (MORUMBI) -> slug do colaborador (barbiero-morumbi)
-      const SLUG_MAP_INV: Record<string, string> = {
-        'MORUMBI': 'barbiero-morumbi',
-        'MASCOTE': 'barbiero-mascote',
-        'SERAPHINE': 'barbiero-seraphine',
-        'GRUPO': 'barbiero-grupo',
-      };
-      const empresaSlugColaborador = SLUG_MAP_INV[input.empresaSlug] ?? input.empresaSlug;
       const rankingUnidade = itens
         .filter((i) => (i.empresaSlug === input.empresaSlug || i.empresaSlug === empresaSlugColaborador) && i.totalGeral > 0)
         .sort((a, b) => b.totalGeral - a.totalGeral);
 
-      const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-      const nomeMes = MESES_PT[mes - 1];
-
-      // Frases de abertura para o grupo (variadas por dia do mês)
-      const diaDoMes = agora.getDate();
       const ABERTURAS = [
         `🔥 *Equipe ${nomeEmpresa} — Bora dominar o mês!*`,
         `⚡ *${nomeEmpresa} — Cada serviço conta. Cada cliente importa!*`,
@@ -907,14 +994,11 @@ const profissionaisRouter = router({
         `🎯 *Foco, consistência e resultado. Confira o ranking!*`,
       ];
       const abertura = ABERTURAS[diaDoMes % ABERTURAS.length];
-
-      // Montar mensagem do grupo
       let msg = `${abertura}\n\n`;
       msg += `━━━━━━━━━━━━━━━━━━━━\n`;
       msg += `🏆 *Ranking ${nomeMes}/${ano}*\n`;
       msg += `📍 Unidade: *${nomeEmpresa}*\n`;
       msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-
       // Lista do ranking
       for (let i = 0; i < rankingUnidade.length; i++) {
         const item = rankingUnidade[i];
@@ -925,11 +1009,9 @@ const profissionaisRouter = router({
         if (item.qtdServicos && item.qtdServicos > 0) msg += ` (${item.qtdServicos} serv.)`;
         msg += `\n`;
       }
-
       if (rankingUnidade.length === 0) {
         msg += `_Nenhum dado registrado ainda para este mês._\n`;
       }
-
       // Bloco da unidade
       msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
       msg += `🏢 *Faturamento da Unidade*\n`;
@@ -944,10 +1026,7 @@ const profissionaisRouter = router({
         }
       }
       msg += `\n\n📱 Ranking completo: ${input.appUrl}/pro`;
-
-      // Link de compartilhamento (wa.me sem número = abre seletor de contato/grupo)
       const linkCompartilhar = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-
       return {
         mensagem: msg,
         linkCompartilhar,
@@ -962,7 +1041,6 @@ const profissionaisRouter = router({
         totalProfissionais: rankingUnidade.length,
       };
     }),
-
   // ─── PUSH SUBSCRIPTIONS (PWA) ────────────────────────────────────────────
   salvarPushSubscription: publicProcedure
     .input(z.object({

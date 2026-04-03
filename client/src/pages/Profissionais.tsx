@@ -142,6 +142,7 @@ export default function Profissionais() {
   const [copiado, setCopiado] = useState(false);
   const [rankingGrupoMes, setRankingGrupoMes] = useState(hoje.getMonth() + 1);
   const [rankingGrupoAno, setRankingGrupoAno] = useState(hoje.getFullYear());
+  const [rankingGrupoPeriodo, setRankingGrupoPeriodo] = useState<'mensal' | 'semanal'>('mensal');
 
   const utils = trpc.useUtils();
 
@@ -975,7 +976,31 @@ export default function Profissionais() {
             </DialogTitle>
           </DialogHeader>
 
-          {/* Seletores de período e unidade */}
+          {/* Seletor de tipo de período */}
+          <div className="mb-3">
+            <Label className="text-white/60 text-xs mb-1 block">Período</Label>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={rankingGrupoPeriodo === 'mensal' ? 'default' : 'outline'}
+                className={rankingGrupoPeriodo === 'mensal' ? 'flex-1 bg-green-600 hover:bg-green-700 text-white' : 'flex-1 bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}
+                onClick={() => { setRankingGrupoPeriodo('mensal'); setRankingGrupoData(null); }}
+              >
+                📅 Mensal
+              </Button>
+              <Button
+                size="sm"
+                variant={rankingGrupoPeriodo === 'semanal' ? 'default' : 'outline'}
+                className={rankingGrupoPeriodo === 'semanal' ? 'flex-1 bg-blue-600 hover:bg-blue-700 text-white' : 'flex-1 bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}
+                onClick={() => { setRankingGrupoPeriodo('semanal'); setRankingGrupoData(null); }}
+              >
+                ⚡ Semana Atual
+              </Button>
+            </div>
+          </div>
+
+          {/* Seletores de mês/ano (apenas para período mensal) */}
+          {rankingGrupoPeriodo === 'mensal' && (
           <div className="grid grid-cols-2 gap-3 mb-1">
             {/* Mês */}
             <div>
@@ -1012,6 +1037,14 @@ export default function Profissionais() {
               </Select>
             </div>
           </div>
+          )}
+
+          {/* Informativo para período semanal */}
+          {rankingGrupoPeriodo === 'semanal' && (
+            <div className="mb-3 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs">
+              ⚡ Gera o ranking da semana atual (segunda a domingo) via CashBarber em tempo real.
+            </div>
+          )}
 
           {/* Seletor de unidade (quando há mais de uma) */}
           {empresasData.length > 1 && (
@@ -1047,6 +1080,7 @@ export default function Profissionais() {
                   empresaSlug: rankingGrupoEmpresaSlug,
                   mes: rankingGrupoMes,
                   ano: rankingGrupoAno,
+                  periodo: rankingGrupoPeriodo,
                   appUrl: window.location.origin,
                 });
               }}

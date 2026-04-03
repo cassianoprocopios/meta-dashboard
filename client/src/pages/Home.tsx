@@ -542,15 +542,12 @@ export default function Home() {
         : 'vermelho';
 
       // Projeção final:
-      // = recorrenciaNoFaturamento (valor único mensal, já incluído em totalRealizado)
-      //   + totalRealizadoSemRec (cat1..cat8 já realizados)
-      //   + totalPrevisto (cat1..cat8 previstos)
-      //   + mediaDiaria × dias úteis restantes sem lançamento
-      // Nota: mediaDiaria já é só cat1..cat8; recorrência entra uma única vez via totalRealizado
-      const diasComLancamento = new Set(rows.map((r: any) => r.data)).size;
-      const diasUteisRestantesSemLancamento = Math.max(0, diasUteis - diasComLancamento);
+      // = recorrênciaNoFaturamento (valor único mensal, já incluído em totalRealizado)
+      //   + mediaDiaria (cat1..cat8) × diasUteis (total de dias úteis do mês)
+      // Fórmula: recorrência + média diária × dias úteis totais
+      // Isso representa a projeção de fechamento se o ritmo atual se mantiver
       const projecaoFinal = diasRealizados > 0
-        ? totalRealizado + totalPrevisto + (mediaDiaria * diasUteisRestantesSemLancamento)
+        ? recorrenciaNoFaturamento + (mediaDiaria * diasUteis)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)
