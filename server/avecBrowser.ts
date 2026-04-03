@@ -539,13 +539,17 @@ export async function avecBrowserBuscarRelatorio0184(
       const dados: Record<string, number> = {};
 
       // Procurar por linhas de tabela com tipo de venda e valor
+      // O relatório 0184 tem colunas: Tipo de venda | Quantidade | Total | Percentual
+      // Usamos o índice 2 (Total) em vez da última coluna (Percentual)
       const rows = Array.from(document.querySelectorAll('tr'));
       for (const row of rows) {
         const cells = Array.from(row.querySelectorAll('td, th'));
-        if (cells.length >= 2) {
+        if (cells.length >= 3) {
           const label = cells[0].textContent?.trim().toLowerCase() || '';
-          const valorStr = cells[cells.length - 1].textContent?.trim() || '';
-          const valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+          // Usar coluna Total (índice 2) se disponível, senão a última
+          const valorCell = cells.length >= 4 ? cells[2] : cells[cells.length - 1];
+          const valorStr = valorCell.textContent?.trim() || '';
+          const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
 
           if (label.includes('servi')) dados['servicos'] = (dados['servicos'] || 0) + valor;
           else if (label.includes('pacote')) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
