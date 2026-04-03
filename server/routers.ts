@@ -753,7 +753,15 @@ const profissionaisRouter = router({
         const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : `${posicao}º`;
 
         // Dados da unidade do profissional
-        const empresaSlug = col?.empresaSlug ?? item.empresaSlug ?? '';
+        const empresaSlugRaw = col?.empresaSlug ?? item.empresaSlug ?? '';
+        // Mapeamento: slug do colaborador (barbiero-morumbi) -> slug da tabela faturamentos (MORUMBI)
+        const SLUG_MAP: Record<string, string> = {
+          'barbiero-morumbi': 'MORUMBI',
+          'barbiero-mascote': 'MASCOTE',
+          'barbiero-seraphine': 'SERAPHINE',
+          'barbiero-grupo': 'GRUPO',
+        };
+        const empresaSlug = SLUG_MAP[empresaSlugRaw] ?? empresaSlugRaw;
         const empresa = empresasList.find((e) => e.slug === empresaSlug);
         const nomeEmpresa = empresa?.nome ?? empresaSlug;
         const fatUnidade = fatPorEmpresa.get(empresaSlug) ?? 0;
@@ -873,8 +881,16 @@ const profissionaisRouter = router({
       const faltaMeta = metaUnidade > 0 ? Math.max(0, metaUnidade - fatUnidade) : null;
 
       // Filtrar ranking da unidade (excluindo gerência)
+      // Mapeamento inverso: slug da empresa (MORUMBI) -> slug do colaborador (barbiero-morumbi)
+      const SLUG_MAP_INV: Record<string, string> = {
+        'MORUMBI': 'barbiero-morumbi',
+        'MASCOTE': 'barbiero-mascote',
+        'SERAPHINE': 'barbiero-seraphine',
+        'GRUPO': 'barbiero-grupo',
+      };
+      const empresaSlugColaborador = SLUG_MAP_INV[input.empresaSlug] ?? input.empresaSlug;
       const rankingUnidade = itens
-        .filter((i) => i.empresaSlug === input.empresaSlug && i.totalGeral > 0)
+        .filter((i) => (i.empresaSlug === input.empresaSlug || i.empresaSlug === empresaSlugColaborador) && i.totalGeral > 0)
         .sort((a, b) => b.totalGeral - a.totalGeral);
 
       const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
