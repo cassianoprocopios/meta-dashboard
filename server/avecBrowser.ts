@@ -391,6 +391,217 @@ export async function avecBrowserBuscarFaturamentoDia(
   return resultado;
 }
 
+// ─── Busca de faturamento via Relatório 0184 ─────────────────────────────────
+
+/**
+ * Resultado do Relatório 0184 - Faturamento por tipos de venda.
+ * Mapeado para as categorias da Seraphine:
+ *   cat1 = Serviços, cat2 = Pacotes, cat3 = Produtos, cat4 = Caixinha
+ */
+export interface Relatorio0184Resultado {
+  servicos: number;   // cat1
+  pacotes: number;    // cat2
+  produtos: number;   // cat3
+  caixinha: number;   // cat4
+  total: number;
+}
+
+/**
+ * Busca o faturamento do Relatório 0184 (Faturamento por tipos de venda)
+ * para um dia específico via browser headless.
+ *
+ * Estratégia:
+ * 1. Fazer login no Avec via browser headless
+ * 2. Navegar para /admin/relatorio/0184 com as datas filtradas
+ * 3. Extrair os valores da tabela (Serviços, Pacotes, Produtos, Caixinha)
+ */
+export async function avecBrowserBuscarRelatorio0184(
+  email: string,
+  senha: string,
+  data: string // YYYY-MM-DD
+): Promise<Relatorio0184Resultado> {
+  const resultado: Relatorio0184Resultado = {
+    servicos: 0,
+    pacotes: 0,
+    produtos: 0,
+    caixinha: 0,
+    total: 0,
+  };
+
+  const [ano, mes, dia] = data.split("-");
+  const dataFormatada = `${dia}/${mes}/${ano}`;
+
+  console.log(`[Avec Rel0184] Buscando relatório 0184 para ${dataFormatada}...`);
+
+  const salaoSlug = "seraphine-beauty-ltda";
+  const loginUrl = `${ADMIN_URL}/${salaoSlug}/admin/?email=${encodeURIComponent(email)}`;
+
+  const browser = await puppeteer.launch({
+    executablePath: CHROMIUM_PATH,
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process",
+    ],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+
+    // ── 1. Login ────────────────────────────────────────────────────────────────
+    console.log(`[Avec Rel0184] Fazendo login...`);
+    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await new Promise(r => setTimeout(r, 1000));
+
+    await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+    const senhaInput = await page.$('input[type="password"]');
+    if (!senhaInput) throw new Error("[Avec Rel0184] Campo de senha não encontrado.");
+
+    await senhaInput.click({ clickCount: 3 });
+    await senhaInput.type(senha, { delay: 50 });
+    await new Promise(r => setTimeout(r, 500));
+
+    await page.evaluate(() => {
+      const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
+      const botao = botoes.find(b => b.textContent?.includes('Entrar') || (b as HTMLInputElement).value?.includes('Entrar') || (b as HTMLButtonElement).type === 'submit');
+      if (botao) botao.click();
+    });
+
+    await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
+    await new Promise(r => setTimeout(r, 2000));
+
+    const urlAposLogin = page.url();
+    if (urlAposLogin.includes("/login/")) {
+      throw new Error("[Avec Rel0184] Login falhou — credenciais inválidas.");
+    }
+    console.log(`[Avec Rel0184] Login OK. URL: ${urlAposLogin}`);
+
+    // ── 2. Navegar para o Relatório 0184 ────────────────────────────────────────
+    const relUrl = `${ADMIN_URL}/admin/relatorio/0184`;
+    console.log(`[Avec Rel0184] Navegando para ${relUrl}...`);
+    await page.goto(relUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await new Promise(r => setTimeout(r, 2000));
+
+    // ── 3. Preencher datas e buscar ─────────────────────────────────────────────
+    // Preencher data de início
+    await page.evaluate((dataFmt: string) => {
+      const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="date"]'));
+      // Procurar campo de data início (geralmente o primeiro campo de data)
+      const campoDataIni = inputs.find(i =>
+        i.name?.toLowerCase().includes('inicio') ||
+        i.id?.toLowerCase().includes('inicio') ||
+        i.placeholder?.toLowerCase().includes('início') ||
+        i.placeholder?.toLowerCase().includes('data ini')
+      ) || inputs[0];
+      if (campoDataIni) {
+        campoDataIni.value = dataFmt;
+        campoDataIni.dispatchEvent(new Event('input', { bubbles: true }));
+        campoDataIni.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      // Preencher data fim com a mesma data
+      const campoDataFim = inputs.find(i =>
+        i.name?.toLowerCase().includes('fim') ||
+        i.id?.toLowerCase().includes('fim') ||
+        i.placeholder?.toLowerCase().includes('fim') ||
+        i.placeholder?.toLowerCase().includes('data fim')
+      ) || inputs[1];
+      if (campoDataFim && campoDataFim !== campoDataIni) {
+        campoDataFim.value = dataFmt;
+        campoDataFim.dispatchEvent(new Event('input', { bubbles: true }));
+        campoDataFim.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, dataFormatada);
+
+    await new Promise(r => setTimeout(r, 500));
+
+    // Clicar em Buscar
+    await page.evaluate(() => {
+      const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
+      const botao = botoes.find(b =>
+        b.textContent?.toLowerCase().includes('buscar') ||
+        b.textContent?.toLowerCase().includes('pesquisar') ||
+        b.textContent?.toLowerCase().includes('filtrar') ||
+        (b as HTMLInputElement).value?.toLowerCase().includes('buscar')
+      );
+      if (botao) botao.click();
+    });
+
+    await new Promise(r => setTimeout(r, 3000));
+
+    // ── 4. Extrair valores da tabela ────────────────────────────────────────────
+    const dadosExtraidos = await page.evaluate(() => {
+      const dados: Record<string, number> = {};
+
+      // Procurar por linhas de tabela com tipo de venda e valor
+      const rows = Array.from(document.querySelectorAll('tr'));
+      for (const row of rows) {
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        if (cells.length >= 2) {
+          const label = cells[0].textContent?.trim().toLowerCase() || '';
+          const valorStr = cells[cells.length - 1].textContent?.trim() || '';
+          const valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+
+          if (label.includes('servi')) dados['servicos'] = (dados['servicos'] || 0) + valor;
+          else if (label.includes('pacote')) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
+          else if (label.includes('produto')) dados['produtos'] = (dados['produtos'] || 0) + valor;
+          else if (label.includes('caixinha') || label.includes('gorjeta') || label.includes('tip')) dados['caixinha'] = (dados['caixinha'] || 0) + valor;
+        }
+      }
+
+      // Fallback: procurar por elementos com texto de categoria
+      if (Object.keys(dados).length === 0) {
+        const allText = document.body.innerText;
+        const linhas = allText.split('\n').map(l => l.trim()).filter(Boolean);
+        for (let i = 0; i < linhas.length; i++) {
+          const linha = linhas[i].toLowerCase();
+          const proxLinha = linhas[i + 1] || '';
+          const valor = parseFloat(proxLinha.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+          if (linha.includes('servi') && !linha.includes('pacote')) dados['servicos'] = valor;
+          else if (linha.includes('pacote')) dados['pacotes'] = valor;
+          else if (linha.includes('produto')) dados['produtos'] = valor;
+          else if (linha.includes('caixinha')) dados['caixinha'] = valor;
+        }
+      }
+
+      return dados;
+    });
+
+    console.log(`[Avec Rel0184] Dados extraídos:`, dadosExtraidos);
+
+    resultado.servicos = dadosExtraidos['servicos'] || 0;
+    resultado.pacotes = dadosExtraidos['pacotes'] || 0;
+    resultado.produtos = dadosExtraidos['produtos'] || 0;
+    resultado.caixinha = dadosExtraidos['caixinha'] || 0;
+    resultado.total = resultado.servicos + resultado.pacotes + resultado.produtos + resultado.caixinha;
+
+    // Se não extraiu nada via tabela, tirar screenshot para debug
+    if (resultado.total === 0) {
+      await page.screenshot({ path: `/tmp/avec-rel0184-debug-${data}.png` });
+      const pageText = await page.evaluate(() => document.body.innerText.substring(0, 2000));
+      console.warn(`[Avec Rel0184] Nenhum dado extraído. Texto da página: ${pageText}`);
+    } else {
+      console.log(
+        `[Avec Rel0184] Faturamento ${dataFormatada}: ` +
+        `Serviços R$${resultado.servicos.toFixed(2)}, ` +
+        `Pacotes R$${resultado.pacotes.toFixed(2)}, ` +
+        `Produtos R$${resultado.produtos.toFixed(2)}, ` +
+        `Caixinha R$${resultado.caixinha.toFixed(2)}, ` +
+        `Total R$${resultado.total.toFixed(2)}`
+      );
+    }
+
+    return resultado;
+  } finally {
+    await browser.close();
+  }
+}
+
 /**
  * Busca o faturamento por categoria para um mês inteiro.
  * Retorna um mapa de data (YYYY-MM-DD) para valores por categoria.

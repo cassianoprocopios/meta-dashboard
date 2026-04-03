@@ -1,17 +1,18 @@
 /**
  * Módulo de sincronização do Avec
  *
- * Busca dados de faturamento do Avec por dia e distribui por categoria
- * usando o mapeamento configurado (avecMapeamento).
+ * Busca dados de faturamento do Avec via Relatório 0184 (Faturamento por tipos de venda)
+ * e distribui por categoria: Serviços (cat1), Pacotes (cat2), Produtos (cat3), Caixinha (cat4).
  *
  * Estratégia de coleta:
- * 1. Login no Avec via browser headless (terminal.avec.beauty)
- * 2. Para cada dia do período, busca o faturamento por categoria
- * 3. Salva no banco via upsertFaturamento (preservando cats não mapeadas)
+ * 1. Login no Avec via browser headless
+ * 2. Para cada dia do período, acessa o Relatório 0184 filtrado pela data
+ * 3. Extrai os valores por tipo de venda (Serviços, Pacotes, Produtos, Caixinha)
+ * 4. Salva no banco via upsertFaturamento (preservando cat9 = Recorrência)
  */
 
 import { getDb } from "./db";
-import { avecBrowserLogin, avecBrowserBuscarFaturamentoDia, avecBrowserInvalidarSessao } from "./avecBrowser";
+import { avecBrowserBuscarRelatorio0184 } from "./avecBrowser";
 
 export interface ResultadoSincAvec {
   diasSincronizados: number;
@@ -41,23 +42,19 @@ async function getAvecConfig(tenantId: number, empresaSlug: string) {
   return rows[0] ?? null;
 }
 
-async function getAvecMapeamento(tenantId: number, empresaSlug: string) {
-  const db = await getDb();
-  if (!db) return [];
-  const { avecMapeamento } = await import("../drizzle/schema");
-  const { eq, and } = await import("drizzle-orm");
-  return db
-    .select()
-    .from(avecMapeamento)
-    .where(and(eq(avecMapeamento.tenantId, tenantId), eq(avecMapeamento.empresaSlug, empresaSlug)));
-}
-
-async function upsertFaturamentoAvec(params: {
+/**
+ * Faz upsert do faturamento da Seraphine usando os valores do Relatório 0184.
+ * cat1 = Serviços, cat2 = Pacotes, cat3 = Produtos, cat4 = Caixinha.
+ * Preserva cat9 (Recorrência) que é gerenciado pelo D-Pote.
+ */
+async function upsertFaturamentoAvecRel0184(params: {
   tenantId: number;
   empresaSlug: string;
   data: string; // YYYY-MM-DD
-  valores: Partial<Record<"cat1" | "cat2" | "cat3" | "cat4" | "cat5", number>>;
-  catsMapeadas: Set<string>;
+  servicos: number;
+  pacotes: number;
+  produtos: number;
+  caixinha: number;
 }) {
   const db = await getDb();
   if (!db) return;
@@ -77,19 +74,22 @@ async function upsertFaturamentoAvec(params: {
     )
     .limit(1);
 
-  const dadosUpdate: Record<string, number> = {};
-  for (const cat of Array.from(params.catsMapeadas)) {
-    const key = cat as keyof typeof params.valores;
-    if (params.valores[key] !== undefined) {
-      dadosUpdate[cat] = params.valores[key]!;
-    }
-  }
-
   if (existente.length > 0) {
-    // Atualizar apenas as categorias mapeadas pelo Avec
+    // Atualizar cat1-cat4, preservar cat9 (Recorrência D-Pote)
     await db
       .update(faturamentos)
-      .set({ ...dadosUpdate, updatedAt: new Date() })
+      .set({
+        cat1: String(params.servicos),
+        cat2: String(params.pacotes),
+        cat3: String(params.produtos),
+        cat4: String(params.caixinha),
+        cat5: "0",
+        cat6: "0",
+        cat7: "0",
+        cat8: "0",
+        lancadoPor: "avec-sync-rel0184",
+        updatedAt: new Date(),
+      })
       .where(
         and(
           eq(faturamentos.tenantId, params.tenantId),
@@ -98,13 +98,21 @@ async function upsertFaturamentoAvec(params: {
         )
       );
   } else {
-    // Inserir novo registro
+    // Inserir novo registro (cat9 = 0, será preenchido pelo D-Pote)
     await db.insert(faturamentos).values({
       tenantId: params.tenantId,
       empresaSlug: params.empresaSlug,
       data: params.data,
-      ...dadosUpdate,
-      lancadoPor: "avec-sync",
+      cat1: String(params.servicos),
+      cat2: String(params.pacotes),
+      cat3: String(params.produtos),
+      cat4: String(params.caixinha),
+      cat5: "0",
+      cat6: "0",
+      cat7: "0",
+      cat8: "0",
+      cat9: "0",
+      lancadoPor: "avec-sync-rel0184",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -153,10 +161,17 @@ async function atualizarStatusSync(tenantId: number, empresaSlug: string, status
 // ─── Função principal de sincronização ───────────────────────────────────────
 
 /**
- * Sincroniza o faturamento da Seraphine via Avec para um período.
+ * Sincroniza o faturamento da Seraphine via Avec (Relatório 0184) para um período.
+ *
+ * Mapeamento fixo para a Seraphine:
+ *   Serviços  → cat1
+ *   Pacotes   → cat2
+ *   Produtos  → cat3
+ *   Caixinha  → cat4
+ *   (cat9 = Recorrência é preservada e gerenciada pelo D-Pote)
  *
  * @param tenantId - ID do tenant
- * @param empresaSlug - Slug da empresa (ex: "seraphine")
+ * @param empresaSlug - Slug da empresa (ex: "SERAPHINE")
  * @param mes - Mês (1-12)
  * @param ano - Ano (ex: 2026)
  * @param origem - "manual" | "automatico"
@@ -176,37 +191,13 @@ export async function sincronizarFaturamentoAvec(
   };
 
   try {
-    // 1. Buscar configuração do Avec
+    // 1. Buscar configuração do Avec (email e senha)
     const config = await getAvecConfig(tenantId, empresaSlug);
     if (!config || !config.avecEmail || !config.avecSenha) {
       throw new Error("Configuração do Avec não encontrada. Configure email e senha nas configurações da empresa.");
     }
 
-    // 2. Buscar mapeamento de categorias
-    const mapeamento = await getAvecMapeamento(tenantId, empresaSlug);
-    if (mapeamento.length === 0) {
-      throw new Error("Mapeamento de categorias do Avec não configurado.");
-    }
-
-    // Construir mapa: avecCategoria -> metaCategoria (cat1..cat5)
-    const mapaCategoria: Record<string, string> = {};
-    const catsMapeadas = new Set<string>();
-    for (const m of mapeamento) {
-      if (m.avecCategoria && m.metaCategoria) {
-        mapaCategoria[m.avecCategoria.toLowerCase()] = m.metaCategoria;
-        catsMapeadas.add(m.metaCategoria);
-      }
-    }
-
-    // 3. Fazer login no Avec via browser headless (valida credenciais)
-    try {
-      await avecBrowserLogin(config.avecEmail, config.avecSenha);
-    } catch (e) {
-      avecBrowserInvalidarSessao();
-      throw new Error(`Falha no login do Avec: ${e instanceof Error ? e.message : String(e)}`);
-    }
-
-    // 4. Iterar por cada dia do mês
+    // 2. Iterar por cada dia do mês
     const ultimoDia = new Date(ano, mes, 0).getDate();
     const hoje = new Date();
     const mesStr = String(mes).padStart(2, "0");
@@ -224,40 +215,40 @@ export async function sincronizarFaturamentoAvec(
       }
 
       try {
-        // Buscar faturamento do dia por categoria via browser headless
-        const dadosDia = await avecBrowserBuscarFaturamentoDia(config.avecEmail, config.avecSenha, dataYMD);
+        // Buscar faturamento do dia via Relatório 0184
+        const dadosDia = await avecBrowserBuscarRelatorio0184(
+          config.avecEmail,
+          config.avecSenha,
+          dataYMD
+        );
 
         if (dadosDia.total === 0) {
           resultado.diasFechados++;
-          resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem caixa (fechado)" });
+          resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem faturamento (fechado ou sem dados)" });
           continue;
         }
 
-        // Mapear categorias Avec -> cats do meta usando o mapeamento configurado
-        const valores: Partial<Record<"cat1" | "cat2" | "cat3" | "cat4" | "cat5", number>> = {};
-
-        const catCabelo = mapaCategoria["cabelo"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
-        const catManicure = mapaCategoria["manicure e pedicure"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
-        const catSobrancelha = mapaCategoria["sobrancelha"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
-        const catPacote = mapaCategoria["pacote"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
-        const catRecorrencia = mapaCategoria["recorrência"] as "cat1" | "cat2" | "cat3" | "cat4" | "cat5" | undefined;
-
-        if (catCabelo) valores[catCabelo] = dadosDia.cabelo;
-        if (catManicure) valores[catManicure] = dadosDia.manicurePedicure;
-        if (catSobrancelha) valores[catSobrancelha] = dadosDia.sobrancelha;
-        if (catPacote) valores[catPacote] = dadosDia.pacote;
-        if (catRecorrencia) valores[catRecorrencia] = dadosDia.recorrencia;
-
-        await upsertFaturamentoAvec({
+        // Salvar no banco: Serviços→cat1, Pacotes→cat2, Produtos→cat3, Caixinha→cat4
+        await upsertFaturamentoAvecRel0184({
           tenantId,
           empresaSlug,
           data: dataYMD,
-          valores,
-          catsMapeadas,
+          servicos: dadosDia.servicos,
+          pacotes: dadosDia.pacotes,
+          produtos: dadosDia.produtos,
+          caixinha: dadosDia.caixinha,
         });
 
         resultado.diasSincronizados++;
-        resultado.detalhes.push({ data: dataYMD, status: "sincronizado", total: dadosDia.total });
+        resultado.detalhes.push({
+          data: dataYMD,
+          status: "sincronizado",
+          total: dadosDia.total,
+          mensagem: `Serviços R$${dadosDia.servicos.toFixed(2)}, Pacotes R$${dadosDia.pacotes.toFixed(2)}, Produtos R$${dadosDia.produtos.toFixed(2)}, Caixinha R$${dadosDia.caixinha.toFixed(2)}`,
+        });
+
+        // Pausa entre dias para não sobrecarregar o Avec
+        await new Promise(r => setTimeout(r, 2000));
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });
@@ -265,7 +256,7 @@ export async function sincronizarFaturamentoAvec(
       }
     }
 
-    // 5. Atualizar status de sincronização
+    // 3. Atualizar status de sincronização
     const statusFinal = resultado.diasSincronizados > 0 ? "sucesso" : "sem_dados";
     await atualizarStatusSync(tenantId, empresaSlug, statusFinal);
     await salvarSyncLog({

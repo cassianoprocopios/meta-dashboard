@@ -1,16 +1,18 @@
 /**
  * Job automático de sincronização do Avec
  *
- * Executa a cada 1 hora para sincronizar o faturamento da Seraphine.
+ * Executa diariamente às 23h (horário de Brasília = 02:00 UTC do dia seguinte)
+ * para sincronizar o faturamento da Seraphine via Relatório 0184.
  * Só sincroniza empresas com sincAutoAtiva = 1.
  */
 
 import { sincronizarFaturamentoAvec } from "./avecSincronizador";
 import { getDb } from "./db";
+import * as cron from "node-cron";
 
 // ─── Estado do job ────────────────────────────────────────────────────────────
 
-let _jobInterval: ReturnType<typeof setInterval> | null = null;
+let _cronTask: cron.ScheduledTask | null = null;
 let _ultimaExecucao: Date | null = null;
 let _proximaExecucao: Date | null = null;
 let _statusJob: "idle" | "running" | "error" = "idle";
@@ -18,7 +20,7 @@ let _ultimoErro: string | null = null;
 
 export function getStatusJobAvec() {
   return {
-    ativo: _jobInterval !== null,
+    ativo: _cronTask !== null,
     ultimaExecucao: _ultimaExecucao,
     proximaExecucao: _proximaExecucao,
     status: _statusJob,
@@ -59,13 +61,15 @@ async function executarSyncAvec() {
       return;
     }
 
+    // Usar horário de Brasília para determinar o mês/ano correto
     const agora = new Date();
-    const mes = agora.getMonth() + 1;
-    const ano = agora.getFullYear();
+    const agoraBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const mes = agoraBRT.getMonth() + 1;
+    const ano = agoraBRT.getFullYear();
 
     for (const config of configs) {
       try {
-        console.log(`[Avec Job] Sincronizando ${config.empresaSlug} (tenant ${config.tenantId})...`);
+        console.log(`[Avec Job] Sincronizando ${config.empresaSlug} (tenant ${config.tenantId}) para ${mes}/${ano}...`);
         const resultado = await sincronizarFaturamentoAvec(
           config.tenantId,
           config.empresaSlug,
@@ -77,6 +81,20 @@ async function executarSyncAvec() {
           `[Avec Job] ${config.empresaSlug}: ${resultado.diasSincronizados} dias sincronizados, ` +
           `${resultado.diasFechados} fechados, ${resultado.diasIgnorados} ignorados`
         );
+
+        // Notificar owner sobre sincronização bem-sucedida (apenas se sincronizou algo)
+        if (resultado.diasSincronizados > 0) {
+          try {
+            const { notifyOwner } = await import("./_core/notification");
+            await notifyOwner({
+              title: `✅ Sync Avec - ${config.empresaSlug}`,
+              content: `Sincronização automática concluída para ${mes}/${ano}:\n` +
+                `• ${resultado.diasSincronizados} dia(s) sincronizado(s)\n` +
+                `• ${resultado.diasFechados} dia(s) sem movimento\n` +
+                `• ${resultado.diasIgnorados} dia(s) ignorado(s)`,
+            });
+          } catch { /* silenciar notificação */ }
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         console.error(`[Avec Job] Erro ao sincronizar ${config.empresaSlug}:`, msg);
@@ -86,6 +104,12 @@ async function executarSyncAvec() {
 
     _statusJob = "idle";
     _ultimoErro = null;
+
+    // Calcular próxima execução (amanhã às 23h BRT)
+    const amanha = new Date(agoraBRT);
+    amanha.setDate(amanha.getDate() + 1);
+    amanha.setHours(23, 0, 0, 0);
+    _proximaExecucao = amanha;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[Avec Job] Erro crítico no job:", msg);
@@ -113,39 +137,43 @@ async function listarConfigsAtivas() {
 
 // ─── Inicialização do job ─────────────────────────────────────────────────────
 
-const INTERVALO_MS = 60 * 60 * 1000; // 1 hora
-
+/**
+ * Inicializa o job de sincronização do Avec.
+ * Agenda execução diária às 23h (horário de Brasília = 02:00 UTC).
+ * Cron: "0 0 2 * * *" = todo dia às 02:00 UTC = 23:00 BRT
+ */
 export function iniciarJobAvec() {
-  if (_jobInterval) {
+  if (_cronTask) {
     console.log("[Avec Job] Job já está ativo.");
     return;
   }
 
-  console.log("[Avec Job] Iniciando job de sync automático (intervalo: 1 hora)");
+  // Cron: segundos minutos horas dia mês dia-semana
+  // 0 0 2 * * * = todo dia às 02:00 UTC = 23:00 BRT (UTC-3)
+  const CRON_EXPR = "0 0 2 * * *";
+
+  console.log(`[Avec Job] Iniciando job de sync automático (cron: ${CRON_EXPR} UTC = 23:00 BRT)`);
 
   // Calcular próxima execução
-  _proximaExecucao = new Date(Date.now() + INTERVALO_MS);
+  const agora = new Date();
+  const proxima = new Date(agora);
+  proxima.setUTCHours(2, 0, 0, 0);
+  if (proxima <= agora) {
+    proxima.setUTCDate(proxima.getUTCDate() + 1);
+  }
+  _proximaExecucao = proxima;
 
-  _jobInterval = setInterval(async () => {
-    _proximaExecucao = new Date(Date.now() + INTERVALO_MS);
+  _cronTask = cron.schedule(CRON_EXPR, async () => {
     await executarSyncAvec();
-  }, INTERVALO_MS);
+  }, { timezone: "UTC" });
 
-  // Executar imediatamente na inicialização se houver configs ativas
-  listarConfigsAtivas().then((configs) => {
-    if (configs.length > 0) {
-      console.log(`[Avec Job] ${configs.length} empresa(s) com sync ativo. Executando sync inicial...`);
-      executarSyncAvec();
-    } else {
-      console.log("[Avec Job] Nenhuma empresa com sync ativo. Job aguardando ativação.");
-    }
-  });
+  console.log(`[Avec Job] Job agendado. Próxima execução: ${_proximaExecucao.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} BRT`);
 }
 
 export function pararJobAvec() {
-  if (_jobInterval) {
-    clearInterval(_jobInterval);
-    _jobInterval = null;
+  if (_cronTask) {
+    _cronTask.stop();
+    _cronTask = null;
     _proximaExecucao = null;
     console.log("[Avec Job] Job parado.");
   }
@@ -154,4 +182,11 @@ export function pararJobAvec() {
 export function recarregarJobAvec() {
   pararJobAvec();
   iniciarJobAvec();
+}
+
+/**
+ * Executa o sync manualmente (para testes ou sincronização sob demanda).
+ */
+export async function executarSyncAvecManual() {
+  return executarSyncAvec();
 }

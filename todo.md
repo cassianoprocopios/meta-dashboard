@@ -1189,3 +1189,18 @@
 
 - [x] Renomear categorias da Seraphine: cat1=Serviços, cat2=Pacotes, cat3=Produtos, cat4=Caixinha
 - [x] Lançar faturamento 02/04/2026: Serviços R$6.704, Pacotes R$2.518, Produtos R$56,50, Caixinha R$51
+
+## Seraphine - Automação Avec Relatório 0184
+
+- [ ] Criar função avecSincronizarRelatorio0184 que faz login no Avec e extrai dados do relatório 0184
+- [ ] Corrigir faturamento 01/04/2026 com dados reais do Avec (relatório 0184)
+- [ ] Configurar job automático às 23h para sincronizar Seraphine via relatório 0184
+- [ ] Sincronizar dias 03/04 em diante automaticamente
+
+## Seraphine - Automação Avec via Relatório 0184
+
+- [x] Criar função avecBrowserBuscarRelatorio0184 para extrair faturamento por tipo de venda
+- [x] Atualizar avecSincronizador.ts para usar Relatório 0184 (Serviços/Pacotes/Produtos/Caixinha)
+- [x] Configurar job automático às 23h (BRT) via cron em vez de intervalo de 1 hora
+- [x] Sincronizar faturamento de 01/04 com os dados reais do Avec (R$100 total - véspera feriado)
+- [x] Confirmar 03/04 sem faturamento (Sexta-Feira Santa - salão fechado)
