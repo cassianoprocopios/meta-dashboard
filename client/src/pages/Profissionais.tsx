@@ -42,6 +42,9 @@ import {
   ExternalLink,
   Phone,
   Bell,
+  Share2,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -119,6 +122,25 @@ export default function Profissionais() {
   const [mensagensRanking, setMensagensRanking] = useState<MensagemRanking[]>([]);
   const [mensagensRankingMeta, setMensagensRankingMeta] = useState<{ comTelefone: number; semTelefone: number; nomeMes: string; ano: number } | null>(null);
 
+  // Estado do modal de ranking para grupo
+  const [modalRankingGrupo, setModalRankingGrupo] = useState(false);
+  const [rankingGrupoEmpresaSlug, setRankingGrupoEmpresaSlug] = useState("");
+  type RankingGrupoResult = {
+    mensagem: string;
+    linkCompartilhar: string;
+    grupoLink: string | null;
+    nomeEmpresa: string;
+    nomeMes: string;
+    mes: number;
+    ano: number;
+    fatUnidade: number;
+    metaUnidade: number;
+    pctMeta: number | null;
+    totalProfissionais: number;
+  };
+  const [rankingGrupoData, setRankingGrupoData] = useState<RankingGrupoResult | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
   const utils = trpc.useUtils();
 
   const { data: profissionais = [], isLoading } = trpc.profissionais.listar.useQuery();
@@ -160,6 +182,15 @@ export default function Profissionais() {
       toast.success("Profissional removido.");
     },
     onError: (err) => toast.error("Erro ao remover: " + err.message),
+  });
+
+  const { data: empresasData = [] } = trpc.empresa.listar.useQuery();
+
+  const gerarRankingGrupo = trpc.profissionais.gerarRankingGrupoWhatsApp.useMutation({
+    onSuccess: (data) => {
+      setRankingGrupoData(data);
+    },
+    onError: (err) => toast.error("Erro ao gerar ranking: " + err.message),
   });
 
   const gerarMensagensRanking = trpc.profissionais.gerarMensagensRankingWhatsApp.useMutation({
@@ -317,6 +348,19 @@ export default function Profissionais() {
             >
               <MessageSquare className={`w-4 h-4 mr-2 ${gerarMensagensRanking.isPending ? 'animate-pulse' : ''}`} />
               {gerarMensagensRanking.isPending ? 'Gerando...' : 'Ranking WhatsApp'}
+            </Button>
+            <Button
+              onClick={() => {
+                // Abre o modal de seleção de unidade para compartilhar no grupo
+                setRankingGrupoData(null);
+                setRankingGrupoEmpresaSlug(empresasData[0]?.slug ?? "");
+                setModalRankingGrupo(true);
+              }}
+              variant="outline"
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Ranking no Grupo
             </Button>
             <Button
               onClick={() => dispararPushRanking.mutate()}
@@ -909,6 +953,153 @@ export default function Profissionais() {
             <Button
               variant="ghost"
               onClick={() => setModalRankingWa(false)}
+              className="text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Modal: Ranking para Grupo de WhatsApp ─── */}
+      <Dialog open={modalRankingGrupo} onOpenChange={setModalRankingGrupo}>
+        <DialogContent className="bg-[#0f1117] border border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Share2 className="w-5 h-5 text-green-400" />
+              Compartilhar Ranking no Grupo
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Seletor de unidade */}
+          {empresasData.length > 1 && (
+            <div className="mb-3">
+              <Label className="text-white/60 text-xs mb-1 block">Unidade</Label>
+              <Select
+                value={rankingGrupoEmpresaSlug}
+                onValueChange={setRankingGrupoEmpresaSlug}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue placeholder="Selecione a unidade" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1d27] border-white/10">
+                  {empresasData.map((e) => (
+                    <SelectItem key={e.slug} value={e.slug} className="text-white hover:bg-white/10">
+                      {e.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Botão gerar */}
+          {!rankingGrupoData && (
+            <Button
+              onClick={() => {
+                if (!rankingGrupoEmpresaSlug) {
+                  toast.error("Selecione uma unidade.");
+                  return;
+                }
+                gerarRankingGrupo.mutate({
+                  empresaSlug: rankingGrupoEmpresaSlug,
+                  appUrl: window.location.origin,
+                });
+              }}
+              disabled={gerarRankingGrupo.isPending || !rankingGrupoEmpresaSlug}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Share2 className={`w-4 h-4 mr-2 ${gerarRankingGrupo.isPending ? 'animate-pulse' : ''}`} />
+              {gerarRankingGrupo.isPending ? 'Gerando mensagem...' : 'Gerar Mensagem do Ranking'}
+            </Button>
+          )}
+
+          {/* Resultado */}
+          {rankingGrupoData && (
+            <div className="space-y-4">
+              {/* Stats rápidos */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-white/40 text-[10px] mb-0.5">Profissionais</p>
+                  <p className="text-white font-bold text-sm">{rankingGrupoData.totalProfissionais}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-white/40 text-[10px] mb-0.5">Faturamento</p>
+                  <p className="text-green-400 font-bold text-xs">{rankingGrupoData.fatUnidade.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 text-center">
+                  <p className="text-white/40 text-[10px] mb-0.5">Meta</p>
+                  <p className={`font-bold text-sm ${rankingGrupoData.pctMeta !== null ? (rankingGrupoData.pctMeta >= 100 ? 'text-green-400' : rankingGrupoData.pctMeta >= 70 ? 'text-yellow-400' : 'text-red-400') : 'text-white/40'}`}>
+                    {rankingGrupoData.pctMeta !== null ? `${rankingGrupoData.pctMeta}%` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Preview da mensagem */}
+              <div>
+                <p className="text-white/40 text-xs mb-1">Prévia da mensagem:</p>
+                <pre className="text-white/70 text-[11px] whitespace-pre-wrap font-mono bg-black/30 rounded-lg p-3 leading-relaxed border border-white/5 max-h-48 overflow-y-auto">{rankingGrupoData.mensagem}</pre>
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex flex-col gap-2">
+                {/* Copiar mensagem */}
+                <Button
+                  variant="outline"
+                  className="border-white/20 text-white/80 hover:bg-white/10 w-full"
+                  onClick={() => {
+                    navigator.clipboard.writeText(rankingGrupoData.mensagem);
+                    setCopiado(true);
+                    toast.success("Mensagem copiada!");
+                    setTimeout(() => setCopiado(false), 2500);
+                  }}
+                >
+                  {copiado ? <CheckCheck className="w-4 h-4 mr-2 text-green-400" /> : <Copy className="w-4 h-4 mr-2" />}
+                  {copiado ? 'Copiado!' : 'Copiar Mensagem'}
+                </Button>
+
+                {/* Compartilhar via WhatsApp (abre seletor de contato) */}
+                <a
+                  href={rankingGrupoData.linkCompartilhar}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors w-full"
+                >
+                  <Send className="w-4 h-4" />
+                  Compartilhar via WhatsApp
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </a>
+
+                {/* Link direto para o grupo (se cadastrado) */}
+                {rankingGrupoData.grupoLink && (
+                  <a
+                    href={rankingGrupoData.grupoLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors w-full"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Abrir Grupo da Equipe
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  </a>
+                )}
+
+                {/* Gerar novamente */}
+                <Button
+                  variant="ghost"
+                  className="text-white/40 hover:text-white/70 text-xs"
+                  onClick={() => setRankingGrupoData(null)}
+                >
+                  Gerar novamente
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="mt-2">
+            <Button
+              variant="ghost"
+              onClick={() => setModalRankingGrupo(false)}
               className="text-white/60 hover:text-white hover:bg-white/10"
             >
               Fechar

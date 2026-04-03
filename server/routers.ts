@@ -831,6 +831,122 @@ const profissionaisRouter = router({
       };
     }),
 
+  // ─── RANKING GRUPO WHATSAPP ────────────────────────────────────────────────
+  /**
+   * Gera uma mensagem de texto com o ranking completo da unidade para ser
+   * compartilhada no grupo de WhatsApp da equipe.
+   */
+  gerarRankingGrupoWhatsApp: protectedProcedure
+    .input(z.object({
+      empresaSlug: z.string().min(1),
+      mes: z.number().int().min(1).max(12).optional(),
+      ano: z.number().int().min(2020).max(2100).optional(),
+      appUrl: z.string().url(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const agora = new Date();
+      const mes = input.mes ?? (agora.getMonth() + 1);
+      const ano = input.ano ?? agora.getFullYear();
+
+      const [{ itens }, empresasList, metasList, faturamentosMes] = await Promise.all([
+        listarRankingPorPeriodo(tenantId, mes, ano),
+        getEmpresasByTenant(tenantId),
+        getMetasByMesAndTenant(tenantId, mes, ano),
+        getAllFaturamentosByTenant(tenantId, mes, ano, input.empresaSlug),
+      ]);
+
+      const empresa = empresasList.find((e) => e.slug === input.empresaSlug);
+      const nomeEmpresa = empresa?.nome ?? input.empresaSlug;
+      const grupoLink = empresa?.whatsappGrupoLink ?? null;
+
+      // Faturamento acumulado da unidade no mês
+      let fatUnidade = 0;
+      for (const f of faturamentosMes) {
+        fatUnidade += (Number(f.cat1) || 0) + (Number(f.cat2) || 0) + (Number(f.cat3) || 0) +
+          (Number(f.cat4) || 0) + (Number(f.cat5) || 0) + (Number(f.cat6) || 0) +
+          (Number(f.cat7) || 0) + (Number(f.cat8) || 0) + (Number(f.cat9) || 0);
+      }
+      const metaObj = metasList.find((m) => m.empresaSlug === input.empresaSlug);
+      const metaUnidade = Number(metaObj?.metaMensal) || 0;
+      const pctMeta = metaUnidade > 0 ? Math.round((fatUnidade / metaUnidade) * 100) : null;
+      const faltaMeta = metaUnidade > 0 ? Math.max(0, metaUnidade - fatUnidade) : null;
+
+      // Filtrar ranking da unidade (excluindo gerência)
+      const rankingUnidade = itens
+        .filter((i) => i.empresaSlug === input.empresaSlug && i.totalGeral > 0)
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+
+      const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const nomeMes = MESES_PT[mes - 1];
+
+      // Frases de abertura para o grupo (variadas por dia do mês)
+      const diaDoMes = agora.getDate();
+      const ABERTURAS = [
+        `🔥 *Equipe ${nomeEmpresa} — Bora dominar o mês!*`,
+        `⚡ *${nomeEmpresa} — Cada serviço conta. Cada cliente importa!*`,
+        `🚀 *Alta performance é o padrão aqui. Veja como está o placar!*`,
+        `💪 *${nomeEmpresa} — Time que trabalha junto, vence junto!*`,
+        `🎯 *Foco, consistência e resultado. Confira o ranking!*`,
+      ];
+      const abertura = ABERTURAS[diaDoMes % ABERTURAS.length];
+
+      // Montar mensagem do grupo
+      let msg = `${abertura}\n\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `🏆 *Ranking ${nomeMes}/${ano}*\n`;
+      msg += `📍 Unidade: *${nomeEmpresa}*\n`;
+      msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+      // Lista do ranking
+      for (let i = 0; i < rankingUnidade.length; i++) {
+        const item = rankingUnidade[i];
+        const pos = i + 1;
+        const medalha = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`;
+        const nomeExib = item.apelido || item.nome.split(' ')[0];
+        msg += `${medalha} *${nomeExib}* — ${fmtBRL(item.totalGeral)}`;
+        if (item.qtdServicos && item.qtdServicos > 0) msg += ` (${item.qtdServicos} serv.)`;
+        msg += `\n`;
+      }
+
+      if (rankingUnidade.length === 0) {
+        msg += `_Nenhum dado registrado ainda para este mês._\n`;
+      }
+
+      // Bloco da unidade
+      msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `🏢 *Faturamento da Unidade*\n`;
+      msg += `💰 Total: *${fmtBRL(fatUnidade)}*`;
+      if (metaUnidade > 0) {
+        const semaforo = pctMeta! >= 100 ? '🟢' : pctMeta! >= 70 ? '🟡' : '🔴';
+        msg += ` ${semaforo} *${pctMeta}% da meta*`;
+        if (faltaMeta! > 0) {
+          msg += `\n🎯 Falta para a meta: *${fmtBRL(faltaMeta!)}*`;
+        } else {
+          msg += `\n🎉 *META ATINGIDA! Vamos superar!*`;
+        }
+      }
+      msg += `\n\n📱 Ranking completo: ${input.appUrl}/pro`;
+
+      // Link de compartilhamento (wa.me sem número = abre seletor de contato/grupo)
+      const linkCompartilhar = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+      return {
+        mensagem: msg,
+        linkCompartilhar,
+        grupoLink,
+        nomeEmpresa,
+        nomeMes,
+        mes,
+        ano,
+        fatUnidade,
+        metaUnidade,
+        pctMeta,
+        totalProfissionais: rankingUnidade.length,
+      };
+    }),
+
   // ─── PUSH SUBSCRIPTIONS (PWA) ────────────────────────────────────────────
   salvarPushSubscription: publicProcedure
     .input(z.object({
