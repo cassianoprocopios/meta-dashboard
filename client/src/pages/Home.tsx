@@ -516,8 +516,12 @@ export default function Home() {
       const recorrenciaQuinzenal = !ehMesFuturo ? recorrenciaNoFaturamento * (15 / totalDiasMes) : 0;
       const totalQuinzenal = totalQuinzenalSemRec + recorrenciaQuinzenal;
 
-      const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
-      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasUteisDecrridosQuinzenal);
+      // diasUteisRestantes: dias trabalhados que ainda faltam no mês
+      // = dias trabalhados configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
+      // Isso reflete a realidade: cada dia com lançamento é um dia trabalhado consumido
+      const diasUteisRestantes = Math.max(0, diasUteis - diasRealizados);
+      // Para a quinzenal: dias trabalhados até dia 15 - dias já lançados até dia 15
+      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasLancadosQuinzenal);
 
       // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
       // Usa totalRealizado para não contar previstos como já conquistados
@@ -542,12 +546,12 @@ export default function Home() {
         : 'vermelho';
 
       // Projeção final:
-      // = recorrênciaNoFaturamento (valor único mensal, já incluído em totalRealizado)
-      //   + mediaDiaria (cat1..cat8) × diasUteis (total de dias úteis do mês)
-      // Fórmula: recorrência + média diária × dias úteis totais
-      // Isso representa a projeção de fechamento se o ritmo atual se mantiver
+      // = totalRealizado (já faturado até hoje, incluindo recorrência)
+      //   + mediaDiaria (cat1..cat8) × diasUteisRestantes (dias úteis que ainda faltam)
+      // Fórmula: total já realizado + média diária × dias úteis restantes
+      // Isso representa: "se mantiver o ritmo atual, vai fechar em X"
       const projecaoFinal = diasRealizados > 0
-        ? recorrenciaNoFaturamento + (mediaDiaria * diasUteis)
+        ? totalRealizado + (mediaDiaria * diasUteisRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)

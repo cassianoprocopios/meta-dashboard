@@ -221,6 +221,28 @@ export default function Profissionais() {
     onError: (err) => toast.error("Erro ao enviar push: " + err.message),
   });
 
+  // Estado do modal de PIN para gerentes
+  const [modalPinGerentes, setModalPinGerentes] = useState(false);
+
+  // Filtrar gerentes da lista de profissionais
+  const gerentes = profissionais.filter((p: any) => p.isGerencia);
+
+  // Gerar mensagem de acesso para gerente
+  const gerarMensagemAcessoGerente = (gerente: any) => {
+    const appUrl = window.location.origin;
+    const link = `${appUrl}/pro`;
+    const pin = (gerente as any).pinAcesso || '(sem PIN)';
+    const nome = gerente.apelido || gerente.nome;
+    return (
+      `Olá ${nome}! 👋\n\n` +
+      `Aqui está seu acesso ao ranking da equipe:\n\n` +
+      `🔗 *Link:* ${link}\n` +
+      `🔑 *Seu PIN:* ${pin}\n\n` +
+      `Você pode acompanhar o ranking completo, ver o faturamento da unidade e enviar mensagens de motivação para a equipe! 💪\n\n` +
+      `_Acesso exclusivo gerencial — seu nome não aparece na competição._`
+    );
+  };
+
   const abrirNovo = () => {
     setForm(emptyForm);
     setModalAberto(true);
@@ -377,6 +399,17 @@ export default function Profissionais() {
               <Bell className={`w-4 h-4 mr-2 ${dispararPushRanking.isPending ? 'animate-pulse' : ''}`} />
               {dispararPushRanking.isPending ? 'Enviando...' : 'Testar Push'}
             </Button>
+            {gerentes.length > 0 && (
+              <Button
+                onClick={() => setModalPinGerentes(true)}
+                variant="outline"
+                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                title="Enviar PIN de acesso para gerentes via WhatsApp"
+              >
+                <UserCheck className="w-4 h-4 mr-2" />
+                PIN Gerentes
+              </Button>
+            )}
             <Button
               onClick={abrirNovo}
               className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -1178,6 +1211,113 @@ export default function Profissionais() {
             <Button
               variant="ghost"
               onClick={() => setModalRankingGrupo(false)}
+              className="text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: PIN de Acesso para Gerentes */}
+      <Dialog open={modalPinGerentes} onOpenChange={setModalPinGerentes}>
+        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 flex items-center gap-2">
+              <UserCheck className="w-5 h-5" />
+              Acesso Gerencial — Enviar PIN
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <p className="text-white/60 text-sm">
+              Envie o link e PIN de acesso para as gerentes via WhatsApp.
+              Elas poderão acompanhar o ranking completo sem aparecer na competição.
+            </p>
+
+            {gerentes.length === 0 ? (
+              <p className="text-white/40 text-sm text-center py-4">Nenhuma gerente cadastrada.</p>
+            ) : (
+              <div className="space-y-3">
+                {gerentes.map((gerente: any) => {
+                  const mensagem = gerarMensagemAcessoGerente(gerente);
+                  const telefone = gerente.telefone?.replace(/\D/g, '');
+                  const linkWa = telefone
+                    ? `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`
+                    : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+                  const temPin = !!(gerente as any).pinAcesso;
+                  const temTelefone = !!gerente.telefone;
+
+                  return (
+                    <div key={gerente.id} className="bg-white/5 rounded-xl p-4 border border-amber-500/20">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <UserCheck className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <div>
+                            <p className="text-white font-medium text-sm">{gerente.nome}</p>
+                            <p className="text-white/40 text-xs">
+                              {gerente.empresaSlug} • PIN: {temPin ? <span className="text-amber-300 font-mono">{(gerente as any).pinAcesso}</span> : <span className="text-red-400">sem PIN</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          {!temPin && (
+                            <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Sem PIN</span>
+                          )}
+                          {!temTelefone && (
+                            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Sem telefone</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Preview da mensagem */}
+                      <pre className="text-white/60 text-[11px] whitespace-pre-wrap font-mono bg-black/30 rounded-lg p-3 leading-relaxed border border-white/5 max-h-32 overflow-y-auto mb-3">{mensagem}</pre>
+
+                      {/* Botões */}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white/20 text-white/70 hover:bg-white/10 flex-1 text-xs"
+                          onClick={() => {
+                            navigator.clipboard.writeText(mensagem);
+                            toast.success('Mensagem copiada!');
+                          }}
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copiar
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white flex-1 text-xs"
+                          onClick={() => window.open(linkWa, '_blank')}
+                        >
+                          <Send className="w-3 h-3 mr-1" />
+                          {temTelefone ? 'Enviar WhatsApp' : 'Compartilhar'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs"
+                          onClick={() => abrirEditar(gerente)}
+                          title="Editar PIN ou telefone"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setModalPinGerentes(false)}
               className="text-white/60 hover:text-white hover:bg-white/10"
             >
               Fechar
