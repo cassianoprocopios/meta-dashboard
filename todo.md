@@ -1184,3 +1184,8 @@
 ## Ranking de Profissionais - Exclusão de Produtos
 
 - [x] Excluir produtos "Pod v400", "Red Bull" e "Brownie" do cálculo do ranking de profissionais
+
+## Seraphine - Renomeação de Categorias e Faturamento 02/04
+
+- [x] Renomear categorias da Seraphine: cat1=Serviços, cat2=Pacotes, cat3=Produtos, cat4=Caixinha
+- [x] Lançar faturamento 02/04/2026: Serviços R$6.704, Pacotes R$2.518, Produtos R$56,50, Caixinha R$51
