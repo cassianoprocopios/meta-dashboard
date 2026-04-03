@@ -140,6 +140,8 @@ export default function Profissionais() {
   };
   const [rankingGrupoData, setRankingGrupoData] = useState<RankingGrupoResult | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [rankingGrupoMes, setRankingGrupoMes] = useState(hoje.getMonth() + 1);
+  const [rankingGrupoAno, setRankingGrupoAno] = useState(hoje.getFullYear());
 
   const utils = trpc.useUtils();
 
@@ -354,6 +356,8 @@ export default function Profissionais() {
                 // Abre o modal de seleção de unidade para compartilhar no grupo
                 setRankingGrupoData(null);
                 setRankingGrupoEmpresaSlug(empresasData[0]?.slug ?? "");
+                setRankingGrupoMes(hoje.getMonth() + 1);
+                setRankingGrupoAno(hoje.getFullYear());
                 setModalRankingGrupo(true);
               }}
               variant="outline"
@@ -971,13 +975,51 @@ export default function Profissionais() {
             </DialogTitle>
           </DialogHeader>
 
-          {/* Seletor de unidade */}
+          {/* Seletores de período e unidade */}
+          <div className="grid grid-cols-2 gap-3 mb-1">
+            {/* Mês */}
+            <div>
+              <Label className="text-white/60 text-xs mb-1 block">Mês</Label>
+              <Select
+                value={String(rankingGrupoMes)}
+                onValueChange={(v) => { setRankingGrupoMes(Number(v)); setRankingGrupoData(null); }}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1d27] border-white/10">
+                  {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map((m, i) => (
+                    <SelectItem key={i + 1} value={String(i + 1)} className="text-white hover:bg-white/10">{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Ano */}
+            <div>
+              <Label className="text-white/60 text-xs mb-1 block">Ano</Label>
+              <Select
+                value={String(rankingGrupoAno)}
+                onValueChange={(v) => { setRankingGrupoAno(Number(v)); setRankingGrupoData(null); }}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1d27] border-white/10">
+                  {Array.from({ length: 4 }, (_, i) => hoje.getFullYear() - i).map((a) => (
+                    <SelectItem key={a} value={String(a)} className="text-white hover:bg-white/10">{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Seletor de unidade (quando há mais de uma) */}
           {empresasData.length > 1 && (
             <div className="mb-3">
               <Label className="text-white/60 text-xs mb-1 block">Unidade</Label>
               <Select
                 value={rankingGrupoEmpresaSlug}
-                onValueChange={setRankingGrupoEmpresaSlug}
+                onValueChange={(v) => { setRankingGrupoEmpresaSlug(v); setRankingGrupoData(null); }}
               >
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder="Selecione a unidade" />
@@ -1003,6 +1045,8 @@ export default function Profissionais() {
                 }
                 gerarRankingGrupo.mutate({
                   empresaSlug: rankingGrupoEmpresaSlug,
+                  mes: rankingGrupoMes,
+                  ano: rankingGrupoAno,
                   appUrl: window.location.origin,
                 });
               }}
