@@ -2114,9 +2114,13 @@ export default function Home() {
                 const diasDoMes = new Date(ano, mes, 0).getDate();
                 const diaHoje = (new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes)
                   ? new Date().getDate() : diasDoMes;
-                const previewDiario = valorManualNum > 0 ? valorManualNum / Math.max(diaHoje, 1) : 0;
+                 const previewDiario = valorManualNum > 0 ? valorManualNum / Math.max(diaHoje, 1) : 0;
                 const previewProjecaoMensal = valorManualNum > 0 ? (valorManualNum / Math.max(diaHoje, 1)) * diasDoMes : 0;
-
+                // Alerta: Dpote não distribuído hoje (cat9 = 0 no dia atual, mas há previsão do mês anterior)
+                const ehMesVigenteCard = new Date().getFullYear() === ano && new Date().getMonth() + 1 === mes;
+                const rowHoje = s.rows.find((r: any) => parseInt(r.data.split("-")[2]) === diaHoje);
+                const cat9Hoje = rowHoje ? parseFloat(rowHoje.cat9 || "0") : 0;
+                const dpoteNaoDistribuidoHoje = ehMesVigenteCard && s.cat9DiarioPrevisto > 0 && cat9Hoje === 0 && rowHoje;
                 return (
                   <div key={s.emp.slug} className="rounded-2xl overflow-hidden border border-border/30 bg-card shadow-sm flex flex-col">
 
@@ -2145,6 +2149,15 @@ export default function Home() {
                                     : 'bg-red-500/15 text-red-400'
                                 }`}>
                                   {variacaoMes >= 0 ? '↑' : '↓'}{Math.abs(variacaoMes).toFixed(1)}%
+                                </span>
+                              )}
+                              {dpoteNaoDistribuidoHoje && (
+                                <span
+                                  title={`Recorrência do dia ${diaHoje}/${mes.toString().padStart(2,'0')} ainda não foi distribuída pelo Dpote. Execute o Sync CB para atualizar.`}
+                                  className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30 cursor-help"
+                                >
+                                  <AlertCircle className="w-2.5 h-2.5" />
+                                  Dpote pendente
                                 </span>
                               )}
                             </div>
@@ -3203,6 +3216,10 @@ export default function Home() {
                           const totalReal = catsReal.reduce((a, b) => a + b, 0);
                           const totalPrev = catsPrev.reduce((a, b) => a + b, 0);
                           const hasPrev = previstos.length > 0;
+                          // Recorrência prevista: dias realizados sem cat9 × valor diário previsto
+                          const diasRealizadosSemDpote = realizados.filter((r: any) => parseFloat(r.cat9 || "0") === 0).length;
+                          const totalRecorrenciaPrevista = cat9DiarioPrevisto * diasRealizadosSemDpote;
+                          const hasRecorrenciaPrevista = totalRecorrenciaPrevista > 0;
                           return (
                             <tfoot>
                               {/* Linha Realizado */}
@@ -3218,6 +3235,24 @@ export default function Home() {
                                 <td className="px-4 py-2.5 text-right text-sm font-bold text-foreground">{fmt(totalReal)}</td>
                                 {isGerente && !isRecepcionista && <td />}
                               </tr>
+                              {/* Linha Recorrência Prevista — só aparece para unidades com previsão do mês anterior */}
+                              {hasRecorrenciaPrevista && (
+                                <tr className="border-t border-violet-200/60 bg-violet-50/30 dark:bg-violet-500/5 dark:border-violet-500/20">
+                                  <td className="px-4 py-2.5">
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide">
+                                      <span className="text-[10px]">~</span>
+                                      Recorr. Prevista
+                                    </span>
+                                  </td>
+                                  {[0,1,2,3,4,5,6,7,8].map((i) => (
+                                    <td key={i} className="px-4 py-2.5 text-right text-xs italic text-violet-500/80 dark:text-violet-300/70">
+                                      {i === 8 ? fmt(totalRecorrenciaPrevista) : <span className="text-muted-foreground/20">—</span>}
+                                    </td>
+                                  ))}
+                                  <td className="px-4 py-2.5 text-right text-xs italic font-semibold text-violet-500/80 dark:text-violet-300/70">{fmt(totalRecorrenciaPrevista)}</td>
+                                  {isGerente && !isRecepcionista && <td />}
+                                </tr>
+                              )}
                               {/* Linha Previsto — só aparece se houver lançamentos futuros */}
                               {hasPrev && (
                                 <tr className="border-t border-amber-200/60 bg-amber-50/50 dark:bg-amber-500/5 dark:border-amber-500/20">
@@ -3259,8 +3294,8 @@ export default function Home() {
               })
             )}
             {/* Legenda dos indicadores */}
-            {faturamentosData.some((f: any) => f.sincronizadoCB === 1) && (
-              <div className="flex items-center gap-4 px-1 pt-1 pb-2">
+            <div className="flex flex-wrap items-center gap-4 px-1 pt-1 pb-2">
+              {faturamentosData.some((f: any) => f.sincronizadoCB === 1) && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-semibold border border-blue-500/20">
                     <Zap className="w-2.5 h-2.5" />
@@ -3268,8 +3303,14 @@ export default function Home() {
                   </span>
                   <span>Dados importados automaticamente do CashBarber</span>
                 </div>
-              </div>
-            )}
+              )}
+              {statsPorEmpresa.some((s) => s.cat9DiarioPrevisto > 0) && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="italic text-violet-400/80 dark:text-violet-300/70 text-xs font-semibold">~R$ X.XXX</span>
+                  <span>Previsão de recorrência baseada no mês anterior (não entra no faturamento)</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
         {/* METAS */}
