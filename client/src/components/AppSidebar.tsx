@@ -70,8 +70,12 @@ interface AppSidebarProps {
   onLogout: () => void;
   onSyncCB?: () => void;
   onSyncDpote?: () => void;
+  onSyncAvec?: () => void;
   syncingCB?: boolean;
   syncingDpote?: boolean;
+  syncingAvec?: boolean;
+  avecJobRodando?: boolean;
+  hasAvec?: boolean;
   onTestarMetaDiaria?: () => void;
   testingMetaDiaria?: boolean;
   onRecalcularRanking?: () => void;
@@ -90,8 +94,12 @@ export default function AppSidebar({
   onLogout,
   onSyncCB,
   onSyncDpote,
+  onSyncAvec,
   syncingCB,
   syncingDpote,
+  syncingAvec,
+  avecJobRodando,
+  hasAvec,
   onTestarMetaDiaria,
   testingMetaDiaria,
   onRecalcularRanking,
@@ -453,6 +461,31 @@ export default function AppSidebar({
                   </div>
                 )}
               </button>
+              {hasAvec && (
+              <button
+                onClick={() => { onSyncAvec?.(); isMobile && setMobileOpen(false); }}
+                disabled={syncingAvec || avecJobRodando}
+                title={isCollapsed ? (avecJobRodando ? "Sync Avec em andamento" : "Sync Avec") : undefined}
+                className={`
+                  w-full flex items-center gap-2.5 rounded-xl transition-all duration-150 border border-transparent
+                  ${isCollapsed ? "justify-center p-2" : "px-2.5 py-2.5"}
+                  text-white/40 hover:text-pink-400 hover:bg-pink-500/[0.07] hover:border-pink-500/20
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                `}
+              >
+                <RefreshCw className={`w-4 h-4 flex-shrink-0 ${(syncingAvec || avecJobRodando) ? "animate-spin text-pink-400" : ""}`} />
+                {!isCollapsed && (
+                  <div className="flex-1 text-left min-w-0">
+                    <span className="text-xs font-medium truncate block">
+                      {syncingAvec ? "Sincronizando..." : avecJobRodando ? "Sync em andamento..." : "Sync Avec"}
+                    </span>
+                    <p className="text-[10px] text-white/25 truncate leading-none mt-0.5">
+                      Importar faturamento Seraphine
+                    </p>
+                  </div>
+                )}
+              </button>
+              )}
               <button
                 onClick={() => { onRecalcularRanking?.(); isMobile && setMobileOpen(false); }}
                 disabled={recalculandoRanking}

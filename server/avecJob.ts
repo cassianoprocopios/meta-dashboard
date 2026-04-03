@@ -139,8 +139,10 @@ async function listarConfigsAtivas() {
 
 /**
  * Inicializa o job de sincronização do Avec.
- * Agenda execução diária às 23h (horário de Brasília = 02:00 UTC).
- * Cron: "0 0 2 * * *" = todo dia às 02:00 UTC = 23:00 BRT
+ * Agenda execução a cada 30 minutos das 08:00 às 23:00 (horário de Brasília).
+ * BRT = UTC-3, então 08:00 BRT = 11:00 UTC, 23:00 BRT = 02:00 UTC do dia seguinte.
+ * Cron: "0 0,30 11-23,0-2 * * *" cobre 08:00-23:00 BRT a cada 30 min.
+ * Simplificado: "0 0,30 * * * *" = a cada 30 min (qualquer hora), com guarda interna de horário.
  */
 export function iniciarJobAvec() {
   if (_cronTask) {
@@ -148,18 +150,21 @@ export function iniciarJobAvec() {
     return;
   }
 
-  // Cron: segundos minutos horas dia mês dia-semana
-  // 0 0 2 * * * = todo dia às 02:00 UTC = 23:00 BRT (UTC-3)
-  const CRON_EXPR = "0 0 2 * * *";
+  // Cron: a cada 30 minutos (00 e 30 de cada hora)
+  // A função executarSyncAvec já protege contra execuções simultâneas
+  const CRON_EXPR = "0 0,30 * * * *";
 
-  console.log(`[Avec Job] Iniciando job de sync automático (cron: ${CRON_EXPR} UTC = 23:00 BRT)`);
+  console.log(`[Avec Job] Iniciando job de sync automático a cada 30 min (cron: ${CRON_EXPR})`);
 
-  // Calcular próxima execução
+  // Calcular próxima execução (próximo :00 ou :30)
   const agora = new Date();
   const proxima = new Date(agora);
-  proxima.setUTCHours(2, 0, 0, 0);
-  if (proxima <= agora) {
-    proxima.setUTCDate(proxima.getUTCDate() + 1);
+  const minutos = proxima.getMinutes();
+  if (minutos < 30) {
+    proxima.setMinutes(30, 0, 0);
+  } else {
+    proxima.setMinutes(0, 0, 0);
+    proxima.setHours(proxima.getHours() + 1);
   }
   _proximaExecucao = proxima;
 

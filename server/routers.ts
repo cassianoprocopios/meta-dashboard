@@ -4355,10 +4355,13 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           // Mês passado: todos os dias úteis são passados
           diasPassados = diasUteisTotal;
         }
+        // Projeção = recorrência (valor mensal fixo) + média_diária_operacional × dias_úteis_totais
+        // Alinhado com o cálculo do dashboard (Home.tsx)
         const totalFaturado = totalOperacional + recorrencia;
         if (diasPassados != null && diasPassados > 0 && totalFaturado > 0) {
-          mediaDiaria = totalFaturado / diasPassados;
-          projecaoFinalMes = mediaDiaria * diasUteisTotal;
+          // Média diária apenas sobre o operacional (sem recorrência)
+          mediaDiaria = diasPassados > 0 ? totalOperacional / diasPassados : 0;
+          projecaoFinalMes = recorrencia + (mediaDiaria * diasUteisTotal);
         }
       }
 

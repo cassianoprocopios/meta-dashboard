@@ -927,8 +927,18 @@ export default function Home() {
           onLogout={() => { window.location.href = "/api/oauth/logout"; }}
           onSyncCB={() => { setSyncingCashbarber(true); sincronizarTodasMutation.mutate({ mes, ano }); }}
           onSyncDpote={() => { setSyncingDpote(true); sincronizarDpoteMutation.mutate(); }}
+          onSyncAvec={() => {
+            const seraphineEmp = empresasData.find((e) => e.tipoCategorias === "seraphine");
+            if (seraphineEmp) {
+              setSyncingAvec(true);
+              sincronizarAvecMutation.mutate({ empresaSlug: seraphineEmp.slug, mes, ano });
+            }
+          }}
           syncingCB={syncingCashbarber}
           syncingDpote={syncingDpote}
+          syncingAvec={syncingAvec}
+          avecJobRodando={avecJobRodando}
+          hasAvec={empresasData.some((e) => e.tipoCategorias === "seraphine")}
           onTestarMetaDiaria={() => testarMetaDiariaMutation.mutate()}
           testingMetaDiaria={testarMetaDiariaMutation.isPending}
           onRecalcularRanking={() => recalcularRankingMutation.mutate()}
