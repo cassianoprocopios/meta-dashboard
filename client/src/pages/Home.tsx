@@ -439,11 +439,15 @@ export default function Home() {
       // Cat9 do mês anterior = base de PREVISÃO informativa (não entra no faturamento)
       const rowsAnterioresEmp = faturamentosAnteriorData.filter((f: any) => f.empresaSlug === emp.slug);
       const cat9MesAnterior = rowsAnterioresEmp.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
-
+      // Valor diário previsto de recorrência = cat9 do mês anterior ÷ dias do mês anterior
+      const diasMesAnterior = rowsAnterioresEmp.length || new Date(ano, mes - 1, 0).getDate();
+      const cat9DiarioPrevisto = ehMesVigente && cat9MesAnterior > 0
+        ? cat9MesAnterior / diasMesAnterior
+        : 0;
       // Previsão de recorrência para os dias que ainda não têm Dpote distribuído:
       //   = cat9 do mês anterior × (dias sem Dpote / total de dias do mês)
       //   APENAS INFORMATIVA — não entra no faturamento
-      const totalDiasMesCalc = new Date(ano, mes, 0).getDate();
+      const totalDiasMesCalc = new Date(ano, mes, 0).getDate();;
       const diasComDpote = rowsRealizados.filter((r: any) => parseFloat(r.cat9 || "0") > 0).length;
       const diasSemDpote = Math.max(0, totalDiasMesCalc - diasComDpote);
       const recorrenciaPrevisaoDiasRestantes = ehMesVigente && cat9MesAnterior > 0
@@ -628,6 +632,8 @@ export default function Home() {
         recorrenciaPrevisao,
         recorrenciaRealizada,
         recorrenciaPrevisaoRestante,
+        cat9DiarioPrevisto,
+        cat9MesAnterior,
         ehMesFuturo,
         rows,
         rowsRealizados,
@@ -3048,11 +3054,9 @@ export default function Home() {
                 <p className="text-muted-foreground">Nenhum lançamento neste mês.</p>
               </Card>
             ) : (
-              empresasVisiveis.map((emp) => {
-                const rows = faturamentosData
-                  .filter((f: any) => f.empresaSlug === emp.slug)
-                  .sort((a: any, b: any) => b.data.localeCompare(a.data));
-                if (rows.length === 0) return null;
+              statsPorEmpresa.map(({ emp, rows, cat9DiarioPrevisto, ehMesFuturo: ehMesFuturoEmp }) => {
+                const rowsSorted = [...rows].sort((a: any, b: any) => b.data.localeCompare(a.data));
+                if (rowsSorted.length === 0) return null;
                 // Usar categorias do banco; fallback para padrão
                 const empCats = (emp as any).categorias as Array<{ nome: string }> | undefined;
                 const labels = empCats && empCats.length > 0
@@ -3065,7 +3069,7 @@ export default function Home() {
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: emp.cor }} />
                       <h3 className="font-semibold text-foreground">{emp.nome}</h3>
-                      <span className="ml-auto text-xs text-muted-foreground">{rows.length} registros</span>
+                      <span className="ml-auto text-xs text-muted-foreground">{rowsSorted.length} registros</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -3080,7 +3084,7 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody>
-                          {rows.map((row: any) => {
+                          {rowsSorted.map((row: any) => {
                             const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9].map((v: any) => parseFloat(v || "0"));
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
@@ -3090,6 +3094,9 @@ export default function Home() {
                               ? hojeRef.getDate()
                               : new Date(ano, mes, 0).getDate();
                             const isFuturo = parseInt(dia) > diaHojeRef;
+                            // Previsão de recorrência diária: mostrar quando cat9 = 0 e há previsão do mês anterior
+                            const cat9Real = cats[8]; // índice 8 = cat9
+                            const temPrevisaoRecorrencia = cat9DiarioPrevisto > 0 && cat9Real === 0 && !ehMesFuturoEmp;
                             // Calcular o dia da semana para a data do lançamento
                             const dataLancamento = new Date(ano, mes - 1, parseInt(dia));
                             const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -3135,11 +3142,27 @@ export default function Home() {
                                     )}
                                   </div>
                                 </td>
-                                {cats.map((v: number, i: number) => (
-                                  <td key={i} className="px-4 py-3 text-right text-foreground/80">
-                                    {v > 0 ? fmt(v) : <span className="text-muted-foreground/40">—</span>}
-                                  </td>
-                                ))}
+                                {cats.map((v: number, i: number) => {
+                                  // Índice 8 = cat9 (Recorrência)
+                                  const isCat9 = i === 8;
+                                  const mostrarPrevisao = isCat9 && temPrevisaoRecorrencia;
+                                  return (
+                                    <td key={i} className="px-4 py-3 text-right text-foreground/80">
+                                      {v > 0 ? (
+                                        fmt(v)
+                                      ) : mostrarPrevisao ? (
+                                        <span
+                                          title={`Previsão baseada na recorrência do mês anterior`}
+                                          className="italic text-violet-400/80 dark:text-violet-300/70 text-xs"
+                                        >
+                                          ~{fmt(cat9DiarioPrevisto)}
+                                        </span>
+                                      ) : (
+                                        <span className="text-muted-foreground/40">—</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
                                 <td className="px-4 py-3 text-right font-bold text-foreground">{fmt(total)}</td>
                 {isGerente && !isRecepcionista && (
                   <td className="px-4 py-3 text-right">
@@ -3169,8 +3192,8 @@ export default function Home() {
                           const diaHoje2 = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear()
                             ? hoje2.getDate()
                             : new Date(ano, mes, 0).getDate();
-                          const realizados = rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje2);
-                          const previstos  = rows.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
+                          const realizados = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje2);
+                          const previstos  = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
                           const sumCats = (list: any[]) =>
                             [0,1,2,3,4,5,6,7,8].map((i) =>
                               list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5,r.cat6,r.cat7,r.cat8,r.cat9][i] || "0"), 0)
