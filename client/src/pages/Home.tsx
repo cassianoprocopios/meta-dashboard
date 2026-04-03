@@ -479,12 +479,13 @@ export default function Home() {
       const diasRealizados = rowsRealizados.length;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária = apenas cat1..cat8 realizados / dias realizados
-      // A recorrência é um valor único mensal, não deve inflar a média diária
-      const mediaDiaria = diasRealizados > 0 ? totalRealizadoSemRec / diasRealizados : 0;
+      // Média diária = total do dia (cat1..cat9) realizados / dias realizados
+      // Usa o total completo do dia para refletir o faturamento real
+      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCats(r));
+      const totalRealizadoComCat9 = totaisDiariosRealizados.reduce((s: number, v: number) => s + v, 0);
+      const mediaDiaria = diasRealizados > 0 ? totalRealizadoComCat9 / diasRealizados : 0;
 
-      // Máximo e mínimo diário (cat1..cat8 por dia)
-      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCatsSemCat9(r));
+      // Máximo e mínimo diário (cat1..cat9 por dia — total completo)
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
 
@@ -531,10 +532,10 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Faturamento do dia atual (para o semáforo)
+      // Faturamento do dia atual (para o semáforo) — total completo (cat1..cat9)
       const dataHojeStr = `${ano}-${String(mes).padStart(2, '0')}-${String(diaHoje).padStart(2, '0')}`;
       const rowHoje = rows.find((r: any) => r.data === dataHojeStr);
-      const fatHoje = rowHoje ? sumCatsSemCat9(rowHoje) : 0;
+      const fatHoje = rowHoje ? sumCats(rowHoje) : 0;
       // Meta diária proporcional: metaMensal / diasUteis
       const metaDiariaHoje = metaDiariaMensal;
       // Semáforo: verde ≥ 100%, amarelo 70–99%, vermelho < 70%
@@ -546,12 +547,12 @@ export default function Home() {
         : 'vermelho';
 
       // Projeção final:
-      // = totalRealizado (já faturado até hoje, incluindo recorrência)
-      //   + mediaDiaria (cat1..cat8) × diasUteisRestantes (dias úteis que ainda faltam)
-      // Fórmula: total já realizado + média diária × dias úteis restantes
+      // = totalRealizadoComCat9 (soma real dia a dia, cat1..cat9)
+      //   + mediaDiaria (cat1..cat9) × diasUteisRestantes (dias trabalhados que ainda faltam)
+      // Fórmula: total já realizado (por dia) + média diária × dias restantes
       // Isso representa: "se mantiver o ritmo atual, vai fechar em X"
       const projecaoFinal = diasRealizados > 0
-        ? totalRealizado + (mediaDiaria * diasUteisRestantes)
+        ? totalRealizadoComCat9 + (mediaDiaria * diasUteisRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)
