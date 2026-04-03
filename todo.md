@@ -1204,3 +1204,9 @@
 - [x] Configurar job automático às 23h (BRT) via cron em vez de intervalo de 1 hora
 - [x] Sincronizar faturamento de 01/04 com os dados reais do Avec (R$100 total - véspera feriado)
 - [x] Confirmar 03/04 sem faturamento (Sexta-Feira Santa - salão fechado)
+
+## Seraphine - Histórico Março e Categorias Dashboard
+
+- [ ] Verificar dados históricos de Março da Seraphine no banco
+- [ ] Lançar faturamento de Março da Seraphine via Avec (Relatório 0184)
+- [ ] Atualizar categorias do Meta Dashboard para Serviços, Pacotes, Produtos e Caixinha

@@ -36,10 +36,10 @@ const META_CATEGORIAS = [
 
 // Categorias padrão do Avec para a Seraphine
 const AVEC_CATEGORIAS_SERAPHINE = [
-  "Cabelo",
-  "Manicure e Pedicure",
-  "Sobrancelha",
-  "Pacote",
+  "Serviços",
+  "Pacotes",
+  "Produtos",
+  "Caixinha",
   "Recorrência",
 ];
 
@@ -599,7 +599,7 @@ export default function AvecIntegracao({ empresas }: AvecIntegracaoProps) {
           <Calendar className="w-4 h-4 text-pink-400 mt-0.5 shrink-0" />
           <div className="text-xs text-zinc-400">
             <span className="text-zinc-300 font-medium">Sincronização automática:</span>{" "}
-            O sistema faz login no Avec via browser headless e importa o faturamento por categoria (Cabelo, Manicure e Pedicure, Sobrancelha, Pacote, Recorrência) a cada 1 hora automaticamente.
+            O sistema faz login no Avec via browser headless e importa o faturamento por categoria (Serviços, Pacotes, Produtos, Caixinha, Recorrência) a cada 1 hora automaticamente.
           </div>
         </div>
       </div>

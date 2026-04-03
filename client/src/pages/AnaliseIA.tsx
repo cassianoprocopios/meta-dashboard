@@ -62,7 +62,7 @@ export default function AnaliseIA({
       const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
       // Usar categorias dinâmicas do banco se disponíveis
       const LABELS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-      const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "Recorrência"];
+      const LABELS_SERAPHINE = ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência"];
       const fallback = s.emp.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
       const catLabels = s.emp.categorias && s.emp.categorias.length > 0
         ? s.emp.categorias.slice(0, 5).map((c) => c.nome)

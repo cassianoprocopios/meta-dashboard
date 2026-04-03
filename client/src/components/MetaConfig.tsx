@@ -190,7 +190,7 @@ export default function MetaConfig({
                   <p className="text-xs text-slate-500 truncate">
                     {emp.categorias && emp.categorias.length > 0
                       ? emp.categorias.slice(0, 4).map((c) => c.nome).join(" / ")
-                      : emp.tipoCategorias === "seraphine" ? "Cabelo / Manicure e Pedicure / Sobrancelha / Pacote" : "Avulso / Produtos / Serv. Extra / Lavatório"}
+                      : emp.tipoCategorias === "seraphine" ? "Serviços / Pacotes / Produtos / Caixinha" : "Avulso / Produtos / Serv. Extra / Lavatório"}
                   </p>
                 </div>
               </div>

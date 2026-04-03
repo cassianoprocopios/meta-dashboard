@@ -77,7 +77,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
 
   // Usar categorias do banco se disponíveis, senão fallback para padrão
   const LABELS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
-  const LABELS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "Recorrência", "", "", "", ""];
+  const LABELS_SERAPHINE = ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", ""];
   const fallbackLabels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
   const labels = categoriasData.length > 0
     ? categoriasData.slice(0, 9).map((c) => c.nome)
@@ -189,7 +189,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                     {emp.categorias && emp.categorias.length > 0
                       ? emp.categorias.slice(0, 9).map((c) => c.nome).join(" / ")
                       : (emp.tipoCategorias === "seraphine"
-                        ? "Cabelo / Manicure e Pedicure / Sobrancelha / Pacote / Recorrência"
+                        ? "Serviços / Pacotes / Produtos / Caixinha / Recorrência"
                         : "Avulso / Serv. Extra / Auxiliar / Keune / Don Alcides / Caixinha / Barbiero / Bar / Recorrência")}
                   </p>
                 </div>
