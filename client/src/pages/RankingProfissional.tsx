@@ -69,6 +69,7 @@ function gerarTextoRanking(
 // ─── Tela de Login por PIN ────────────────────────────────────────────────────
 function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fotoUrl: string | null, id: number, apelido: string | null) => void }) {
   const [pin, setPin] = useState("");
+  const [modoTexto, setModoTexto] = useState(false);
   const [loginOk, setLoginOk] = useState<{ nome: string; fotoUrl: string | null; apelido: string | null } | null>(null);
   const loginMut = trpc.loginProfissional.useMutation({
     onSuccess: (data) => {
@@ -93,6 +94,9 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
     }
   };
   const handleDelete = () => setPin((p) => p.slice(0, -1));
+  const handleTextoSubmit = () => {
+    if (pin.trim().length > 0) loginMut.mutate({ pin: pin.trim() });
+  };
 
   // Tela de boas-vindas após login bem-sucedido
   if (loginOk) {
@@ -137,44 +141,74 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
         <h1 className="text-2xl font-bold text-white">Ranking</h1>
         <p className="text-white/50 text-sm mt-1">Acesso para profissionais</p>
       </div>
-      {/* Indicador PIN */}
-      <div className="flex gap-3 mb-8">
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={`w-4 h-4 rounded-full border-2 transition-all ${
-              i < pin.length
-                ? "bg-blue-400 border-blue-400"
-                : "bg-transparent border-white/30"
-            }`}
+      {/* Indicador PIN ou campo de texto */}
+      {modoTexto ? (
+        <div className="w-full max-w-xs mb-6 space-y-3">
+          <input
+            type="text"
+            autoFocus
+            maxLength={20}
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleTextoSubmit()}
+            placeholder="Digite seu PIN"
+            className="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-4 text-white text-center text-xl tracking-widest placeholder:text-white/30 focus:outline-none focus:border-blue-400"
           />
-        ))}
-      </div>
-      {/* Teclado numérico */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-xs">
-        {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d, i) => (
           <button
-            key={i}
-            disabled={d === "" || loginMut.isPending}
-            onClick={() => d === "⌫" ? handleDelete() : d !== "" ? handleDigit(d) : undefined}
-            className={`
-              h-16 rounded-2xl text-xl font-semibold transition-all active:scale-95
-              ${d === "" ? "invisible" : ""}
-              ${d === "⌫"
-                ? "bg-white/10 text-white/60 hover:bg-white/20"
-                : "bg-white/10 text-white hover:bg-white/20 active:bg-blue-500/50"}
-              ${loginMut.isPending ? "opacity-50 cursor-not-allowed" : ""}
-            `}
+            onClick={handleTextoSubmit}
+            disabled={loginMut.isPending || pin.trim().length === 0}
+            className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg transition-all active:scale-95 disabled:opacity-50"
           >
-            {loginMut.isPending && d === pin[pin.length - 1] ? (
-              <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-            ) : d}
+            {loginMut.isPending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Entrar'}
           </button>
-        ))}
-      </div>
-      <p className="text-white/30 text-xs mt-8 text-center">
-        Digite seu PIN de 4 dígitos para acessar o ranking
-      </p>
+          <button onClick={() => { setModoTexto(false); setPin(""); }} className="w-full text-white/30 text-sm text-center py-2">
+            Usar teclado numérico
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-3 mb-8">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`w-4 h-4 rounded-full border-2 transition-all ${
+                  i < pin.length
+                    ? "bg-blue-400 border-blue-400"
+                    : "bg-transparent border-white/30"
+                }`}
+              />
+            ))}
+          </div>
+          {/* Teclado numérico */}
+          <div className="grid grid-cols-3 gap-3 w-full max-w-xs">
+            {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d, i) => (
+              <button
+                key={i}
+                disabled={d === "" || loginMut.isPending}
+                onClick={() => d === "⌫" ? handleDelete() : d !== "" ? handleDigit(d) : undefined}
+                className={`
+                  h-16 rounded-2xl text-xl font-semibold transition-all active:scale-95
+                  ${d === "" ? "invisible" : ""}
+                  ${d === "⌫"
+                    ? "bg-white/10 text-white/60 hover:bg-white/20"
+                    : "bg-white/10 text-white hover:bg-white/20 active:bg-blue-500/50"}
+                  ${loginMut.isPending ? "opacity-50 cursor-not-allowed" : ""}
+                `}
+              >
+                {loginMut.isPending && d === pin[pin.length - 1] ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : d}
+              </button>
+            ))}
+          </div>
+          <p className="text-white/30 text-xs mt-8 text-center">
+            Digite seu PIN de 4 dígitos para acessar o ranking
+          </p>
+          <button onClick={() => { setModoTexto(true); setPin(""); }} className="text-white/20 text-xs mt-3 text-center hover:text-white/40 transition-colors">
+            PIN com letras? Clique aqui
+          </button>
+        </>
+      )}
     </div>
   );
 }

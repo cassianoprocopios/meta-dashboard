@@ -676,17 +676,17 @@ export default function Profissionais() {
             <div className="space-y-1.5">
               <Label className="text-white/70 text-sm">
                 PIN de Acesso{" "}
-                <span className="text-white/40 font-normal">(4 dígitos)</span>
+                <span className="text-white/40 font-normal">(números ou letras, até 20 caracteres)</span>
               </Label>
               <Input
                 type="text"
-                maxLength={4}
+                maxLength={20}
                 value={form.pinAcesso}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  const v = e.target.value.slice(0, 20);
                   setForm({ ...form, pinAcesso: v });
                 }}
-                placeholder="Ex: 1234"
+                placeholder="Ex: 1234 ou DANIELA123"
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30 tracking-widest text-center text-lg"
               />
                <p className="text-white/30 text-xs">

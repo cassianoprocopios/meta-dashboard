@@ -3796,7 +3796,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     }),
   // ===== LOGIN PROFISSIONAL (PIN) =====
   loginProfissional: publicProcedure
-    .input(z.object({ pin: z.string().length(4) }))
+    .input(z.object({ pin: z.string().min(1).max(20) }))
     .mutation(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtxPublic(ctx);
       const colaboradoresList = await listarColaboradores(tenantId);
