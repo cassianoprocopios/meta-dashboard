@@ -1210,3 +1210,10 @@
 - [ ] Verificar dados históricos de Março da Seraphine no banco
 - [ ] Lançar faturamento de Março da Seraphine via Avec (Relatório 0184)
 - [ ] Atualizar categorias do Meta Dashboard para Serviços, Pacotes, Produtos e Caixinha
+
+## Ranking - Acesso Gerência
+
+- [ ] Criar campo 'isGerencia' na tabela profissionais para marcar gerentes
+- [ ] Excluir profissionais com isGerencia=true da competição/ranking público
+- [ ] Permitir que gerentes visualizem o ranking completo sem aparecer como participantes
+- [ ] Adicionar toggle de gerência na tela de gerenciamento de profissionais

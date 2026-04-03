@@ -336,6 +336,8 @@ export const colaboradores = mysqlTable("colaboradores", {
   telefone: varchar("telefone", { length: 32 }),
   /** Meta mensal individual em reais (null = sem meta definida) */
   metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }),
+  /** Marca o profissional como gerência: pode ver o ranking completo mas NÃO aparece na competição */
+  isGerencia: int("isGerencia").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

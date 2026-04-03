@@ -186,6 +186,7 @@ const profissionaisRouter = router({
       cargo: c.cargo,
       exibirNoRanking: c.exibirNoRanking === 1,
       ativo: c.ativo === 1,
+      isGerencia: c.isGerencia === 1,
       cashbarberProfissionalId: c.cashbarberProfissionalId,
       empresaSlug: c.empresaSlug,
       categoriaRanking: (c.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
@@ -204,6 +205,7 @@ const profissionaisRouter = router({
         fotoUrl: z.string().nullable().optional(),
         exibirNoRanking: z.boolean().optional(),
         ativo: z.boolean().optional(),
+        isGerencia: z.boolean().optional(),
         cashbarberProfissionalId: z.number().int().positive().nullable().optional(),
         empresaSlug: z.string().optional(),
         categoriaRanking: z.enum(['barbeiro', 'auxiliar', 'recepcao']).optional(),
@@ -222,6 +224,7 @@ const profissionaisRouter = router({
         fotoUrl: input.fotoUrl ?? null,
         exibirNoRanking: input.exibirNoRanking !== false ? 1 : 0,
         ativo: input.ativo !== false ? 1 : 0,
+        isGerencia: input.isGerencia ? 1 : 0,
         cashbarberProfissionalId: input.cashbarberProfissionalId ?? null,
         empresaSlug: input.empresaSlug ?? "barbiero-grupo",
         categoriaRanking: input.categoriaRanking ?? 'barbeiro',
@@ -280,6 +283,7 @@ const profissionaisRouter = router({
       const lista = profissionais
         .filter((p) => {
           if (p.ativo !== 1) return false;
+          if (p.isGerencia === 1) return false; // gerentes não aparecem na competição
           if (p.exibirNoRanking === 1) return true;
           // Incluir recepção se tiver dados de produtos no período
           if (p.categoriaRanking === 'recepcao') {
@@ -3646,7 +3650,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       }
       const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
       const colaboradoresList = await listarColaboradores(tenantId);
-      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
@@ -3706,7 +3710,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       }
       const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
       const colaboradoresList = await listarColaboradores(tenantId);
-      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1);
+      const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
@@ -3765,7 +3769,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       ]);
       const EXCLUIDOS_RANKING = /^(corte de cabelo|barba$|barba completa|corte kids|raspar na m[áa]quina|pezinho)/i;
       const lista = profissionais
-        .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1)
+        .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1 && p.isGerencia !== 1)
         .map((p) => {
           const fat = faturamentos.find((f) => f.colaboradorId === p.id);
           return {

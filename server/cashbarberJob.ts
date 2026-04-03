@@ -494,7 +494,7 @@ async function enviarNotificacaoRankingDiario(): Promise<void> {
             if (!token) continue;
             // Buscar dados por profissional individualmente
             const colsEmpresa = colaboradores.filter(
-              (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.cashbarberProfissionalId != null
+              (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.cashbarberProfissionalId != null && c.isGerencia !== 1
             );
             for (const col of colsEmpresa) {
               try {

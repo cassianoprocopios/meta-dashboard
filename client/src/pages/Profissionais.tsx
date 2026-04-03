@@ -63,6 +63,7 @@ type Profissional = {
   cargo: string | null;
   exibirNoRanking: boolean;
   ativo: boolean;
+  isGerencia: boolean;
   cashbarberProfissionalId: number | null;
   empresaSlug: string;
   categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
@@ -76,6 +77,7 @@ type FormData = {
   cashbarberProfissionalId: string;
   exibirNoRanking: boolean;
   ativo: boolean;
+  isGerencia: boolean;
   categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
   pinAcesso: string;
   metaMensal: string;
@@ -87,6 +89,7 @@ const emptyForm: FormData = {
   cashbarberProfissionalId: "",
   exibirNoRanking: true,
   ativo: true,
+  isGerencia: false,
   categoriaRanking: 'barbeiro',
   pinAcesso: "",
   metaMensal: "",
@@ -198,6 +201,7 @@ export default function Profissionais() {
       cashbarberProfissionalId: p.cashbarberProfissionalId?.toString() ?? "",
       exibirNoRanking: p.exibirNoRanking,
       ativo: p.ativo,
+      isGerencia: p.isGerencia ?? false,
       categoriaRanking: p.categoriaRanking ?? 'barbeiro',
        pinAcesso: (p as any).pinAcesso ?? "",
       metaMensal: (p as any).metaMensal ? String((p as any).metaMensal) : "",
@@ -224,6 +228,7 @@ export default function Profissionais() {
         : null,
       exibirNoRanking: form.exibirNoRanking,
       ativo: form.ativo,
+      isGerencia: form.isGerencia,
       categoriaRanking: form.categoriaRanking,
       pinAcesso: form.pinAcesso.trim() || null,
       metaMensal: form.metaMensal ? parseFloat(form.metaMensal.replace(',', '.')) : null,
@@ -481,7 +486,12 @@ export default function Profissionais() {
                     </td>
                     {/* Exibir no Ranking */}
                     <td className="px-4 py-3">
-                      {p.exibirNoRanking ? (
+                      {p.isGerencia ? (
+                        <div className="flex items-center gap-1.5 text-amber-300 text-sm">
+                          <span className="text-base">💼</span>
+                          Gerência
+                        </div>
+                      ) : p.exibirNoRanking ? (
                         <div className="flex items-center gap-1.5 text-blue-300 text-sm">
                           <Eye className="w-4 h-4" />
                           Visível
@@ -704,6 +714,20 @@ export default function Profissionais() {
                 Quando definida, o ranking exibe o % de atingimento da meta (ex: 89%)
               </p>
             </div>
+            {/* É Gerência */}
+            <div className="flex items-center justify-between p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <div>
+                <p className="text-amber-300 text-sm font-medium">💼 É Gerência</p>
+                <p className="text-white/40 text-xs">
+                  Gerentes visualizam o ranking completo mas não aparecem na competição
+                </p>
+              </div>
+              <Switch
+                checked={form.isGerencia}
+                onCheckedChange={(v) => setForm({ ...form, isGerencia: v })}
+              />
+            </div>
+
             {/* Exibir no Ranking */}
             <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
               <div>
