@@ -183,6 +183,9 @@ export async function sincronizarFaturamentoAvec(
   ano: number,
   origem: "manual" | "automatico"
 ): Promise<ResultadoSincAvec> {
+  // Normalizar slug para maiúsculo para garantir consistência com a tabela faturamentos
+  empresaSlug = empresaSlug.toUpperCase();
+
   const resultado: ResultadoSincAvec = {
     diasSincronizados: 0,
     diasIgnorados: 0,
