@@ -4090,6 +4090,101 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         .sort((a, b) => b.totalGeral - a.totalGeral);
       return { lista };
     }),
+
+  // ===== RANKING GERÊNCIA (para exibir seção separada na tela de profissionais) =====
+  rankingDiarioGerencia: publicProcedure
+    .input(z.object({ data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) return [];
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const gerentes = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.isGerencia === 1);
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const resultados = await Promise.all(
+        gerentes.map(async (col) => {
+          try {
+            const relatorio = await cashbarberRelatorio15(token, input.data, input.data, null, col.cashbarberProfissionalId);
+            const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+            const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+            const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
+            return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos, totalProdutos, totalGeral: totalServicos + totalProdutos, qtdServicos, qtdProdutos };
+          } catch {
+            return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
+          }
+        })
+      );
+      return resultados.sort((a, b) => b.totalGeral - a.totalGeral);
+    }),
+
+  rankingSemanalGerencia: publicProcedure
+    .input(z.object({ dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const empresas = await getEmpresasByTenant(tenantId);
+      const empresaSlug = empresas[0]?.slug ?? 'barbiero-grupo';
+      const config = await getCashbarberConfig(tenantId, empresaSlug);
+      if (!config || !config.cbEmail || !config.cbSenha) return [];
+      const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
+      const colaboradoresList = await listarColaboradores(tenantId);
+      const gerentes = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.isGerencia === 1);
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const resultados = await Promise.all(
+        gerentes.map(async (col) => {
+          try {
+            const relatorio = await cashbarberRelatorio15(token, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
+            const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+            const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+            const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
+            return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos, totalProdutos, totalGeral: totalServicos + totalProdutos, qtdServicos, qtdProdutos };
+          } catch {
+            return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
+          }
+        })
+      );
+      return resultados.sort((a, b) => b.totalGeral - a.totalGeral);
+    }),
+
+  rankingMensalGerencia: publicProcedure
+    .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtxPublic(ctx);
+      const [profissionais, { itens: faturamentos }] = await Promise.all([
+        listarColaboradores(tenantId),
+        listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+      ]);
+      const lista = profissionais
+        .filter((p) => p.ativo === 1 && p.isGerencia === 1)
+        .map((p) => {
+          const fat = faturamentos.find((f) => f.colaboradorId === p.id);
+          return {
+            id: p.id,
+            nome: p.nome,
+            apelido: p.apelido,
+            fotoUrl: p.fotoUrl,
+            empresaSlug: p.empresaSlug ?? 'barbiero-grupo',
+            totalServicos: fat?.totalServicos ?? 0,
+            totalProdutos: fat?.totalProdutos ?? 0,
+            totalGeral: fat?.totalGeral ?? 0,
+            qtdServicos: fat?.qtdServicos ?? 0,
+            qtdProdutos: fat?.qtdProdutos ?? 0,
+          };
+        })
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+      return { lista };
+    }),
+
   // ===== LOGIN PROFISSIONAL (PIN) =====
   loginProfissional: publicProcedure
     .input(z.object({ pin: z.string().min(1).max(20) }))
@@ -4124,7 +4219,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           path: '/',
         });
       }
-      return { ok: true, nome: profissional.nome, id: profissional.id, empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo', fotoUrl: profissional.fotoUrl ?? null, apelido: profissional.apelido ?? null };
+      return { ok: true, nome: profissional.nome, id: profissional.id, empresaSlug: profissional.empresaSlug ?? 'barbiero-grupo', fotoUrl: profissional.fotoUrl ?? null, apelido: profissional.apelido ?? null, isGerencia: profissional.isGerencia === 1 };
     }),
 
   meProfissional: publicProcedure.query(async ({ ctx }) => {
@@ -4148,6 +4243,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         fotoUrl: col?.fotoUrl ?? null,
         empresaSlug: (payload.empresaSlug as string) ?? 'barbiero-grupo',
         tenantId,
+        isGerencia: col?.isGerencia === 1,
       };
     } catch {
       return null;
