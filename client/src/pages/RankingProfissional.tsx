@@ -778,16 +778,36 @@ function SecaoGerencia({
 
 // ─── Aba Diário ────────────────────────────────────────────────────────────────────────────────────────────────
 function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; minhaEmpresa: string; isGerencia?: boolean }) {
+  const isGrupo = minhaEmpresa === 'barbiero-grupo';
+  // unidadeSelecionada: null = Geral, 'barbiero-mascote' ou 'barbiero-morumbi' = unidade específica
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<string | null>(
+    isGrupo ? 'barbiero-mascote' : minhaEmpresa
+  );
+  const verGeral = unidadeSelecionada === null;
+  const empresaSlugFiltro = verGeral ? minhaEmpresa : unidadeSelecionada;
+
+  // Opções de unidade para o toggle
+  const opcoesUnidade = useMemo(() => {
+    if (isGrupo) return [
+      { slug: 'barbiero-mascote', label: 'Mascote' },
+      { slug: 'barbiero-morumbi', label: 'Morumbi' },
+      { slug: null, label: 'Geral' },
+    ];
+    return [
+      { slug: minhaEmpresa, label: empresaLabel(minhaEmpresa) },
+      { slug: null, label: 'Geral' },
+    ];
+  }, [isGrupo, minhaEmpresa]);
+
   const [data, setData] = useState(hoje());
-  const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   // Link do grupo WhatsApp da unidade
   const { data: empresas } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
   const grupoWhatsApp = useMemo(() => {
     if (!empresas || verGeral) return null;
-    return empresas.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
-  }, [empresas, minhaEmpresa, verGeral]);
+    return empresas.find((e) => e.slug === unidadeSelecionada)?.whatsappGrupoLink ?? null;
+  }, [empresas, unidadeSelecionada, verGeral]);
   // Ranking do dia anterior para calcular variação de posição
   const dataAnterior = useMemo(() => subtrairDia(data, 1), [data]);
   const { data: rankingAnterior } = trpc.rankingDiario.useQuery(
@@ -804,14 +824,14 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
   );
   // Faturamento da unidade do dia
   const { data: fatUnidade } = trpc.faturamentoUnidade.useQuery(
-    { empresaSlug: minhaEmpresa, tipo: 'diario', data },
+    { empresaSlug: empresaSlugFiltro, tipo: 'diario', data },
     { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
   );
   // Faturamento mensal acumulado (para mostrar meta e valor que falta)
   const mesNum = useMemo(() => parseInt(formatarData(data).split('/')[1], 10), [data]);
   const anoNum = useMemo(() => parseInt(formatarData(data).split('/')[2], 10), [data]);
   const { data: fatMensal } = trpc.faturamentoUnidade.useQuery(
-    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes: mesNum, ano: anoNum },
+    { empresaSlug: empresaSlugFiltro, tipo: 'mensal', mes: mesNum, ano: anoNum },
     { staleTime: 60_000, enabled: !verGeral }
   );
 
@@ -834,12 +854,12 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
   // Filtrar por unidade ou mostrar geral, depois por categoria
   const rankingFiltrado = useMemo(() => {
     if (!ranking) return [];
-    let lista = verGeral ? ranking : ranking.filter((p) => p.empresaSlug === minhaEmpresa);
+    let lista = verGeral ? ranking : ranking.filter((p) => p.empresaSlug === unidadeSelecionada);
     if (filtroCategoria !== 'todos') {
       lista = lista.filter((p) => (p as any).categoriaRanking === filtroCategoria);
     }
     return lista;
-  }, [ranking, minhaEmpresa, verGeral, filtroCategoria]);
+  }, [ranking, unidadeSelecionada, verGeral, filtroCategoria]);
 
   // Posição do profissional no geral
   const minhaPosicaoGeral = useMemo(() => {
@@ -866,21 +886,21 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
 
       {/* Toggle Unidade / Geral */}
       <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
-        <button
-          onClick={() => setVerGeral(false)}
-          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          {empresaLabel(minhaEmpresa)}
-        </button>
-        <button
-          onClick={() => setVerGeral(true)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          <Globe className="w-3 h-3" />Geral
-          {minhaPosicaoGeral && !verGeral && (
-            <span className="ml-1 bg-blue-400/20 text-blue-300 text-xs px-1.5 rounded-full">{minhaPosicaoGeral}º</span>
-          )}
-        </button>
+        {opcoesUnidade.map((op) => (
+          <button
+            key={op.slug ?? 'geral'}
+            onClick={() => setUnidadeSelecionada(op.slug)}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+              unidadeSelecionada === op.slug ? 'bg-blue-500 text-white shadow' : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {op.slug === null && <Globe className="w-3 h-3" />}
+            {op.label}
+            {op.slug === null && minhaPosicaoGeral && unidadeSelecionada !== null && (
+              <span className="ml-1 bg-blue-400/20 text-blue-300 text-xs px-1.5 rounded-full">{minhaPosicaoGeral}º</span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Filtro de Categoria */}
@@ -1087,7 +1107,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
           <div className="mt-4 flex gap-2">
             <button
               onClick={() => {
-                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
                 const totalDia = (!verGeral && fatMensal?.total != null)
                   ? `\n\n📊 Total ${nomeEmp} no mês: ${formatarMoeda(fatMensal.total)}${fatUnidade?.total ? ` (hoje: ${formatarMoeda(fatUnidade.total)})` : ""}`
                   : "";
@@ -1120,7 +1140,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
             </button>
             <button
               onClick={() => copiarDiario(
-                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
               )}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
@@ -1137,7 +1157,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
         meuNome={meuNome}
         isGerencia={isGerencia}
         grupoWhatsApp={grupoWhatsApp}
-        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(minhaEmpresa)}`}
+        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}`}
         subtituloCompartilhamento={formatarData(data)}
         isLoading={isLoadingGerencia}
       />
@@ -1150,7 +1170,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
           subtitulo={`Faturamento de ${formatarData(data)}`}
           ranking={rankingFiltrado}
           meuNome={meuNome}
-          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}
           fatMeta={!verGeral && fatMensal ? { total: fatMensal.total, metaMensal: (fatMensal as any).metaMensal, pctMeta: (fatMensal as any).pctMeta, projecaoFinalMes: (fatMensal as any).projecaoFinalMes } : null}
         />
       )}
@@ -1160,8 +1180,25 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
 
 // ─── Aba Semanal ────────────────────────────────────────────────────────────────────────────────────────────────
 function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; minhaEmpresa: string; isGerencia?: boolean }) {
+  const isGrupo = minhaEmpresa === 'barbiero-grupo';
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<string | null>(
+    isGrupo ? 'barbiero-mascote' : minhaEmpresa
+  );
+  const verGeral = unidadeSelecionada === null;
+  const empresaSlugFiltro = verGeral ? minhaEmpresa : unidadeSelecionada;
+  const opcoesUnidade = useMemo(() => {
+    if (isGrupo) return [
+      { slug: 'barbiero-mascote', label: 'Mascote' },
+      { slug: 'barbiero-morumbi', label: 'Morumbi' },
+      { slug: null, label: 'Geral' },
+    ];
+    return [
+      { slug: minhaEmpresa, label: empresaLabel(minhaEmpresa) },
+      { slug: null, label: 'Geral' },
+    ];
+  }, [isGrupo, minhaEmpresa]);
+
   const [semanaOffset, setSemanaOffset] = useState(0);
-  const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { copiado: copiadoSemanal, copiar: copiarSemanal } = useCopiarMensagem();
@@ -1169,8 +1206,8 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
   const { data: empresasSem } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
   const grupoWhatsAppSem = useMemo(() => {
     if (!empresasSem || verGeral) return null;
-    return empresasSem.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
-  }, [empresasSem, minhaEmpresa, verGeral]);
+    return empresasSem.find((e) => e.slug === unidadeSelecionada)?.whatsappGrupoLink ?? null;
+  }, [empresasSem, unidadeSelecionada, verGeral]);
   const { dataInicio, dataFim } = useMemo(() => {
     const d = new Date();
     const dia = d.getDay();
@@ -1214,22 +1251,22 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
   );
   // Faturamento da unidade da semana
   const { data: fatUnidadeSem } = trpc.faturamentoUnidade.useQuery(
-    { empresaSlug: minhaEmpresa, tipo: 'semanal', dataInicio, dataFim },
+    { empresaSlug: empresaSlugFiltro, tipo: 'semanal', dataInicio, dataFim },
     { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
   );
   // Faturamento mensal acumulado (para mostrar meta e valor que falta)
   const mesSemNum = useMemo(() => parseInt(dataInicio.split('-')[1], 10), [dataInicio]);
   const anoSemNum = useMemo(() => parseInt(dataInicio.split('-')[0], 10), [dataInicio]);
   const { data: fatMensalSem } = trpc.faturamentoUnidade.useQuery(
-    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes: mesSemNum, ano: anoSemNum },
+    { empresaSlug: empresaSlugFiltro, tipo: 'mensal', mes: mesSemNum, ano: anoSemNum },
     { staleTime: 60_000, enabled: !verGeral }
   );
 
   const rankingFiltrado = useMemo(() => {
     if (!ranking) return [];
     if (verGeral) return ranking;
-    return ranking.filter((p) => p.empresaSlug === minhaEmpresa);
-  }, [ranking, minhaEmpresa, verGeral]);
+    return ranking.filter((p) => p.empresaSlug === unidadeSelecionada);
+  }, [ranking, unidadeSelecionada, verGeral]);
 
   const minhaPosicaoGeral = useMemo(() => {
     if (!ranking) return null;
@@ -1255,18 +1292,18 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
 
       {/* Toggle Unidade / Geral */}
       <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
-        <button
-          onClick={() => setVerGeral(false)}
-          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          {empresaLabel(minhaEmpresa)}
-        </button>
-        <button
-          onClick={() => setVerGeral(true)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          <Globe className="w-3 h-3" />Geral
-        </button>
+        {opcoesUnidade.map((op) => (
+          <button
+            key={op.slug ?? 'geral'}
+            onClick={() => setUnidadeSelecionada(op.slug)}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+              unidadeSelecionada === op.slug ? 'bg-blue-500 text-white shadow' : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {op.slug === null && <Globe className="w-3 h-3" />}
+            {op.label}
+          </button>
+        ))}
       </div>
 
       {/* Filtro de Categoria */}
@@ -1438,7 +1475,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
           <div className="mt-4 flex gap-2">
             <button
               onClick={() => {
-                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
                 const totalSem = (!verGeral && fatUnidadeSem?.total != null)
                   ? `\n\n📊 Total ${nomeEmp} na semana: ${formatarMoeda(fatUnidadeSem.total)}`
                   : "";
@@ -1471,7 +1508,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
             </button>
             <button
               onClick={() => copiarSemanal(
-                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
               )}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
@@ -1488,7 +1525,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
         meuNome={meuNome}
         isGerencia={isGerencia}
         grupoWhatsApp={grupoWhatsAppSem}
-        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(minhaEmpresa)}`}
+        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}`}
         subtituloCompartilhamento={`Semana de ${labelSemana}`}
         isLoading={isLoadingGerenciaSem}
       />
@@ -1501,7 +1538,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
           subtitulo={`Semana de ${labelSemana}`}
           ranking={rankingFiltrado}
           meuNome={meuNome}
-          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}
           fatMeta={!verGeral && fatMensalSem ? { total: fatMensalSem.total, metaMensal: (fatMensalSem as any).metaMensal, pctMeta: (fatMensalSem as any).pctMeta, projecaoFinalMes: (fatMensalSem as any).projecaoFinalMes } : null}
         />
       )}
@@ -1511,8 +1548,25 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
 
 // ─── Aba Mensal ────────────────────────────────────────────────────────────────────────────────────────────────
 function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; minhaEmpresa: string; isGerencia?: boolean }) {
+  const isGrupo = minhaEmpresa === 'barbiero-grupo';
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<string | null>(
+    isGrupo ? 'barbiero-mascote' : minhaEmpresa
+  );
+  const verGeral = unidadeSelecionada === null;
+  const empresaSlugFiltro = verGeral ? minhaEmpresa : unidadeSelecionada;
+  const opcoesUnidade = useMemo(() => {
+    if (isGrupo) return [
+      { slug: 'barbiero-mascote', label: 'Mascote' },
+      { slug: 'barbiero-morumbi', label: 'Morumbi' },
+      { slug: null, label: 'Geral' },
+    ];
+    return [
+      { slug: minhaEmpresa, label: empresaLabel(minhaEmpresa) },
+      { slug: null, label: 'Geral' },
+    ];
+  }, [isGrupo, minhaEmpresa]);
+
   const [mesOffset, setMesOffset] = useState(0);
-  const [verGeral, setVerGeral] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { copiado: copiadoMensal, copiar: copiarMensal } = useCopiarMensagem();
@@ -1520,8 +1574,8 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
   const { data: empresasMes } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
   const grupoWhatsAppMes = useMemo(() => {
     if (!empresasMes || verGeral) return null;
-    return empresasMes.find((e) => e.slug === minhaEmpresa)?.whatsappGrupoLink ?? null;
-  }, [empresasMes, minhaEmpresa, verGeral]);
+    return empresasMes.find((e) => e.slug === unidadeSelecionada)?.whatsappGrupoLink ?? null;
+  }, [empresasMes, unidadeSelecionada, verGeral]);
 
   const { mes, ano } = useMemo(() => {
     const d = new Date();
@@ -1551,17 +1605,17 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
   );
   // Faturamento da unidade do mês
   const { data: fatUnidadeMes } = trpc.faturamentoUnidade.useQuery(
-    { empresaSlug: minhaEmpresa, tipo: 'mensal', mes, ano },
+    { empresaSlug: empresaSlugFiltro, tipo: 'mensal', mes, ano },
     { staleTime: 60_000, refetchInterval: 20 * 60 * 1000, enabled: !verGeral }
   );
 
   const rankingFiltrado = useMemo(() => {
-    let lista = verGeral ? rankingTodos : rankingTodos.filter((p) => p.empresaSlug === minhaEmpresa);
+    let lista = verGeral ? rankingTodos : rankingTodos.filter((p) => p.empresaSlug === unidadeSelecionada);
     if (filtroCategoria !== 'todos') {
       lista = lista.filter((p) => (p as any).categoriaRanking === filtroCategoria);
     }
     return lista;
-  }, [rankingTodos, minhaEmpresa, verGeral, filtroCategoria]);
+  }, [rankingTodos, unidadeSelecionada, verGeral, filtroCategoria]);
 
   const minhaPosicaoGeral = useMemo(() => {
     const idx = rankingTodos.findIndex((p) => p.nome === meuNome || p.apelido === meuNome);
@@ -1586,18 +1640,18 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
 
       {/* Toggle Unidade / Geral */}
       <div className="flex gap-1 mb-3 bg-white/5 rounded-xl p-1">
-        <button
-          onClick={() => setVerGeral(false)}
-          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${!verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          {empresaLabel(minhaEmpresa)}
-        </button>
-        <button
-          onClick={() => setVerGeral(true)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${verGeral ? "bg-blue-500 text-white shadow" : "text-white/50 hover:text-white/80"}`}
-        >
-          <Globe className="w-3 h-3" />Geral
-        </button>
+        {opcoesUnidade.map((op) => (
+          <button
+            key={op.slug ?? 'geral'}
+            onClick={() => setUnidadeSelecionada(op.slug)}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+              unidadeSelecionada === op.slug ? 'bg-blue-500 text-white shadow' : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {op.slug === null && <Globe className="w-3 h-3" />}
+            {op.label}
+          </button>
+        ))}
       </div>
 
       {/* Filtro de Categoria */}
@@ -1759,7 +1813,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
           <div className="mt-4 flex gap-2">
             <button
               onClick={() => {
-                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa);
+                const nomeEmp = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
                 const totalMes = (!verGeral && fatUnidadeMes?.total != null)
                   ? `\n\n📊 Total ${nomeEmp} em ${nomeMes(mes)}: ${formatarMoeda(fatUnidadeMes.total)}`
                   : "";
@@ -1792,7 +1846,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
             </button>
             <button
               onClick={() => copiarMensal(
-                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
+                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
               )}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
@@ -1809,7 +1863,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
         meuNome={meuNome}
         isGerencia={isGerencia}
         grupoWhatsApp={grupoWhatsAppMes}
-        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(minhaEmpresa)}`}
+        tituloCompartilhamento={`Gerência — ${verGeral ? 'Todas as unidades' : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}`}
         subtituloCompartilhamento={`${nomeMes(mes)} de ${ano}`}
         isLoading={isLoadingGerenciaMes}
       />
@@ -1822,7 +1876,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
           subtitulo={`Faturamento de ${nomeMes(mes)} de ${ano}`}
           ranking={rankingFiltrado}
           meuNome={meuNome}
-          unidade={verGeral ? "Todas as unidades" : empresaLabel(minhaEmpresa)}
+          unidade={verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}
           fatMeta={!verGeral && fatUnidadeMes ? { total: fatUnidadeMes.total, metaMensal: (fatUnidadeMes as any).metaMensal, pctMeta: (fatUnidadeMes as any).pctMeta, projecaoFinalMes: (fatUnidadeMes as any).projecaoFinalMes } : null}
         />
       )}

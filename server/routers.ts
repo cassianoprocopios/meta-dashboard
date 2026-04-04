@@ -4558,13 +4558,21 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           // Mês passado: todos os dias úteis são passados
           diasPassados = diasUteisTotal;
         }
-        // Projeção = recorrência (valor mensal fixo) + média_diária_operacional × dias_úteis_totais
-        // Alinhado com o cálculo do dashboard (Home.tsx)
-        const totalFaturado = totalOperacional + recorrencia;
+        // Projeção = média_diária_total (operacional + cat9 do dia) × dias_úteis_totais
+        // O cat9 já é lançado proporcionalmente por dia, então a média diária do total
+        // projetada para o mês inteiro dá o valor correto.
+        const totalFaturado = totalOperacional + cat9Acumulado;
         if (diasPassados != null && diasPassados > 0 && totalFaturado > 0) {
-          // Média diária apenas sobre o operacional (sem recorrência)
-          mediaDiaria = diasPassados > 0 ? totalOperacional / diasPassados : 0;
-          projecaoFinalMes = recorrencia + (mediaDiaria * diasUteisTotal);
+          // Número real de dias com lançamentos
+          const diasComDados = rows.length > 0 ? rows.filter((r: any) => {
+            const op = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
+              .reduce((s: number, v: any) => s + parseFloat(v || '0'), 0);
+            const c9 = parseFloat(r.cat9 || '0');
+            return op > 0 || c9 > 0;
+          }).length : 0;
+          const diasBase = diasComDados > 0 ? diasComDados : diasPassados;
+          mediaDiaria = totalFaturado / diasBase;
+          projecaoFinalMes = mediaDiaria * diasUteisTotal;
         }
       }
 
