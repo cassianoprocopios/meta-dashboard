@@ -440,3 +440,15 @@ export const avecSyncLog = mysqlTable("avecSyncLog", {
 });
 export type AvecSyncLogRow = typeof avecSyncLog.$inferSelect;
 export type InsertAvecSyncLog = typeof avecSyncLog.$inferInsert;
+
+// ─── TOKENS DE RECUPERAÇÃO DE SENHA ──────────────────────────────────────────
+export const passwordResetTokens = mysqlTable("passwordResetTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;

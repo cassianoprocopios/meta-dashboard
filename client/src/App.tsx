@@ -16,6 +16,7 @@ import RankingPublico from "./pages/RankingPublico";
 import RankingProfissional from "./pages/RankingProfissional";
 import SyncStatus from "./pages/SyncStatus";
 import AcessoProfissionais from "./pages/AcessoProfissionais";
+import RecuperarSenha from "./pages/RecuperarSenha";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -79,9 +80,11 @@ function App() {
       <ThemeProvider defaultTheme="dark" switchable={true}>
         <TooltipProvider>
           <Toaster />
-          {/* Rota pública para profissionais (sem AuthGate) */}
+          {/* Rotas públicas (sem AuthGate) */}
           <Switch>
             <Route path="/pro" component={RankingProfissional} />
+            <Route path="/recuperar-senha" component={RecuperarSenha} />
+            <Route path="/redefinir-senha" component={RecuperarSenha} />
             <Route>
               <AuthGate>
                 <Router />

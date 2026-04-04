@@ -1,5 +1,7 @@
 import { avecRouter } from "./avecRouter";
 import bcrypt from "bcryptjs";
+import { sendPasswordResetEmail } from "./email";
+import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
@@ -1230,6 +1232,91 @@ export const appRouter = router({
             tenantId: user.tenantId,
           },
         };
+      }),
+
+    /** Solicita recuperação de senha por email */
+    solicitarRecuperacaoSenha: publicProcedure
+      .input(z.object({ email: z.string().email(), origin: z.string().url() }))
+      .mutation(async ({ input }) => {
+        // Sempre retorna sucesso para não revelar se o email existe
+        const user = await getUserByEmail(input.email);
+        if (!user || !user.email) return { success: true };
+
+        // Gerar token único
+        const token = crypto.randomBytes(48).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+        // Salvar token no banco
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return { success: true };
+        const { passwordResetTokens } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        // Invalidar tokens anteriores do mesmo usuário
+        await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
+        await db.insert(passwordResetTokens).values({
+          userId: user.id,
+          token,
+          expiresAt,
+        });
+
+        // Enviar email
+        const resetLink = `${input.origin}/redefinir-senha?token=${token}`;
+        await sendPasswordResetEmail(user.email, user.name ?? user.email, resetLink);
+
+        return { success: true };
+      }),
+
+    /** Valida token de recuperação de senha */
+    validarTokenRecuperacao: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return { valid: false, message: "Erro interno. Tente novamente." };
+        const { passwordResetTokens } = await import("../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+        const rows = await db.select().from(passwordResetTokens).where(
+          and(
+            eq(passwordResetTokens.token, input.token),
+            isNull(passwordResetTokens.usedAt)
+          )
+        ).limit(1);
+        if (!rows.length) return { valid: false, message: "Token inválido ou já utilizado." };
+        const row = rows[0];
+        if (new Date(row.expiresAt) < new Date()) return { valid: false, message: "Token expirado. Solicite uma nova recuperação de senha." };
+        return { valid: true };
+      }),
+
+    /** Redefine a senha usando token de recuperação */
+    redefinirSenhaComToken: publicProcedure
+      .input(z.object({ token: z.string(), novaSenha: z.string().min(6) }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro interno. Tente novamente." });
+        const { passwordResetTokens } = await import("../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+        const rows = await db.select().from(passwordResetTokens).where(
+          and(
+            eq(passwordResetTokens.token, input.token),
+            isNull(passwordResetTokens.usedAt)
+          )
+        ).limit(1);
+        if (!rows.length) throw new TRPCError({ code: "BAD_REQUEST", message: "Token inválido ou já utilizado." });
+        const row = rows[0];
+        if (new Date(row.expiresAt) < new Date()) throw new TRPCError({ code: "BAD_REQUEST", message: "Token expirado. Solicite uma nova recuperação de senha." });
+
+        // Atualizar a senha
+        const hash = await bcrypt.hash(input.novaSenha, 12);
+        await updateUserPassword(row.userId, hash);
+
+        // Marcar token como usado
+        await db.update(passwordResetTokens)
+          .set({ usedAt: new Date() })
+          .where(eq(passwordResetTokens.id, row.id));
+
+        return { success: true };
       }),
 
     /** Retorna o status do tenant do utilizador autenticado */

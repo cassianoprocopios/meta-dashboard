@@ -116,8 +116,18 @@ export default function Login({ onLogin }: LoginProps) {
             </button>
           </form>
 
+          {/* Link para recuperação de senha */}
+          <div className="mt-4 text-center">
+            <a
+              href="/recuperar-senha"
+              className="text-slate-400 hover:text-blue-300 text-sm transition-colors"
+            >
+              Esqueci minha senha
+            </a>
+          </div>
+
           {/* Link para registro */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+          <div className="mt-4 pt-5 border-t border-white/10 text-center">
             <p className="text-slate-400 text-sm">
               Ainda não tem uma conta?{" "}
               <button
