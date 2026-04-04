@@ -2513,7 +2513,23 @@ const UNIDADES_ADM = [
   { slug: 'barbiero-morumbi', label: 'Morumbi' },
 ] as const;
 
-function AbaAdm({ meuNome }: { meuNome: string }) {
+function AbaAdm({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: string }) {
+  // Calcular unidades visíveis com base no empresaSlug do gerente
+  const unidadesVisiveis = useMemo(() => {
+    const todas = [
+      { slug: null, label: 'Geral' },
+      { slug: 'barbiero-mascote', label: 'Mascote' },
+      { slug: 'barbiero-morumbi', label: 'Morumbi' },
+    ];
+    if (minhaEmpresa === 'barbiero-mascote') {
+      return [{ slug: null, label: 'Geral' }, { slug: 'barbiero-mascote', label: 'Mascote' }];
+    }
+    if (minhaEmpresa === 'barbiero-morumbi') {
+      return [{ slug: null, label: 'Geral' }, { slug: 'barbiero-morumbi', label: 'Morumbi' }];
+    }
+    return todas; // barbiero-grupo vê todas
+  }, [minhaEmpresa]);
+
   const [subAba, setSubAba] = useState<'hoje' | 'semana' | 'mes'>('hoje');
   const [unidadeFiltro, setUnidadeFiltro] = useState<string | null>(null);
 
@@ -2667,7 +2683,7 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
 
       {/* Filtro por unidade */}
       <div className="flex gap-1 mb-4">
-        {UNIDADES_ADM.map((u) => (
+        {unidadesVisiveis.map((u) => (
           <button
             key={u.slug ?? 'geral'}
             onClick={() => setUnidadeFiltro(u.slug)}
@@ -2792,23 +2808,25 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
         )}
       </div>
 
-      {/* Abas */}
-      <div className="flex gap-1 px-4 pt-4 pb-2">
-        {abas.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setAba(id)}
-            className={`
-              flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all
-              ${aba === id
-                ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
-                : "bg-white/5 text-white/50 hover:bg-white/10"}
-            `}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
+      {/* Abas - scroll horizontal no mobile */}
+      <div className="overflow-x-auto scrollbar-none px-4 pt-4 pb-2">
+        <div className="flex gap-1.5 min-w-max">
+          {abas.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setAba(id)}
+              className={`
+                flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap
+                ${aba === id
+                  ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
+                  : "bg-white/5 text-white/50 hover:bg-white/10"}
+              `}
+            >
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Conteúdo */}
@@ -2819,7 +2837,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
         {aba === "analise" && <AbaAnalise profissionalId={meuId} />}
         {aba === "desempenho" && <AbaDesempenho profissionalId={meuId} />}
-        {aba === "adm" && isGerencia && <AbaAdm meuNome={meuNome} />}
+        {aba === "adm" && isGerencia && <AbaAdm meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
       </div>
     </div>
   );

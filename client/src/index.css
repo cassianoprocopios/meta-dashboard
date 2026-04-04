@@ -300,3 +300,18 @@
     }
   }
 }
+/* ─── Utilitários mobile ─────────────────────────────────────────────────── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Melhorar toque em botões no mobile */
+@media (max-width: 640px) {
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
