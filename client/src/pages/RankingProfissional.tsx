@@ -2507,8 +2507,15 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
 }
 
 // ─── Aba Barbiero Adm (só para gerentes) ──────────────────────────────────────
+const UNIDADES_ADM = [
+  { slug: null, label: 'Geral' },
+  { slug: 'barbiero-mascote', label: 'Mascote' },
+  { slug: 'barbiero-morumbi', label: 'Morumbi' },
+] as const;
+
 function AbaAdm({ meuNome }: { meuNome: string }) {
   const [subAba, setSubAba] = useState<'hoje' | 'semana' | 'mes'>('hoje');
+  const [unidadeFiltro, setUnidadeFiltro] = useState<string | null>(null);
 
   // Datas
   const hoje = useMemo(() => {
@@ -2558,7 +2565,17 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
   };
 
-  const renderLista = (lista: GerItem[], isLoading: boolean, titulo: string, subtitulo: string) => (
+  const filtrarPorUnidade = (lista: GerItem[]) => {
+    if (!unidadeFiltro) return lista;
+    return lista.filter((g) => g.empresaSlug === unidadeFiltro);
+  };
+
+  const labelUnidade = unidadeFiltro ? (EMPRESA_LABEL[unidadeFiltro] ?? unidadeFiltro) : 'Todas as unidades';
+
+  const renderLista = (listaOriginal: GerItem[], isLoading: boolean, titulo: string, subtitulo: string) => {
+    const lista = filtrarPorUnidade(listaOriginal);
+    const tituloFiltrado = unidadeFiltro ? `${titulo} — ${labelUnidade}` : titulo;
+    return (
     <div>
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-purple-400" /></div>
@@ -2609,7 +2626,7 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
       )}
       {lista.length > 0 && (
         <button
-          onClick={() => compartilhar(lista, titulo, subtitulo)}
+          onClick={() => compartilhar(lista, tituloFiltrado, subtitulo)}
           className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium active:scale-95 transition-transform"
         >
           <MessageCircle className="w-4 h-4" />
@@ -2617,7 +2634,8 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
         </button>
       )}
     </div>
-  );
+    );
+  };
 
   const nomeMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mesAtual - 1];
 
@@ -2633,7 +2651,7 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
       </div>
 
       {/* Sub-abas */}
-      <div className="flex gap-1 mb-4">
+      <div className="flex gap-1 mb-3">
         {([['hoje', 'Hoje'], ['semana', 'Semana'], ['mes', 'Mês']] as const).map(([id, label]) => (
           <button
             key={id}
@@ -2643,6 +2661,23 @@ function AbaAdm({ meuNome }: { meuNome: string }) {
             }`}
           >
             {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtro por unidade */}
+      <div className="flex gap-1 mb-4">
+        {UNIDADES_ADM.map((u) => (
+          <button
+            key={u.slug ?? 'geral'}
+            onClick={() => setUnidadeFiltro(u.slug)}
+            className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
+              unidadeFiltro === u.slug
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                : 'bg-white/5 border-white/10 text-white/40'
+            }`}
+          >
+            {u.label}
           </button>
         ))}
       </div>
