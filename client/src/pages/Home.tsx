@@ -2122,21 +2122,21 @@ export default function Home() {
                 const cat9Hoje = rowHoje ? parseFloat(rowHoje.cat9 || "0") : 0;
                 const dpoteNaoDistribuidoHoje = ehMesVigenteCard && s.cat9DiarioPrevisto > 0 && cat9Hoje === 0 && rowHoje;
                 return (
-                  <div key={s.emp.slug} className="rounded-2xl overflow-hidden border border-border/30 bg-card shadow-sm flex flex-col">
+                  <div key={s.emp.slug} className="rounded-2xl overflow-hidden shadow-xl flex flex-col" style={{ border: `1px solid ${s.emp.cor}40` }}>
 
-                    {/* ── CABEÇALHO: barra colorida + nome + faturamento ── */}
+                    {/* ── CABEÇALHO: gradiente com cor da empresa ── */}
                     <div className="relative px-5 pt-5 pb-4"
-                      style={{ borderTop: `3px solid ${s.emp.cor}` }}>
+                      style={{ background: `linear-gradient(135deg, ${s.emp.cor}22 0%, ${s.emp.cor}08 100%)`, borderBottom: `1px solid ${s.emp.cor}30` }}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ backgroundColor: s.emp.cor + '18', border: `1px solid ${s.emp.cor}40` }}>
+                            style={{ backgroundColor: s.emp.cor + '25', border: `1.5px solid ${s.emp.cor}80` }}>
                             <Building2 className="w-5 h-5" style={{ color: s.emp.cor }} />
                           </div>
                           <div>
-                            <h3 className="font-display font-bold text-foreground text-base leading-tight">{s.emp.nome}</h3>
+                            <h3 className="font-display font-bold text-white text-base leading-tight">{s.emp.nome}</h3>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs text-muted-foreground">{s.diasRealizados} dias</span>
+                              <span className="text-xs text-slate-300">{s.diasRealizados} dias</span>
                               {s.diasPrevistos > 0 && (
                                 <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
                                   +{s.diasPrevistos} prev.
@@ -2164,7 +2164,7 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="font-display text-2xl font-bold text-foreground leading-none">{fmt(s.totalRealizado)}</p>
+                          <p className="font-display text-2xl font-bold text-white leading-none">{fmt(s.totalRealizado)}</p>
                           {s.totalPrevisto > 0 && (
                             <p className="text-[11px] text-amber-400 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
                           )}
@@ -2183,9 +2183,9 @@ export default function Home() {
                       {s.metaMensal > 0 && (
                         <div className="mt-4">
                           <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-[11px] font-label text-muted-foreground tracking-wide">META MENSAL</span>
+                            <span className="text-[11px] font-label text-slate-400 tracking-wide">META MENSAL</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-muted-foreground">{fmt(s.metaMensal)}</span>
+                              <span className="text-[11px] text-slate-300">{fmt(s.metaMensal)}</span>
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                                 atingiuMeta ? 'bg-emerald-500/20 text-emerald-400'
                                 : pctMensal >= 80 ? 'bg-amber-500/15 text-amber-400'
@@ -2193,7 +2193,7 @@ export default function Home() {
                               }`}>{pctMensal}%</span>
                             </div>
                           </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all duration-500"
                               style={{
                                 width: `${pctMensal}%`,
@@ -2223,9 +2223,10 @@ export default function Home() {
                             const pctEsperado = s.metaMensal > 0 ? Math.min((metaEsperadaHoje / s.metaMensal) * 100, 100) : 0;
                             return (
                               <div className="flex justify-between mt-1">
-                                <span className="text-[10px] text-muted-foreground/60">
+                                <span className="text-[10px] text-slate-400">
                                   Esperado hoje: {fmt(metaEsperadaHoje)} ({pctEsperado.toFixed(0)}%)
                                 </span>
+
                                 {s.projecaoFinal > 0 && (
                                   <span className={`text-[10px] font-medium ${
                                     s.projecaoFinal >= s.metaMensal ? 'text-emerald-400' : 'text-amber-400'
@@ -2241,11 +2242,11 @@ export default function Home() {
                     </div>
 
                     {/* ── MÉTRICAS OPERACIONAIS ── */}
-                    <div className="px-5 py-3 border-t border-border/30 grid grid-cols-3 gap-3">
+                    <div className="px-5 py-3 grid grid-cols-3 gap-3" style={{ backgroundColor: 'rgba(15,18,30,0.85)', borderTop: `1px solid rgba(255,255,255,0.06)` }}>
                       {/* Média diária */}
                       <div className="text-center">
-                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">MÉDIA/DIA</p>
-                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : 'text-foreground'}`}>
+                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">MÉDIA/DIA</p>
+                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : 'text-white'}`}>
                           {fmt(s.mediaDiaria)}
                         </p>
                         {menorQueMeta && metaDiaAtualMensal > 0 && (
@@ -2255,8 +2256,8 @@ export default function Home() {
                         )}
                       </div>
                       {/* Maior dia */}
-                      <div className="text-center border-x border-border/30">
-                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">MAIOR DIA</p>
+                      <div className="text-center border-x border-slate-700">
+                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">MAIOR DIA</p>
                         <p className="font-display text-base font-bold text-emerald-400">{s.maiorDia > 0 ? fmt(s.maiorDia) : '—'}</p>
                         {s.menorDia > 0 && (
                           <p className="text-[10px] text-red-400/80 mt-0.5">mín {fmt(s.menorDia)}</p>
@@ -2264,12 +2265,12 @@ export default function Home() {
                       </div>
                       {/* Dias úteis restantes */}
                       <div className="text-center">
-                        <p className="font-label text-[10px] text-muted-foreground tracking-widest mb-1">DIAS REST.</p>
-                        <p className="font-display text-base font-bold text-foreground">
+                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">DIAS REST.</p>
+                        <p className="font-display text-base font-bold text-white">
                           {s.diasUteisRestantes > 0 ? s.diasUteisRestantes : '—'}
                         </p>
                         {s.diasUteisRestantes > 0 && metaDiaAtualMensal > 0 && (
-                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                          <p className="text-[10px] text-slate-400 mt-0.5">
                             {fmt(metaDiaAtualMensal)}/dia
                           </p>
                         )}
@@ -2278,20 +2279,20 @@ export default function Home() {
 
                     {/* ── METAS ADICIONAIS (Quinzenal + Super Meta) ── */}
                     {(s.metaQuinzenal > 0 || s.superMeta > 0) && (
-                      <div className="px-5 py-3 border-t border-border/30 flex gap-3">
+                      <div className="px-5 py-3 flex gap-3" style={{ backgroundColor: 'rgba(15,18,30,0.85)', borderTop: `1px solid rgba(255,255,255,0.06)` }}>
                         {s.metaQuinzenal > 0 && (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-label text-[10px] text-muted-foreground tracking-widest">QUINZENAL</span>
+                              <span className="font-label text-[10px] text-slate-400 tracking-widest">QUINZENAL</span>
                               <span className={`text-[10px] font-bold ${s.progressoQuinzenal >= 100 ? 'text-emerald-400' : 'text-purple-400'}`}>
                                 {Math.round(s.progressoQuinzenal)}%
                               </span>
                             </div>
-                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                               <div className="h-full rounded-full bg-purple-500 transition-all"
                                 style={{ width: `${Math.min(s.progressoQuinzenal, 100)}%` }} />
                             </div>
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
                           </div>
                         )}
                         {s.superMeta > 0 && (
@@ -2302,11 +2303,11 @@ export default function Home() {
                                 {Math.round((s.totalRealizado / s.superMeta) * 100)}%
                               </span>
                             </div>
-                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                               <div className="h-full rounded-full bg-amber-500 transition-all"
                                 style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%` }} />
                             </div>
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
                           </div>
                         )}
                       </div>
@@ -2315,7 +2316,7 @@ export default function Home() {
                     {/* ── RECORRÊNCIA DPOTE ── */}
                     {(s.recorrenciaMes > 0 || isGerente) && (() => {
                       return (
-                        <div className="px-5 py-3 border-t border-border/30 bg-violet-500/5">
+                        <div className="px-5 py-3" style={{ backgroundColor: 'rgba(109,40,217,0.12)', borderTop: `1px solid rgba(139,92,246,0.2)` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-6 h-6 rounded-lg bg-violet-500/20 flex items-center justify-center">
