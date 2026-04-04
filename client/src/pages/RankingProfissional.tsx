@@ -2759,6 +2759,252 @@ function AbaAdm({ meuNome, minhaEmpresa }: { meuNome: string; minhaEmpresa: stri
   );
 }
 
+// ─── Aba Análise da Gerência ─────────────────────────────────────────────────
+function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
+  const isGrupo = minhaEmpresa === 'barbiero-grupo';
+  const { mes, ano } = mesAtual();
+  const dataHoje = hoje();
+
+  // Dados do ranking mensal (todos os profissionais)
+  const { data: rankingMes, isLoading: loadMes } = trpc.rankingMensal.useQuery(
+    { mes, ano },
+    { staleTime: 5 * 60_000 }
+  );
+  // Dados do ranking diário (hoje)
+  const { data: rankingDia, isLoading: loadDia } = trpc.rankingDiario.useQuery(
+    { data: dataHoje },
+    { staleTime: 5 * 60_000 }
+  );
+
+  const lista = rankingMes?.lista ?? [];
+  // rankingDiario retorna array diretamente (não {lista})
+  const listaDia = Array.isArray(rankingDia) ? rankingDia : [];
+
+  // Filtrar por unidade se não for grupo
+  const listaFiltrada = isGrupo ? lista : lista.filter(p => p.empresaSlug === minhaEmpresa);
+  const listaDiaFiltrada = isGrupo ? listaDia : listaDia.filter(p => p.empresaSlug === minhaEmpresa);
+
+  // Calcular insights
+  const comMeta = listaFiltrada.filter(p => p.metaMensal != null && p.metaMensal > 0);
+  const acimaMeta = comMeta.filter(p => (p.pctMeta ?? 0) >= 100);
+  const noRitmo = comMeta.filter(p => { const pct = p.pctMeta ?? 0; return pct >= 70 && pct < 100; });
+  const abaixoMeta = comMeta.filter(p => (p.pctMeta ?? 0) < 70);
+  const semAtendimentos = listaFiltrada.filter(p => !p.temDados);
+
+  // Top 3 do mês
+  const top3 = listaFiltrada.slice(0, 3);
+  // Profissionais com maior crescimento hoje (top 3 do dia)
+  const top3Dia = listaDiaFiltrada.slice(0, 3);
+
+  // Distribuição por unidade (apenas para grupo)
+  const mascote = lista.filter(p => p.empresaSlug === 'barbiero-mascote' || p.empresaSlug === 'MASCOTE');
+  const morumbi = lista.filter(p => p.empresaSlug === 'barbiero-morumbi' || p.empresaSlug === 'MORUMBI');
+
+  const isLoading = loadMes || loadDia;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* Título */}
+      <div className="text-center mb-2">
+        <h2 className="text-white font-bold text-lg">Análise da Equipe</h2>
+        <p className="text-white/40 text-xs">{nomeMes(mes)} {ano}</p>
+      </div>
+
+      {/* Cards de resumo */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-emerald-400">{acimaMeta.length}</div>
+          <div className="text-xs text-emerald-300/70 mt-0.5">Na meta</div>
+        </div>
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-yellow-400">{noRitmo.length}</div>
+          <div className="text-xs text-yellow-300/70 mt-0.5">No ritmo</div>
+        </div>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-red-400">{abaixoMeta.length}</div>
+          <div className="text-xs text-red-300/70 mt-0.5">Atenção</div>
+        </div>
+      </div>
+
+      {/* Top 3 do mês */}
+      {top3.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            <span className="text-white font-semibold text-sm">Destaques do Mês</span>
+          </div>
+          <div className="space-y-2">
+            {top3.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="text-base w-6 text-center">{["🥇","🥈","🥉"][i]}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-sm font-medium truncate">{p.apelido || p.nome.split(" ")[0]}</div>
+                  <div className="text-white/40 text-xs">{empresaLabel(p.empresaSlug)}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-white text-sm font-bold">{formatarMoeda(p.totalGeral)}</div>
+                  {p.pctMeta != null && (
+                    <div className={`text-xs font-semibold ${
+                      p.pctMeta >= 100 ? 'text-emerald-400' : p.pctMeta >= 70 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>{p.pctMeta}% da meta</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Destaque de hoje */}
+      {top3Dia.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-blue-400" />
+            <span className="text-white font-semibold text-sm">Melhor de Hoje</span>
+            <span className="text-white/30 text-xs ml-auto">{formatarData(dataHoje)}</span>
+          </div>
+          <div className="space-y-2">
+            {top3Dia.slice(0, 3).map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="text-base w-6 text-center">{["🥇","🥈","🥉"][i]}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-sm font-medium truncate">{p.apelido || p.nome.split(" ")[0]}</div>
+                  <div className="text-white/40 text-xs">{p.qtdServicos ?? 0} serv{(p.qtdProdutos ?? 0) > 0 ? ` · ${p.qtdProdutos} prod` : ''}</div>
+                </div>
+                <div className="text-white text-sm font-bold">{formatarMoeda(p.totalGeral)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Profissionais que precisam de atenção */}
+      {abaixoMeta.length > 0 && (
+        <div className="bg-red-500/5 border border-red-500/15 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Target className="w-4 h-4 text-red-400" />
+            <span className="text-white font-semibold text-sm">Precisam de Atenção</span>
+          </div>
+          <div className="space-y-2">
+            {abaixoMeta.map((p) => {
+              const falta = (p.metaMensal ?? 0) - p.totalGeral;
+              return (
+                <div key={p.id} className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-red-400 text-xs font-bold">{(p.apelido || p.nome.split(" ")[0]).charAt(0)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-sm font-medium truncate">{p.apelido || p.nome.split(" ")[0]}</div>
+                    <div className="text-red-400/70 text-xs">Falta {formatarMoeda(falta)} para a meta</div>
+                  </div>
+                  <div className="text-red-400 text-sm font-bold">{p.pctMeta}%</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Sem atendimentos hoje */}
+      {semAtendimentos.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Minus className="w-4 h-4 text-white/40" />
+            <span className="text-white/60 font-semibold text-sm">Sem Atendimentos no Mês</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {semAtendimentos.map((p) => (
+              <span key={p.id} className="text-xs bg-white/10 text-white/50 rounded-full px-3 py-1">
+                {p.apelido || p.nome.split(" ")[0]}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Distribuição por unidade (apenas para grupo) */}
+      {isGrupo && mascote.length > 0 && morumbi.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart2 className="w-4 h-4 text-blue-400" />
+            <span className="text-white font-semibold text-sm">Por Unidade</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-white/50 text-xs mb-1.5">Mascote ({mascote.length} prof.)</div>
+              {mascote.slice(0, 3).map((p, i) => (
+                <div key={p.id} className="flex justify-between items-center py-0.5">
+                  <span className="text-white/70 text-xs truncate">{p.apelido || p.nome.split(" ")[0]}</span>
+                  <span className="text-white text-xs font-semibold ml-2 flex-shrink-0">{formatarMoeda(p.totalGeral)}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="text-white/50 text-xs mb-1.5">Morumbi ({morumbi.length} prof.)</div>
+              {morumbi.slice(0, 3).map((p, i) => (
+                <div key={p.id} className="flex justify-between items-center py-0.5">
+                  <span className="text-white/70 text-xs truncate">{p.apelido || p.nome.split(" ")[0]}</span>
+                  <span className="text-white text-xs font-semibold ml-2 flex-shrink-0">{formatarMoeda(p.totalGeral)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Estratégias sugeridas */}
+      <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-4 h-4 text-blue-400" />
+          <span className="text-white font-semibold text-sm">Estratégias</span>
+        </div>
+        <div className="space-y-2">
+          {abaixoMeta.length > 0 && (
+            <div className="flex gap-2">
+              <span className="text-blue-400 text-xs mt-0.5">→</span>
+              <p className="text-white/60 text-xs">
+                <span className="text-white/80 font-medium">{abaixoMeta.length} profissional{abaixoMeta.length > 1 ? 'is' : ''}</span> abaixo de 70% da meta — considere uma conversa individual de acompanhamento.
+              </p>
+            </div>
+          )}
+          {acimaMeta.length > 0 && (
+            <div className="flex gap-2">
+              <span className="text-blue-400 text-xs mt-0.5">→</span>
+              <p className="text-white/60 text-xs">
+                <span className="text-white/80 font-medium">{acimaMeta.length} profissional{acimaMeta.length > 1 ? 'is' : ''}</span> já atingiu a meta — reconheça o desempenho para manter a motivação.
+              </p>
+            </div>
+          )}
+          {semAtendimentos.length > 0 && (
+            <div className="flex gap-2">
+              <span className="text-blue-400 text-xs mt-0.5">→</span>
+              <p className="text-white/60 text-xs">
+                <span className="text-white/80 font-medium">{semAtendimentos.length} profissional{semAtendimentos.length > 1 ? 'is' : ''}</span> sem atendimentos no mês — verifique escala ou ausências.
+              </p>
+            </div>
+          )}
+          {top3.length > 0 && (
+            <div className="flex gap-2">
+              <span className="text-blue-400 text-xs mt-0.5">→</span>
+              <p className="text-white/60 text-xs">
+                Líder do mês: <span className="text-white/80 font-medium">{top3[0].apelido || top3[0].nome.split(" ")[0]}</span> com {formatarMoeda(top3[0].totalGeral)} — use como referência de boas práticas.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tela principal do ranking ────────────────────────────────────────────────
 function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; meuId: number; isGerencia?: boolean; onLogout: () => void }) {
   const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise" | "desempenho" | "adm">("diario");
@@ -2781,9 +3027,14 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
     { id: "diario" as const, label: "Hoje", icon: Calendar },
     { id: "semanal" as const, label: "Semana", icon: TrendingUp },
     { id: "mensal" as const, label: "Mês", icon: Trophy },
-    { id: "atendimentos" as const, label: "Meus", icon: Scissors },
-    { id: "analise" as const, label: "Análise", icon: BarChart2 },
-    { id: "desempenho" as const, label: "Meu", icon: Star },
+    // Abas de atendimento individual: apenas para não-gerentes
+    ...(!isGerencia ? [
+      { id: "atendimentos" as const, label: "Meus", icon: Scissors },
+      { id: "analise" as const, label: "Análise", icon: BarChart2 },
+      { id: "desempenho" as const, label: "Meu", icon: Star },
+    ] : [
+      { id: "analise" as const, label: "Análise", icon: BarChart2 },
+    ]),
     ...(isGerencia ? [{ id: "adm" as const, label: "Adm", icon: Award }] : []),
   ];
 
@@ -2889,7 +3140,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
         {aba === "semanal" && <AbaSemanal meuNome={meuNome} minhaEmpresa={minhaEmpresa} isGerencia={isGerencia} />}
         {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} isGerencia={isGerencia} />}
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
-        {aba === "analise" && <AbaAnalise profissionalId={meuId} />}
+        {aba === "analise" && (isGerencia ? <AbaAnaliseGerencia minhaEmpresa={minhaEmpresa} /> : <AbaAnalise profissionalId={meuId} />)}
         {aba === "desempenho" && <AbaDesempenho profissionalId={meuId} />}
         {aba === "adm" && isGerencia && <AbaAdm meuNome={meuNome} minhaEmpresa={minhaEmpresa} />}
       </div>

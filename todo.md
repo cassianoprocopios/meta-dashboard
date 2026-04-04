@@ -1217,3 +1217,6 @@
 - [ ] Excluir profissionais com isGerencia=true da competição/ranking público
 - [ ] Permitir que gerentes visualizem o ranking completo sem aparecer como participantes
 - [ ] Adicionar toggle de gerência na tela de gerenciamento de profissionais
+
+- [x] Remover abas "Meus" e "Meu" para gerentes (não fazem atendimentos)
+- [x] Transformar aba "Análise" para gerentes em insights e estratégias sobre a equipe
