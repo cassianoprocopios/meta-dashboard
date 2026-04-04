@@ -2765,6 +2765,9 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
   const { mes, ano } = mesAtual();
   const dataHoje = hoje();
 
+  // Filtro de unidade: null = Geral, 'barbiero-mascote' = Mascote, 'barbiero-morumbi' = Morumbi
+  const [unidadeAnalise, setUnidadeAnalise] = useState<string | null>(null);
+
   // Dados do ranking mensal (todos os profissionais)
   const { data: rankingMes, isLoading: loadMes } = trpc.rankingMensal.useQuery(
     { mes, ano },
@@ -2780,9 +2783,16 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
   // rankingDiario retorna array diretamente (não {lista})
   const listaDia = Array.isArray(rankingDia) ? rankingDia : [];
 
-  // Filtrar por unidade se não for grupo
-  const listaFiltrada = isGrupo ? lista : lista.filter(p => p.empresaSlug === minhaEmpresa);
-  const listaDiaFiltrada = isGrupo ? listaDia : listaDia.filter(p => p.empresaSlug === minhaEmpresa);
+  // Filtrar por unidade
+  // Para gerentes do grupo: usa o filtro selecionado (null = todos)
+  // Para gerentes de unidade: usa sempre a própria unidade
+  const filtroEfetivo = isGrupo ? unidadeAnalise : minhaEmpresa;
+  const listaFiltrada = filtroEfetivo
+    ? lista.filter(p => p.empresaSlug === filtroEfetivo || p.empresaSlug === filtroEfetivo.toUpperCase().replace('barbiero-', ''))
+    : lista;
+  const listaDiaFiltrada = filtroEfetivo
+    ? listaDia.filter((p: any) => p.empresaSlug === filtroEfetivo || p.empresaSlug === filtroEfetivo.toUpperCase().replace('barbiero-', ''))
+    : listaDia;
 
   // Calcular insights
   const comMeta = listaFiltrada.filter(p => p.metaMensal != null && p.metaMensal > 0);
@@ -2810,6 +2820,9 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
     );
   }
 
+  // Label da unidade selecionada para o título
+  const labelUnidade = unidadeAnalise ? empresaLabel(unidadeAnalise) : 'Geral (todas as unidades)';
+
   return (
     <div className="space-y-4 pt-2">
       {/* Título */}
@@ -2817,6 +2830,29 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
         <h2 className="text-white font-bold text-lg">Análise da Equipe</h2>
         <p className="text-white/40 text-xs">{nomeMes(mes)} {ano}</p>
       </div>
+
+      {/* Filtro de unidade — apenas para gerentes do grupo */}
+      {isGrupo && (
+        <div className="flex gap-2 justify-center">
+          {[
+            { slug: null, label: 'Geral' },
+            { slug: 'barbiero-mascote', label: 'Mascote' },
+            { slug: 'barbiero-morumbi', label: 'Morumbi' },
+          ].map(({ slug, label }) => (
+            <button
+              key={label}
+              onClick={() => setUnidadeAnalise(slug)}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                unidadeAnalise === slug
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white/10 text-white/60 hover:bg-white/20'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-3 gap-2">
@@ -2930,8 +2966,8 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
         </div>
       )}
 
-      {/* Distribuição por unidade (apenas para grupo) */}
-      {isGrupo && mascote.length > 0 && morumbi.length > 0 && (
+      {/* Distribuição por unidade (apenas para grupo no modo Geral) */}
+      {isGrupo && !unidadeAnalise && mascote.length > 0 && morumbi.length > 0 && (
         <div className="bg-white/5 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 className="w-4 h-4 text-blue-400" />
@@ -2940,7 +2976,7 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-white/50 text-xs mb-1.5">Mascote ({mascote.length} prof.)</div>
-              {mascote.slice(0, 3).map((p, i) => (
+              {mascote.slice(0, 3).map((p) => (
                 <div key={p.id} className="flex justify-between items-center py-0.5">
                   <span className="text-white/70 text-xs truncate">{p.apelido || p.nome.split(" ")[0]}</span>
                   <span className="text-white text-xs font-semibold ml-2 flex-shrink-0">{formatarMoeda(p.totalGeral)}</span>
@@ -2949,13 +2985,40 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
             </div>
             <div>
               <div className="text-white/50 text-xs mb-1.5">Morumbi ({morumbi.length} prof.)</div>
-              {morumbi.slice(0, 3).map((p, i) => (
+              {morumbi.slice(0, 3).map((p) => (
                 <div key={p.id} className="flex justify-between items-center py-0.5">
                   <span className="text-white/70 text-xs truncate">{p.apelido || p.nome.split(" ")[0]}</span>
                   <span className="text-white text-xs font-semibold ml-2 flex-shrink-0">{formatarMoeda(p.totalGeral)}</span>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ranking completo da unidade filtrada */}
+      {isGrupo && unidadeAnalise && listaFiltrada.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart2 className="w-4 h-4 text-blue-400" />
+            <span className="text-white font-semibold text-sm">Ranking — {empresaLabel(unidadeAnalise)}</span>
+            <span className="text-white/30 text-xs ml-auto">{listaFiltrada.length} prof.</span>
+          </div>
+          <div className="space-y-2">
+            {listaFiltrada.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="text-white/40 text-xs w-5 text-right flex-shrink-0">{i + 1}º</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-sm font-medium truncate">{p.apelido || p.nome.split(" ")[0]}</div>
+                  {p.pctMeta != null && (
+                    <div className={`text-xs font-semibold ${
+                      p.pctMeta >= 100 ? 'text-emerald-400' : p.pctMeta >= 70 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>{p.pctMeta}% da meta</div>
+                  )}
+                </div>
+                <div className="text-white text-sm font-bold flex-shrink-0">{formatarMoeda(p.totalGeral)}</div>
+              </div>
+            ))}
           </div>
         </div>
       )}

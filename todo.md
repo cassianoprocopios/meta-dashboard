@@ -1220,3 +1220,6 @@
 
 - [x] Remover abas "Meus" e "Meu" para gerentes (não fazem atendimentos)
 - [x] Transformar aba "Análise" para gerentes em insights e estratégias sobre a equipe
+- [x] Adicionar filtro de unidade (Mascote/Morumbi/Geral) na aba Análise para gerentes do grupo (Cassiano e Daniela)
+- [ ] Implementar cadastro/edição de metas individuais dos profissionais no painel admin
+- [x] Verificar e corrigir alertas do Dashboard

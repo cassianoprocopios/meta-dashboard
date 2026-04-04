@@ -896,19 +896,28 @@ export default function Home() {
     const list: { tipo: "warning" | "success" | "info"; msg: string }[] = [];
     statsPorEmpresa.forEach((s) => {
       if (s.metaMensal === 0) return;
-      const progresso = s.total / s.metaMensal;
-      const diasPassados = s.diasLancados;
-      const esperado = s.diasLancados > 0 ? (s.diasLancados / s.diasUteis) : 0;
-      if (progresso < esperado * 0.85 && diasPassados > 0) {
+      // Usar apenas dados realizados (dias já passados) para evitar inflação por previstos
+      const progressoReal = s.metaMensal > 0 ? s.totalRealizado / s.metaMensal : 0;
+      const diasRealizados = s.diasRealizados;
+      // Esperado: proporção de dias realizados em relação ao total de dias úteis
+      const esperado = diasRealizados > 0 ? (diasRealizados / s.diasUteis) : 0;
+      if (progressoReal < esperado * 0.85 && diasRealizados > 0) {
+        // Abaixo do ritmo esperado: alerta de atenção
         const faltaDia = s.metaDiariaMensal - s.mediaDiaria;
         list.push({
           tipo: "warning",
           msg: `${s.emp.nome}: média diária ${fmt(s.mediaDiaria)} — precisa de +${fmt(faltaDia)}/dia para atingir a meta.`,
         });
-      } else if (progresso >= 1) {
+      } else if (s.totalRealizado >= s.metaMensal) {
+        // Meta já atingida com valores realizados
         list.push({ tipo: "success", msg: `${s.emp.nome}: Meta mensal atingida!` });
-      } else if (diasPassados > 0) {
-        list.push({ tipo: "info", msg: `${s.emp.nome}: No caminho certo. Média ${fmt(s.mediaDiaria)}/dia.` });
+      } else if (s.projecaoFinal >= s.metaMensal && diasRealizados > 0) {
+        // No ritmo: projeção indica que vai atingir a meta
+        list.push({ tipo: "info", msg: `${s.emp.nome}: No caminho certo. Média ${fmt(s.mediaDiaria)}/dia — projeção ${fmt(s.projecaoFinal)}.` });
+      } else if (diasRealizados > 0) {
+        // Projeção abaixo da meta mas ainda no ritmo aceitável
+        const faltaDia = s.metaDiariaDinamicaMensal;
+        list.push({ tipo: "warning", msg: `${s.emp.nome}: projeção ${fmt(s.projecaoFinal)} — precisa de ${fmt(faltaDia)}/dia nos ${s.diasUteisRestantes} dias restantes.` });
       }
       // Quinzenal
       if (s.metaQuinzenal > 0 && mes === hoje.getMonth() + 1 && hoje.getDate() <= 15) {
