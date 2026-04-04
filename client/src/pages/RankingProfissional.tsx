@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
@@ -2506,9 +2506,157 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   );
 }
 
+// ─── Aba Barbiero Adm (só para gerentes) ──────────────────────────────────────
+function AbaAdm({ meuNome }: { meuNome: string }) {
+  const [subAba, setSubAba] = useState<'hoje' | 'semana' | 'mes'>('hoje');
+
+  // Datas
+  const hoje = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+  const semanaInicio = useMemo(() => {
+    const d = new Date();
+    const dow = d.getDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    d.setDate(d.getDate() + diff);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+  const mesAtual = useMemo(() => new Date().getMonth() + 1, []);
+  const anoAtual = useMemo(() => new Date().getFullYear(), []);
+
+  // Queries
+  const { data: gerHoje = [], isLoading: loadHoje } = trpc.rankingDiarioGerencia.useQuery(
+    { data: hoje },
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 }
+  );
+  const { data: gerSemana = [], isLoading: loadSemana } = trpc.rankingSemanalGerencia.useQuery(
+    { dataInicio: semanaInicio, dataFim: hoje },
+    { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 }
+  );
+  const { data: gerMesData, isLoading: loadMes } = trpc.rankingMensalGerencia.useQuery(
+    { mes: mesAtual, ano: anoAtual },
+    { staleTime: 60_000 }
+  );
+  const gerMes = (gerMesData as any)?.lista ?? [];
+
+  type GerItem = { id: number; nome: string; apelido: string | null; fotoUrl: string | null; cargo: string | null; empresaSlug: string; totalGeral: number; totalServicos: number; totalProdutos: number; qtdServicos: number; qtdProdutos: number };
+
+  const gerarTextoCompartilhar = (lista: GerItem[], titulo: string, subtitulo: string) => {
+    const linhas = [`👔 *${titulo}*`, `📅 ${subtitulo}`, ''];
+    lista.forEach((g, i) => {
+      const pos = ['🥇', '🥈', '🥉'][i] ?? `${i + 1}º`;
+      const nome = g.apelido || g.nome.split(' ')[0];
+      linhas.push(`${pos} *${nome}* — ${formatarMoeda(g.totalGeral)}`);
+    });
+    linhas.push('', 'performancemeta.sbs');
+    return linhas.join('\n');
+  };
+
+  const compartilhar = (lista: GerItem[], titulo: string, subtitulo: string) => {
+    const texto = gerarTextoCompartilhar(lista, titulo, subtitulo);
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+  };
+
+  const renderLista = (lista: GerItem[], isLoading: boolean, titulo: string, subtitulo: string) => (
+    <div>
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-purple-400" /></div>
+      ) : lista.length === 0 ? (
+        <div className="text-center py-8 text-white/30 text-sm">Sem dados para este período</div>
+      ) : (
+        <div className="space-y-2">
+          {lista.map((g, i) => {
+            const isMe = g.nome === meuNome || g.apelido === meuNome;
+            const pos = ['🥇', '🥈', '🥉'][i];
+            return (
+              <div
+                key={g.id}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${
+                  isMe
+                    ? 'bg-purple-500/20 border-purple-500/40'
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
+                <div className="w-7 text-center text-base">{pos ?? <span className="text-white/40 text-xs font-bold">{i + 1}º</span>}</div>
+                {g.fotoUrl ? (
+                  <img src={g.fotoUrl} alt={g.nome} className="w-9 h-9 rounded-full object-cover border border-purple-500/30" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center border border-purple-500/30">
+                    <span className="text-sm font-bold text-white">{(g.apelido || g.nome)[0].toUpperCase()}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-sm font-semibold truncate ${isMe ? 'text-purple-200' : 'text-white'}`}>
+                      {g.apelido || g.nome.split(' ')[0]}
+                    </span>
+                    <span className="text-[10px] text-white/30 truncate">{empresaLabel(g.empresaSlug)}</span>
+                  </div>
+                  <div className="text-xs text-white/40">
+                    {g.qtdServicos > 0 && <span>✂️ {g.qtdServicos} serv</span>}
+                    {g.qtdServicos > 0 && g.qtdProdutos > 0 && <span className="mx-1">·</span>}
+                    {g.qtdProdutos > 0 && <span>🛒 {g.qtdProdutos} prod</span>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`text-sm font-bold ${isMe ? 'text-purple-300' : 'text-emerald-400'}`}>{formatarMoeda(g.totalGeral)}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {lista.length > 0 && (
+        <button
+          onClick={() => compartilhar(lista, titulo, subtitulo)}
+          className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium active:scale-95 transition-transform"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Compartilhar via WhatsApp
+        </button>
+      )}
+    </div>
+  );
+
+  const nomeMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mesAtual - 1];
+
+  return (
+    <div>
+      {/* Cabeçalho da aba */}
+      <div className="mb-4 text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Award className="w-5 h-5 text-purple-400" />
+          <h2 className="text-white font-bold text-base">Barbiero Adm</h2>
+        </div>
+        <p className="text-white/40 text-xs">Ranking exclusivo da gerência</p>
+      </div>
+
+      {/* Sub-abas */}
+      <div className="flex gap-1 mb-4">
+        {([['hoje', 'Hoje'], ['semana', 'Semana'], ['mes', 'Mês']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setSubAba(id)}
+            className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+              subAba === id ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'bg-white/5 text-white/50'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {subAba === 'hoje' && renderLista(gerHoje as GerItem[], loadHoje, 'Ranking Gerência — Hoje', new Date().toLocaleDateString('pt-BR'))}
+      {subAba === 'semana' && renderLista(gerSemana as GerItem[], loadSemana, 'Ranking Gerência — Semana', `Semana de ${new Date(semanaInicio + 'T12:00:00').toLocaleDateString('pt-BR')}`)}
+      {subAba === 'mes' && renderLista(gerMes as GerItem[], loadMes, `Ranking Gerência — ${nomeMes}`, `${nomeMes} ${anoAtual}`)}
+    </div>
+  );
+}
+
 // ─── Tela principal do ranking ────────────────────────────────────────────────
 function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onLogout }: { meuNome: string; minhaEmpresa: string; meuFotoUrl?: string | null; meuId: number; isGerencia?: boolean; onLogout: () => void }) {
-  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise" | "desempenho">("diario");
+  const [aba, setAba] = useState<"diario" | "semanal" | "mensal" | "atendimentos" | "analise" | "desempenho" | "adm">("diario");
   const logoutMut = trpc.logoutProfissional.useMutation({ onSuccess: onLogout });
 
   // Indicador fixo de faturamento mensal da unidade no header
@@ -2531,6 +2679,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
     { id: "atendimentos" as const, label: "Meus", icon: Scissors },
     { id: "analise" as const, label: "Análise", icon: BarChart2 },
     { id: "desempenho" as const, label: "Meu", icon: Star },
+    ...(isGerencia ? [{ id: "adm" as const, label: "Adm", icon: Award }] : []),
   ];
 
   return (
@@ -2635,6 +2784,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
         {aba === "analise" && <AbaAnalise profissionalId={meuId} />}
         {aba === "desempenho" && <AbaDesempenho profissionalId={meuId} />}
+        {aba === "adm" && isGerencia && <AbaAdm meuNome={meuNome} />}
       </div>
     </div>
   );

@@ -84,6 +84,7 @@ type FormData = {
   categoriaRanking: 'barbeiro' | 'auxiliar' | 'recepcao';
   pinAcesso: string;
   metaMensal: string;
+  telefone: string;
 };
 const emptyForm: FormData = {
   nome: "",
@@ -96,6 +97,7 @@ const emptyForm: FormData = {
   categoriaRanking: 'barbeiro',
   pinAcesso: "",
   metaMensal: "",
+  telefone: "",
 };;
 
 export default function Profissionais() {
@@ -261,6 +263,7 @@ export default function Profissionais() {
       categoriaRanking: p.categoriaRanking ?? 'barbeiro',
        pinAcesso: (p as any).pinAcesso ?? "",
       metaMensal: (p as any).metaMensal ? String((p as any).metaMensal) : "",
+      telefone: (p as any).telefone ?? "",
     });
     setModalAberto(true);
   };
@@ -288,6 +291,7 @@ export default function Profissionais() {
       categoriaRanking: form.categoriaRanking,
       pinAcesso: form.pinAcesso.trim() || null,
       metaMensal: form.metaMensal ? parseFloat(form.metaMensal.replace(',', '.')) : null,
+      telefone: form.telefone.trim() || null,
     });
   };
 
@@ -774,6 +778,26 @@ export default function Profissionais() {
                <p className="text-white/30 text-xs">
                 O profissional usa este PIN para acessar o ranking no celular em{" "}
                 <span className="text-blue-400">/pro</span>
+              </p>
+            </div>
+            {/* WhatsApp */}
+            <div className="space-y-1.5">
+              <Label className="text-white/70 text-sm">
+                📱 WhatsApp{" "}
+                <span className="text-white/40 font-normal">(DDD + número, sem espaços)</span>
+              </Label>
+              <Input
+                type="tel"
+                value={form.telefone}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 15);
+                  setForm({ ...form, telefone: v });
+                }}
+                placeholder="Ex: 11999998888"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              />
+              <p className="text-white/30 text-xs">
+                Usado para enviar o link de acesso ao ranking e mensagens de desempenho via WhatsApp
               </p>
             </div>
             {/* Meta Mensal Individual */}
