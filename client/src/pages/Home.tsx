@@ -2121,6 +2121,25 @@ export default function Home() {
                 const rowHoje = s.rows.find((r: any) => parseInt(r.data.split("-")[2]) === diaHoje);
                 const cat9Hoje = rowHoje ? parseFloat(rowHoje.cat9 || "0") : 0;
                 const dpoteNaoDistribuidoHoje = ehMesVigenteCard && s.cat9DiarioPrevisto > 0 && cat9Hoje === 0 && rowHoje;
+                // Semáforo: compara média diária com meta diária necessária
+                const semaforoStatus = (() => {
+                  if (atingiuMeta) return 'meta';
+                  if (!metaDiaAtualMensal || metaDiaAtualMensal === 0) return 'neutro';
+                  const ratio = s.mediaDiaria / metaDiaAtualMensal;
+                  if (ratio >= 0.97) return 'verde';
+                  if (ratio >= 0.85) return 'amarelo';
+                  return 'vermelho';
+                })();
+                const semaforoCor = semaforoStatus === 'meta' ? '#10b981'
+                  : semaforoStatus === 'verde' ? '#22c55e'
+                  : semaforoStatus === 'amarelo' ? '#f59e0b'
+                  : semaforoStatus === 'neutro' ? '#6b7280'
+                  : '#ef4444';
+                const semaforoLabel = semaforoStatus === 'meta' ? 'Meta atingida'
+                  : semaforoStatus === 'verde' ? 'No ritmo certo'
+                  : semaforoStatus === 'amarelo' ? 'Atenção'
+                  : semaforoStatus === 'neutro' ? 'Sem dados'
+                  : 'Abaixo da meta';
                 return (
                   <div key={s.emp.slug} className="rounded-2xl overflow-hidden shadow-xl flex flex-col" style={{ border: `1px solid ${s.emp.cor}40` }}>
 
@@ -2164,7 +2183,12 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="font-display text-2xl font-bold text-white leading-none">{fmt(s.totalRealizado)}</p>
+                          {/* Semáforo de ritmo */}
+                          <div className="flex items-center justify-end gap-2 mb-2">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: semaforoCor + '22', color: semaforoCor, border: `1px solid ${semaforoCor}60` }}>{semaforoLabel}</span>
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: semaforoCor, boxShadow: `0 0 8px ${semaforoCor}` }} />
+                          </div>
+                          <p className="font-display text-2xl font-bold leading-none" style={{ color: 'var(--meta-card-value)' }}>{fmt(s.totalRealizado)}</p>
                           {s.totalPrevisto > 0 && (
                             <p className="text-[11px] text-amber-400 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
                           )}
@@ -2193,10 +2217,11 @@ export default function Home() {
                               }`}>{pctMensal}%</span>
                             </div>
                           </div>
-                          <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-500"
+                          <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
+                            <div className="h-full rounded-full"
                               style={{
                                 width: `${pctMensal}%`,
+                                animation: 'progressFill 1s ease-out',
                                 backgroundColor: atingiuMeta ? '#10b981' : pctMensal >= 80 ? '#f59e0b' : s.emp.cor
                               }} />
                           </div>
@@ -2242,11 +2267,11 @@ export default function Home() {
                     </div>
 
                     {/* ── MÉTRICAS OPERACIONAIS ── */}
-                    <div className="px-5 py-3 grid grid-cols-3 gap-3" style={{ backgroundColor: 'rgba(15,18,30,0.85)', borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+                    <div className="px-5 py-3 grid grid-cols-3 gap-3" style={{ backgroundColor: 'var(--meta-card-section-bg)', borderTop: `1px solid var(--meta-card-section-border)` }}>
                       {/* Média diária */}
                       <div className="text-center">
-                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">MÉDIA/DIA</p>
-                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : 'text-white'}`}>
+                        <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>MÉDIA/DIA</p>
+                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : ''}`} style={menorQueMeta ? {} : { color: 'var(--meta-card-value)' }}>
                           {fmt(s.mediaDiaria)}
                         </p>
                         {menorQueMeta && metaDiaAtualMensal > 0 && (
@@ -2256,8 +2281,8 @@ export default function Home() {
                         )}
                       </div>
                       {/* Maior dia */}
-                      <div className="text-center border-x border-slate-700">
-                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">MAIOR DIA</p>
+                      <div className="text-center border-x" style={{ borderColor: 'var(--meta-card-section-border)' }}>
+                        <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>MAIOR DIA</p>
                         <p className="font-display text-base font-bold text-emerald-400">{s.maiorDia > 0 ? fmt(s.maiorDia) : '—'}</p>
                         {s.menorDia > 0 && (
                           <p className="text-[10px] text-red-400/80 mt-0.5">mín {fmt(s.menorDia)}</p>
@@ -2265,8 +2290,8 @@ export default function Home() {
                       </div>
                       {/* Dias úteis restantes */}
                       <div className="text-center">
-                        <p className="font-label text-[10px] text-slate-400 tracking-widest mb-1">DIAS REST.</p>
-                        <p className="font-display text-base font-bold text-white">
+                        <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>DIAS REST.</p>
+                        <p className="font-display text-base font-bold" style={{ color: 'var(--meta-card-value)' }}>
                           {s.diasUteisRestantes > 0 ? s.diasUteisRestantes : '—'}
                         </p>
                         {s.diasUteisRestantes > 0 && metaDiaAtualMensal > 0 && (
@@ -2279,20 +2304,20 @@ export default function Home() {
 
                     {/* ── METAS ADICIONAIS (Quinzenal + Super Meta) ── */}
                     {(s.metaQuinzenal > 0 || s.superMeta > 0) && (
-                      <div className="px-5 py-3 flex gap-3" style={{ backgroundColor: 'rgba(15,18,30,0.85)', borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+                      <div className="px-5 py-3 flex gap-3" style={{ backgroundColor: 'var(--meta-card-section-bg)', borderTop: `1px solid var(--meta-card-section-border)` }}>
                         {s.metaQuinzenal > 0 && (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-label text-[10px] text-slate-400 tracking-widest">QUINZENAL</span>
+                              <span className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>QUINZENAL</span>
                               <span className={`text-[10px] font-bold ${s.progressoQuinzenal >= 100 ? 'text-emerald-400' : 'text-purple-400'}`}>
                                 {Math.round(s.progressoQuinzenal)}%
                               </span>
                             </div>
-                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-purple-500 transition-all"
-                                style={{ width: `${Math.min(s.progressoQuinzenal, 100)}%` }} />
+                            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
+                              <div className="h-full rounded-full bg-purple-500"
+                                style={{ width: `${Math.min(s.progressoQuinzenal, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-0.5">{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
                           </div>
                         )}
                         {s.superMeta > 0 && (
@@ -2303,11 +2328,11 @@ export default function Home() {
                                 {Math.round((s.totalRealizado / s.superMeta) * 100)}%
                               </span>
                             </div>
-                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-amber-500 transition-all"
-                                style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%` }} />
+                            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
+                              <div className="h-full rounded-full bg-amber-500"
+                                style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%`, animation: 'progressFill 0.9s ease-out' }} />
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-0.5">{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
                           </div>
                         )}
                       </div>

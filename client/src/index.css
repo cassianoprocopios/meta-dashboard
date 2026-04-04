@@ -76,6 +76,13 @@
   --sidebar-accent-foreground: oklch(0.2 0.01 260);
   --sidebar-border: oklch(0.94 0.005 260);
   --sidebar-ring: oklch(0.55 0.2 260);
+  /* Cards de metas — tema claro */
+  --meta-card-section-bg: oklch(0.96 0.005 260);
+  --meta-card-section-border: oklch(0.88 0.008 260);
+  --meta-card-divider: oklch(0.88 0.008 260);
+  --meta-card-label: oklch(0.45 0.01 260);
+  --meta-card-value: oklch(0.15 0.01 260);
+  --meta-card-bar-bg: oklch(0.88 0.008 260);
 }
 
 .dark {
@@ -126,6 +133,14 @@
   --chart-4: oklch(0.70 0.18 45);
   --chart-5: oklch(0.65 0.20 25);
 
+  /* Cards de metas — tema escuro */
+  --meta-card-section-bg: oklch(0.10 0.014 264 / 85%);
+  --meta-card-section-border: oklch(1 0 0 / 6%);
+  --meta-card-divider: oklch(1 0 0 / 8%);
+  --meta-card-label: oklch(0.62 0.010 264);
+  --meta-card-value: oklch(0.94 0.003 264);
+  --meta-card-bar-bg: oklch(0.22 0.016 264);
+
   /* Sidebar: levemente mais escuro que o card */
   --sidebar: oklch(0.118 0.015 264);
   --sidebar-foreground: oklch(0.94 0.003 264);
@@ -147,6 +162,10 @@
   /* Ouro: rankings e destaques */
   --gold: oklch(0.78 0.18 75);
   --gold-foreground: oklch(0.12 0.02 75);
+}
+
+@keyframes progressFill {
+  from { width: 0%; }
 }
 
 @keyframes rankingSlideIn {
