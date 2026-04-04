@@ -272,11 +272,6 @@ export default function Profissionais() {
       toast.error("O nome é obrigatório.");
       return;
     }
-    const cbId = parseInt(form.cashbarberProfissionalId);
-    if (!form.cashbarberProfissionalId || isNaN(cbId) || cbId <= 0) {
-      toast.error("O ID do CashBarber é obrigatório. Encontre em: CashBarber → Minha Empresa → Listagem Profissionais → coluna ID.");
-      return;
-    }
     salvar.mutate({
       id: form.id,
       nome: form.nome.trim(),

@@ -192,6 +192,9 @@ const profissionaisRouter = router({
       cashbarberProfissionalId: c.cashbarberProfissionalId,
       empresaSlug: c.empresaSlug,
       categoriaRanking: (c.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
+      pinAcesso: c.pinAcesso ?? null,
+      telefone: c.telefone ?? null,
+      metaMensal: c.metaMensal ? Number(c.metaMensal) : null,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     }));
