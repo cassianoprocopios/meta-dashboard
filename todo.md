@@ -1224,3 +1224,4 @@
 - [ ] Implementar cadastro/edição de metas individuais dos profissionais no painel admin
 - [x] Verificar e corrigir alertas do Dashboard
 - [x] Implementar indicador visual com porcentagem exata nos cards Na meta/No ritmo/Atenção da aba Análise
+- [x] Adicionar barra de progresso individual no ranking das abas Hoje, Semana e Mês mostrando % da meta atingida

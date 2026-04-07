@@ -4041,6 +4041,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
         comId.map(async (col) => {
+          const metaMensal = col.metaMensal ? Number(col.metaMensal) : null;
           try {
             const relatorio = await cashbarberRelatorio15(token, input.data, input.data, null, col.cashbarberProfissionalId);
             const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
@@ -4049,6 +4050,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
+            const totalGeral = totalServicos + totalProdutos;
+            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalGeral / metaMensal) * 100) : null;
             return {
               id: col.id,
               nome: col.nome,
@@ -4059,9 +4062,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
               totalServicos,
               totalProdutos,
-              totalGeral: totalServicos + totalProdutos,
+              totalGeral,
               qtdServicos,
               qtdProdutos,
+              metaMensal,
+              pctMeta,
             };
           } catch {
             return {
@@ -4077,6 +4082,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalGeral: 0,
               qtdServicos: 0,
               qtdProdutos: 0,
+              metaMensal,
+              pctMeta: null,
             };
           }
         })
@@ -4101,6 +4108,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
       const resultados = await Promise.all(
         comId.map(async (col) => {
+          const metaMensal = col.metaMensal ? Number(col.metaMensal) : null;
           try {
             const relatorio = await cashbarberRelatorio15(token, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
             const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
@@ -4109,6 +4117,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
+            const totalGeral = totalServicos + totalProdutos;
+            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalGeral / metaMensal) * 100) : null;
             return {
               id: col.id,
               nome: col.nome,
@@ -4119,9 +4129,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               categoriaRanking: (col.categoriaRanking ?? 'barbeiro') as 'barbeiro' | 'auxiliar' | 'recepcao',
               totalServicos,
               totalProdutos,
-              totalGeral: totalServicos + totalProdutos,
+              totalGeral,
               qtdServicos,
               qtdProdutos,
+              metaMensal,
+              pctMeta,
             };
           } catch {
             return {
@@ -4137,6 +4149,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalGeral: 0,
               qtdServicos: 0,
               qtdProdutos: 0,
+              metaMensal,
+              pctMeta: null,
             };
           }
         })

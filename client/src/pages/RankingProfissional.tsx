@@ -1076,15 +1076,17 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                     totalGeral={p.totalGeral}
                     totalServicos={p.totalServicos}
                     totalProdutos={p.totalProdutos}
-                    qtdServicos={(p as any).qtdServicos ?? 0}
-                    qtdProdutos={(p as any).qtdProdutos ?? 0}
-                    posAnterior={posMapAnterior.get(p.id) ?? null}
-                    isMe={p.nome === meuNome || p.apelido === meuNome}
-                    empresaSlug={p.empresaSlug}
-                    mostrarEmpresa={verGeral}
-                    isUltimo={total > 3 && i >= total - 3}
-                    animIndex={i}
-                  />
+                     qtdServicos={(p as any).qtdServicos ?? 0}
+                     qtdProdutos={(p as any).qtdProdutos ?? 0}
+                     pctMeta={(p as any).pctMeta ?? null}
+                     metaMensal={(p as any).metaMensal ?? null}
+                     posAnterior={posMapAnterior.get(p.id) ?? null}
+                     isMe={p.nome === meuNome || p.apelido === meuNome}
+                     empresaSlug={p.empresaSlug}
+                     mostrarEmpresa={verGeral}
+                     isUltimo={total > 3 && i >= total - 3}
+                     animIndex={i}
+                   />
                   {isPodio3 && (
                     <div key={`sep-podio-${i}`} className="flex items-center gap-2 py-1">
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
@@ -1444,15 +1446,17 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                     totalGeral={p.totalGeral}
                     totalServicos={p.totalServicos}
                     totalProdutos={p.totalProdutos}
-                    qtdServicos={(p as any).qtdServicos ?? 0}
-                    qtdProdutos={(p as any).qtdProdutos ?? 0}
-                    posAnterior={posMapAnteriorSem.get(p.id) ?? null}
-                    isMe={p.nome === meuNome || p.apelido === meuNome}
-                    empresaSlug={p.empresaSlug}
-                    mostrarEmpresa={verGeral}
-                    isUltimo={total > 3 && i >= total - 3}
-                    animIndex={i}
-                  />
+                     qtdServicos={(p as any).qtdServicos ?? 0}
+                     qtdProdutos={(p as any).qtdProdutos ?? 0}
+                     pctMeta={(p as any).pctMeta ?? null}
+                     metaMensal={(p as any).metaMensal ?? null}
+                     posAnterior={posMapAnteriorSem.get(p.id) ?? null}
+                     isMe={p.nome === meuNome || p.apelido === meuNome}
+                     empresaSlug={p.empresaSlug}
+                     mostrarEmpresa={verGeral}
+                     isUltimo={total > 3 && i >= total - 3}
+                     animIndex={i}
+                   />
                   {isPodio3 && (
                     <div key={`sep-podio-sem-${i}`} className="flex items-center gap-2 py-1">
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
