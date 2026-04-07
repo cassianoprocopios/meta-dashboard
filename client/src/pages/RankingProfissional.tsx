@@ -1126,7 +1126,21 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                 const pctMensalStr = (!verGeral && fatMensal?.pctMeta != null)
                   ? ` | ${fatMensal.pctMeta}% da meta mensal`
                   : "";
-                const rodape = `${totalDia}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                const metaDiariaStr = (() => {
+                  if (verGeral || !fatMensal) return "";
+                  const diasRestantes = (fatMensal as any).diasNoMes != null && (fatMensal as any).diasPassados != null
+                    ? (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados
+                    : null;
+                  const falta = (fatMensal as any).metaMensal != null && (fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta < 100
+                    ? Math.max(0, (fatMensal as any).metaMensal - fatMensal.total)
+                    : null;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
+                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
+                  if ((fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta >= 100)
+                    return `\n✅ Meta do mês atingida!`;
+                  return "";
+                })();
+                const rodape = `${totalDia}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-diario-${data}`,
                   gerarTextoRanking(
@@ -1508,7 +1522,21 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                 const pctMensalStr = (!verGeral && fatMensalSem?.pctMeta != null)
                   ? ` | ${fatMensalSem.pctMeta}% da meta mensal`
                   : "";
-                const rodape = `${totalSem}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                const metaDiariaStr = (() => {
+                  if (verGeral || !fatMensalSem) return "";
+                  const diasRestantes = (fatMensalSem as any).diasNoMes != null && (fatMensalSem as any).diasPassados != null
+                    ? (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados
+                    : null;
+                  const falta = (fatMensalSem as any).metaMensal != null && (fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta < 100
+                    ? Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total)
+                    : null;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
+                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
+                  if ((fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta >= 100)
+                    return `\n✅ Meta do mês atingida!`;
+                  return "";
+                })();
+                const rodape = `${totalSem}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-semanal-${dataInicio}`,
                   gerarTextoRanking(
@@ -1858,7 +1886,21 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                 const pctMensalStr = (!verGeral && fatUnidadeMes?.pctMeta != null)
                   ? ` | ${fatUnidadeMes.pctMeta}% da meta`
                   : "";
-                const rodape = `${totalMes}${pctMensalStr}\n\nperformancemeta.sbs`.trim();
+                const metaDiariaStr = (() => {
+                  if (verGeral || !fatUnidadeMes) return "";
+                  const diasRestantes = (fatUnidadeMes as any).diasNoMes != null && (fatUnidadeMes as any).diasPassados != null
+                    ? (fatUnidadeMes as any).diasNoMes - (fatUnidadeMes as any).diasPassados
+                    : null;
+                  const falta = (fatUnidadeMes as any).metaMensal != null && (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta < 100
+                    ? Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total)
+                    : null;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
+                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
+                  if ((fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100)
+                    return `\n✅ Meta do mês atingida!`;
+                  return "";
+                })();
+                const rodape = `${totalMes}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
                   gerarTextoRanking(
