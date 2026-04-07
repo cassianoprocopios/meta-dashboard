@@ -960,6 +960,16 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
               {(fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta >= 100 && (
                 <div className="text-xs font-semibold text-emerald-400">✓ Meta atingida!</div>
               )}
+              {(fatMensal as any).metaMensal && (fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta < 100 && (fatMensal as any).diasNoMes != null && (fatMensal as any).diasPassados != null && (() => {
+                const diasRestantes = (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados;
+                const falta = Math.max(0, (fatMensal as any).metaMensal - fatMensal.total);
+                const metaDiaria = diasRestantes > 0 ? falta / diasRestantes : falta;
+                return diasRestantes > 0 ? (
+                  <div className="text-xs text-blue-300/70 mt-0.5">
+                    Precisa {formatarMoeda(metaDiaria)}/dia ({diasRestantes}d)
+                  </div>
+                ) : null;
+              })()}
               {fatMensal.recorrencia > 0 && (
                 <div className="text-xs text-white/30 mt-0.5">incl. {formatarMoeda(fatMensal.recorrencia)} recorr.</div>
               )}
@@ -1373,8 +1383,20 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
             </div>
             <div className="text-right">
               {(fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta < 100 ? (
-                <div className="text-sm font-bold text-amber-400">
-                  Falta: {formatarMoeda(Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total))}
+                <div>
+                  <div className="text-sm font-bold text-amber-400">
+                    Falta: {formatarMoeda(Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total))}
+                  </div>
+                  {(fatMensalSem as any).diasNoMes != null && (fatMensalSem as any).diasPassados != null && (() => {
+                    const diasRestantes = (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados;
+                    const falta = Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total);
+                    const metaDiaria = diasRestantes > 0 ? falta / diasRestantes : falta;
+                    return diasRestantes > 0 ? (
+                      <div className="text-xs text-blue-300/70 mt-0.5">
+                        Precisa {formatarMoeda(metaDiaria)}/dia ({diasRestantes}d)
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               ) : (
                 <div className="text-sm font-bold text-emerald-400">✓ Meta atingida!</div>
@@ -1705,8 +1727,20 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
             </div>
             <div className="text-right">
               {(fatUnidadeMes as any).metaMensal && (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta < 100 ? (
-                <div className="text-sm font-bold text-amber-400">
-                  Falta: {formatarMoeda(Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total))}
+                <div>
+                  <div className="text-sm font-bold text-amber-400">
+                    Falta: {formatarMoeda(Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total))}
+                  </div>
+                  {(fatUnidadeMes as any).diasNoMes != null && (fatUnidadeMes as any).diasPassados != null && (() => {
+                    const diasRestantes = (fatUnidadeMes as any).diasNoMes - (fatUnidadeMes as any).diasPassados;
+                    const falta = Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total);
+                    const metaDiaria = diasRestantes > 0 ? falta / diasRestantes : falta;
+                    return diasRestantes > 0 ? (
+                      <div className="text-xs text-blue-300/70 mt-0.5">
+                        Precisa {formatarMoeda(metaDiaria)}/dia ({diasRestantes}d)
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               ) : (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100 ? (
                 <div className="text-sm font-bold text-emerald-400">✓ Meta atingida!</div>
