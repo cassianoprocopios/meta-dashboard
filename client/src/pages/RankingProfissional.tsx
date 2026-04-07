@@ -257,6 +257,7 @@ function RankingCard({
   qtdProdutos = 0,
   pctMeta,
   metaMensal,
+  diasRestantes,
   posAnterior,
   isMe,
   empresaSlug,
@@ -275,6 +276,7 @@ function RankingCard({
   qtdProdutos?: number;
   pctMeta?: number | null;
   metaMensal?: number | null;
+  diasRestantes?: number | null;
   posAnterior?: number | null;
   isMe: boolean;
   empresaSlug?: string | null;
@@ -381,6 +383,16 @@ function RankingCard({
                 style={{ width: `${Math.min(pctMeta, 100)}%` }}
               />
             </div>
+            {/* Meta diária individual necessária */}
+            {pctMeta < 100 && diasRestantes != null && diasRestantes > 0 && (() => {
+              const falta = Math.max(0, metaMensal - totalGeral);
+              const metaDiariaInd = falta / diasRestantes;
+              return (
+                <div className="text-xs text-blue-300/60 mt-0.5">
+                  Precisa {formatarMoeda(metaDiariaInd)}/dia
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -929,10 +941,31 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
       )}
 
       {/* Card de faturamento da unidade — usa total MENSAL acumulado */}
-      {!verGeral && fatMensal && fatMensal.total > 0 && (
+      {!verGeral && fatMensal && fatMensal.total > 0 && (() => {
+        // Semáforo de ritmo: compara média diária atual vs meta diária necessária
+        const _diasPassados = (fatMensal as any).diasPassados as number | null;
+        const _diasNoMes = (fatMensal as any).diasNoMes as number | null;
+        const _metaMensal = (fatMensal as any).metaMensal as number | null;
+        const mediaDiariaAtual = (_diasPassados != null && _diasPassados > 0) ? fatMensal.total / _diasPassados : null;
+        const diasRestantesHoje = (_diasNoMes != null && _diasPassados != null) ? _diasNoMes - _diasPassados : null;
+        const faltaHoje = _metaMensal != null ? Math.max(0, _metaMensal - fatMensal.total) : null;
+        const metaDiariaNec = (diasRestantesHoje != null && diasRestantesHoje > 0 && faltaHoje != null) ? faltaHoje / diasRestantesHoje : null;
+        const ratioRitmo = (mediaDiariaAtual != null && metaDiariaNec != null && metaDiariaNec > 0) ? mediaDiariaAtual / metaDiariaNec : null;
+        const semaforo = (fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta >= 100
+          ? { emoji: '🟢', label: 'Meta atingida!', cor: 'text-emerald-400' }
+          : ratioRitmo == null ? null
+          : ratioRitmo >= 1.0 ? { emoji: '🟢', label: 'No ritmo', cor: 'text-emerald-400' }
+          : ratioRitmo >= 0.8 ? { emoji: '🟡', label: 'Quase no ritmo', cor: 'text-yellow-400' }
+          : { emoji: '🔴', label: 'Precisa acelerar', cor: 'text-red-400' };
+        return (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
           <div className="flex items-center justify-between mb-1">
-            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+              {semaforo && (
+                <span className={`text-xs font-semibold ${semaforo.cor}`}>{semaforo.emoji} {semaforo.label}</span>
+              )}
+            </div>
             {(fatMensal as any).pctMeta != null && (
               <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                 (fatMensal as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
@@ -992,7 +1025,8 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
       {/* Card de progresso mensal da unidade */}
       {!verGeral && fatMensal && (fatMensal as any).metaMensal && (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 px-4 py-3">
@@ -1090,6 +1124,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                      qtdProdutos={(p as any).qtdProdutos ?? 0}
                      pctMeta={(p as any).pctMeta ?? null}
                      metaMensal={(p as any).metaMensal ?? null}
+                     diasRestantes={(!verGeral && (fatMensal as any)?.diasNoMes != null && (fatMensal as any)?.diasPassados != null) ? (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados : null}
                      posAnterior={posMapAnterior.get(p.id) ?? null}
                      isMe={p.nome === meuNome || p.apelido === meuNome}
                      empresaSlug={p.empresaSlug}
@@ -1378,10 +1413,30 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
         </div>
       )}
       {/* Card de progresso mensal da unidade */}
-      {!verGeral && fatMensalSem && (fatMensalSem as any).metaMensal && (
+      {!verGeral && fatMensalSem && (fatMensalSem as any).metaMensal && (() => {
+        const _dpSem = (fatMensalSem as any).diasPassados as number | null;
+        const _dnSem = (fatMensalSem as any).diasNoMes as number | null;
+        const _mmSem = (fatMensalSem as any).metaMensal as number | null;
+        const mediaSem = (_dpSem != null && _dpSem > 0) ? fatMensalSem.total / _dpSem : null;
+        const drSem = (_dnSem != null && _dpSem != null) ? _dnSem - _dpSem : null;
+        const faltaSem = _mmSem != null ? Math.max(0, _mmSem - fatMensalSem.total) : null;
+        const metaDNecSem = (drSem != null && drSem > 0 && faltaSem != null) ? faltaSem / drSem : null;
+        const ratioSem = (mediaSem != null && metaDNecSem != null && metaDNecSem > 0) ? mediaSem / metaDNecSem : null;
+        const semaforoSem = (fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta >= 100
+          ? { emoji: '🟢', label: 'Meta atingida!', cor: 'text-emerald-400' }
+          : ratioSem == null ? null
+          : ratioSem >= 1.0 ? { emoji: '🟢', label: 'No ritmo', cor: 'text-emerald-400' }
+          : ratioSem >= 0.8 ? { emoji: '🟡', label: 'Quase no ritmo', cor: 'text-yellow-400' }
+          : { emoji: '🔴', label: 'Precisa acelerar', cor: 'text-red-400' };
+        return (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 px-4 py-3">
           <div className="flex items-center justify-between mb-1">
-            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Meta do Mês — Unidade</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Meta do Mês — Unidade</div>
+              {semaforoSem && (
+                <span className={`text-xs font-semibold ${semaforoSem.cor}`}>{semaforoSem.emoji} {semaforoSem.label}</span>
+              )}
+            </div>
             {(fatMensalSem as any).pctMeta != null && (
               <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                 (fatMensalSem as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
@@ -1457,7 +1512,8 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {isLoading ? (
         <div className="flex justify-center py-8">
@@ -1486,6 +1542,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                      qtdProdutos={(p as any).qtdProdutos ?? 0}
                      pctMeta={(p as any).pctMeta ?? null}
                      metaMensal={(p as any).metaMensal ?? null}
+                     diasRestantes={(!verGeral && (fatMensalSem as any)?.diasNoMes != null && (fatMensalSem as any)?.diasPassados != null) ? (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados : null}
                      posAnterior={posMapAnteriorSem.get(p.id) ?? null}
                      isMe={p.nome === meuNome || p.apelido === meuNome}
                      empresaSlug={p.empresaSlug}
@@ -1734,10 +1791,30 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
       )}
 
       {/* Card de faturamento da unidade */}
-      {!verGeral && fatUnidadeMes && fatUnidadeMes.total > 0 && (
+      {!verGeral && fatUnidadeMes && fatUnidadeMes.total > 0 && (() => {
+        const _dpMes = (fatUnidadeMes as any).diasPassados as number | null;
+        const _dnMes = (fatUnidadeMes as any).diasNoMes as number | null;
+        const _mmMes = (fatUnidadeMes as any).metaMensal as number | null;
+        const mediaMes = (_dpMes != null && _dpMes > 0) ? fatUnidadeMes.total / _dpMes : null;
+        const drMes = (_dnMes != null && _dpMes != null) ? _dnMes - _dpMes : null;
+        const faltaMes = _mmMes != null ? Math.max(0, _mmMes - fatUnidadeMes.total) : null;
+        const metaDNecMes = (drMes != null && drMes > 0 && faltaMes != null) ? faltaMes / drMes : null;
+        const ratioMes = (mediaMes != null && metaDNecMes != null && metaDNecMes > 0) ? mediaMes / metaDNecMes : null;
+        const semaforoMes = (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100
+          ? { emoji: '🟢', label: 'Meta atingida!', cor: 'text-emerald-400' }
+          : ratioMes == null ? null
+          : ratioMes >= 1.0 ? { emoji: '🟢', label: 'No ritmo', cor: 'text-emerald-400' }
+          : ratioMes >= 0.8 ? { emoji: '🟡', label: 'Quase no ritmo', cor: 'text-yellow-400' }
+          : { emoji: '🔴', label: 'Precisa acelerar', cor: 'text-red-400' };
+        return (
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
           <div className="flex items-center justify-between mb-1">
-            <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
+              {semaforoMes && (
+                <span className={`text-xs font-semibold ${semaforoMes.cor}`}>{semaforoMes.emoji} {semaforoMes.label}</span>
+              )}
+            </div>
             {(fatUnidadeMes as any).pctMeta != null && (
               <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                 (fatUnidadeMes as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
@@ -1820,7 +1897,8 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {isLoading ? (
         <div className="flex justify-center py-8">
@@ -1850,6 +1928,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                     qtdProdutos={(p as any).qtdProdutos ?? 0}
                     pctMeta={p.pctMeta}
                     metaMensal={p.metaMensal}
+                    diasRestantes={(!verGeral && (fatUnidadeMes as any)?.diasNoMes != null && (fatUnidadeMes as any)?.diasPassados != null) ? (fatUnidadeMes as any).diasNoMes - (fatUnidadeMes as any).diasPassados : null}
                     posAnterior={posMapAnteriorMes.get(p.id) ?? null}
                     isMe={p.nome === meuNome || p.apelido === meuNome}
                     empresaSlug={p.empresaSlug}
