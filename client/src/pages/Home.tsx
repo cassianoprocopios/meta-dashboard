@@ -691,10 +691,13 @@ export default function Home() {
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAtualRealizado += totalAtual;
+      // Usa o período global (dias 1 até diaFim) para comparar com o mês anterior.
+      // Isso garante que empresas com dias diferentes (ex: Seraphine não abre dom/seg)
+      // sejam comparadas com todos os dias do mesmo período no mês anterior.
       const rowsAnterior = faturamentosAnteriorFiltrados.filter((f: any) => {
         if (f.empresaSlug !== emp.slug) return false;
         const dia = parseInt(f.data.split("-")[2]);
-        return diasAtual.has(dia);
+        return dia >= diaInicio && dia <= diaFim;
       });
       const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
         s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
