@@ -1169,10 +1169,16 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const falta = (fatMensal as any).metaMensal != null && (fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta < 100
                     ? Math.max(0, (fatMensal as any).metaMensal - fatMensal.total)
                     : null;
-                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
-                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
                   if ((fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta >= 100)
-                    return `\n✅ Meta do mês atingida!`;
+                    return `\n🟢 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatMensal as any).diasPassados > 0 ? fatMensal.total / (fatMensal as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '🎯' : ratio >= 1.0 ? '🟢' : ratio >= 0.8 ? '🟡' : '🔴';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
                   return "";
                 })();
                 const rodape = `${totalDia}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
@@ -1587,10 +1593,16 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   const falta = (fatMensalSem as any).metaMensal != null && (fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta < 100
                     ? Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total)
                     : null;
-                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
-                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
                   if ((fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta >= 100)
-                    return `\n✅ Meta do mês atingida!`;
+                    return `\n🟢 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatMensalSem as any).diasPassados > 0 ? fatMensalSem.total / (fatMensalSem as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '🎯' : ratio >= 1.0 ? '🟢' : ratio >= 0.8 ? '🟡' : '🔴';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
                   return "";
                 })();
                 const rodape = `${totalSem}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
@@ -1973,10 +1985,16 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const falta = (fatUnidadeMes as any).metaMensal != null && (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta < 100
                     ? Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total)
                     : null;
-                  if (diasRestantes != null && diasRestantes > 0 && falta != null)
-                    return `\n🎯 Meta diária necessária: ${formatarMoeda(falta / diasRestantes)}/dia (${diasRestantes}d restantes)`;
                   if ((fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100)
-                    return `\n✅ Meta do mês atingida!`;
+                    return `\n🟢 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatUnidadeMes as any).diasPassados > 0 ? fatUnidadeMes.total / (fatUnidadeMes as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '🎯' : ratio >= 1.0 ? '🟢' : ratio >= 0.8 ? '🟡' : '🔴';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
                   return "";
                 })();
                 const rodape = `${totalMes}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();

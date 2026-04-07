@@ -2138,8 +2138,8 @@ export default function Home() {
                   if (atingiuMeta) return 'meta';
                   if (!metaDiaAtualMensal || metaDiaAtualMensal === 0) return 'neutro';
                   const ratio = s.mediaDiaria / metaDiaAtualMensal;
-                  if (ratio >= 0.97) return 'verde';
-                  if (ratio >= 0.85) return 'amarelo';
+                  if (ratio >= 1.0) return 'verde';
+                  if (ratio >= 0.8) return 'amarelo';
                   return 'vermelho';
                 })();
                 const semaforoCor = semaforoStatus === 'meta' ? '#10b981'
@@ -2147,11 +2147,16 @@ export default function Home() {
                   : semaforoStatus === 'amarelo' ? '#f59e0b'
                   : semaforoStatus === 'neutro' ? '#6b7280'
                   : '#ef4444';
+                const semaforoEmoji = semaforoStatus === 'meta' ? '🟢'
+                  : semaforoStatus === 'verde' ? '🟢'
+                  : semaforoStatus === 'amarelo' ? '🟡'
+                  : semaforoStatus === 'neutro' ? '⚪'
+                  : '🔴';
                 const semaforoLabel = semaforoStatus === 'meta' ? 'Meta atingida'
-                  : semaforoStatus === 'verde' ? 'No ritmo certo'
-                  : semaforoStatus === 'amarelo' ? 'Atenção'
+                  : semaforoStatus === 'verde' ? 'No ritmo'
+                  : semaforoStatus === 'amarelo' ? 'Quase no ritmo'
                   : semaforoStatus === 'neutro' ? 'Sem dados'
-                  : 'Abaixo da meta';
+                  : 'Precisa acelerar';
                 return (
                   <div key={s.emp.slug} className="rounded-2xl overflow-hidden shadow-xl flex flex-col" style={{ border: `1px solid ${s.emp.cor}40` }}>
 
@@ -2196,9 +2201,8 @@ export default function Home() {
                         </div>
                         <div className="text-right shrink-0">
                           {/* Semáforo de ritmo */}
-                          <div className="flex items-center justify-end gap-2 mb-2">
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: semaforoCor + '22', color: semaforoCor, border: `1px solid ${semaforoCor}60` }}>{semaforoLabel}</span>
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: semaforoCor, boxShadow: `0 0 8px ${semaforoCor}` }} />
+                          <div className="flex items-center justify-end gap-1.5 mb-2">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: semaforoCor + '22', color: semaforoCor, border: `1px solid ${semaforoCor}60` }}>{semaforoEmoji} {semaforoLabel}</span>
                           </div>
                           <p className="font-display text-2xl font-bold leading-none" style={{ color: 'var(--meta-card-value)' }}>{fmt(s.totalRealizado)}</p>
                           {s.totalPrevisto > 0 && (
