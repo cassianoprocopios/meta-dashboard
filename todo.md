@@ -1223,3 +1223,4 @@
 - [x] Adicionar filtro de unidade (Mascote/Morumbi/Geral) na aba Análise para gerentes do grupo (Cassiano e Daniela)
 - [ ] Implementar cadastro/edição de metas individuais dos profissionais no painel admin
 - [x] Verificar e corrigir alertas do Dashboard
+- [x] Implementar indicador visual com porcentagem exata nos cards Na meta/No ritmo/Atenção da aba Análise

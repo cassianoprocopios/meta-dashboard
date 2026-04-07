@@ -2854,19 +2854,132 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
         </div>
       )}
 
-      {/* Cards de resumo */}
+      {/* Cards de resumo expandidos com indicadores visuais */}
+      {/* Barra de progresso coletiva */}
+      {comMeta.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-3 mb-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-white/50 font-semibold uppercase tracking-wider">Progresso da Equipe</span>
+            <span className="text-xs text-white/70 font-bold">{comMeta.length} com meta cadastrada</span>
+          </div>
+          {/* Barra segmentada: verde | amarelo | vermelho */}
+          <div className="h-3 rounded-full overflow-hidden flex gap-0.5">
+            {acimaMeta.length > 0 && (
+              <div
+                className="h-full bg-emerald-500 rounded-l-full transition-all"
+                style={{ width: `${(acimaMeta.length / comMeta.length) * 100}%` }}
+                title={`Na meta: ${acimaMeta.length}`}
+              />
+            )}
+            {noRitmo.length > 0 && (
+              <div
+                className="h-full bg-yellow-500 transition-all"
+                style={{ width: `${(noRitmo.length / comMeta.length) * 100}%` }}
+                title={`No ritmo: ${noRitmo.length}`}
+              />
+            )}
+            {abaixoMeta.length > 0 && (
+              <div
+                className="h-full bg-red-500 rounded-r-full transition-all"
+                style={{ width: `${(abaixoMeta.length / comMeta.length) * 100}%` }}
+                title={`Atenção: ${abaixoMeta.length}`}
+              />
+            )}
+            {(acimaMeta.length === 0 && noRitmo.length === 0 && abaixoMeta.length === 0) && (
+              <div className="h-full bg-white/10 w-full rounded-full" />
+            )}
+          </div>
+          <div className="flex justify-between mt-1.5">
+            <span className="text-xs text-emerald-400">{Math.round((acimaMeta.length / comMeta.length) * 100)}% na meta</span>
+            <span className="text-xs text-white/30">{comMeta.length - acimaMeta.length} faltando</span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-400">{acimaMeta.length}</div>
-          <div className="text-xs text-emerald-300/70 mt-0.5">Na meta</div>
+        {/* Card Na meta */}
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xl font-bold text-emerald-400">{acimaMeta.length}</div>
+            {comMeta.length > 0 && (
+              <div className="text-xs font-bold text-emerald-300/80 bg-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                {Math.round((acimaMeta.length / comMeta.length) * 100)}%
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-emerald-300/70 mb-2">Na meta</div>
+          {/* Mini lista de nomes */}
+          {acimaMeta.length > 0 ? (
+            <div className="space-y-1">
+              {acimaMeta.slice(0, 3).map(p => (
+                <div key={p.id} className="flex items-center justify-between">
+                  <span className="text-xs text-white/70 truncate max-w-[60px]">{p.apelido || p.nome.split(' ')[0]}</span>
+                  <span className="text-xs font-bold text-emerald-400 flex-shrink-0">{p.pctMeta}%</span>
+                </div>
+              ))}
+              {acimaMeta.length > 3 && (
+                <div className="text-xs text-white/30">+{acimaMeta.length - 3} mais</div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-white/20 italic">Nenhum ainda</div>
+          )}
         </div>
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center">
-          <div className="text-2xl font-bold text-yellow-400">{noRitmo.length}</div>
-          <div className="text-xs text-yellow-300/70 mt-0.5">No ritmo</div>
+
+        {/* Card No ritmo */}
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xl font-bold text-yellow-400">{noRitmo.length}</div>
+            {comMeta.length > 0 && (
+              <div className="text-xs font-bold text-yellow-300/80 bg-yellow-500/20 px-1.5 py-0.5 rounded-full">
+                {Math.round((noRitmo.length / comMeta.length) * 100)}%
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-yellow-300/70 mb-2">No ritmo</div>
+          {noRitmo.length > 0 ? (
+            <div className="space-y-1">
+              {noRitmo.slice(0, 3).map(p => (
+                <div key={p.id} className="flex items-center justify-between">
+                  <span className="text-xs text-white/70 truncate max-w-[60px]">{p.apelido || p.nome.split(' ')[0]}</span>
+                  <span className="text-xs font-bold text-yellow-400 flex-shrink-0">{p.pctMeta}%</span>
+                </div>
+              ))}
+              {noRitmo.length > 3 && (
+                <div className="text-xs text-white/30">+{noRitmo.length - 3} mais</div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-white/20 italic">Nenhum</div>
+          )}
         </div>
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-          <div className="text-2xl font-bold text-red-400">{abaixoMeta.length}</div>
-          <div className="text-xs text-red-300/70 mt-0.5">Atenção</div>
+
+        {/* Card Atenção */}
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xl font-bold text-red-400">{abaixoMeta.length}</div>
+            {comMeta.length > 0 && (
+              <div className="text-xs font-bold text-red-300/80 bg-red-500/20 px-1.5 py-0.5 rounded-full">
+                {Math.round((abaixoMeta.length / comMeta.length) * 100)}%
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-red-300/70 mb-2">Atenção</div>
+          {abaixoMeta.length > 0 ? (
+            <div className="space-y-1">
+              {abaixoMeta.slice(0, 3).map(p => (
+                <div key={p.id} className="flex items-center justify-between">
+                  <span className="text-xs text-white/70 truncate max-w-[60px]">{p.apelido || p.nome.split(' ')[0]}</span>
+                  <span className="text-xs font-bold text-red-400 flex-shrink-0">{p.pctMeta}%</span>
+                </div>
+              ))}
+              {abaixoMeta.length > 3 && (
+                <div className="text-xs text-white/30">+{abaixoMeta.length - 3} mais</div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-white/20 italic">Nenhum</div>
+          )}
         </div>
       </div>
 
