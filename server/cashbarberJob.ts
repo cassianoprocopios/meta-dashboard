@@ -8,15 +8,16 @@
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 
-// ─── Intervalo fixo: a cada hora ─────────────────────────────────────────────
+// ─── Horários fixos: 7h e 16h BRT ───────────────────────────────────────────
+// 7h BRT = 10h UTC = "0 0 10 * * *"
+// 16h BRT = 19h UTC = "0 0 19 * * *"
 
 /**
- * Expressão cron para execução a cada hora.
- * Dispara no segundo 0 do minuto 5 de cada hora (HH:05).
- * Deslocado do :00 para evitar conflito com o job de ranking (:20/:50)
- * e com o job diário das 6h10 (que roda 5 min após o job horário das 6h05).
+ * Expressões cron para execução 2x por dia.
+ * 7h00 BRT (10:00 UTC) e 16h00 BRT (19:00 UTC).
  */
-const CRON_CADA_HORA = "0 5 * * * *";
+const CRON_7H_BRT = "0 0 10 * * *";
+const CRON_16H_BRT = "0 0 19 * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -41,11 +42,24 @@ function jobKey(tenantId: number, empresaSlug: string): string {
 }
 
 /**
- * Calcula a próxima execução (minuto :05 da próxima hora)
+ * Calcula a próxima execução (próximo horário fixo: 7h ou 16h BRT)
  */
 function calcularProximaExecucao(): Date {
-  const proxima = new Date();
-  proxima.setHours(proxima.getHours() + 1, 5, 0, 0);
+  const agora = new Date();
+  const horaBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const hora = horaBRT.getHours();
+  const proxima = new Date(agora);
+  if (hora < 7) {
+    // Próximo: 7h hoje
+    proxima.setHours(proxima.getHours() + (10 - proxima.getUTCHours()), 0, 0, 0);
+  } else if (hora < 16) {
+    // Próximo: 16h hoje
+    proxima.setHours(proxima.getHours() + (19 - proxima.getUTCHours()), 0, 0, 0);
+  } else {
+    // Próximo: 7h amanhã
+    proxima.setDate(proxima.getDate() + 1);
+    proxima.setUTCHours(10, 0, 0, 0);
+  }
   return proxima;
 }
 
@@ -237,7 +251,8 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
     jobsAtivos.delete(key);
   }
 
-  const task = cron.schedule(CRON_CADA_HORA, async () => {
+  // Agendar nos dois horários fixos: 7h e 16h BRT
+  const executarSync = async () => {
     const status = jobsAtivos.get(key);
     if (status) {
       status.ultimaExecucao = new Date();
@@ -252,7 +267,6 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
 
     // Após o sync desta empresa, verificar se é a última empresa do tenant
     // e aplicar a distribuição Dpote para todas as unidades do tenant.
-    // A verificação evita múltiplas chamadas quando várias empresas do mesmo tenant sincronizam.
     const todasEmpresasTenant = Array.from(jobsAtivos.values() as Iterable<JobStatus>)
       .filter((j) => j.tenantId === tenantId);
     const ultimaEmpresa = todasEmpresasTenant
@@ -260,26 +274,45 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       .at(-1);
     if (ultimaEmpresa?.empresaSlug === empresaSlug) {
       await executarAplicacaoDpote(tenantId, "horario");
-      // Após atualizar os dados, verificar se alguma empresa atingiu a meta diária
       await verificarMetaDiariaParaTenant(tenantId);
-      // Recalcular ranking dos profissionais para manter /pro sempre atualizado
       try {
         const resultado = await executarRecalculoRanking(tenantId);
-        console.log(`[CashBarber Job] Ranking horário recalculado: ${resultado.sincronizados} profissional(is)`);
+        console.log(`[CashBarber Job] Ranking recalculado: ${resultado.sincronizados} profissional(is)`);
       } catch (rankErr) {
-        console.warn(`[CashBarber Job] Falha ao recalcular ranking horário:`, rankErr);
+        console.warn(`[CashBarber Job] Falha ao recalcular ranking:`, rankErr);
       }
     }
+  };
+
+  const task7h = cron.schedule(CRON_7H_BRT, async () => {
+    const status = jobsAtivos.get(key);
+    if (status) {
+      status.ultimaExecucao = new Date();
+      status.proximaExecucao = calcularProximaExecucao();
+    }
+    console.log(`[CashBarber Job] Sync 7h BRT para ${empresaSlug}`);
+    await executarSync();
+  });
+
+  const task16h = cron.schedule(CRON_16H_BRT, async () => {
+    const status = jobsAtivos.get(key);
+    if (status) {
+      status.ultimaExecucao = new Date();
+      status.proximaExecucao = calcularProximaExecucao();
+    }
+    console.log(`[CashBarber Job] Sync 16h BRT para ${empresaSlug}`);
+    await executarSync();
   });
 
   jobsAtivos.set(key, {
     empresaSlug,
     tenantId,
-    task,
+    task: task7h, // referência principal (task16h é gerenciada internamente)
     proximaExecucao: calcularProximaExecucao(),
-  });
+    _task16h: task16h,
+  } as any);
 
-  console.log(`[CashBarber Job] Agendado (a cada hora): ${empresaSlug}`);
+  console.log(`[CashBarber Job] Agendado (7h e 16h BRT): ${empresaSlug}`);
 }
 
 /**
@@ -287,9 +320,10 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
  */
 function cancelarJobEmpresa(tenantId: number, empresaSlug: string): void {
   const key = jobKey(tenantId, empresaSlug);
-  const job = jobsAtivos.get(key);
+  const job = jobsAtivos.get(key) as any;
   if (job) {
     job.task.stop();
+    if (job._task16h) job._task16h.stop();
     jobsAtivos.delete(key);
     console.log(`[CashBarber Job] Cancelado: ${empresaSlug}`);
   }
@@ -398,7 +432,7 @@ async function listAllActiveCashbarberConfigs() {
  * Deve ser chamado uma vez na inicialização do servidor.
  */
 export async function inicializarJobsCashbarber(): Promise<void> {
-  console.log("[CashBarber Job] Inicializando sistema de jobs (intervalo: 1 hora)...");
+  console.log("[CashBarber Job] Inicializando sistema de jobs (7h e 16h BRT)...");
 
   // Aguardar 5 segundos para o servidor estar completamente inicializado
   await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -571,13 +605,11 @@ cron.schedule("0 0 21 * * *", () => {
   );
 });
 
-// ─── Job diário às 6h10 da manhã (09:10 UTC = 06:10 BRT) ────────────────────
-// Garante que o sync do dia seja executado cedo mesmo que o job horário
-// tenha sido perdido por hibernação do sandbox.
-// Dispara às 06h10 BRT (5 min após o job horário das 06h05) para evitar
-// conflito de login simultâneo com o CRON_CADA_HORA.
-cron.schedule("0 10 9 * * *", async () => {
-  console.log("[CashBarber Job] Sync diário das 6h10 iniciado...");
+// ─── Job de fallback diário às 7h05 BRT (10:05 UTC) ────────────────────────
+// Garante que o sync seja executado mesmo que o job das 7h falhe por hibernação.
+// Dispara 5 minutos após o job das 7h para evitar conflito de login simultâneo.
+cron.schedule("0 5 10 * * *", async () => {
+  console.log("[CashBarber Job] Sync diário 7h05 BRT iniciado...");
   const errosPorEmpresa: Record<string, string> = {};
   try {
     const configs = await listAllActiveCashbarberConfigs();
@@ -608,7 +640,7 @@ cron.schedule("0 10 9 * * *", async () => {
           .join("\n");
         await notifyOwner({
           title: `\u26a0\ufe0f Falha no Sync Automático (${dataHora})`,
-          content: `O sync diário das 6h falhou para ${totalErros} empresa(s):\n\n${detalhes}\n\nAcesse /sync-status para detalhes ou dispare um sync manual.`,
+          content: `O sync das 7h falhou para ${totalErros} empresa(s):\n\n${detalhes}\n\nAcesse /sync-status para detalhes ou dispare um sync manual.`,
         });
         console.log(`[CashBarber Job] Alerta de falha enviado: ${totalErros} empresa(s) com erro`);
       } catch (notifErr) {
@@ -625,17 +657,17 @@ cron.schedule("0 10 9 * * *", async () => {
     } catch (rankErr) {
       console.warn("[CashBarber Job] Falha ao recalcular ranking:", rankErr);
     }
-    console.log(`[CashBarber Job] Sync diário das 6h concluído. Erros: ${totalErros}`);
+    console.log(`[CashBarber Job] Sync diário 7h05 BRT concluído. Erros: ${totalErros}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[CashBarber Job] Erro crítico no sync diário das 6h:", msg);
+    console.log("[CashBarber Job] Erro crítico no sync diário 7h05 BRT:", msg);
     // Alerta crítico: o job inteiro falhou
     try {
       const { notifyOwner } = await import("./_core/notification");
       const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
       await notifyOwner({
         title: `\ud83d\udd34 Falha Crítica no Job de Sync (${dataHora})`,
-        content: `O job diário de sincronização das 6h falhou completamente:\n\n${msg}\n\nAcesse /sync-status para detalhes.`,
+        content: `O job de sincronização das 7h falhou completamente:\n\n${msg}\n\nAcesse /sync-status para detalhes.`,
       });
     } catch { /* silenciar erro de notificação */ }
   }
