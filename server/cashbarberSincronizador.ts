@@ -36,6 +36,7 @@ import {
   cashbarberCalcularDpotePorFichas,
   cashbarberBuscarValorAssinaturas,
   cashbarberCriarHistoricoDpote,
+  cashbarberCalcularDpoteViaHistorico,
 } from "./cashbarber";
 
 /**
@@ -548,14 +549,25 @@ export async function aplicarDpoteParaTenant(
   // Calcular período
   const hoje = new Date();
   const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
-  const ultimoDia = ehMesAtual ? hoje.getDate() : new Date(ano, mes, 0).getDate();
-  const dataInicial = `${ano}-${String(mes).padStart(2, "0")}-01`;
-  const dataFinal = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
-  // Calcular distribuição por filial via fichas ponderadas
-  const resultados = await cashbarberCalcularDpotePorFichas(
-    token, dataInicial, dataFinal, valorAssinaturas, porcentagemBarbearia
-  );
+  // Usar cashbarberCalcularDpoteViaHistorico — mesma lógica do botão 'Aplicar no Faturamento'
+  // Isso garante que o job automático produza exatamente o mesmo resultado que o botão manual.
+  // Busca o histórico mais recente válido a partir do ID criado/salvo.
+  const historicoIdParaCalculo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
+  const idInicial = historicoIdParaCalculo ?? 68539;
+  const esMesVigente = ehMesAtual;
+  const resultadoHistorico = await cashbarberCalcularDpoteViaHistorico(token, idInicial, esMesVigente);
+
+  // Converter o resultado para o formato esperado pelo restante da função
+  const resultados: Array<{ filialNome: string; valorDistribuido: number }> = resultadoHistorico
+    ? resultadoHistorico.filiais.map((f) => ({ filialNome: f.filialNome, valorDistribuido: f.valorDistribuido }))
+    : [];
+
+  // Atualizar valorAssinaturas com o valor real do histórico (se disponível)
+  if (resultadoHistorico && resultadoHistorico.valorAssinaturas > 0) {
+    valorAssinaturas = resultadoHistorico.valorAssinaturas;
+    console.log(`[CashBarber Dpote] Histórico #${resultadoHistorico.historicoId} usado para distribuição: R$ ${valorAssinaturas} assinaturas`);
+  }
 
   const totalDiasMes = new Date(ano, mes, 0).getDate();
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
