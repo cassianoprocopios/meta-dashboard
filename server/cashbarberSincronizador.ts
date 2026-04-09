@@ -174,53 +174,63 @@ export async function sincronizarFaturamentoCashbarber(
       const dataInicialDpote = `${ano}-${String(mes).padStart(2, "0")}-01`;
       const dataFinalDpote = `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDiaDpote).padStart(2, "0")}`;
 
-      // Tentar buscar valor de assinaturas automaticamente via API do CashBarber
-      // usando o ID do histórico Dpote salvo no banco (dpoteHistoricoId)
+      // Sempre criar novo histórico para obter o valor mais atualizado do Dpote
+      // O Cash Barber atualiza o valor das assinaturas criando novos históricos diariamente
       let valorAssinaturasEfetivo = dpoteValorAssinaturas;
       let porcentagemBarbeariaEfetiva = dpotePorcentagemBarbearia;
       let valorFonteBusca = "manual";
 
       const mesSigla = `${ano}-${String(mes).padStart(2, "0")}`;
-      const historicoIdSalvo = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
-
-      // Tentar buscar via histórico salvo; se falhar, criar novo histórico automaticamente
       let dadosApi = null;
 
-      if (historicoIdSalvo) {
-        dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+      // Sempre criar novo histórico para garantir o valor mais recente
+      try {
+        const novoHistoricoId = await cashbarberCriarHistoricoDpote(token);
+        await saveDpoteHistoricoId(tenantId, empresaSlug, novoHistoricoId, mesSigla);
+        console.log(`[CashBarber] Dpote ${empresaSlug}: novo histórico criado #${novoHistoricoId}`);
+
+        // Aguardar um momento para o CashBarber processar o histórico
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        dadosApi = await cashbarberBuscarValorAssinaturas(token, novoHistoricoId);
         if (dadosApi) {
           valorAssinaturasEfetivo = dadosApi.valorAssinaturas;
           porcentagemBarbeariaEfetiva = dadosApi.porcentagemBarbearia;
-          valorFonteBusca = `api (histórico #${historicoIdSalvo})`;
-          console.log(`[CashBarber] Dpote ${empresaSlug}: valor assinaturas buscado automaticamente = R$ ${valorAssinaturasEfetivo} (${valorFonteBusca})`);
+          valorFonteBusca = `api (novo histórico #${novoHistoricoId})`;
+          console.log(`[CashBarber] Dpote ${empresaSlug}: valor assinaturas via novo histórico = R$ ${valorAssinaturasEfetivo} (${valorFonteBusca})`);
         } else {
-          console.warn(`[CashBarber] Dpote ${empresaSlug}: API retornou null para histórico #${historicoIdSalvo}, tentando criar novo histórico...`);
-        }
-      } else {
-        console.log(`[CashBarber] Dpote ${empresaSlug}: sem histórico Dpote salvo para ${mesSigla}, tentando criar novo histórico...`);
-      }
-
-      // Se não conseguiu dados via histórico salvo, criar novo histórico automaticamente
-      if (!dadosApi) {
-        try {
-          const novoHistoricoId = await cashbarberCriarHistoricoDpote(token);
-          await saveDpoteHistoricoId(tenantId, empresaSlug, novoHistoricoId, mesSigla);
-          console.log(`[CashBarber] Dpote ${empresaSlug}: novo histórico criado #${novoHistoricoId}`);
-
-          // Aguardar um momento para o CashBarber processar o histórico
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          dadosApi = await cashbarberBuscarValorAssinaturas(token, novoHistoricoId);
-          if (dadosApi) {
-            valorAssinaturasEfetivo = dadosApi.valorAssinaturas;
-            porcentagemBarbeariaEfetiva = dadosApi.porcentagemBarbearia;
-            valorFonteBusca = `api (novo histórico #${novoHistoricoId})`;
-            console.log(`[CashBarber] Dpote ${empresaSlug}: valor assinaturas via novo histórico = R$ ${valorAssinaturasEfetivo} (${valorFonteBusca})`);
-          } else {
-            console.warn(`[CashBarber] Dpote ${empresaSlug}: novo histórico #${novoHistoricoId} também retornou null, usando valor manual`);
+          // Fallback: tentar histórico salvo anteriormente
+          console.warn(`[CashBarber] Dpote ${empresaSlug}: novo histórico #${novoHistoricoId} retornou null, tentando histórico anterior...`);
+          const historicoIdSalvo = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
+          if (historicoIdSalvo && historicoIdSalvo !== novoHistoricoId) {
+            dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+            if (dadosApi) {
+              valorAssinaturasEfetivo = dadosApi.valorAssinaturas;
+              porcentagemBarbeariaEfetiva = dadosApi.porcentagemBarbearia;
+              valorFonteBusca = `api (histórico anterior #${historicoIdSalvo})`;
+              console.log(`[CashBarber] Dpote ${empresaSlug}: valor via histórico anterior = R$ ${valorAssinaturasEfetivo}`);
+            }
           }
-        } catch (errHistorico) {
-          console.warn(`[CashBarber] Dpote ${empresaSlug}: falha ao criar novo histórico, usando valor manual:`, errHistorico);
+          if (!dadosApi) {
+            console.warn(`[CashBarber] Dpote ${empresaSlug}: todos os históricos retornaram null, usando valor manual`);
+          }
+        }
+      } catch (errHistorico) {
+        // Fallback: tentar histórico salvo se falhar ao criar novo
+        console.warn(`[CashBarber] Dpote ${empresaSlug}: falha ao criar novo histórico, tentando histórico salvo:`, errHistorico);
+        try {
+          const historicoIdSalvo = await getDpoteHistoricoId(tenantId, empresaSlug, mesSigla);
+          if (historicoIdSalvo) {
+            dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+            if (dadosApi) {
+              valorAssinaturasEfetivo = dadosApi.valorAssinaturas;
+              porcentagemBarbeariaEfetiva = dadosApi.porcentagemBarbearia;
+              valorFonteBusca = `api (histórico salvo #${historicoIdSalvo})`;
+              console.log(`[CashBarber] Dpote ${empresaSlug}: valor via histórico salvo = R$ ${valorAssinaturasEfetivo}`);
+            }
+          }
+        } catch (errFallback) {
+          console.warn(`[CashBarber] Dpote ${empresaSlug}: fallback também falhou:`, errFallback);
         }
       }
 
