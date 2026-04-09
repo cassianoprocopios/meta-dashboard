@@ -8,16 +8,27 @@
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 
-// ─── Horários fixos: 7h e 16h BRT ───────────────────────────────────────────
-// 7h BRT = 10h UTC = "0 0 10 * * *"
-// 16h BRT = 19h UTC = "0 0 19 * * *"
+// ─── Horários de sync: 7h, 9h, 12h, 15h, 16h, 18h, 20h BRT ─────────────────
+// BRT = UTC-3
+// 7h BRT  = 10h UTC
+// 9h BRT  = 12h UTC
+// 12h BRT = 15h UTC
+// 15h BRT = 18h UTC
+// 16h BRT = 19h UTC
+// 18h BRT = 21h UTC
+// 20h BRT = 23h UTC
 
 /**
- * Expressões cron para execução 2x por dia.
- * 7h00 BRT (10:00 UTC) e 16h00 BRT (19:00 UTC).
+ * Expressões cron para execução múltiplas vezes por dia.
+ * 7h, 9h, 12h, 15h, 16h, 18h e 20h BRT.
  */
-const CRON_7H_BRT = "0 0 10 * * *";
+const CRON_7H_BRT  = "0 0 10 * * *";
+const CRON_9H_BRT  = "0 0 12 * * *";
+const CRON_12H_BRT = "0 0 15 * * *";
+const CRON_15H_BRT = "0 0 18 * * *";
 const CRON_16H_BRT = "0 0 19 * * *";
+const CRON_18H_BRT = "0 0 21 * * *";
+const CRON_20H_BRT = "0 0 23 * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -42,19 +53,19 @@ function jobKey(tenantId: number, empresaSlug: string): string {
 }
 
 /**
- * Calcula a próxima execução (próximo horário fixo: 7h ou 16h BRT)
+ * Calcula a próxima execução (próximo horário fixo em BRT: 7h, 9h, 12h, 15h, 16h, 18h, 20h)
  */
 function calcularProximaExecucao(): Date {
   const agora = new Date();
   const horaBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
   const hora = horaBRT.getHours();
+  // Horários em UTC (BRT+3)
+  const horariosUTC = [10, 12, 15, 18, 19, 21, 23]; // 7h, 9h, 12h, 15h, 16h, 18h, 20h BRT
+  const horasBRT    = [ 7,  9, 12, 15, 16, 18, 20];
   const proxima = new Date(agora);
-  if (hora < 7) {
-    // Próximo: 7h hoje
-    proxima.setHours(proxima.getHours() + (10 - proxima.getUTCHours()), 0, 0, 0);
-  } else if (hora < 16) {
-    // Próximo: 16h hoje
-    proxima.setHours(proxima.getHours() + (19 - proxima.getUTCHours()), 0, 0, 0);
+  const proximoIdx = horasBRT.findIndex((h) => h > hora);
+  if (proximoIdx >= 0) {
+    proxima.setUTCHours(horariosUTC[proximoIdx], 0, 0, 0);
   } else {
     // Próximo: 7h amanhã
     proxima.setDate(proxima.getDate() + 1);
@@ -284,35 +295,39 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
     }
   };
 
-  const task7h = cron.schedule(CRON_7H_BRT, async () => {
-    const status = jobsAtivos.get(key);
-    if (status) {
-      status.ultimaExecucao = new Date();
-      status.proximaExecucao = calcularProximaExecucao();
-    }
-    console.log(`[CashBarber Job] Sync 7h BRT para ${empresaSlug}`);
-    await executarSync();
-  });
+  const criarTask = (cronExpr: string, label: string) =>
+    cron.schedule(cronExpr, async () => {
+      const status = jobsAtivos.get(key);
+      if (status) {
+        status.ultimaExecucao = new Date();
+        status.proximaExecucao = calcularProximaExecucao();
+      }
+      console.log(`[CashBarber Job] Sync ${label} BRT para ${empresaSlug}`);
+      await executarSync();
+    });
 
-  const task16h = cron.schedule(CRON_16H_BRT, async () => {
-    const status = jobsAtivos.get(key);
-    if (status) {
-      status.ultimaExecucao = new Date();
-      status.proximaExecucao = calcularProximaExecucao();
-    }
-    console.log(`[CashBarber Job] Sync 16h BRT para ${empresaSlug}`);
-    await executarSync();
-  });
+  const task7h  = criarTask(CRON_7H_BRT,  "7h");
+  const task9h  = criarTask(CRON_9H_BRT,  "9h");
+  const task12h = criarTask(CRON_12H_BRT, "12h");
+  const task15h = criarTask(CRON_15H_BRT, "15h");
+  const task16h = criarTask(CRON_16H_BRT, "16h");
+  const task18h = criarTask(CRON_18H_BRT, "18h");
+  const task20h = criarTask(CRON_20H_BRT, "20h");
 
   jobsAtivos.set(key, {
     empresaSlug,
     tenantId,
-    task: task7h, // referência principal (task16h é gerenciada internamente)
+    task: task7h, // referência principal
     proximaExecucao: calcularProximaExecucao(),
+    _task9h: task9h,
+    _task12h: task12h,
+    _task15h: task15h,
     _task16h: task16h,
+    _task18h: task18h,
+    _task20h: task20h,
   } as any);
 
-  console.log(`[CashBarber Job] Agendado (7h e 16h BRT): ${empresaSlug}`);
+  console.log(`[CashBarber Job] Agendado (7h, 9h, 12h, 15h, 16h, 18h, 20h BRT): ${empresaSlug}`);
 }
 
 /**
@@ -323,7 +338,12 @@ function cancelarJobEmpresa(tenantId: number, empresaSlug: string): void {
   const job = jobsAtivos.get(key) as any;
   if (job) {
     job.task.stop();
+    if (job._task9h)  job._task9h.stop();
+    if (job._task12h) job._task12h.stop();
+    if (job._task15h) job._task15h.stop();
     if (job._task16h) job._task16h.stop();
+    if (job._task18h) job._task18h.stop();
+    if (job._task20h) job._task20h.stop();
     jobsAtivos.delete(key);
     console.log(`[CashBarber Job] Cancelado: ${empresaSlug}`);
   }
@@ -432,7 +452,7 @@ async function listAllActiveCashbarberConfigs() {
  * Deve ser chamado uma vez na inicialização do servidor.
  */
 export async function inicializarJobsCashbarber(): Promise<void> {
-  console.log("[CashBarber Job] Inicializando sistema de jobs (7h e 16h BRT)...");
+  console.log("[CashBarber Job] Inicializando sistema de jobs (7h, 9h, 12h, 15h, 16h, 18h, 20h BRT)...");
 
   // Aguardar 5 segundos para o servidor estar completamente inicializado
   await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -498,6 +518,27 @@ cron.schedule("0 20,50 * * * *", async () => {
 });
 
 console.log("[Ranking Job] Job de 30min agendado (Seg–Sex 09:30–21:00 | Sáb 09:30–19:00)");
+
+// ─── Job de Dpote a cada hora (’:30) durante horário de funcionamento ─────────────────
+// Garante que o valor do Dpote seja sempre o mais recente ao longo do dia,
+// sem depender do sync completo do faturamento.
+cron.schedule("0 30 * * * *", async () => {
+  if (!dentroDoHorarioFuncionamento()) return;
+
+  const configs = await listAllActiveCashbarberConfigs().catch(() => []);
+  const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+  if (tenantIds.length === 0) return;
+
+  const agora = new Date();
+  const dataHora = agora.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  console.log(`[Dpote Job] Atualização horária do Dpote (${dataHora})...`);
+
+  for (const tenantId of tenantIds) {
+    await executarAplicacaoDpote(tenantId, "horario");
+  }
+});
+
+console.log("[Dpote Job] Job horário do Dpote agendado (a cada hora no minuto :30, horário de funcionamento)");
 
 // ─── Job de Notificação Diária do Ranking (21h) ───────────────────────────────
 
