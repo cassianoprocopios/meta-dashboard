@@ -326,8 +326,9 @@ export async function sincronizarFaturamentoCashbarber(
 
       // cat9 (Recorrência / Dpote):
       // Regra:
-      //   - Dias 1 até hoje: valor diário calculado pelo Dpote do mês vigente
-      //     (recorrenciaValor dividido pelo total de dias do mês)
+      //   - Dias 1 até hoje: valor diário = recorrenciaValor ÷ diasRealizados (ultimoDia)
+      //     Isso garante que a soma total dos dias realizados = recorrenciaValor
+      //     (mesmo cálculo usado pelo job de Dpote em aplicarDpoteParaTenant)
       //   - Dias futuros (após hoje): SEMPRE "0" no banco.
       //     A previsão baseada no mês passado é calculada dinamicamente no frontend.
       //   - Meses passados: valor diário calculado pelo Dpote do mês
@@ -340,8 +341,10 @@ export async function sincronizarFaturamentoCashbarber(
           // Dia futuro: gravar "0" no banco. Previsão é calculada no frontend.
           cat9 = "0";
         } else {
-          // Dia realizado: usar valor do Dpote do mês vigente
-          const valorDiario = Math.round((recorrenciaValor / totalDiasMesAtual) * 100) / 100;
+          // Dia realizado: dividir pelo número de dias JA REALIZADOS (ultimoDia)
+          // para que a soma total bata com recorrenciaValor
+          const diasRealizadosSync = ultimoDia; // = hoje.getDate() para mês atual
+          const valorDiario = Math.round((recorrenciaValor / diasRealizadosSync) * 100) / 100;
           cat9 = String(valorDiario);
         }
       } else {
