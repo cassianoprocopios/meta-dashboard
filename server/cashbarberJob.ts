@@ -107,6 +107,17 @@ async function executarSincronizacaoEmpresa(
  */
 async function executarAplicacaoDpote(tenantId: number, origem: "horario" | "diario" | "manual" = "horario"): Promise<void> {
   const agora = new Date();
+
+  // Pular atualização automática do Dpote aos domingos (salão fechado = sem novas assinaturas)
+  // Chamadas manuais (origem === "manual") sempre são executadas independente do dia
+  if (origem !== "manual") {
+    const diaSemana = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getDay();
+    if (diaSemana === 0) {
+      console.log(`[CashBarber Job] Dpote ignorado (domingo) para tenant ${tenantId}`);
+      return;
+    }
+  }
+
   const mes = agora.getMonth() + 1;
   const ano = agora.getFullYear();
   const dataHora = agora.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
