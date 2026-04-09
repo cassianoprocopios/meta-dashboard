@@ -500,19 +500,44 @@ export async function aplicarDpoteParaTenant(
 
   try {
     const novoHistoricoId = await cashbarberCriarHistoricoDpote(token);
-    const dadosApi = await cashbarberBuscarValorAssinaturas(token, novoHistoricoId);
-    if (dadosApi) {
+    console.log(`[CashBarber Dpote] Histórico criado #${novoHistoricoId}, aguardando processamento...`);
+
+    // O CashBarber precisa de alguns segundos para processar o histórico após a criação.
+    // Tentamos até 3 vezes com delay de 4s entre cada tentativa.
+    let dadosApi: { valorAssinaturas: number; porcentagemBarbearia: number } | null = null;
+    for (let tentativa = 1; tentativa <= 3; tentativa++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      dadosApi = await cashbarberBuscarValorAssinaturas(token, novoHistoricoId);
+      if (dadosApi && dadosApi.valorAssinaturas > 0) {
+        console.log(`[CashBarber Dpote] Histórico #${novoHistoricoId} processado na tentativa ${tentativa}: R$ ${dadosApi.valorAssinaturas}`);
+        break;
+      }
+      console.log(`[CashBarber Dpote] Histórico #${novoHistoricoId} ainda não processado (tentativa ${tentativa}/3)...`);
+    }
+
+    if (dadosApi && dadosApi.valorAssinaturas > 0) {
       valorAssinaturas = dadosApi.valorAssinaturas;
       // Salvar o novo histórico ID no banco para referência e para a aba Dpote
       await saveDpoteHistoricoId(tenantId, configComDpote.empresaSlug, novoHistoricoId, mesSigla, valorAssinaturas);
       console.log(`[CashBarber Dpote] Novo histórico #${novoHistoricoId}: R$ ${valorAssinaturas} assinaturas`);
+    } else {
+      // Histórico criado mas sem dados após 3 tentativas — buscar histórico mais recente válido
+      console.warn(`[CashBarber Dpote] Histórico #${novoHistoricoId} sem dados após 3 tentativas, buscando histórico anterior...`);
+      const historicoIdSalvo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
+      if (historicoIdSalvo && historicoIdSalvo !== novoHistoricoId) {
+        const dadosFallback = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
+        if (dadosFallback && dadosFallback.valorAssinaturas > 0) {
+          valorAssinaturas = dadosFallback.valorAssinaturas;
+          console.log(`[CashBarber Dpote] Usando histórico anterior #${historicoIdSalvo}: R$ ${valorAssinaturas} assinaturas`);
+        }
+      }
     }
   } catch (err) {
     // Fallback: usar histórico salvo se falhar ao criar novo
     const historicoIdSalvo = await getDpoteHistoricoId(tenantId, configComDpote.empresaSlug, mesSigla);
     if (historicoIdSalvo) {
       const dadosApi = await cashbarberBuscarValorAssinaturas(token, historicoIdSalvo);
-      if (dadosApi) {
+      if (dadosApi && dadosApi.valorAssinaturas > 0) {
         valorAssinaturas = dadosApi.valorAssinaturas;
         console.log(`[CashBarber Dpote] Fallback histórico #${historicoIdSalvo}: R$ ${valorAssinaturas} assinaturas`);
       }
