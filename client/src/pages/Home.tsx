@@ -283,6 +283,31 @@ export default function Home() {
     return m;
   }, [configsDpote]);
 
+  // Configurações de bonificação por empresa
+  const { data: bonificacoesConfig = [] } = trpc.bonificacao.listar.useQuery(
+    undefined,
+    { enabled: isGerente || isAdmin, staleTime: 5 * 60_000 }
+  );
+  const bonificacaoMap = useMemo(() => {
+    const m: Record<string, {
+      pctQuinzenalSemMeta: number;
+      pctQuinzenalComMeta: number;
+      pctMensalSemMeta: number;
+      pctMensalComMeta: number;
+      pctSuperMeta: number;
+    }> = {};
+    for (const b of bonificacoesConfig) {
+      m[b.empresaSlug] = {
+        pctQuinzenalSemMeta: parseFloat(String(b.pctQuinzenalSemMeta || "0")),
+        pctQuinzenalComMeta: parseFloat(String(b.pctQuinzenalComMeta || "0")),
+        pctMensalSemMeta: parseFloat(String(b.pctMensalSemMeta || "0")),
+        pctMensalComMeta: parseFloat(String(b.pctMensalComMeta || "0")),
+        pctSuperMeta: parseFloat(String(b.pctSuperMeta || "0")),
+      };
+    }
+    return m;
+  }, [bonificacoesConfig]);
+
   // Mês anterior para comparativo
   const mesAnterior = mes === 1 ? 12 : mes - 1;
   const anoAnterior = mes === 1 ? ano - 1 : ano;
@@ -2537,6 +2562,70 @@ export default function Home() {
                               )}
                             </div>
                           )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* ── VALOR A PAGAR (BONIFICAÇÃO) ── */}
+                    {(isGerente || isAdmin) && (() => {
+                      const bonif = bonificacaoMap[s.emp.slug];
+                      if (!bonif) return null;
+                      const atingiuMensal = s.totalRealizado >= s.metaMensal && s.metaMensal > 0;
+                      const atingiuQuinzenal = s.totalQuinzenal >= s.metaQuinzenal && s.metaQuinzenal > 0;
+                      const atingiuSuperMeta = s.superMeta > 0 && s.totalRealizado >= s.superMeta;
+
+                      // Quinzenal: usa pct com meta se atingiu, sem meta caso contrário
+                      const pctQz = atingiuQuinzenal ? bonif.pctQuinzenalComMeta : bonif.pctQuinzenalSemMeta;
+                      const valorQz = s.metaQuinzenal > 0 ? (s.totalQuinzenal * pctQz) / 100 : 0;
+
+                      // Mensal: usa pct com meta se atingiu, sem meta caso contrário
+                      const pctMensal = atingiuMensal ? bonif.pctMensalComMeta : bonif.pctMensalSemMeta;
+                      const valorMensal = s.metaMensal > 0 ? (s.totalRealizado * pctMensal) / 100 : 0;
+
+                      // Super meta
+                      const valorSuper = atingiuSuperMeta ? (s.totalRealizado * bonif.pctSuperMeta) / 100 : 0;
+
+                      const totalPagar = valorQz + valorMensal + valorSuper;
+
+                      if (totalPagar === 0 && valorQz === 0 && valorMensal === 0) return null;
+
+                      return (
+                        <div className="px-5 py-3" style={{ backgroundColor: 'rgba(16,185,129,0.08)', borderTop: '1px solid rgba(16,185,129,0.2)' }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                <span className="text-emerald-400 text-xs font-bold">R$</span>
+                              </div>
+                              <p className="font-label text-[10px] text-emerald-400/70 tracking-widest">VALOR A PAGAR</p>
+                            </div>
+                            <p className="font-display text-lg font-bold text-emerald-300">{fmt(totalPagar)}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {s.metaQuinzenal > 0 && (
+                              <div className={`rounded-lg px-2 py-1.5 ${atingiuQuinzenal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
+                                <p className="text-[9px] uppercase tracking-wide" style={{ color: atingiuQuinzenal ? '#6ee7b7' : '#94a3b8' }}>
+                                  {atingiuQuinzenal ? '✅' : '⏳'} Quinzenal ({pctQz.toFixed(1)}%)
+                                </p>
+                                <p className={`text-[11px] font-bold ${atingiuQuinzenal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorQz)}</p>
+                                <p className="text-[9px] text-slate-400">{fmt(s.totalQuinzenal)}</p>
+                              </div>
+                            )}
+                            {s.metaMensal > 0 && (
+                              <div className={`rounded-lg px-2 py-1.5 ${atingiuMensal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
+                                <p className="text-[9px] uppercase tracking-wide" style={{ color: atingiuMensal ? '#6ee7b7' : '#94a3b8' }}>
+                                  {atingiuMensal ? '✅' : '⏳'} Mensal ({pctMensal.toFixed(1)}%)
+                                </p>
+                                <p className={`text-[11px] font-bold ${atingiuMensal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorMensal)}</p>
+                                <p className="text-[9px] text-slate-400">{fmt(s.totalRealizado)}</p>
+                              </div>
+                            )}
+                            {atingiuSuperMeta && bonif.pctSuperMeta > 0 && (
+                              <div className="rounded-lg px-2 py-1.5 bg-amber-500/15 col-span-2">
+                                <p className="text-[9px] text-amber-400/80 uppercase tracking-wide">⭐ Super Meta ({bonif.pctSuperMeta.toFixed(1)}%)</p>
+                                <p className="text-[11px] font-bold text-amber-300">{fmt(valorSuper)}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })()}
