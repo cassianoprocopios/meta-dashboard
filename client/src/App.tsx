@@ -17,6 +17,7 @@ import RankingProfissional from "./pages/RankingProfissional";
 import SyncStatus from "./pages/SyncStatus";
 import AcessoProfissionais from "./pages/AcessoProfissionais";
 import RecuperarSenha from "./pages/RecuperarSenha";
+import GestaoColaboradores from "./pages/GestaoColaboradores";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -68,6 +69,7 @@ function Router() {
       <Route path={"/ranking"} component={RankingPublico} />
       <Route path={"/sync-status"} component={SyncStatus} />
       <Route path={"/acesso-profissionais"} component={AcessoProfissionais} />
+      <Route path={"/colaboradores"} component={GestaoColaboradores} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
