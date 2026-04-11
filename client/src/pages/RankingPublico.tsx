@@ -716,13 +716,13 @@ export default function RankingPublico() {
     { data: dataDiariaStr },
     { staleTime: 120_000, enabled: modo === "diario" }
   );
-  const rankingDiario = useMemo(() => (rankingDiarioData ?? []) as Profissional[], [rankingDiarioData]);
+  const rankingDiario = useMemo(() => (rankingDiarioData ?? []).map((p) => ({ ...p, temDados: p.totalGeral > 0 })) as Profissional[], [rankingDiarioData]);
 
   const { data: rankingSemanalData, isLoading: isLoadingSemanal, refetch: refetchSemanal } = trpc.rankingSemanal.useQuery(
     { dataInicio: semanaInicioStr, dataFim: semanaFimStr },
     { staleTime: 120_000, enabled: modo === "semanal" }
   );
-  const rankingSemanal = useMemo(() => (rankingSemanalData ?? []) as Profissional[], [rankingSemanalData]);
+  const rankingSemanal = useMemo(() => (rankingSemanalData ?? []).map((p) => ({ ...p, temDados: p.totalGeral > 0 })) as Profissional[], [rankingSemanalData]);
 
   // Ranking ativo conforme modo
   const rankingAtivo: Profissional[] = modo === "diario" ? rankingDiario

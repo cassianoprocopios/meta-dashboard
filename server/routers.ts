@@ -4162,11 +4162,20 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      // Calcular início do mês para buscar total acumulado mensal
+      const [anoStr, mesStr] = input.data.split('-');
+      const inicioMes = `${anoStr}-${mesStr}-01`;
       const resultados = await Promise.all(
         comId.map(async (col) => {
           const metaMensal = col.metaMensal ? Number(col.metaMensal) : null;
           try {
-            const relatorio = await cashbarberRelatorio15(token, input.data, input.data, null, col.cashbarberProfissionalId);
+            // Busca paralela: faturamento do dia E total acumulado do mês
+            const [relatorio, relatorioMes] = await Promise.all([
+              cashbarberRelatorio15(token, input.data, input.data, null, col.cashbarberProfissionalId),
+              inicioMes !== input.data
+                ? cashbarberRelatorio15(token, inicioMes, input.data, null, col.cashbarberProfissionalId)
+                : null,
+            ]);
             const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
             const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
             const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
@@ -4174,7 +4183,13 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             const totalGeral = totalServicos + totalProdutos;
-            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalGeral / metaMensal) * 100) : null;
+            // Total acumulado do mês (para cálculo correto da meta)
+            const relMes = relatorioMes ?? relatorio;
+            const servicosMes = relMes.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosMes = relMes.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalMes = servicosMes.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0)
+                           + produtosMes.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalMes / metaMensal) * 100) : null;
             return {
               id: col.id,
               nome: col.nome,
@@ -4186,6 +4201,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos,
               totalProdutos,
               totalGeral,
+              totalMes,
               qtdServicos,
               qtdProdutos,
               metaMensal,
@@ -4203,6 +4219,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos: 0,
               totalProdutos: 0,
               totalGeral: 0,
+              totalMes: 0,
               qtdServicos: 0,
               qtdProdutos: 0,
               metaMensal,
@@ -4229,11 +4246,20 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
       const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
       const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      // Calcular início do mês baseado na dataInicio da semana
+      const [anoStrSem, mesStrSem] = input.dataInicio.split('-');
+      const inicioMesSem = `${anoStrSem}-${mesStrSem}-01`;
       const resultados = await Promise.all(
         comId.map(async (col) => {
           const metaMensal = col.metaMensal ? Number(col.metaMensal) : null;
           try {
-            const relatorio = await cashbarberRelatorio15(token, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
+            // Busca paralela: faturamento da semana E total acumulado do mês
+            const [relatorio, relatorioMes] = await Promise.all([
+              cashbarberRelatorio15(token, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId),
+              inicioMesSem !== input.dataInicio
+                ? cashbarberRelatorio15(token, inicioMesSem, input.dataFim, null, col.cashbarberProfissionalId)
+                : null,
+            ]);
             const servicosRanking = relatorio.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
             const produtosRanking = relatorio.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
             const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
@@ -4241,7 +4267,13 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             const totalGeral = totalServicos + totalProdutos;
-            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalGeral / metaMensal) * 100) : null;
+            // Total acumulado do mês (para cálculo correto da meta)
+            const relMesSem = relatorioMes ?? relatorio;
+            const servicosMesSem = relMesSem.servicos.filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
+            const produtosMesSem = relMesSem.produtos.filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
+            const totalMes = servicosMesSem.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0)
+                           + produtosMesSem.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+            const pctMeta = metaMensal && metaMensal > 0 ? Math.round((totalMes / metaMensal) * 100) : null;
             return {
               id: col.id,
               nome: col.nome,
@@ -4253,6 +4285,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos,
               totalProdutos,
               totalGeral,
+              totalMes,
               qtdServicos,
               qtdProdutos,
               metaMensal,
@@ -4270,6 +4303,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               totalServicos: 0,
               totalProdutos: 0,
               totalGeral: 0,
+              totalMes: 0,
               qtdServicos: 0,
               qtdProdutos: 0,
               metaMensal,

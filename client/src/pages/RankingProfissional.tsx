@@ -251,6 +251,7 @@ function RankingCard({
   apelido,
   fotoUrl,
   totalGeral,
+  totalMes,
   totalServicos,
   totalProdutos,
   qtdServicos = 0,
@@ -270,6 +271,7 @@ function RankingCard({
   apelido?: string | null;
   fotoUrl?: string | null;
   totalGeral: number;
+  totalMes?: number | null;
   totalServicos: number;
   totalProdutos: number;
   qtdServicos?: number;
@@ -385,7 +387,9 @@ function RankingCard({
             </div>
             {/* Meta diária individual necessária */}
             {pctMeta < 100 && diasRestantes != null && diasRestantes > 0 && (() => {
-              const falta = Math.max(0, metaMensal - totalGeral);
+              // Usar totalMes (acumulado do mês) se disponível, senão totalGeral
+              const totalAcumulado = totalMes ?? totalGeral;
+              const falta = Math.max(0, metaMensal - totalAcumulado);
               const metaDiariaInd = falta / diasRestantes;
               return (
                 <div className="text-xs text-blue-300/60 mt-0.5">
@@ -1117,14 +1121,15 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                     nome={p.nome}
                     apelido={p.apelido}
                     fotoUrl={p.fotoUrl}
-                    totalGeral={p.totalGeral}
-                    totalServicos={p.totalServicos}
-                    totalProdutos={p.totalProdutos}
-                     qtdServicos={(p as any).qtdServicos ?? 0}
-                     qtdProdutos={(p as any).qtdProdutos ?? 0}
-                     pctMeta={(p as any).pctMeta ?? null}
-                     metaMensal={(p as any).metaMensal ?? null}
-                     diasRestantes={(!verGeral && (fatMensal as any)?.diasNoMes != null && (fatMensal as any)?.diasPassados != null) ? (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados : null}
+                     totalGeral={p.totalGeral}
+                     totalMes={(p as any).totalMes ?? null}
+                     totalServicos={p.totalServicos}
+                     totalProdutos={p.totalProdutos}
+                      qtdServicos={(p as any).qtdServicos ?? 0}
+                      qtdProdutos={(p as any).qtdProdutos ?? 0}
+                      pctMeta={(p as any).pctMeta ?? null}
+                      metaMensal={(p as any).metaMensal ?? null}
+                      diasRestantes={(!verGeral && (fatMensal as any)?.diasNoMes != null && (fatMensal as any)?.diasPassados != null) ? (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados : null}
                      posAnterior={posMapAnterior.get(p.id) ?? null}
                      isMe={p.nome === meuNome || p.apelido === meuNome}
                      empresaSlug={p.empresaSlug}
@@ -1541,14 +1546,15 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                     nome={p.nome}
                     apelido={p.apelido}
                     fotoUrl={p.fotoUrl}
-                    totalGeral={p.totalGeral}
-                    totalServicos={p.totalServicos}
-                    totalProdutos={p.totalProdutos}
-                     qtdServicos={(p as any).qtdServicos ?? 0}
-                     qtdProdutos={(p as any).qtdProdutos ?? 0}
-                     pctMeta={(p as any).pctMeta ?? null}
-                     metaMensal={(p as any).metaMensal ?? null}
-                     diasRestantes={(!verGeral && (fatMensalSem as any)?.diasNoMes != null && (fatMensalSem as any)?.diasPassados != null) ? (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados : null}
+                     totalGeral={p.totalGeral}
+                     totalMes={(p as any).totalMes ?? null}
+                     totalServicos={p.totalServicos}
+                     totalProdutos={p.totalProdutos}
+                      qtdServicos={(p as any).qtdServicos ?? 0}
+                      qtdProdutos={(p as any).qtdProdutos ?? 0}
+                      pctMeta={(p as any).pctMeta ?? null}
+                      metaMensal={(p as any).metaMensal ?? null}
+                      diasRestantes={(!verGeral && (fatMensalSem as any)?.diasNoMes != null && (fatMensalSem as any)?.diasPassados != null) ? (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados : null}
                      posAnterior={posMapAnteriorSem.get(p.id) ?? null}
                      isMe={p.nome === meuNome || p.apelido === meuNome}
                      empresaSlug={p.empresaSlug}
@@ -1933,12 +1939,13 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                     nome={p.nome}
                     apelido={p.apelido}
                     fotoUrl={p.fotoUrl}
-                    totalGeral={p.totalGeral}
-                    totalServicos={p.totalServicos}
-                    totalProdutos={p.totalProdutos}
-                    qtdServicos={(p as any).qtdServicos ?? 0}
-                    qtdProdutos={(p as any).qtdProdutos ?? 0}
-                    pctMeta={p.pctMeta}
+                     totalGeral={p.totalGeral}
+                     totalMes={(p as any).totalMes ?? p.totalGeral}
+                     totalServicos={p.totalServicos}
+                     totalProdutos={p.totalProdutos}
+                     qtdServicos={(p as any).qtdServicos ?? 0}
+                     qtdProdutos={(p as any).qtdProdutos ?? 0}
+                     pctMeta={p.pctMeta}
                     metaMensal={p.metaMensal}
                     diasRestantes={(!verGeral && (fatUnidadeMes as any)?.diasNoMes != null && (fatUnidadeMes as any)?.diasPassados != null) ? (fatUnidadeMes as any).diasNoMes - (fatUnidadeMes as any).diasPassados : null}
                     posAnterior={posMapAnteriorMes.get(p.id) ?? null}
