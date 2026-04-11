@@ -1022,7 +1022,7 @@ export async function eventoJaNotificado(tenantId: number, chave: string): Promi
 export async function registrarEventoNotificado(
   tenantId: number,
   chave: string,
-  tipo: "meta_atingida" | "mudanca_ranking" | "meta_diaria_atingida",
+  tipo: "meta_atingida" | "mudanca_ranking" | "meta_diaria_atingida" | "meta_quinzenal_fechada",
   empresaSlug: string,
   mensagem: string
 ): Promise<void> {
