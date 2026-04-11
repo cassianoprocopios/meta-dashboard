@@ -1,6 +1,5 @@
 import { avecRouter } from "./avecRouter";
 import bcrypt from "bcryptjs";
-import { sendPasswordResetEmail } from "./email";
 import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -1262,10 +1261,6 @@ export const appRouter = router({
           token,
           expiresAt,
         });
-
-        // Enviar email
-        const resetLink = `${input.origin}/redefinir-senha?token=${token}`;
-        await sendPasswordResetEmail(user.email, user.name ?? user.email, resetLink);
 
         return { success: true };
       }),
