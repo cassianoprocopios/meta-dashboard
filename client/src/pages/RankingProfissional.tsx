@@ -1263,7 +1263,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   }
                   return "";
                 })();
-                // Linha de meta quinzenal
+                // Linha de meta quinzenal com semáforo de ritmo
                 const quinzenalStr = (() => {
                   if (verGeral || !fatMensal) return "";
                   const mq = (fatMensal as any).metaQuinzenal as number | null;
@@ -1274,18 +1274,32 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
                   if (naSegundaQ) {
-                    // Valor já fechado no dia 15
-                    return `\n🟡 Quinzenal (fechada dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
                   }
                   const diasRestQ = 15 - diaAtual;
                   const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
-                  const emojiQ = pctQ >= 80 ? '🟡' : '🔴';
+                  // Calcular média diária atual da unidade (faturamento / dias passados)
+                  const diasPassados = diaAtual;
+                  const mediaDiariaAtual = diasPassados > 0 ? fatQ / diasPassados : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string;
+                  let labelRitmo: string;
+                  if (ratio == null) {
+                    emojiRitmo = '\ud83c\udfaf'; labelRitmo = '';
+                  } else if (ratio >= 1.0) {
+                    emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!';
+                  } else if (ratio >= 0.8) {
+                    emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo';
+                  } else {
+                    emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!';
+                  }
                   const sufixo = diasRestQ > 0 && metaDiariaQ > 0
-                    ? ` — precisa ${formatarMoeda(metaDiariaQ)}/dia (${diasRestQ}d)`
+                    ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)`
                     : '';
-                  return `\n${emojiQ} Quinzenal: ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
                 })();
                 const rodape = `${totalDia}${pctMensalStr}${quinzenalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
@@ -1737,7 +1751,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   }
                   return "";
                 })();
-                // Linha de meta quinzenal
+                // Linha de meta quinzenal com semáforo de ritmo
                 const quinzenalStrSem = (() => {
                   if (verGeral || !fatMensalSem) return "";
                   const mq = (fatMensalSem as any).metaQuinzenal as number | null;
@@ -1748,13 +1762,31 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
-                  if (naSegundaQ) return `\n🟡 Quinzenal (fechada dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (naSegundaQ) {
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
                   const diasRestQ = 15 - diaAtual;
                   const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
-                  const emojiQ = pctQ >= 80 ? '🟡' : '🔴';
-                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0 ? ` — precisa ${formatarMoeda(metaDiariaQ)}/dia (${diasRestQ}d)` : '';
-                  return `\n${emojiQ} Quinzenal: ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                  const diasPassados = diaAtual;
+                  const mediaDiariaAtual = diasPassados > 0 ? fatQ / diasPassados : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string;
+                  let labelRitmo: string;
+                  if (ratio == null) {
+                    emojiRitmo = '\ud83c\udfaf'; labelRitmo = '';
+                  } else if (ratio >= 1.0) {
+                    emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!';
+                  } else if (ratio >= 0.8) {
+                    emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo';
+                  } else {
+                    emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!';
+                  }
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0
+                    ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)`
+                    : '';
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
                 })();
                 const rodape = `${totalSem}${pctMensalStr}${quinzenalStrSem}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
@@ -2149,7 +2181,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   }
                   return "";
                 })();
-                // Linha de meta quinzenal (valor fechado no dia 15)
+                // Linha de meta quinzenal com semáforo de ritmo
                 const quinzenalStrMes = (() => {
                   if (verGeral || !fatUnidadeMes) return "";
                   const mq = (fatUnidadeMes as any).metaQuinzenal as number | null;
@@ -2158,8 +2190,33 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
                   const faltaQ = Math.max(0, mq - fatQ);
                   const atingiuQ = pctQ >= 100;
-                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
-                  return `\n🟡 Quinzenal (dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (naSegundaQ) {
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const diasPassados = diaAtual;
+                  const mediaDiariaAtual = diasPassados > 0 ? fatQ / diasPassados : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string;
+                  let labelRitmo: string;
+                  if (ratio == null) {
+                    emojiRitmo = '\ud83c\udfaf'; labelRitmo = '';
+                  } else if (ratio >= 1.0) {
+                    emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!';
+                  } else if (ratio >= 0.8) {
+                    emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo';
+                  } else {
+                    emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!';
+                  }
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0
+                    ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)`
+                    : '';
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
                 })();
                 const rodape = `${totalMes}${pctMensalStr}${quinzenalStrMes}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
