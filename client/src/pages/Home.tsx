@@ -1579,14 +1579,49 @@ export default function Home() {
                     <>
                       <p className="font-display text-xl sm:text-3xl text-foreground leading-none">{fmt(metaTotalGeral - totalGeralRealizado)}</p>
                       <p className="text-muted-foreground text-xs mt-1">restante para atingir</p>
-                      {metaQuinzenalTotal > 0 && (
-                        <div className="mt-3 flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                          <span className="text-xs text-amber-400 font-medium">
-                            Quinzenal: {fmt(metaQuinzenalTotal)}
-                          </span>
-                        </div>
-                      )}
+                      {metaQuinzenalTotal > 0 && (() => {
+                        const totalQuinzenalGeral = statsPorEmpresa.reduce((s, e) => s + e.totalQuinzenal, 0);
+                        const atingiuQ = totalQuinzenalGeral >= metaQuinzenalTotal;
+                        const faltaQ = Math.max(0, metaQuinzenalTotal - totalQuinzenalGeral);
+                        const pctQ = metaQuinzenalTotal > 0 ? Math.round((totalQuinzenalGeral / metaQuinzenalTotal) * 100) : 0;
+                        const diasRestQ = statsPorEmpresa.reduce((s, e) => s + e.diasUteisRestantesQuinzenal, 0);
+                        const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                        return (
+                          <div className="mt-3 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                <span className="text-xs text-purple-300 font-semibold">Meta Quinzenal</span>
+                              </div>
+                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                atingiuQ ? 'bg-emerald-500/20 text-emerald-300' :
+                                pctQ >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                                'bg-red-500/20 text-red-300'
+                              }`}>{pctQ}%</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-white/60">{fmt(totalQuinzenalGeral)}</span>
+                              <span className="text-white/40">/ {fmt(metaQuinzenalTotal)}</span>
+                            </div>
+                            {!atingiuQ && faltaQ > 0 && (
+                              <div className="mt-1.5 text-xs">
+                                <span className="text-amber-400 font-semibold">Falta: {fmt(faltaQ)}</span>
+                                {metaDiariaQ > 0 && diasRestQ > 0 && (
+                                  <span className="text-purple-300/60 ml-1">· {fmt(metaDiariaQ)}/dia ({diasRestQ}d)</span>
+                                )}
+                              </div>
+                            )}
+                            {atingiuQ && (
+                              <p className="text-xs font-semibold text-emerald-400 mt-1">✓ Quinzenal atingida!</p>
+                            )}
+                            <div className="mt-1.5 h-1 rounded-full bg-white/10 overflow-hidden">
+                              <div className={`h-full rounded-full ${
+                                atingiuQ ? 'bg-emerald-400' : pctQ >= 80 ? 'bg-yellow-400' : 'bg-purple-400'
+                              }`} style={{ width: `${Math.min(pctQ, 100)}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </>
                   )
                 ) : (
@@ -2351,21 +2386,37 @@ export default function Home() {
                     {/* ── METAS ADICIONAIS (Quinzenal + Super Meta) ── */}
                     {(s.metaQuinzenal > 0 || s.superMeta > 0) && (
                       <div className="px-5 py-3 flex gap-3" style={{ backgroundColor: 'var(--meta-card-section-bg)', borderTop: `1px solid var(--meta-card-section-border)` }}>
-                        {s.metaQuinzenal > 0 && (
+                        {s.metaQuinzenal > 0 && (() => {
+                          const atingiuQ = s.totalQuinzenal >= s.metaQuinzenal;
+                          const faltaQ = Math.max(0, s.metaQuinzenal - s.totalQuinzenal);
+                          const pctQ = Math.round(s.progressoQuinzenal);
+                          return (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
                               <span className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>QUINZENAL</span>
-                              <span className={`text-[10px] font-bold ${s.progressoQuinzenal >= 100 ? 'text-emerald-400' : 'text-purple-400'}`}>
-                                {Math.round(s.progressoQuinzenal)}%
+                              <span className={`text-[10px] font-bold ${atingiuQ ? 'text-emerald-400' : pctQ >= 80 ? 'text-yellow-400' : 'text-purple-400'}`}>
+                                {pctQ}%
                               </span>
                             </div>
                             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
-                              <div className="h-full rounded-full bg-purple-500"
-                                style={{ width: `${Math.min(s.progressoQuinzenal, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
+                              <div className={`h-full rounded-full ${atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-yellow-500' : 'bg-purple-500'}`}
+                                style={{ width: `${Math.min(pctQ, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
                             </div>
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
+                            {!atingiuQ && faltaQ > 0 && (
+                              <p className="text-[10px] font-semibold text-amber-400 mt-0.5">
+                                Falta: {fmt(faltaQ)}
+                                {s.metaDiariaDinamicaQuinzenal > 0 && s.diasUteisRestantesQuinzenal > 0 && (
+                                  <span className="text-purple-300/70 font-normal"> · {fmt(s.metaDiariaDinamicaQuinzenal)}/dia ({s.diasUteisRestantesQuinzenal}d)</span>
+                                )}
+                              </p>
+                            )}
+                            {atingiuQ && (
+                              <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">✓ Quinzenal atingida!</p>
+                            )}
                           </div>
-                        )}
+                          );
+                        })()}
                         {s.superMeta > 0 && (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">

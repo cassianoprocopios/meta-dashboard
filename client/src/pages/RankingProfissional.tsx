@@ -1054,6 +1054,57 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
               )}
             </div>
           )}
+          {/* Meta Quinzenal */}
+          {(fatMensal as any).metaQuinzenal != null && (fatMensal as any).metaQuinzenal > 0 && (() => {
+            const mq = (fatMensal as any).metaQuinzenal as number;
+            const pctQ = (fatMensal as any).pctMetaQuinzenal as number | null;
+            const hoje = new Date();
+            const diaAtual = hoje.getDate();
+            const naSegundaQ = diaAtual > 15;
+            const faltaQ = pctQ != null && pctQ < 100 ? Math.max(0, mq - (fatMensal.total * (pctQ / 100) / 1) * 1) : 0;
+            // Calcular falta real: mq - faturamento quinzenal
+            // pctQ = (fatQ / mq) * 100  =>  fatQ = (pctQ * mq) / 100
+            const fatQ = pctQ != null ? (pctQ * mq) / 100 : 0;
+            const faltaQReal = Math.max(0, mq - fatQ);
+            return (
+              <div className="mt-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-purple-300/70 font-semibold uppercase tracking-wider">Quinzenal</span>
+                    {naSegundaQ && <span className="text-xs text-white/30">(1ª quinzena encerrada)</span>}
+                  </div>
+                  {pctQ != null && (
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      pctQ >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                      pctQ >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                      'bg-red-500/20 text-red-300'
+                    }`}>{pctQ}%</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-bold text-purple-300">{formatarMoeda(fatQ)}</div>
+                  <div className="text-xs text-white/40">Meta: {formatarMoeda(mq)}</div>
+                </div>
+                {pctQ != null && pctQ < 100 && (
+                  <div className="text-xs text-amber-400/80 mt-0.5 text-right">
+                    Falta: {formatarMoeda(faltaQReal)}
+                  </div>
+                )}
+                {pctQ != null && pctQ >= 100 && (
+                  <div className="text-xs text-emerald-400 mt-0.5 text-right">✓ Quinzenal atingida!</div>
+                )}
+                <div className="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      (pctQ ?? 0) >= 100 ? 'bg-emerald-400' :
+                      (pctQ ?? 0) >= 80 ? 'bg-yellow-400' : 'bg-purple-400'
+                    }`}
+                    style={{ width: `${Math.min(100, pctQ ?? 0)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
         );
       })()}

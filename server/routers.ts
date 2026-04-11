@@ -4736,6 +4736,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       let metaMensal: number | null = null;
       let superMeta: number | null = null;
       let pctMeta: number | null = null;
+      let metaQuinzenal: number | null = null;
+      let pctMetaQuinzenal: number | null = null;
+      let diasUteisQuinzenal: number | null = null;
       // Projeção de faturamento ao final do mês
       let projecaoFinalMes: number | null = null;
       let mediaDiaria: number | null = null;
@@ -4749,6 +4752,53 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           superMeta = parseFloat(String(metaEmpresa.superMeta)) || null;
           if (metaMensal && metaMensal > 0) {
             pctMeta = Math.round(((totalOperacional + recorrencia) / metaMensal) * 100);
+          }
+          // Meta quinzenal
+          const mqVal = parseFloat(String(metaEmpresa.metaQuinzenal));
+          if (mqVal > 0) {
+            metaQuinzenal = mqVal;
+            diasUteisQuinzenal = (metaEmpresa as any).diasUteisQuinzenal ?? 13;
+            // Calcular faturamento acumulado até o dia 15 (ou hoje, o que for menor)
+            const hoje = new Date();
+            const mesAtualNum = hoje.getMonth() + 1;
+            const anoAtualNum = hoje.getFullYear();
+            const ehMesVigenteQ = input.mes === mesAtualNum && input.ano === anoAtualNum;
+            const diaCorteQ = 15;
+            const diasCorridosNoMesQ = new Date(input.ano, input.mes, 0).getDate();
+            if (ehMesVigenteQ) {
+              const diaAtualQ = hoje.getDate();
+              if (diaAtualQ <= diaCorteQ) {
+                // Estamos na primeira quinzena: calcular faturamento até hoje
+                const prefixQ = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
+                const rowsQ = rows.filter((r: any) => {
+                  const dia = parseInt(r.data.split('-')[2], 10);
+                  return r.data.startsWith(prefixQ) && dia <= diaAtualQ;
+                });
+                const totalQ = rowsQ.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
+                  + rowsQ.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+                pctMetaQuinzenal = Math.round((totalQ / mqVal) * 100);
+              } else {
+                // Estamos na segunda quinzena: calcular faturamento dos dias 1-15
+                const prefixQ = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
+                const rowsQ = rows.filter((r: any) => {
+                  const dia = parseInt(r.data.split('-')[2], 10);
+                  return r.data.startsWith(prefixQ) && dia <= diaCorteQ;
+                });
+                const totalQ = rowsQ.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
+                  + rowsQ.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+                pctMetaQuinzenal = Math.round((totalQ / mqVal) * 100);
+              }
+            } else {
+              // Mês passado: calcular faturamento dos dias 1-15
+              const prefixQ = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
+              const rowsQ = rows.filter((r: any) => {
+                const dia = parseInt(r.data.split('-')[2], 10);
+                return r.data.startsWith(prefixQ) && dia <= diaCorteQ;
+              });
+              const totalQ = rowsQ.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
+                + rowsQ.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+              pctMetaQuinzenal = Math.round((totalQ / mqVal) * 100);
+            }
           }
         }
         // Calcular projeção com base nos dias úteis da meta
@@ -4802,6 +4852,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         mediaDiaria,
         diasPassados,
         diasNoMes,
+        metaQuinzenal,
+        pctMetaQuinzenal,
+        diasUteisQuinzenal,
       };
     }),
 
