@@ -2626,13 +2626,70 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   // Mensagem motivacional dinâmica
   const fmtMoeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const posicaoAtual = mesAtualData.posicao;
+
+  // Dados quinzenais da unidade para o semáforo motivacional
+  const diaHojeMotiv = new Date().getDate();
+  const naPrimeiraQuinzena = diaHojeMotiv <= 15;
+  const pctQ = fatUnidadeQ ? (fatUnidadeQ as any).pctMetaQuinzenal as number | null : null;
+  const mqUnidade = fatUnidadeQ ? (fatUnidadeQ as any).metaQuinzenal as number | null : null;
+  const fatQUnidade = (pctQ != null && mqUnidade != null) ? Math.round((pctQ * mqUnidade) / 100) : null;
+  const faltaQUnidade = (mqUnidade != null && fatQUnidade != null) ? Math.max(0, mqUnidade - fatQUnidade) : null;
+  const diasRestantesQ = naPrimeiraQuinzena ? 15 - diaHojeMotiv : 0;
+  const metaDiariaQMotiv = (naPrimeiraQuinzena && diasRestantesQ > 0 && faltaQUnidade != null && faltaQUnidade > 0)
+    ? Math.round(faltaQUnidade / diasRestantesQ)
+    : null;
+
   let motivEmoji = '💪';
   let motivTitulo = '';
   let motivSubtitulo = '';
+
+  // Prioridade 1: meta mensal batida
   if (pctMeta !== null && pctMeta >= 100) {
     motivEmoji = '🏆';
     motivTitulo = 'Meta batida! Incrível!';
     motivSubtitulo = 'Você superou sua meta do mês. Continue assim!';
+  // Prioridade 2: quinzenal na reta final (dias 12-15) com meta em risco
+  } else if (naPrimeiraQuinzena && diaHojeMotiv >= 12 && pctQ != null && pctQ < 100 && mqUnidade != null) {
+    if (pctQ >= 90) {
+      motivEmoji = '🔥';
+      motivTitulo = `Quinzenal quase lá! ${pctQ}%`;
+      motivSubtitulo = faltaQUnidade != null && faltaQUnidade > 0
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação quinzenal${metaDiariaQMotiv ? ` — ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
+        : 'Mais um esforço e a bonificação é sua!';
+    } else if (pctQ >= 70) {
+      motivEmoji = '⚡';
+      motivTitulo = `Atenção: quinzenal em ${pctQ}%`;
+      motivSubtitulo = faltaQUnidade != null
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação${metaDiariaQMotiv ? ` — precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
+        : 'A unidade precisa acelerar para garantir a bonificação!';
+    } else {
+      motivEmoji = '🚨';
+      motivTitulo = `Quinzenal em risco! ${pctQ}%`;
+      motivSubtitulo = faltaQUnidade != null
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação quinzenal. Cada atendimento conta!`
+        : 'A unidade precisa de um sprint final para garantir a bonificação!';
+    }
+  // Prioridade 3: quinzenal batida na 1ª quinzena
+  } else if (naPrimeiraQuinzena && pctQ != null && pctQ >= 100) {
+    motivEmoji = '🏅';
+    motivTitulo = 'Quinzenal batida! Bonificação garantida!';
+    motivSubtitulo = 'A unidade já garantiu a bonificação quinzenal. Continue no ritmo!';
+  // Prioridade 4: quinzenal em andamento (dias 1-11)
+  } else if (naPrimeiraQuinzena && pctQ != null && mqUnidade != null) {
+    if (pctQ >= 60) {
+      motivEmoji = '📈';
+      motivTitulo = `Quinzenal em ${pctQ}% — no ritmo!`;
+      motivSubtitulo = metaDiariaQMotiv != null
+        ? `Precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para garantir a bonificação quinzenal.`
+        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a bonificação quinzenal.`;
+    } else {
+      motivEmoji = '🎯';
+      motivTitulo = `Quinzenal em ${pctQ}% — acelere!`;
+      motivSubtitulo = metaDiariaQMotiv != null
+        ? `A unidade precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para garantir a bonificação quinzenal.`
+        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a bonificação quinzenal.`;
+    }
+  // Prioridade 5: falta pouco para subir no ranking
   } else if (data.faltaParaSubir !== null && data.faltaParaSubir > 0 && data.faltaParaSubir < 500) {
     motivEmoji = '🔥';
     motivTitulo = `Só falta ${fmtMoeda(data.faltaParaSubir)} para subir!`;
@@ -2644,7 +2701,7 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   } else if (posicaoAtual === 1) {
     motivEmoji = '👑';
     motivTitulo = 'Você está em 1º lugar!';
-    motivSubtitulo = 'Mantenha o ritmo e feche o mês no topo!';
+    motivSubtitulo = naPrimeiraQuinzena ? 'No topo do ranking e na reta final da quinzenal!' : 'Mantenha o ritmo e feche o mês no topo!';
   } else if (pctMeta !== null && pctMeta >= 75) {
     motivEmoji = '⚡';
     motivTitulo = 'Ótimo ritmo! Quase lá!';

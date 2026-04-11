@@ -1100,6 +1100,71 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
     await notifyOwner({ title: titulo, content: conteudo });
     await registrarEventoNotificado(tenantId, chaveGlobal, "meta_quinzenal_fechada", "todos", conteudo);
 
+    // ── Enviar push individual para cada profissional das unidades ──────────────
+    try {
+      const { enviarPushParaProfissional } = await import("./pushNotifications");
+      const { listarColaboradores } = await import("./db");
+      const colaboradores = await listarColaboradores(tenantId);
+      const ICON = "https://d2xsxph8kpxj0f.cloudfront.net/310519663456579702/MANH2fxvkecBuwjELBL3u8/icon-192_a3de3eb2.png";
+
+      // Para cada empresa que tinha meta quinzenal, notificar os profissionais da unidade
+      for (const empresa of empresas) {
+        if (!empresa.ativo) continue;
+        const meta = metasMes.find((m) => m.empresaSlug === empresa.slug);
+        const metaQuinzenal = parseFloat(meta?.metaQuinzenal || "0");
+        if (metaQuinzenal <= 0) continue;
+
+        // Recalcular totalQuinzenal para esta empresa
+        const faturamentosMes = await getAllFaturamentosByTenant(tenantId, mes, ano, empresa.slug);
+        const diasQuinzena = faturamentosMes.filter((r) => {
+          const dia = parseInt(r.data.split("-")[2], 10);
+          return dia >= 1 && dia <= 15;
+        });
+        const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
+          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
+          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
+        }, 0);
+        const pct = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
+        const atingiu = totalQuinzenal >= metaQuinzenal;
+        const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
+        const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+        // Profissionais desta unidade
+        const profUnidade = colaboradores.filter((c) => c.empresaSlug === empresa.slug && c.ativo !== 0);
+
+        for (const prof of profUnidade) {
+          let titulo_push: string;
+          let body_push: string;
+
+          if (atingiu) {
+            titulo_push = `🏅 Quinzenal Batida! — ${empresa.nome}`;
+            body_push = `Parabéns! A unidade ${empresa.nome} atingiu ${fmtBRL(totalQuinzenal)} na 1ª quinzena (${pct}% da meta). Você tem direito à bonificação quinzenal! 🎉`;
+          } else if (pct >= 80) {
+            titulo_push = `🟡 Quinzenal Quase Lá — ${empresa.nome}`;
+            body_push = `A unidade ${empresa.nome} ficou em ${fmtBRL(totalQuinzenal)} (${pct}% da meta). Faltou apenas ${fmtBRL(faltou)} para a bonificação quinzenal. No próximo mês chegamos lá! 💪`;
+          } else {
+            titulo_push = `📊 Resultado Quinzenal — ${empresa.nome}`;
+            body_push = `A unidade ${empresa.nome} fechou a 1ª quinzena com ${fmtBRL(totalQuinzenal)} (${pct}% de ${fmtBRL(metaQuinzenal)}). Faltou ${fmtBRL(faltou)} para a bonificação. Vamos acelerar na 2ª quinzena! 🚀`;
+          }
+
+          await enviarPushParaProfissional(tenantId, prof.id, {
+            title: titulo_push,
+            body: body_push,
+            icon: ICON,
+            badge: ICON,
+            tag: `quinzenal-${mes}-${ano}`,
+            data: { url: "/pro" },
+          });
+        }
+
+        console.log(`[Quinzenal Job] Push enviado para ${profUnidade.length} profissional(is) da ${empresa.nome}`);
+      }
+    } catch (pushErr) {
+      const msg = pushErr instanceof Error ? pushErr.message : String(pushErr);
+      console.error(`[Quinzenal Job] Erro ao enviar push para profissionais:`, msg);
+    }
+    // ────────────────────────────────────────────────────────────────────────────
+
     console.log(`[Quinzenal Job] Notificação enviada para tenant ${tenantId}: ${linhas.length} empresa(s)`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
