@@ -91,6 +91,7 @@ export default function HistoricoBonificacoes() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm(anoAtual));
 
+  const mesAtual = new Date().getMonth() + 1;
   const { data: historico, isLoading, refetch } = trpc.bonificacao.listarHistorico.useQuery({ ano });
   const salvar = trpc.bonificacao.salvarHistorico.useMutation({
     onSuccess: () => { toast.success("Registro salvo!"); setDialogOpen(false); refetch(); },
@@ -99,6 +100,13 @@ export default function HistoricoBonificacoes() {
   const deletar = trpc.bonificacao.deletarHistorico.useMutation({
     onSuccess: () => { toast.success("Registro excluído!"); setDeleteId(null); refetch(); },
     onError: (e) => toast.error(e.message),
+  });
+  const fecharMes = trpc.bonificacao.fecharMesAutomatico.useMutation({
+    onSuccess: () => {
+      toast.success(`Fechamento de ${MESES[mesAtual - 1]}/${ano} concluído! Histórico atualizado.`);
+      refetch();
+    },
+    onError: (e) => toast.error(`Erro ao fechar mês: ${e.message}`),
   });
 
   const isAdmin = user?.role === "admin";
@@ -168,6 +176,21 @@ export default function HistoricoBonificacoes() {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
+            {(isAdmin || user?.perfil === "gerente") && (
+              <Button
+                onClick={() => fecharMes.mutate({ mes: mesAtual, ano })}
+                disabled={fecharMes.isPending}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                title={`Calcular e salvar automaticamente o histórico de ${MESES[mesAtual - 1]}/${ano}`}
+              >
+                {fecharMes.isPending ? (
+                  <span className="flex items-center gap-1"><span className="animate-spin">⏳</span> Calculando...</span>
+                ) : (
+                  <span className="flex items-center gap-1">📊 Fechar {MESES[mesAtual - 1]}</span>
+                )}
+              </Button>
+            )}
             {isAdmin && (
               <Button onClick={openNew} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="w-4 h-4 mr-1" /> Registrar

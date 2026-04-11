@@ -1807,6 +1807,21 @@ export const appRouter = router({
         await db.delete(bonificacaoHistorico).where(eq(bonificacaoHistorico.id, input.id));
         return { success: true };
       }),
+
+    fecharMesAutomatico: protectedProcedure
+      .input(z.object({
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { fecharMesBonificacoes } = await import("./cashbarberJob.js");
+        await fecharMesBonificacoes(tenantId, input.mes, input.ano);
+        return { success: true };
+      }),
   }),
 
   // ─── ADMIN DE UTILIZADORES ─────────────────────────────────────────────────

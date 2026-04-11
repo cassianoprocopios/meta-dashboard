@@ -805,3 +805,209 @@ function _filialParaEmpresaSlug(filial: string): string {
   if (f.includes("mascote")) return "barbiero-mascote";
   return "barbiero-grupo";
 }
+
+// ─── Fechamento Mensal Automático de Bonificações ─────────────────────────────
+// Roda no último dia de cada mês às 23h BRT (02:00 UTC do dia seguinte)
+// Calcula e salva automaticamente o histórico de bonificações para cada empresa.
+
+/**
+ * Calcula e persiste o histórico de bonificações para todas as empresas de um tenant.
+ * Usa os dados de faturamento, metas e configurações de bonificação já no banco.
+ */
+async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number): Promise<void> {
+  const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  console.log(`[Bonificação Job] Iniciando fechamento mensal ${mes}/${ano} para tenant ${tenantId} (${dataHora})`);
+
+  try {
+    const {
+      getEmpresasByTenant,
+      getMetasByMesAndTenant,
+      getAllFaturamentosByTenant,
+      getAllBonificacoesByTenant,
+    } = await import("./db");
+    const { getDb } = await import("./db");
+    const { bonificacaoHistorico } = await import("../drizzle/schema");
+    const { eq, and } = await import("drizzle-orm");
+    const { notifyOwner } = await import("./_core/notification");
+
+    const db = await getDb();
+    if (!db) {
+      console.error("[Bonificação Job] Banco de dados indisponível.");
+      return;
+    }
+
+    const [empresas, metasMes, bonificacoesConfig] = await Promise.all([
+      getEmpresasByTenant(tenantId),
+      getMetasByMesAndTenant(tenantId, mes, ano),
+      getAllBonificacoesByTenant(tenantId),
+    ]);
+
+    const resumo: string[] = [];
+
+    for (const empresa of empresas) {
+      try {
+        const slug = empresa.slug;
+
+        // Buscar faturamento do mês para esta empresa
+        const faturamentosMes = await getAllFaturamentosByTenant(tenantId, mes, ano, slug);
+
+        // Calcular totais do mês
+        const diasRealizados = faturamentosMes.filter((r) => {
+          const [, , dia] = r.data.split("-").map(Number);
+          const dataRow = new Date(r.data + "T12:00:00");
+          const hoje = new Date();
+          return dataRow <= hoje;
+        });
+
+        if (diasRealizados.length === 0) {
+          console.log(`[Bonificação Job] ${slug}: sem dados de faturamento para ${mes}/${ano}, pulando.`);
+          continue;
+        }
+
+        const totalMes = diasRealizados.reduce((acc, r) => {
+          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
+          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
+        }, 0);
+
+        // Calcular total quinzenal (dias 1-15)
+        const diasQuinzena = diasRealizados.filter((r) => {
+          const [, , dia] = r.data.split("-").map(Number);
+          return dia <= 15;
+        });
+        const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
+          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
+          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
+        }, 0);
+
+        // Buscar meta da empresa para o mês
+        const metaEmpresa = metasMes.find((m) => m.empresaSlug === slug);
+        const metaMensal = parseFloat(metaEmpresa?.metaMensal || "0");
+        const metaQuinzenal = parseFloat(metaEmpresa?.metaQuinzenal || "0");
+        const superMetaValor = parseFloat(metaEmpresa?.superMeta || "0");
+
+        // Buscar configuração de bonificação da empresa
+        const bonifConfig = bonificacoesConfig.find((b) => b.empresaSlug === slug);
+        const pctQSemMeta = parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0") / 100;
+        const pctQComMeta = parseFloat(bonifConfig?.pctQuinzenalComMeta || "0") / 100;
+        const pctMSemMeta = parseFloat(bonifConfig?.pctMensalSemMeta || "0") / 100;
+        const pctMComMeta = parseFloat(bonifConfig?.pctMensalComMeta || "0") / 100;
+        const pctSuperMeta = parseFloat(bonifConfig?.pctSuperMeta || "0") / 100;
+
+        // Determinar se atingiu metas
+        const atingiuMetaQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
+        const atingiuMetaMensal = metaMensal > 0 && totalMes >= metaMensal;
+        const atingiuSuperMeta = superMetaValor > 0 && totalMes >= superMetaValor;
+
+        // Calcular valores de bonificação
+        const pctQAplicado = atingiuMetaQuinzenal ? pctQComMeta : pctQSemMeta;
+        const valorQuinzenal = Math.round(totalQuinzenal * pctQAplicado * 100) / 100;
+
+        let valorMensal = 0;
+        let valorSuperMetaCalc = 0;
+        if (atingiuSuperMeta) {
+          valorSuperMetaCalc = Math.round(totalMes * pctSuperMeta * 100) / 100;
+        } else if (atingiuMetaMensal) {
+          valorMensal = Math.round(totalMes * pctMComMeta * 100) / 100;
+        } else {
+          valorMensal = Math.round(totalMes * pctMSemMeta * 100) / 100;
+        }
+
+        const totalPago = valorQuinzenal + valorMensal + valorSuperMetaCalc;
+
+        // Upsert no histórico de bonificações
+        const payload = {
+          tenantId,
+          empresaSlug: slug,
+          mes,
+          ano,
+          faturamentoTotal: totalMes.toFixed(2),
+          metaMensal: metaMensal.toFixed(2),
+          superMeta: superMetaValor.toFixed(2),
+          atingiuMeta: atingiuMetaMensal ? 1 : 0,
+          atingiuSuperMeta: atingiuSuperMeta ? 1 : 0,
+          valorQuinzenal: valorQuinzenal.toFixed(2),
+          valorMensal: valorMensal.toFixed(2),
+          valorSuperMeta: valorSuperMetaCalc.toFixed(2),
+          totalPago: totalPago.toFixed(2),
+          observacao: `Fechamento automático em ${dataHora}`,
+        };
+
+        // Verificar se já existe registro para este mês/empresa
+        const existing = await db.select().from(bonificacaoHistorico).where(
+          and(
+            eq(bonificacaoHistorico.tenantId, tenantId),
+            eq(bonificacaoHistorico.empresaSlug, slug),
+            eq(bonificacaoHistorico.mes, mes),
+            eq(bonificacaoHistorico.ano, ano),
+          )
+        ).limit(1);
+
+        if (existing.length > 0) {
+          // Só atualiza se ainda não foi marcado como pago
+          if (!existing[0].pagoEm) {
+            await db.update(bonificacaoHistorico).set(payload).where(eq(bonificacaoHistorico.id, existing[0].id));
+            console.log(`[Bonificação Job] ${slug}: histórico atualizado — R$ ${totalPago.toFixed(2)}`);
+          } else {
+            console.log(`[Bonificação Job] ${slug}: já pago em ${existing[0].pagoEm?.toLocaleDateString("pt-BR")}, pulando atualização.`);
+          }
+        } else {
+          await db.insert(bonificacaoHistorico).values(payload);
+          console.log(`[Bonificação Job] ${slug}: histórico criado — R$ ${totalPago.toFixed(2)}`);
+        }
+
+        const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        const statusMeta = atingiuSuperMeta ? "🏆 Super Meta" : atingiuMetaMensal ? "✅ Meta atingida" : "⏳ Sem meta";
+        resumo.push(`• ${slug}: Fat. ${fmtBRL(totalMes)} | Bonif. ${fmtBRL(totalPago)} | ${statusMeta}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[Bonificação Job] Erro ao fechar mês para ${empresa.slug}:`, msg);
+        resumo.push(`• ${empresa.slug}: ❌ Erro — ${msg}`);
+      }
+    }
+
+    // Notificar o gestor sobre o fechamento
+    if (resumo.length > 0) {
+      const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+      await notifyOwner({
+        title: `📊 Fechamento de Bonificações — ${mesesNomes[mes - 1]}/${ano}`,
+        content: `O histórico de bonificações de ${mesesNomes[mes - 1]}/${ano} foi calculado automaticamente:\n\n${resumo.join("\n")}\n\nAcesse Histórico de Bonificações para revisar e marcar como pago.`,
+      }).catch(() => {});
+    }
+
+    console.log(`[Bonificação Job] Fechamento ${mes}/${ano} concluído para tenant ${tenantId}: ${resumo.length} empresa(s)`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Bonificação Job] Erro crítico no fechamento ${mes}/${ano} para tenant ${tenantId}:`, msg);
+  }
+}
+
+// ─── Job de fechamento mensal: roda no último dia do mês às 23h BRT (02:00 UTC) ───
+// Cron: "0 0 2 28-31 * *" — roda nos dias 28-31 às 02:00 UTC (23h BRT)
+// A função verifica internamente se é o último dia do mês antes de executar.
+cron.schedule("0 0 2 28-31 * *", async () => {
+  const agora = new Date();
+  const agora_brt = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const dia = agora_brt.getDate();
+  const mes = agora_brt.getMonth() + 1;
+  const ano = agora_brt.getFullYear();
+  const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+
+  // Só executa se for o último dia do mês
+  if (dia !== ultimoDiaDoMes) return;
+
+  console.log(`[Bonificação Job] Fechamento automático do mês ${mes}/${ano} iniciado...`);
+
+  const configs = await listAllActiveCashbarberConfigs().catch(() => []);
+  const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+
+  for (const tenantId of tenantIds) {
+    await fecharMesBonificacoes(tenantId, mes, ano);
+  }
+});
+
+console.log("[Bonificação Job] Job de fechamento mensal agendado (último dia do mês às 23h BRT)");
+
+/**
+ * Exporta a função para ser chamada manualmente via painel de administração.
+ */
+export { fecharMesBonificacoes };
