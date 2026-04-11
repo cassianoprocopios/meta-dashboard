@@ -116,6 +116,31 @@ export const bonificacoes = mysqlTable("bonificacoes", {
 export type Bonificacao = typeof bonificacoes.$inferSelect;
 export type InsertBonificacao = typeof bonificacoes.$inferInsert;
 
+// ─── HISTÓRICO DE BONIFICAÇÕES PAGAS ────────────────────────────────────────
+export const bonificacaoHistorico = mysqlTable("bonificacaoHistorico", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  faturamentoTotal: decimal("faturamentoTotal", { precision: 12, scale: 2 }).notNull().default("0"),
+  metaMensal: decimal("metaMensal", { precision: 12, scale: 2 }).notNull().default("0"),
+  superMeta: decimal("superMeta", { precision: 12, scale: 2 }).notNull().default("0"),
+  atingiuMeta: tinyint("atingiuMeta").notNull().default(0),
+  atingiuSuperMeta: tinyint("atingiuSuperMeta").notNull().default(0),
+  valorQuinzenal: decimal("valorQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
+  valorMensal: decimal("valorMensal", { precision: 12, scale: 2 }).notNull().default("0"),
+  valorSuperMeta: decimal("valorSuperMeta", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalPago: decimal("totalPago", { precision: 12, scale: 2 }).notNull().default("0"),
+  observacao: varchar("observacao", { length: 500 }),
+  pagoEm: timestamp("pagoEm"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BonificacaoHistorico = typeof bonificacaoHistorico.$inferSelect;
+export type InsertBonificacaoHistorico = typeof bonificacaoHistorico.$inferInsert;
+
 // ─── CATEGORIAS DE FATURAMENTO ──────────────────────────────────────────────
 export const categorias = mysqlTable("categorias", {
   id: int("id").autoincrement().primaryKey(),

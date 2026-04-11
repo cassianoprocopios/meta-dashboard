@@ -43,6 +43,7 @@ const menuItems: MenuItem[] = [
   { icon: ClipboardList, label: "Lançamentos", path: "/" },
   { icon: BarChart2, label: "Bonificação", path: "/", perfis: ["gerente", "admin"] },
   { icon: History, label: "Histórico Anual", path: "/", perfis: ["gerente", "admin"] },
+  { icon: BarChart2, label: "Histórico Bonificações", path: "/historico-bonificacoes", perfis: ["gerente", "admin"] },
   { icon: Building2, label: "Empresas", path: "/", perfis: ["admin"], roles: ["admin"] },
   { icon: Users, label: "Usuários", path: "/", perfis: ["admin"], roles: ["admin"] },
   { icon: Trophy, label: "Ranking Público", path: "/ranking" },

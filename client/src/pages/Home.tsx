@@ -2587,6 +2587,16 @@ export default function Home() {
 
                       const totalPagar = valorQz + valorMensal + valorSuper;
 
+                      // Projeção: quanto será pago se mantiver o ritmo atual
+                      const projecao = s.projecaoFinal;
+                      const projecaoAtingeMensal = projecao >= s.metaMensal && s.metaMensal > 0;
+                      const projecaoAtingeSuper = s.superMeta > 0 && projecao >= s.superMeta;
+                      const pctMensalProj = projecaoAtingeMensal ? bonif.pctMensalComMeta : bonif.pctMensalSemMeta;
+                      const valorMensalProj = s.metaMensal > 0 ? (projecao * pctMensalProj) / 100 : 0;
+                      const valorSuperProj = projecaoAtingeSuper ? (projecao * bonif.pctSuperMeta) / 100 : 0;
+                      const totalPagarProj = valorQz + valorMensalProj + valorSuperProj;
+                      const projecaoMaior = totalPagarProj > totalPagar;
+
                       if (totalPagar === 0 && valorQz === 0 && valorMensal === 0) return null;
 
                       return (
@@ -2598,7 +2608,16 @@ export default function Home() {
                               </div>
                               <p className="font-label text-[10px] text-emerald-400/70 tracking-widest">VALOR A PAGAR</p>
                             </div>
-                            <p className="font-display text-lg font-bold text-emerald-300">{fmt(totalPagar)}</p>
+                            <div className="text-right">
+                              <p className="font-display text-lg font-bold text-emerald-300">{fmt(totalPagar)}</p>
+                              {projecao > 0 && s.diasUteisRestantes > 0 && (
+                                <p className={`text-[10px] font-medium mt-0.5 ${
+                                  projecaoMaior ? 'text-amber-400' : 'text-slate-400'
+                                }`}>
+                                  Proj: {fmt(totalPagarProj)} {projecaoMaior ? '↑' : ''}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             {s.metaQuinzenal > 0 && (

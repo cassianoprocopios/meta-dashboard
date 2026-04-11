@@ -1699,6 +1699,114 @@ export const appRouter = router({
         await upsertBonificacao({ ...input, tenantId });
         return { success: true };
       }),
+
+    // ─── HISTÓRICO DE BONIFICAÇÕES PAGAS ─────────────────────────────────────
+    listarHistorico: protectedProcedure
+      .input(z.object({
+        ano: z.number().optional(),
+      }).optional())
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) return [];
+        const { bonificacaoHistorico } = await import("../drizzle/schema.js");
+        const { eq, and, desc } = await import("drizzle-orm");
+        const ano = input?.ano ?? new Date().getFullYear();
+        const rows = await db
+          .select()
+          .from(bonificacaoHistorico)
+          .where(and(
+            eq(bonificacaoHistorico.tenantId, tenantId),
+            eq(bonificacaoHistorico.ano, ano),
+          ))
+          .orderBy(desc(bonificacaoHistorico.mes), bonificacaoHistorico.empresaSlug);
+        return rows;
+      }),
+
+    salvarHistorico: protectedProcedure
+      .input(z.object({
+        id: z.number().optional(),
+        empresaSlug: z.string().min(1),
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+        faturamentoTotal: z.string(),
+        metaMensal: z.string(),
+        superMeta: z.string().default("0"),
+        atingiuMeta: z.number().default(0),
+        atingiuSuperMeta: z.number().default(0),
+        valorQuinzenal: z.string().default("0"),
+        valorMensal: z.string().default("0"),
+        valorSuperMeta: z.string().default("0"),
+        totalPago: z.string(),
+        observacao: z.string().optional(),
+        pagoEm: z.date().optional().nullable(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const { bonificacaoHistorico } = await import("../drizzle/schema.js");
+        const { eq, and } = await import("drizzle-orm");
+        const payload = {
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          mes: input.mes,
+          ano: input.ano,
+          faturamentoTotal: input.faturamentoTotal,
+          metaMensal: input.metaMensal,
+          superMeta: input.superMeta,
+          atingiuMeta: input.atingiuMeta,
+          atingiuSuperMeta: input.atingiuSuperMeta,
+          valorQuinzenal: input.valorQuinzenal,
+          valorMensal: input.valorMensal,
+          valorSuperMeta: input.valorSuperMeta,
+          totalPago: input.totalPago,
+          observacao: input.observacao ?? null,
+          pagoEm: input.pagoEm ?? null,
+        };
+        if (input.id) {
+          await db.update(bonificacaoHistorico).set(payload).where(eq(bonificacaoHistorico.id, input.id));
+        } else {
+          // Upsert por tenant+empresa+mes+ano
+          const existing = await db.select().from(bonificacaoHistorico).where(
+            and(
+              eq(bonificacaoHistorico.tenantId, tenantId),
+              eq(bonificacaoHistorico.empresaSlug, input.empresaSlug),
+              eq(bonificacaoHistorico.mes, input.mes),
+              eq(bonificacaoHistorico.ano, input.ano),
+            )
+          ).limit(1);
+          if (existing.length > 0) {
+            await db.update(bonificacaoHistorico).set(payload).where(eq(bonificacaoHistorico.id, existing[0].id));
+          } else {
+            await db.insert(bonificacaoHistorico).values(payload);
+          }
+        }
+        return { success: true };
+      }),
+
+    deletarHistorico: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem excluir registros." });
+        }
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const { bonificacaoHistorico } = await import("../drizzle/schema.js");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(bonificacaoHistorico).where(eq(bonificacaoHistorico.id, input.id));
+        return { success: true };
+      }),
   }),
 
   // ─── ADMIN DE UTILIZADORES ─────────────────────────────────────────────────
