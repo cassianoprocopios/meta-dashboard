@@ -2567,6 +2567,15 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   const { status: pushStatus, isRegistering, ativar: ativarPush, desativar: desativarPush } = usePushNotifications(profissionalId);
   const mesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
+  // Buscar meta quinzenal da unidade do profissional
+  const [mesAtualQ] = useState(() => new Date().getMonth() + 1);
+  const [anoAtualQ] = useState(() => new Date().getFullYear());
+  const empresaSlugUnidade = data?.empresaSlug ?? null;
+  const { data: fatUnidadeQ } = trpc.faturamentoUnidade.useQuery(
+    { empresaSlug: empresaSlugUnidade!, tipo: 'mensal', mes: mesAtualQ, ano: anoAtualQ },
+    { staleTime: 5 * 60_000, enabled: !!empresaSlugUnidade && empresaSlugUnidade !== 'barbiero-grupo' }
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -2763,6 +2772,71 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
           <p className="text-white/25 text-xs mt-1">Peça ao gestor para cadastrar sua meta mensal</p>
         </div>
       )}
+
+      {/* ── Card Meta Quinzenal da Unidade ── */}
+      {fatUnidadeQ && (fatUnidadeQ as any).metaQuinzenal != null && (fatUnidadeQ as any).metaQuinzenal > 0 && (() => {
+        const mq = (fatUnidadeQ as any).metaQuinzenal as number;
+        const pctQ = (fatUnidadeQ as any).pctMetaQuinzenal as number | null;
+        const fatQ = pctQ != null ? Math.round((pctQ * mq) / 100 * 100) / 100 : 0;
+        const faltaQ = Math.max(0, mq - fatQ);
+        const diaHoje = new Date().getDate();
+        const naSegundaQ = diaHoje > 15;
+        const diasRestantesQ = naSegundaQ ? 0 : 15 - diaHoje;
+        const metaDiariaQ = !naSegundaQ && diasRestantesQ > 0 && faltaQ > 0 ? faltaQ / diasRestantesQ : null;
+        const nomeUnidade = empresaSlugUnidade === 'barbiero-mascote' ? 'Mascote' : empresaSlugUnidade === 'barbiero-morumbi' ? 'Morumbi' : 'Unidade';
+        return (
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-purple-400 text-base">🏅</span>
+                <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider">Meta Quinzenal — {nomeUnidade}</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                {naSegundaQ && <span className="text-xs text-white/30">(encerrada)</span>}
+                {pctQ != null && (
+                  <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${
+                    pctQ >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                    pctQ >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                    'bg-red-500/20 text-red-300'
+                  }`}>{pctQ}%</span>
+                )}
+              </div>
+            </div>
+            {/* Barra de progresso */}
+            <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-3">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  (pctQ ?? 0) >= 100 ? 'bg-emerald-400' :
+                  (pctQ ?? 0) >= 80 ? 'bg-yellow-400' : 'bg-purple-400'
+                }`}
+                style={{ width: `${Math.min(100, pctQ ?? 0)}%` }}
+              />
+            </div>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-purple-200 font-bold text-xl">{fmtMoeda(fatQ)}</p>
+                <p className="text-white/40 text-xs">de {fmtMoeda(mq)}</p>
+              </div>
+              <div className="text-right">
+                {pctQ != null && pctQ < 100 ? (
+                  <>
+                    <p className="text-amber-300 font-semibold text-sm">{fmtMoeda(faltaQ)}</p>
+                    <p className="text-white/40 text-xs">falta para a quinzenal</p>
+                    {metaDiariaQ != null && (
+                      <p className="text-blue-300/70 text-xs mt-0.5">Precisa {fmtMoeda(metaDiariaQ)}/dia ({diasRestantesQ}d)</p>
+                    )}
+                  </>
+                ) : pctQ != null && pctQ >= 100 ? (
+                  <div className="flex items-center gap-1 text-emerald-400">
+                    <Award className="w-4 h-4" />
+                    <span className="text-sm font-bold">Quinzenal batida!</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── KPIs do Mês Atual ── */}
       <div className="grid grid-cols-2 gap-3">

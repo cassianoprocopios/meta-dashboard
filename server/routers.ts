@@ -5102,6 +5102,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       return {
         historico,
         metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
+        empresaSlug: col?.empresaSlug ?? null,
         ticketMedio,
         projecaoFinal: Math.round(projecaoFinal * 100) / 100,
         diasRestantes,
