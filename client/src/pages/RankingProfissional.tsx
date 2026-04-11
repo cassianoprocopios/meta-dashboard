@@ -1263,7 +1263,31 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   }
                   return "";
                 })();
-                const rodape = `${totalDia}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
+                // Linha de meta quinzenal
+                const quinzenalStr = (() => {
+                  if (verGeral || !fatMensal) return "";
+                  const mq = (fatMensal as any).metaQuinzenal as number | null;
+                  const pctQ = (fatMensal as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatMensal as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
+                  if (naSegundaQ) {
+                    // Valor já fechado no dia 15
+                    return `\n🟡 Quinzenal (fechada dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const emojiQ = pctQ >= 80 ? '🟡' : '🔴';
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0
+                    ? ` — precisa ${formatarMoeda(metaDiariaQ)}/dia (${diasRestQ}d)`
+                    : '';
+                  return `\n${emojiQ} Quinzenal: ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                })();
+                const rodape = `${totalDia}${pctMensalStr}${quinzenalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-diario-${data}`,
                   gerarTextoRanking(
@@ -1713,7 +1737,26 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   }
                   return "";
                 })();
-                const rodape = `${totalSem}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
+                // Linha de meta quinzenal
+                const quinzenalStrSem = (() => {
+                  if (verGeral || !fatMensalSem) return "";
+                  const mq = (fatMensalSem as any).metaQuinzenal as number | null;
+                  const pctQ = (fatMensalSem as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatMensalSem as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
+                  if (naSegundaQ) return `\n🟡 Quinzenal (fechada dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const emojiQ = pctQ >= 80 ? '🟡' : '🔴';
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0 ? ` — precisa ${formatarMoeda(metaDiariaQ)}/dia (${diasRestQ}d)` : '';
+                  return `\n${emojiQ} Quinzenal: ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                })();
+                const rodape = `${totalSem}${pctMensalStr}${quinzenalStrSem}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-semanal-${dataInicio}`,
                   gerarTextoRanking(
@@ -2106,7 +2149,19 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   }
                   return "";
                 })();
-                const rodape = `${totalMes}${pctMensalStr}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
+                // Linha de meta quinzenal (valor fechado no dia 15)
+                const quinzenalStrMes = (() => {
+                  if (verGeral || !fatUnidadeMes) return "";
+                  const mq = (fatUnidadeMes as any).metaQuinzenal as number | null;
+                  const pctQ = (fatUnidadeMes as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatUnidadeMes as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  if (atingiuQ) return `\n🏅 Quinzenal atingida! (${formatarMoeda(fatQ)} / ${formatarMoeda(mq)})`;
+                  return `\n🟡 Quinzenal (dia 15): ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                })();
+                const rodape = `${totalMes}${pctMensalStr}${quinzenalStrMes}${metaDiariaStr}\n\nperformancemeta.sbs`.trim();
                 exportar(
                   `ranking-${nomeMes(mes).toLowerCase()}-${ano}`,
                   gerarTextoRanking(

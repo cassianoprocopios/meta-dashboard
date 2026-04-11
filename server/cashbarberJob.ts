@@ -1011,3 +1011,126 @@ console.log("[Bonificação Job] Job de fechamento mensal agendado (último dia 
  * Exporta a função para ser chamada manualmente via painel de administração.
  */
 export { fecharMesBonificacoes };
+
+// ─── Job de Fechamento Quinzenal (Dia 15 às 23h BRT) ─────────────────────────
+// Roda todo dia 15 do mês às 23h BRT (02:00 UTC do dia 16)
+// Notifica o gestor sobre o resultado da meta quinzenal de cada empresa.
+// O valor do faturamento dos dias 1-15 é o valor REAL e CONGELADO para bonificação.
+
+/**
+ * Verifica e notifica o resultado da meta quinzenal para todas as empresas de um tenant.
+ * O valor calculado aqui é o valor definitivo para fins de bonificação quinzenal.
+ */
+async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, ano: number): Promise<void> {
+  const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  console.log(`[Quinzenal Job] Verificando meta quinzenal ${mes}/${ano} para tenant ${tenantId} (${dataHora})`);
+
+  try {
+    const {
+      getEmpresasByTenant,
+      getMetasByMesAndTenant,
+      getAllFaturamentosByTenant,
+      eventoJaNotificado,
+      registrarEventoNotificado,
+    } = await import("./db");
+    const { notifyOwner } = await import("./_core/notification");
+
+    const [empresas, metasMes] = await Promise.all([
+      getEmpresasByTenant(tenantId),
+      getMetasByMesAndTenant(tenantId, mes, ano),
+    ]);
+
+    const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const chaveGlobal = `meta_quinzenal_fechada:${tenantId}:${ano}-${String(mes).padStart(2, "0")}`;
+
+    // Evitar duplicata: só notifica uma vez por mês/tenant
+    const jaNotificado = await eventoJaNotificado(tenantId, chaveGlobal);
+    if (jaNotificado) {
+      console.log(`[Quinzenal Job] Já notificado para tenant ${tenantId} em ${mes}/${ano}, pulando.`);
+      return;
+    }
+
+    const linhas: string[] = [];
+
+    for (const empresa of empresas) {
+      if (!empresa.ativo) continue;
+
+      const meta = metasMes.find((m) => m.empresaSlug === empresa.slug);
+      const metaQuinzenal = parseFloat(meta?.metaQuinzenal || "0");
+      if (metaQuinzenal <= 0) continue;
+
+      // Buscar faturamento dos dias 1-15 do mês
+      const faturamentosMes = await getAllFaturamentosByTenant(tenantId, mes, ano, empresa.slug);
+      const diasQuinzena = faturamentosMes.filter((r) => {
+        const dia = parseInt(r.data.split("-")[2], 10);
+        return dia >= 1 && dia <= 15;
+      });
+
+      const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
+        const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
+        return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
+      }, 0);
+
+      const pct = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
+      const atingiu = totalQuinzenal >= metaQuinzenal;
+      const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
+      const emoji = atingiu ? "🏅" : pct >= 80 ? "🟡" : "🔴";
+      const status = atingiu ? "META ATINGIDA" : `faltou ${fmtBRL(faltou)}`;
+
+      linhas.push(
+        `${emoji} ${empresa.nome}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pct}%) — ${status}`
+      );
+
+      console.log(`[Quinzenal Job] ${empresa.slug}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pct}%) — ${status}`);
+    }
+
+    if (linhas.length === 0) {
+      console.log(`[Quinzenal Job] Nenhuma empresa com meta quinzenal configurada para tenant ${tenantId}.`);
+      return;
+    }
+
+    const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const titulo = `📊 Fechamento Quinzenal — ${mesesNomes[mes - 1]}/${ano}`;
+    const conteudo =
+      `O período de 1 a 15 de ${mesesNomes[mes - 1]}/${ano} foi encerrado.\n` +
+      `Os valores abaixo são DEFINITIVOS para cálculo de bonificação quinzenal:\n\n` +
+      linhas.join("\n") +
+      `\n\nAcesse o Dashboard para verificar os detalhes e calcular as bonificações.`;
+
+    await notifyOwner({ title: titulo, content: conteudo });
+    await registrarEventoNotificado(tenantId, chaveGlobal, "meta_quinzenal_fechada", "todos", conteudo);
+
+    console.log(`[Quinzenal Job] Notificação enviada para tenant ${tenantId}: ${linhas.length} empresa(s)`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Quinzenal Job] Erro ao verificar meta quinzenal para tenant ${tenantId}:`, msg);
+  }
+}
+
+// Job do dia 15 às 23h BRT (02:00 UTC do dia 16)
+// Cron: "0 0 2 16 * *" — roda todo dia 16 às 02:00 UTC (= dia 15 às 23h BRT)
+cron.schedule("0 0 2 16 * *", async () => {
+  const agora = new Date();
+  // Usar horário BRT para determinar o mês correto
+  const agoraBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  // Às 02:00 UTC do dia 16, em BRT ainda é dia 15 (23h BRT)
+  // Então usamos o mês do dia 15 BRT
+  const mes = agoraBRT.getMonth() + 1;
+  const ano = agoraBRT.getFullYear();
+
+  console.log(`[Quinzenal Job] Fechamento quinzenal automático ${mes}/${ano} iniciado (dia 15 às 23h BRT)...`);
+
+  const configs = await listAllActiveCashbarberConfigs().catch(() => []);
+  const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+
+  for (const tenantId of tenantIds) {
+    await verificarMetaQuinzenalParaTenant(tenantId, mes, ano);
+  }
+});
+
+console.log("[Quinzenal Job] Job de fechamento quinzenal agendado (dia 15 às 23h BRT)");
+
+/**
+ * Exporta a função para ser chamada manualmente via painel de administração.
+ */
+export { verificarMetaQuinzenalParaTenant };

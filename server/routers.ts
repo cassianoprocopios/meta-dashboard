@@ -4841,6 +4841,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }
 
+      // Calcular totalQuinzenal para retornar junto com pctMetaQuinzenal
+      let totalQuinzenal: number | null = null;
+      if (metaQuinzenal && metaQuinzenal > 0 && pctMetaQuinzenal != null) {
+        totalQuinzenal = Math.round((pctMetaQuinzenal * metaQuinzenal) / 100);
+      }
+
       return {
         total: totalOperacional + recorrencia,
         totalOperacional,
@@ -4854,6 +4860,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         diasNoMes,
         metaQuinzenal,
         pctMetaQuinzenal,
+        totalQuinzenal,
         diasUteisQuinzenal,
       };
     }),
