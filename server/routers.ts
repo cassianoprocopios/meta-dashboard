@@ -4836,10 +4836,27 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }
 
-      // Calcular totalQuinzenal para retornar junto com pctMetaQuinzenal
+      // Calcular totalQuinzenal: valor real acumulado dos dias 1-15 (ou até hoje se < 15)
       let totalQuinzenal: number | null = null;
-      if (metaQuinzenal && metaQuinzenal > 0 && pctMetaQuinzenal != null) {
-        totalQuinzenal = Math.round((pctMetaQuinzenal * metaQuinzenal) / 100);
+      if (metaQuinzenal && metaQuinzenal > 0 && input.tipo === 'mensal' && input.mes && input.ano) {
+        const hoje = new Date();
+        const diaAtual = hoje.getDate();
+        const mesAtualNum = hoje.getMonth() + 1;
+        const anoAtualNum = hoje.getFullYear();
+        const ehMesVigenteQ2 = input.mes === mesAtualNum && input.ano === anoAtualNum;
+        const diaCorteQ2 = ehMesVigenteQ2 ? Math.min(diaAtual, 15) : 15;
+        const prefixQ2 = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
+        const rowsQ2 = rows.filter((r: any) => {
+          const dia = parseInt(r.data.split('-')[2], 10);
+          return r.data.startsWith(prefixQ2) && dia <= diaCorteQ2;
+        });
+        const totalQ2 = rowsQ2.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
+          + rowsQ2.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+        totalQuinzenal = Math.round(totalQ2);
+        // Recalcular pctMetaQuinzenal com base no valor real
+        if (pctMetaQuinzenal == null) {
+          pctMetaQuinzenal = Math.round((totalQ2 / metaQuinzenal) * 100);
+        }
       }
 
       return {
