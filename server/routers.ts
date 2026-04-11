@@ -4103,6 +4103,50 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }),
 
+    /**
+     * Sync rápido de faturamento da unidade para um mês/ano.
+     * Acessível para qualquer usuário autenticado (gerentes incluídos).
+     * Sincroniza apenas o mês corrente da empresa informada.
+     */
+    syncRapidoFaturamento: protectedProcedure
+      .input(
+        z.object({
+          empresaSlug: z.string().min(1),
+          mes: z.number().int().min(1).max(12),
+          ano: z.number().int().min(2020),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        // Mapear slug de colaborador para slug usado nos faturamentos
+        const slugMap: Record<string, string> = {
+          'barbiero-morumbi': 'MORUMBI',
+          'barbiero-mascote': 'MASCOTE',
+          'barbiero-seraphine': 'SERAPHINE',
+          'barbiero-grupo': 'GRUPO',
+        };
+        const empresaSlugNorm = slugMap[input.empresaSlug] ?? input.empresaSlug;
+        try {
+          const resultado = await sincronizarFaturamentoCashbarber(
+            tenantId,
+            empresaSlugNorm,
+            input.mes,
+            input.ano,
+            "manual"
+          );
+          return {
+            ok: true,
+            diasSincronizados: resultado.diasSincronizados,
+            erros: resultado.erros ? [resultado.erros] : [],
+          };
+        } catch (e) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
+      }),
+
     dpoteSyncLog: protectedProcedure
       .input(
         z.object({

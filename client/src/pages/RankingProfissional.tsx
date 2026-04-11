@@ -817,6 +817,15 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
 
   const [data, setData] = useState(hoje());
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
+  const utils = trpc.useUtils();
+  const syncRapidoMutation = trpc.cashbarber.syncRapidoFaturamento.useMutation({
+    onSuccess: () => {
+      utils.faturamentoUnidade.invalidate();
+      utils.rankingDiario.invalidate();
+      toast.success('Faturamento atualizado!');
+    },
+    onError: (e) => toast.error('Erro ao sincronizar: ' + e.message),
+  });
   const { data: ranking, isLoading } = trpc.rankingDiario.useQuery({ data }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   // Link do grupo WhatsApp da unidade
   const { data: empresas } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
@@ -970,13 +979,30 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                 <span className={`text-xs font-semibold ${semaforo.cor}`}>{semaforo.emoji} {semaforo.label}</span>
               )}
             </div>
-            {(fatMensal as any).pctMeta != null && (
-              <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                (fatMensal as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
-                (fatMensal as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
-                'bg-red-500/20 text-red-300'
-              }`}>{(fatMensal as any).pctMeta}%</div>
-            )}
+            <div className="flex items-center gap-2">
+              {(fatMensal as any).pctMeta != null && (
+                <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  (fatMensal as any).pctMeta >= 100 ? 'bg-emerald-500/20 text-emerald-300' :
+                  (fatMensal as any).pctMeta >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
+                  'bg-red-500/20 text-red-300'
+                }`}>{(fatMensal as any).pctMeta}%</div>
+              )}
+              <button
+                onClick={() => {
+                  if (!unidadeSelecionada) return;
+                  const [_dia, _mes, _ano] = formatarData(data).split('/');
+                  syncRapidoMutation.mutate({ empresaSlug: unidadeSelecionada, mes: parseInt(_mes, 10), ano: parseInt(_ano, 10) });
+                }}
+                disabled={syncRapidoMutation.isPending || !unidadeSelecionada}
+                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white/80 transition-all disabled:opacity-40"
+                title="Atualizar faturamento agora"
+              >
+                {syncRapidoMutation.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                }
+              </button>
+            </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
@@ -1274,6 +1300,15 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
   const [filtroCategoria, setFiltroCategoria] = useState<'todos' | 'barbeiro' | 'auxiliar' | 'recepcao'>('todos');
   const { exportRef, exportando, exportar } = useExportarImagem();
   const { copiado: copiadoSemanal, copiar: copiarSemanal } = useCopiarMensagem();
+  const utilsSem = trpc.useUtils();
+  const syncRapidoSemMutation = trpc.cashbarber.syncRapidoFaturamento.useMutation({
+    onSuccess: () => {
+      utilsSem.faturamentoUnidade.invalidate();
+      utilsSem.rankingSemanal.invalidate();
+      toast.success('Faturamento atualizado!');
+    },
+    onError: (e) => toast.error('Erro ao sincronizar: ' + e.message),
+  });
   // Link do grupo WhatsApp da unidade
   const { data: empresasSem } = trpc.empresa.listar.useQuery(undefined, { staleTime: 10 * 60_000 });
   const grupoWhatsAppSem = useMemo(() => {
@@ -1408,7 +1443,23 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
         <div className="mb-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 px-4 py-3">
           <div className="flex items-center justify-between mb-1">
             <div className="text-xs text-white/50 uppercase tracking-wider font-semibold">Faturamento da Unidade</div>
-            <div className="text-xs text-white/30">Esta semana</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-white/30">Esta semana</div>
+              <button
+                onClick={() => {
+                  if (!unidadeSelecionada) return;
+                  syncRapidoSemMutation.mutate({ empresaSlug: unidadeSelecionada, mes: mesSemNum, ano: anoSemNum });
+                }}
+                disabled={syncRapidoSemMutation.isPending || !unidadeSelecionada}
+                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white/80 transition-all disabled:opacity-40"
+                title="Atualizar faturamento agora"
+              >
+                {syncRapidoSemMutation.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                }
+              </button>
+            </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
