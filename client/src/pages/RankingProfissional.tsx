@@ -1326,9 +1326,61 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
               {exportando ? "Gerando..." : "WhatsApp"}
             </button>
             <button
-              onClick={() => copiarDiario(
-                `🏆 Ranking Diário — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n📅 ${formatarData(data)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-              )}
+              onClick={() => {
+                const nomeEmpC = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
+                const totalDiaC = (!verGeral && fatMensal?.total != null)
+                  ? `\n\n\ud83d\udcca Total ${nomeEmpC} no mês: ${formatarMoeda(fatMensal.total)}${fatUnidade?.total ? ` (hoje: ${formatarMoeda(fatUnidade.total)})` : ""}`
+                  : "";
+                const pctMensalStrC = (!verGeral && fatMensal?.pctMeta != null)
+                  ? ` | ${fatMensal.pctMeta}% da meta mensal`
+                  : "";
+                const metaDiariaStrC = (() => {
+                  if (verGeral || !fatMensal) return "";
+                  const diasRestantes = (fatMensal as any).diasNoMes != null && (fatMensal as any).diasPassados != null
+                    ? (fatMensal as any).diasNoMes - (fatMensal as any).diasPassados : null;
+                  const falta = (fatMensal as any).metaMensal != null && (fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta < 100
+                    ? Math.max(0, (fatMensal as any).metaMensal - fatMensal.total) : null;
+                  if ((fatMensal as any).pctMeta != null && (fatMensal as any).pctMeta >= 100) return `\n\ud83d\udfe2 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatMensal as any).diasPassados > 0 ? fatMensal.total / (fatMensal as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '\ud83c\udfaf' : ratio >= 1.0 ? '\ud83d\udfe2' : ratio >= 0.8 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
+                  return "";
+                })();
+                const quinzenalStrC = (() => {
+                  if (verGeral || !fatMensal) return "";
+                  const mq = (fatMensal as any).metaQuinzenal as number | null;
+                  const pctQ = (fatMensal as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatMensal as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (naSegundaQ) {
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const mediaDiariaAtual = diaAtual > 0 ? fatQ / diaAtual : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string; let labelRitmo: string;
+                  if (ratio == null) { emojiRitmo = '\ud83c\udfaf'; labelRitmo = ''; }
+                  else if (ratio >= 1.0) { emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!'; }
+                  else if (ratio >= 0.8) { emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo'; }
+                  else { emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!'; }
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0 ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)` : '';
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                })();
+                const rodapeC = `${totalDiaC}${pctMensalStrC}${quinzenalStrC}${metaDiariaStrC}\n\nperformancemeta.sbs`.trim();
+                copiarDiario(gerarTextoRanking(`Ranking Diário — ${nomeEmpC}`, formatarData(data), rankingFiltrado, rodapeC));
+              }}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
             >
@@ -1813,9 +1865,60 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
               {exportando ? "Gerando..." : "WhatsApp"}
             </button>
             <button
-              onClick={() => copiarSemanal(
-                `🏆 Ranking Semanal — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n📅 Semana de ${labelSemana}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-              )}
+              onClick={() => {
+                const nomeEmpC = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
+                const totalSemC = (!verGeral && fatMensalSem?.total != null)
+                  ? `\n\n\ud83d\udcca Total ${nomeEmpC} no mês: ${formatarMoeda(fatMensalSem.total)}`
+                  : "";
+                const pctMensalStrC = (!verGeral && fatMensalSem?.pctMeta != null)
+                  ? ` | ${fatMensalSem.pctMeta}% da meta mensal` : "";
+                const metaDiariaStrC = (() => {
+                  if (verGeral || !fatMensalSem) return "";
+                  const diasRestantes = (fatMensalSem as any).diasNoMes != null && (fatMensalSem as any).diasPassados != null
+                    ? (fatMensalSem as any).diasNoMes - (fatMensalSem as any).diasPassados : null;
+                  const falta = (fatMensalSem as any).metaMensal != null && (fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta < 100
+                    ? Math.max(0, (fatMensalSem as any).metaMensal - fatMensalSem.total) : null;
+                  if ((fatMensalSem as any).pctMeta != null && (fatMensalSem as any).pctMeta >= 100) return `\n\ud83d\udfe2 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatMensalSem as any).diasPassados > 0 ? fatMensalSem.total / (fatMensalSem as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '\ud83c\udfaf' : ratio >= 1.0 ? '\ud83d\udfe2' : ratio >= 0.8 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
+                  return "";
+                })();
+                const quinzenalStrC = (() => {
+                  if (verGeral || !fatMensalSem) return "";
+                  const mq = (fatMensalSem as any).metaQuinzenal as number | null;
+                  const pctQ = (fatMensalSem as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatMensalSem as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (naSegundaQ) {
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const mediaDiariaAtual = diaAtual > 0 ? fatQ / diaAtual : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string; let labelRitmo: string;
+                  if (ratio == null) { emojiRitmo = '\ud83c\udfaf'; labelRitmo = ''; }
+                  else if (ratio >= 1.0) { emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!'; }
+                  else if (ratio >= 0.8) { emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo'; }
+                  else { emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!'; }
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0 ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)` : '';
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                })();
+                const rodapeC = `${totalSemC}${pctMensalStrC}${quinzenalStrC}${metaDiariaStrC}\n\nperformancemeta.sbs`.trim();
+                copiarSemanal(gerarTextoRanking(`Ranking Semanal — ${nomeEmpC}`, `Semana de ${labelSemana}`, rankingFiltrado, rodapeC));
+              }}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
             >
@@ -2243,9 +2346,60 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
               {exportando ? "Gerando..." : "WhatsApp"}
             </button>
             <button
-              onClick={() => copiarMensal(
-                `🏆 Ranking de ${nomeMes(mes)}/${ano} — ${verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa)}\n\n⬇️ Imagem salva na galeria. Compartilhe no grupo!\n\nperformancemeta.sbs`
-              )}
+              onClick={() => {
+                const nomeEmpC = verGeral ? "Todas as unidades" : empresaLabel(unidadeSelecionada ?? minhaEmpresa);
+                const totalMesC = (!verGeral && fatUnidadeMes?.total != null)
+                  ? `\n\n\ud83d\udcca Total ${nomeEmpC} em ${nomeMes(mes)}: ${formatarMoeda(fatUnidadeMes.total)}`
+                  : "";
+                const pctMensalStrC = (!verGeral && fatUnidadeMes?.pctMeta != null)
+                  ? ` | ${fatUnidadeMes.pctMeta}% da meta` : "";
+                const metaDiariaStrC = (() => {
+                  if (verGeral || !fatUnidadeMes) return "";
+                  const diasRestantes = (fatUnidadeMes as any).diasNoMes != null && (fatUnidadeMes as any).diasPassados != null
+                    ? (fatUnidadeMes as any).diasNoMes - (fatUnidadeMes as any).diasPassados : null;
+                  const falta = (fatUnidadeMes as any).metaMensal != null && (fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta < 100
+                    ? Math.max(0, (fatUnidadeMes as any).metaMensal - fatUnidadeMes.total) : null;
+                  if ((fatUnidadeMes as any).pctMeta != null && (fatUnidadeMes as any).pctMeta >= 100) return `\n\ud83d\udfe2 Meta do mês atingida!`;
+                  if (diasRestantes != null && diasRestantes > 0 && falta != null) {
+                    const mediaDia = (fatUnidadeMes as any).diasPassados > 0 ? fatUnidadeMes.total / (fatUnidadeMes as any).diasPassados : null;
+                    const metaDiaria = falta / diasRestantes;
+                    const ratio = mediaDia != null && metaDiaria > 0 ? mediaDia / metaDiaria : null;
+                    const emoji = ratio == null ? '\ud83c\udfaf' : ratio >= 1.0 ? '\ud83d\udfe2' : ratio >= 0.8 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    const label = ratio == null ? '' : ratio >= 1.0 ? ' No ritmo' : ratio >= 0.8 ? ' Quase no ritmo' : ' Precisa acelerar';
+                    return `\n${emoji}${label} — Meta diária necessária: ${formatarMoeda(metaDiaria)}/dia (${diasRestantes}d restantes)`;
+                  }
+                  return "";
+                })();
+                const quinzenalStrC = (() => {
+                  if (verGeral || !fatUnidadeMes) return "";
+                  const mq = (fatUnidadeMes as any).metaQuinzenal as number | null;
+                  const pctQ = (fatUnidadeMes as any).pctMetaQuinzenal as number | null;
+                  const fatQ = (fatUnidadeMes as any).totalQuinzenal as number | null;
+                  if (!mq || mq <= 0 || pctQ == null || fatQ == null) return "";
+                  const faltaQ = Math.max(0, mq - fatQ);
+                  const atingiuQ = pctQ >= 100;
+                  const diaAtual = new Date().getDate();
+                  const naSegundaQ = diaAtual > 15;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (naSegundaQ) {
+                    const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
+                    return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
+                  }
+                  const diasRestQ = 15 - diaAtual;
+                  const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                  const mediaDiariaAtual = diaAtual > 0 ? fatQ / diaAtual : 0;
+                  const ratio = metaDiariaQ > 0 ? mediaDiariaAtual / metaDiariaQ : null;
+                  let emojiRitmo: string; let labelRitmo: string;
+                  if (ratio == null) { emojiRitmo = '\ud83c\udfaf'; labelRitmo = ''; }
+                  else if (ratio >= 1.0) { emojiRitmo = '\ud83d\udfe2'; labelRitmo = ' No ritmo certo!'; }
+                  else if (ratio >= 0.8) { emojiRitmo = '\ud83d\udfe1'; labelRitmo = ' Quase no ritmo'; }
+                  else { emojiRitmo = '\ud83d\udd34'; labelRitmo = ' Precisa acelerar!'; }
+                  const sufixo = diasRestQ > 0 && metaDiariaQ > 0 ? ` | Meta/dia: ${formatarMoeda(metaDiariaQ)} (${diasRestQ}d restantes)` : '';
+                  return `\n\n${emojiRitmo} Quinzenal${labelRitmo}\n   ${formatarMoeda(fatQ)} / ${formatarMoeda(mq)} (${pctQ}%) — falta ${formatarMoeda(faltaQ)}${sufixo}`;
+                })();
+                const rodapeC = `${totalMesC}${pctMensalStrC}${quinzenalStrC}${metaDiariaStrC}\n\nperformancemeta.sbs`.trim();
+                copiarMensal(gerarTextoRanking(`Ranking de ${nomeMes(mes)}/${ano} — ${nomeEmpC}`, `${nomeMes(mes)} ${ano}`, rankingFiltrado, rodapeC));
+              }}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/60 hover:bg-white/15 hover:text-white/80 text-sm font-medium transition-all active:scale-95"
               title="Copiar mensagem"
             >

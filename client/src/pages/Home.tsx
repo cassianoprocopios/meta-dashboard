@@ -2390,6 +2390,18 @@ export default function Home() {
                           const atingiuQ = s.totalQuinzenal >= s.metaQuinzenal;
                           const faltaQ = Math.max(0, s.metaQuinzenal - s.totalQuinzenal);
                           const pctQ = Math.round(s.progressoQuinzenal);
+                          const diaAtualQ = new Date().getDate();
+                          const naSegundaQ = diaAtualQ > 15;
+                          // Semáforo de ritmo quinzenal: compara média diária atual vs meta diária necessária
+                          const ritmoQ = (() => {
+                            if (atingiuQ) return { emoji: '🟢', label: 'Quinzenal atingida!', cor: '#10b981' };
+                            if (naSegundaQ) return { emoji: pctQ >= 80 ? '🟡' : '🔴', label: 'Quinzenal encerrada', cor: pctQ >= 80 ? '#f59e0b' : '#ef4444' };
+                            if (s.metaDiariaDinamicaQuinzenal <= 0) return null;
+                            const ratio = s.mediaDiaria > 0 ? s.mediaDiaria / s.metaDiariaDinamicaQuinzenal : 0;
+                            if (ratio >= 1.0) return { emoji: '🟢', label: 'No ritmo certo!', cor: '#10b981' };
+                            if (ratio >= 0.8) return { emoji: '🟡', label: 'Quase no ritmo', cor: '#f59e0b' };
+                            return { emoji: '🔴', label: 'Precisa acelerar!', cor: '#ef4444' };
+                          })();
                           return (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
@@ -2398,6 +2410,13 @@ export default function Home() {
                                 {pctQ}%
                               </span>
                             </div>
+                            {ritmoQ && (
+                              <div className="flex items-center gap-1 mb-1">
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: ritmoQ.cor + '22', color: ritmoQ.cor, border: `1px solid ${ritmoQ.cor}55` }}>
+                                  {ritmoQ.emoji} {ritmoQ.label}
+                                </span>
+                              </div>
+                            )}
                             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
                               <div className={`h-full rounded-full ${atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-yellow-500' : 'bg-purple-500'}`}
                                 style={{ width: `${Math.min(pctQ, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
