@@ -8,27 +8,17 @@
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 
-// ─── Horários de sync: 7h, 9h, 12h, 15h, 16h, 18h, 20h BRT ─────────────────
+// ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
 // 7h BRT  = 10h UTC
-// 9h BRT  = 12h UTC
-// 12h BRT = 15h UTC
-// 15h BRT = 18h UTC
-// 16h BRT = 19h UTC
 // 18h BRT = 21h UTC
-// 20h BRT = 23h UTC
 
 /**
- * Expressões cron para execução múltiplas vezes por dia.
- * 7h, 9h, 12h, 15h, 16h, 18h e 20h BRT.
+ * Expressões cron para execução 2 vezes por dia.
+ * 7h e 18h BRT.
  */
 const CRON_7H_BRT  = "0 0 10 * * *";
-const CRON_9H_BRT  = "0 0 12 * * *";
-const CRON_12H_BRT = "0 0 15 * * *";
-const CRON_15H_BRT = "0 0 18 * * *";
-const CRON_16H_BRT = "0 0 19 * * *";
 const CRON_18H_BRT = "0 0 21 * * *";
-const CRON_20H_BRT = "0 0 23 * * *";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -53,15 +43,15 @@ function jobKey(tenantId: number, empresaSlug: string): string {
 }
 
 /**
- * Calcula a próxima execução (próximo horário fixo em BRT: 7h, 9h, 12h, 15h, 16h, 18h, 20h)
+ * Calcula a próxima execução (próximo horário fixo em BRT: 7h e 18h)
  */
 function calcularProximaExecucao(): Date {
   const agora = new Date();
   const horaBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
   const hora = horaBRT.getHours();
   // Horários em UTC (BRT+3)
-  const horariosUTC = [10, 12, 15, 18, 19, 21, 23]; // 7h, 9h, 12h, 15h, 16h, 18h, 20h BRT
-  const horasBRT    = [ 7,  9, 12, 15, 16, 18, 20];
+  const horariosUTC = [10, 21]; // 7h, 18h BRT
+  const horasBRT    = [ 7, 18];
   const proxima = new Date(agora);
   const proximoIdx = horasBRT.findIndex((h) => h > hora);
   if (proximoIdx >= 0) {
@@ -133,39 +123,13 @@ async function executarAplicacaoDpote(tenantId: number, origem: "horario" | "dia
     if (resultado.naoEncontrados.length > 0) {
       const filiais = resultado.naoEncontrados.join(", ");
       console.warn(`[CashBarber Job] Dpote não encontrado para: ${filiais}`);
-      try {
-        const { notifyOwner } = await import("./_core/notification");
-        await notifyOwner({
-          title: `⚠️ Dpote: filial(is) sem dados (${dataHora})`,
-          content:
-            `O Dpote foi calculado mas as seguintes filiais não foram encontradas no histórico:\n\n` +
-            `• ${filiais}\n\n` +
-            `Verifique se os nomes das filiais no painel correspondem aos cadastrados no CashBarber.\n` +
-            `Acesse Configurações > CashBarber para corrigir.`,
-        });
-      } catch { /* silenciar erro de notificação */ }
     }
   } catch (err) {
     // Falha no Dpote não deve interromper o job
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[CashBarber Job] Falha ao aplicar Dpote para tenant ${tenantId} (${origem}):`, msg);
 
-    // Notificação push imediata para o dono
-    try {
-      const { notifyOwner } = await import("./_core/notification");
-      const origemLabel = origem === "horario" ? "job horário" : origem === "diario" ? "sync diário das 6h10" : "sync manual";
-      await notifyOwner({
-        title: `🔴 Falha no Dpote — ${origemLabel} (${dataHora})`,
-        content:
-          `A distribuição do Dpote falhou durante o ${origemLabel}.\n\n` +
-          `Erro: ${msg}\n\n` +
-          `Os valores de Recorrência (cat9) do mês ${mes}/${ano} podem estar desatualizados.\n` +
-          `Acesse o painel e clique em "Sincronizar Dpote" para corrigir manualmente.`,
-      });
-      console.log(`[CashBarber Job] Alerta de falha do Dpote enviado para tenant ${tenantId}`);
-    } catch (notifErr) {
-      console.error("[CashBarber Job] Falha ao enviar notificação de erro do Dpote:", notifErr);
-    }
+    // Falha no Dpote registrada no log (notificação removida)
   }
 }
 
@@ -193,7 +157,6 @@ export async function verificarMetaDiariaParaTenant(tenantId: number): Promise<v
       eventoJaNotificado,
       registrarEventoNotificado,
     } = await import("./db");
-    const { notifyOwner } = await import("./_core/notification");
 
     const [empresas, metasMes, faturamentosMes] = await Promise.all([
       getEmpresasByTenant(tenantId),
@@ -244,14 +207,9 @@ export async function verificarMetaDiariaParaTenant(tenantId: number): Promise<v
         `🎯 ${empresa.nome} atingiu a meta diária! ` +
         `Realizado: ${fmtBRL(totalRealizado)} (${pct}% da meta esperada de ${fmtBRL(metaEsperadaHoje)} para o dia ${diaHoje}/${mes}).`;
 
-      await notifyOwner({
-        title: `🎯 Meta diária atingida: ${empresa.nome}`,
-        content: mensagem,
-      });
-
       await registrarEventoNotificado(tenantId, chave, "meta_diaria_atingida", empresa.slug, mensagem);
 
-      console.log(`[CashBarber Job] Notificação enviada: ${empresa.nome} atingiu meta diária (${pct}%)`);
+      console.log(`[CashBarber Job] Meta diária atingida: ${empresa.nome} (${pct}%) - notificação ao admin removida`);
     }
   } catch (err) {
     // Falha na verificação não deve interromper o job
@@ -318,27 +276,17 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
     });
 
   const task7h  = criarTask(CRON_7H_BRT,  "7h");
-  const task9h  = criarTask(CRON_9H_BRT,  "9h");
-  const task12h = criarTask(CRON_12H_BRT, "12h");
-  const task15h = criarTask(CRON_15H_BRT, "15h");
-  const task16h = criarTask(CRON_16H_BRT, "16h");
   const task18h = criarTask(CRON_18H_BRT, "18h");
-  const task20h = criarTask(CRON_20H_BRT, "20h");
 
   jobsAtivos.set(key, {
     empresaSlug,
     tenantId,
     task: task7h, // referência principal
     proximaExecucao: calcularProximaExecucao(),
-    _task9h: task9h,
-    _task12h: task12h,
-    _task15h: task15h,
-    _task16h: task16h,
     _task18h: task18h,
-    _task20h: task20h,
   } as any);
 
-  console.log(`[CashBarber Job] Agendado (7h, 9h, 12h, 15h, 16h, 18h, 20h BRT): ${empresaSlug}`);
+  console.log(`[CashBarber Job] Agendado (7h e 18h BRT): ${empresaSlug}`);
 }
 
 /**
@@ -349,12 +297,7 @@ function cancelarJobEmpresa(tenantId: number, empresaSlug: string): void {
   const job = jobsAtivos.get(key) as any;
   if (job) {
     job.task.stop();
-    if (job._task9h)  job._task9h.stop();
-    if (job._task12h) job._task12h.stop();
-    if (job._task15h) job._task15h.stop();
-    if (job._task16h) job._task16h.stop();
     if (job._task18h) job._task18h.stop();
-    if (job._task20h) job._task20h.stop();
     jobsAtivos.delete(key);
     console.log(`[CashBarber Job] Cancelado: ${empresaSlug}`);
   }
@@ -463,7 +406,7 @@ async function listAllActiveCashbarberConfigs() {
  * Deve ser chamado uma vez na inicialização do servidor.
  */
 export async function inicializarJobsCashbarber(): Promise<void> {
-  console.log("[CashBarber Job] Inicializando sistema de jobs (7h, 9h, 12h, 15h, 16h, 18h, 20h BRT)...");
+  console.log("[CashBarber Job] Inicializando sistema de jobs (7h e 18h BRT)...");
 
   // Aguardar 5 segundos para o servidor estar completamente inicializado
   await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -556,7 +499,6 @@ console.log("[Dpote Job] Job horário do Dpote agendado (a cada hora no minuto :
 async function enviarNotificacaoRankingDiario(): Promise<void> {
   try {
     const { listarColaboradores } = await import("./db");
-    const { notifyOwner } = await import("./_core/notification");
     const { cashbarberLogin, cashbarberRelatorio15 } = await import("./cashbarber");
 
     // Buscar todos os tenants com configs ativas
@@ -634,12 +576,7 @@ async function enviarNotificacaoRankingDiario(): Promise<void> {
           `\n${resultados.length} profissionais com dados hoje.`,
         ].join("\n");
 
-        await notifyOwner({
-          title: `🏆 Top 3 do Dia — ${hoje.toLocaleDateString("pt-BR")}`,
-          content: conteudo,
-        });
-
-        console.log(`[Ranking Notif] Notificação enviada para tenant ${tenantId}: ${top3.map((r) => r.nome).join(", ")}`);
+        console.log(`[Ranking Notif] Top 3 do dia para tenant ${tenantId}: ${top3.map((r) => r.nome).join(", ")} - notificação ao admin removida`);
       } catch (e) {
         console.error(`[Ranking Notif] Erro para tenant ${tenantId}:`, e);
       }
@@ -683,21 +620,8 @@ cron.schedule("0 5 10 * * *", async () => {
     }
     const totalErros = Object.keys(errosPorEmpresa).length;
     if (totalErros > 0) {
-      // Enviar alerta de falha para o dono do sistema
-      try {
-        const { notifyOwner } = await import("./_core/notification");
-        const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-        const detalhes = Object.entries(errosPorEmpresa)
-          .map(([emp, err]) => `\u2022 ${emp}: ${err}`)
-          .join("\n");
-        await notifyOwner({
-          title: `\u26a0\ufe0f Falha no Sync Automático (${dataHora})`,
-          content: `O sync das 7h falhou para ${totalErros} empresa(s):\n\n${detalhes}\n\nAcesse /sync-status para detalhes ou dispare um sync manual.`,
-        });
-        console.log(`[CashBarber Job] Alerta de falha enviado: ${totalErros} empresa(s) com erro`);
-      } catch (notifErr) {
-        console.error("[CashBarber Job] Falha ao enviar notificação de erro:", notifErr);
-      }
+      const detalhes = Object.entries(errosPorEmpresa).map(([emp, err]) => `${emp}: ${err}`).join(" | ");
+      console.error(`[CashBarber Job] Falha no sync para ${totalErros} empresa(s): ${detalhes}`);
     }
     // Recalcular ranking dos profissionais após o sync do faturamento
     try {
@@ -712,16 +636,7 @@ cron.schedule("0 5 10 * * *", async () => {
     console.log(`[CashBarber Job] Sync diário 7h05 BRT concluído. Erros: ${totalErros}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.log("[CashBarber Job] Erro crítico no sync diário 7h05 BRT:", msg);
-    // Alerta crítico: o job inteiro falhou
-    try {
-      const { notifyOwner } = await import("./_core/notification");
-      const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-      await notifyOwner({
-        title: `\ud83d\udd34 Falha Crítica no Job de Sync (${dataHora})`,
-        content: `O job de sincronização das 7h falhou completamente:\n\n${msg}\n\nAcesse /sync-status para detalhes.`,
-      });
-    } catch { /* silenciar erro de notificação */ }
+    console.error("[CashBarber Job] Erro crítico no sync diário 7h05 BRT:", msg);
   }
 });
 
@@ -828,7 +743,6 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
     const { getDb } = await import("./db");
     const { bonificacaoHistorico } = await import("../drizzle/schema");
     const { eq, and } = await import("drizzle-orm");
-    const { notifyOwner } = await import("./_core/notification");
 
     const db = await getDb();
     if (!db) {
@@ -965,13 +879,10 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
       }
     }
 
-    // Notificar o gestor sobre o fechamento
+    // Notificação ao gestor removida — resultado registrado apenas no log
     if (resumo.length > 0) {
       const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-      await notifyOwner({
-        title: `📊 Fechamento de Bonificações — ${mesesNomes[mes - 1]}/${ano}`,
-        content: `O histórico de bonificações de ${mesesNomes[mes - 1]}/${ano} foi calculado automaticamente:\n\n${resumo.join("\n")}\n\nAcesse Histórico de Bonificações para revisar e marcar como pago.`,
-      }).catch(() => {});
+      console.log(`[Bonificação Job] Resumo ${mesesNomes[mes - 1]}/${ano}: ${resumo.join(" | ")}`);
     }
 
     console.log(`[Bonificação Job] Fechamento ${mes}/${ano} concluído para tenant ${tenantId}: ${resumo.length} empresa(s)`);
@@ -1033,8 +944,6 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       eventoJaNotificado,
       registrarEventoNotificado,
     } = await import("./db");
-    const { notifyOwner } = await import("./_core/notification");
-
     const [empresas, metasMes] = await Promise.all([
       getEmpresasByTenant(tenantId),
       getMetasByMesAndTenant(tenantId, mes, ano),
@@ -1097,7 +1006,8 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       linhas.join("\n") +
       `\n\nAcesse o Dashboard para verificar os detalhes e calcular as bonificações.`;
 
-    await notifyOwner({ title: titulo, content: conteudo });
+    // Notificação ao gestor removida — resultado registrado apenas no log
+    console.log(`[Quinzenal Job] ${titulo}: ${linhas.join(" | ")}`);
     await registrarEventoNotificado(tenantId, chaveGlobal, "meta_quinzenal_fechada", "todos", conteudo);
 
     // ── Enviar push individual para cada profissional das unidades ──────────────
