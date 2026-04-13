@@ -209,18 +209,10 @@ export default function Profissionais() {
   });
 
   const dispararPushRanking = trpc.profissionais.dispararPushRankingParaTodos.useMutation({
-    onSuccess: (data) => {
-      if (data.enviados === 0 && data.falhas === 0) {
-        toast.info("Nenhum profissional com notificação ativa. Peça para eles ativarem na aba \"Meu\".");
-      } else {
-        toast.success(
-          `Push enviado! ✅ ${data.enviados} recebeu${data.enviados !== 1 ? 'ram' : ''}.` +
-          (data.falhas > 0 ? ` ⚠️ ${data.falhas} falha(s).` : '') +
-          (data.semSubscription > 0 ? ` ℹ️ ${data.semSubscription} sem notificação ativa.` : '')
-        );
-      }
+    onSuccess: () => {
+      toast.info("Notificações desativadas.");
     },
-    onError: (err) => toast.error("Erro ao enviar push: " + err.message),
+    onError: (err) => toast.error("Erro: " + err.message),
   });
 
   // Estado do modal de PIN para gerentes
