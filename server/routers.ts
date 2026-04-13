@@ -1617,6 +1617,85 @@ export const appRouter = router({
         return { metas: metasAno, faturamentos: fatAno, bonificacoes: bonificacoesConfig };
       }),
 
+    historicoQuinzenal: protectedProcedure
+      .input(z.object({ ano: z.number().min(2020) }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const [metasAno, fatAno] = await Promise.all([
+          getMetasAnoByTenant(tenantId, input.ano),
+          getFaturamentosAnoByTenant(tenantId, input.ano),
+        ]);
+
+        // Agrupar por empresa e mês
+        const mesesSet = new Set(metasAno.map((m) => `${m.mes}-${m.ano}`));
+        // Incluir meses que têm faturamento mas não têm meta cadastrada
+        fatAno.forEach((f) => {
+          const [ano, mes] = f.data.split("-").map(Number);
+          mesesSet.add(`${mes}-${ano}`);
+        });
+
+        const empresasSlugs = Array.from(new Set([
+          ...metasAno.map((m) => m.empresaSlug),
+          ...fatAno.map((f) => f.empresaSlug),
+        ]));
+
+        const resultado: Array<{
+          empresaSlug: string;
+          mes: number;
+          ano: number;
+          metaQuinzenal: number;
+          totalQuinzenal: number;
+          pctQuinzenal: number;
+          atingiu: boolean;
+          diasUteisQuinzenal: number;
+        }> = [];
+
+        for (const slug of empresasSlugs) {
+          for (const chave of Array.from(mesesSet)) {
+            const [mes, ano] = chave.split("-").map(Number);
+            const meta = metasAno.find((m) => m.empresaSlug === slug && m.mes === mes && m.ano === ano);
+            const metaQ = parseFloat(meta?.metaQuinzenal || "0");
+            const diasUteisQ = meta?.diasUteisQuinzenal ?? 0;
+
+            // Faturamento dos dias 1-15 desta empresa neste mês
+            const fatQuinzena = fatAno.filter((f) => {
+              const [fAno, fMes, fDia] = f.data.split("-").map(Number);
+              return f.empresaSlug === slug && fMes === mes && fAno === ano && fDia >= 1 && fDia <= 15;
+            });
+
+            const totalQ = fatQuinzena.reduce((acc, r) => {
+              const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
+              return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
+            }, 0);
+
+            const pctQ = metaQ > 0 ? Math.round((totalQ / metaQ) * 100) : 0;
+
+            resultado.push({
+              empresaSlug: slug,
+              mes,
+              ano,
+              metaQuinzenal: metaQ,
+              totalQuinzenal: Math.round(totalQ * 100) / 100,
+              pctQuinzenal: pctQ,
+              atingiu: totalQ >= metaQ && metaQ > 0,
+              diasUteisQuinzenal: diasUteisQ,
+            });
+          }
+        }
+
+        // Ordenar por ano desc, mês desc, empresa asc
+        resultado.sort((a, b) => {
+          if (a.ano !== b.ano) return b.ano - a.ano;
+          if (a.mes !== b.mes) return b.mes - a.mes;
+          return a.empresaSlug.localeCompare(b.empresaSlug);
+        });
+
+        return resultado;
+      }),
+
     salvar: protectedProcedure
       .input(z.object({
         empresaSlug: z.string().min(1),

@@ -6,7 +6,7 @@ import {
   Building2, Users, Plus, Power, LogOut, Loader2,
   Eye, EyeOff, X, CheckCircle, Target, Shield, BarChart2,
   AlertTriangle, UserPlus, RefreshCw, Pencil, KeyRound, Save, Trash2,
-  Clock, History, Filter, Link2, Zap
+  Clock, History, Filter, Link2, Zap, TrendingUp, Award, ChevronDown
 } from "lucide-react";
 import Onboarding from "@/components/Onboarding";
 import VinculosPanel from "@/components/VinculosPanel";
@@ -709,7 +709,8 @@ function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user, logout } = useAuth();
-  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico" | "cashbarber" | "avec">("empresas");
+  const [aba, setAba] = useState<"empresas" | "usuarios" | "vinculos" | "historico" | "quinzenal" | "cashbarber" | "avec">("empresas");
+  const [anoQuinzenal, setAnoQuinzenal] = useState(new Date().getFullYear());
   const [filtroHistorico, setFiltroHistorico] = useState<"todos" | "empresa_criada" | "usuario_criado" | "acesso">("todos");
   const [showCriarEmpresa, setShowCriarEmpresa] = useState(false);
   const [showCriarUsuario, setShowCriarUsuario] = useState(false);
@@ -724,6 +725,10 @@ export default function AdminPanel() {
   const { data: historico = [], isLoading: loadingHistorico } = trpc.admin.listarHistorico.useQuery(
     { limit: 300 },
     { enabled: aba === "historico" }
+  );
+  const { data: histQuinzenal = [], isLoading: loadingHistQuinzenal } = trpc.meta.historicoQuinzenal.useQuery(
+    { ano: anoQuinzenal },
+    { enabled: aba === "quinzenal" }
   );
 
   // Detectar primeiro acesso: exibir onboarding se não há empresas e o admin tem tenantId
@@ -878,6 +883,17 @@ export default function AdminPanel() {
               >
                 <Zap className="w-4 h-4" />
                 CashBarber
+              </button>
+              <button
+                onClick={() => setAba("quinzenal")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                  aba === "quinzenal"
+                    ? "border-purple-500 text-purple-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                Quinzenais
               </button>
               <button
                 onClick={() => setAba("avec")}
@@ -1099,6 +1115,189 @@ export default function AdminPanel() {
           {/* Aba CashBarber */}
           {aba === "cashbarber" && (
             <CashBarberIntegracao empresas={empresas as Array<{ id: number; nome: string; slug: string; ativo: number }>} />
+          )}
+
+          {/* Aba Quinzenais */}
+          {aba === "quinzenal" && (
+            <div className="p-4 sm:p-6">
+              {/* Header com seletor de ano */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-purple-600" />
+                    Histórico Quinzenal
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-0.5">Resultado da 1ª quinzena (dias 1–15) por unidade e mês</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAnoQuinzenal(a => a - 1)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium"
+                  >
+                    ‹
+                  </button>
+                  <span className="px-4 py-1.5 rounded-lg bg-purple-50 text-purple-700 font-bold text-sm border border-purple-200">
+                    {anoQuinzenal}
+                  </span>
+                  <button
+                    onClick={() => setAnoQuinzenal(a => Math.min(a + 1, new Date().getFullYear()))}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+
+              {loadingHistQuinzenal ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+                  <span className="ml-2 text-slate-500 text-sm">Carregando histórico...</span>
+                </div>
+              ) : histQuinzenal.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                  <TrendingUp className="w-10 h-10 mb-3 opacity-30" />
+                  <p className="text-sm font-medium">Nenhum dado encontrado para {anoQuinzenal}</p>
+                  <p className="text-xs mt-1">Configure as metas quinzenais para visualizar o histórico</p>
+                </div>
+              ) : (() => {
+                // Agrupar por mês
+                const meses = Array.from(new Set(histQuinzenal.map((r: any) => r.mes as number))).sort((a, b) => b - a);
+                const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+                const empresas_ = Array.from(new Set(histQuinzenal.map((r: any) => r.empresaSlug as string))).sort();
+                const slugLabel: Record<string, string> = {
+                  "MASCOTE": "Mascote", "MORUMBI": "Morumbi",
+                  "barbiero-mascote": "Mascote", "barbiero-morumbi": "Morumbi",
+                };
+
+                return (
+                  <div className="space-y-4">
+                    {/* Tabela principal */}
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide">Mês</th>
+                            {(empresas_ as string[]).map((slug) => (
+                              <th key={slug} colSpan={3} className="text-center px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide border-l border-slate-200">
+                                {slugLabel[slug] ?? slug}
+                              </th>
+                            ))}
+                          </tr>
+                          <tr className="bg-slate-50/50 border-b border-slate-200">
+                            <th className="px-4 py-2"></th>
+                            {(empresas_ as string[]).map((slug) => (
+                              <>
+                                <th key={`${slug}-real`} className="text-center px-3 py-2 text-xs text-slate-500 font-medium border-l border-slate-200">Realizado</th>
+                                <th key={`${slug}-meta`} className="text-center px-3 py-2 text-xs text-slate-500 font-medium">Meta</th>
+                                <th key={`${slug}-pct`} className="text-center px-3 py-2 text-xs text-slate-500 font-medium">%</th>
+                              </>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(meses as number[]).map((mes) => (
+                            <tr key={mes} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                              <td className="px-4 py-3 font-semibold text-slate-700">{nomesMes[mes - 1]}/{anoQuinzenal}</td>
+                              {(empresas_ as string[]).map((slug) => {
+                                const row = histQuinzenal.find((r: any) => r.empresaSlug === slug && r.mes === mes);
+                                if (!row) return (
+                                  <>
+                                    <td key={`${slug}-${mes}-real`} className="text-center px-3 py-3 text-slate-300 border-l border-slate-100">—</td>
+                                    <td key={`${slug}-${mes}-meta`} className="text-center px-3 py-3 text-slate-300">—</td>
+                                    <td key={`${slug}-${mes}-pct`} className="text-center px-3 py-3 text-slate-300">—</td>
+                                  </>
+                                );
+                                const pct = row.pctQuinzenal;
+                                const atingiu = row.atingiu;
+                                const pctColor = atingiu ? "text-emerald-600 font-bold" : pct >= 80 ? "text-amber-600 font-semibold" : "text-red-500 font-semibold";
+                                const bgRow = atingiu ? "bg-emerald-50/30" : "";
+                                return (
+                                  <>
+                                    <td key={`${slug}-${mes}-real`} className={`text-center px-3 py-3 text-slate-700 border-l border-slate-100 ${bgRow}`}>
+                                      R$ {row.totalQuinzenal.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </td>
+                                    <td key={`${slug}-${mes}-meta`} className={`text-center px-3 py-3 text-slate-500 ${bgRow}`}>
+                                      R$ {row.metaQuinzenal.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </td>
+                                    <td key={`${slug}-${mes}-pct`} className={`text-center px-3 py-3 ${bgRow}`}>
+                                      <span className={`inline-flex items-center gap-1 ${pctColor}`}>
+                                        {atingiu ? <Award className="w-3.5 h-3.5" /> : null}
+                                        {pct}%
+                                      </span>
+                                    </td>
+                                  </>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Cards de resumo por unidade */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                      {(empresas_ as string[]).map((slug) => {
+                        const rows = histQuinzenal.filter((r: any) => r.empresaSlug === slug);
+                        const total = rows.length;
+                        const atingidos = rows.filter((r: any) => r.atingiu).length;
+                        const pctMedio = total > 0 ? Math.round(rows.reduce((s: number, r: any) => s + r.pctQuinzenal, 0) / total) : 0;
+                        const taxaAcerto = total > 0 ? Math.round((atingidos / total) * 100) : 0;
+                        return (
+                          <div key={slug} className="rounded-xl border border-slate-200 p-4 bg-white">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-bold text-slate-800">{slugLabel[slug] ?? slug}</h3>
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                taxaAcerto >= 70 ? "bg-emerald-100 text-emerald-700" :
+                                taxaAcerto >= 40 ? "bg-amber-100 text-amber-700" :
+                                "bg-red-100 text-red-700"
+                              }`}>{taxaAcerto}% de acerto</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 text-center">
+                              <div>
+                                <p className="text-2xl font-bold text-slate-800">{atingidos}</p>
+                                <p className="text-xs text-slate-500">Quinzenais batidas</p>
+                              </div>
+                              <div>
+                                <p className="text-2xl font-bold text-slate-500">{total - atingidos}</p>
+                                <p className="text-xs text-slate-500">Não atingidas</p>
+                              </div>
+                              <div>
+                                <p className={`text-2xl font-bold ${
+                                  pctMedio >= 100 ? "text-emerald-600" :
+                                  pctMedio >= 80 ? "text-amber-600" : "text-red-500"
+                                }`}>{pctMedio}%</p>
+                                <p className="text-xs text-slate-500">Média {anoQuinzenal}</p>
+                              </div>
+                            </div>
+                            {/* Barra de progresso visual */}
+                            <div className="mt-3 flex gap-1">
+                              {(meses as number[]).slice().reverse().map((mes) => {
+                                const row = rows.find((r: any) => r.mes === mes);
+                                if (!row) return <div key={mes} className="flex-1 h-2 rounded-full bg-slate-100" title={nomesMes[mes-1]} />;
+                                return (
+                                  <div
+                                    key={mes}
+                                    className={`flex-1 h-2 rounded-full ${
+                                      row.atingiu ? "bg-emerald-500" :
+                                      row.pctQuinzenal >= 80 ? "bg-amber-400" : "bg-red-400"
+                                    }`}
+                                    title={`${nomesMes[mes-1]}: ${row.pctQuinzenal}%`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <div className="flex justify-between mt-1">
+                              <span className="text-xs text-slate-400">{nomesMes[(meses as number[]).slice().reverse()[0]-1]}</span>
+                              <span className="text-xs text-slate-400">{nomesMes[(meses as number[]).slice().reverse()[(meses as number[]).length-1]-1]}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           )}
 
           {/* Aba Avec */}
