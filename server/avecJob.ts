@@ -82,19 +82,7 @@ async function executarSyncAvec() {
           `${resultado.diasFechados} fechados, ${resultado.diasIgnorados} ignorados`
         );
 
-        // Notificar owner sobre sincronização bem-sucedida (apenas se sincronizou algo)
-        if (resultado.diasSincronizados > 0) {
-          try {
-            const { notifyOwner } = await import("./_core/notification");
-            await notifyOwner({
-              title: `✅ Sync Avec - ${config.empresaSlug}`,
-              content: `Sincronização automática concluída para ${mes}/${ano}:\n` +
-                `• ${resultado.diasSincronizados} dia(s) sincronizado(s)\n` +
-                `• ${resultado.diasFechados} dia(s) sem movimento\n` +
-                `• ${resultado.diasIgnorados} dia(s) ignorado(s)`,
-            });
-          } catch { /* silenciar notificação */ }
-        }
+        // Notificação ao owner removida — resultado registrado apenas no log
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         console.error(`[Avec Job] Erro ao sincronizar ${config.empresaSlug}:`, msg);
@@ -116,14 +104,7 @@ async function executarSyncAvec() {
     _statusJob = "error";
     _ultimoErro = msg;
 
-    // Notificar owner em caso de erro crítico
-    try {
-      const { notifyOwner } = await import("./_core/notification");
-      await notifyOwner({
-        title: "🔴 Falha no Sync Avec",
-        content: `O job automático de sincronização do Avec falhou:\n\n${msg}`,
-      });
-    } catch { /* silenciar */ }
+    // Notificação ao owner removida — erro registrado apenas no log
   }
 }
 

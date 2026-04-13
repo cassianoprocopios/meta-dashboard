@@ -1086,33 +1086,17 @@ const profissionaisRouter = router({
       return { ativo };
     }),
 
+  // Procedures de push removidas — notificações desativadas
   enviarPushRankingManual: protectedProcedure
     .input(z.object({
       profissionalId: z.number().int().positive(),
       titulo: z.string().min(1),
       mensagem: z.string().min(1),
     }))
-    .mutation(async ({ ctx, input }) => {
-      const tenantId = await getTenantIdFromCtx(ctx);
-      const { enviarPushParaProfissional } = await import("./pushNotifications");
-      const enviou = await enviarPushParaProfissional(tenantId, input.profissionalId, {
-        title: input.titulo,
-        body: input.mensagem,
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-        tag: "ranking",
-      });
-      return { enviou };
-    }),
+    .mutation(async () => ({ enviou: false })),
 
-  // Dispara o push de ranking para TODOS os profissionais com subscription ativa
   dispararPushRankingParaTodos: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      const tenantId = await getTenantIdFromCtx(ctx);
-      const { enviarPushRankingDiario } = await import("./pushNotifications");
-      const result = await enviarPushRankingDiario(tenantId);
-      return result;
-    }),
+    .mutation(async () => ({ enviados: 0, erros: 0 })),
 });
 export const appRouter = router({
   system: systemRouter,
@@ -2729,14 +2713,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           `Acesse o Meta Dashboard para mais detalhes e tome as ações necessárias.`,
         ].join("\n");
 
-        const { notifyOwner } = await import("./_core/notification");
-        const delivered = await notifyOwner({ title, content });
-
+        // Notificação ao owner removida — notificações desativadas
         return {
-          success: delivered,
-          message: delivered
-            ? `Notificação enviada com sucesso para ${empresasEmRisco.length} empresa${empresasEmRisco.length > 1 ? "s" : ""} em risco.`
-            : "Não foi possível enviar a notificação no momento. Tente novamente.",
+          success: false,
+          message: "Notificações desativadas.",
         };
       }),
   }),
@@ -2870,7 +2850,6 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       .mutation(async ({ ctx, input }) => {
         const tenantId = ctx.user.tenantId;
         if (!tenantId) throw new TRPCError({ code: "UNAUTHORIZED" });
-        const { notifyOwner } = await import("./_core/notification");
         const { mes, ano, empresas } = input;
         const periodoKey = `${String(mes).padStart(2, "0")}-${ano}`;
         const notificacoesEnviadas: string[] = [];
@@ -2882,10 +2861,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const jaNotificado = await eventoJaNotificado(tenantId, chaveMetaAtingida);
             if (!jaNotificado) {
               const mensagem = `🎉 ${emp.nome} atingiu a meta mensal! Faturamento realizado: R$ ${emp.totalRealizado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (${emp.pctMeta.toFixed(1)}% da meta de R$ ${emp.metaMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}).`;
-              await notifyOwner({
-                title: `🎉 Meta atingida: ${emp.nome}`,
-                content: mensagem,
-              });
+              // Notificação ao owner removida — notificações desativadas
               await registrarEventoNotificado(tenantId, chaveMetaAtingida, "meta_atingida", emp.slug, mensagem);
               notificacoesEnviadas.push(`meta_atingida:${emp.nome}`);
             }
@@ -2910,10 +2886,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               const direcao = emp.posicaoRanking < posicaoAnterior ? "subiu" : "caiu";
               const emoji = direcao === "subiu" ? "📈" : "📉";
               const mensagem = `${emoji} ${emp.nome} ${direcao} no ranking: ${posicaoAnterior}º → ${emp.posicaoRanking}º lugar. Faturamento atual: R$ ${emp.totalRealizado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (${emp.pctMeta.toFixed(1)}% da meta).`;
-              await notifyOwner({
-                title: `${emoji} Mudança no ranking: ${emp.nome}`,
-                content: mensagem,
-              });
+              // Notificação ao owner removida — notificações desativadas
               await registrarEventoNotificado(tenantId, chaveRanking, "mudanca_ranking", emp.slug, mensagem);
               notificacoesEnviadas.push(`ranking:${emp.nome}`);
             }

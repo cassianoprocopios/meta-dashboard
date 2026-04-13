@@ -133,89 +133,9 @@ async function executarAplicacaoDpote(tenantId: number, origem: "horario" | "dia
   }
 }
 
-/**
- * Verifica se alguma empresa do tenant atingiu 100% da meta diária esperada
- * e envia notificação push caso ainda não tenha sido notificado hoje.
- *
- * Lógica:
- *  - Meta esperada até hoje = (metaMensal / diasUteis) * diasPassadosNoMes
- *  - Se totalRealizado >= metaEsperadaHoje → notificar (1x por empresa por dia)
- *  - Chave anti-duplicata: "meta_diaria_atingida:{slug}:{YYYY-MM-DD}"
- */
-export async function verificarMetaDiariaParaTenant(tenantId: number): Promise<void> {
-  const agora = new Date();
-  const mes = agora.getMonth() + 1;
-  const ano = agora.getFullYear();
-  const diaHoje = agora.getDate();
-  const dataHoje = `${ano}-${String(mes).padStart(2, "0")}-${String(diaHoje).padStart(2, "0")}`;
-
-  try {
-    const {
-      getEmpresasByTenant,
-      getMetasByMesAndTenant,
-      getAllFaturamentosByTenant,
-      eventoJaNotificado,
-      registrarEventoNotificado,
-    } = await import("./db");
-
-    const [empresas, metasMes, faturamentosMes] = await Promise.all([
-      getEmpresasByTenant(tenantId),
-      getMetasByMesAndTenant(tenantId, mes, ano),
-      getAllFaturamentosByTenant(tenantId, mes, ano),
-    ]);
-
-    for (const empresa of empresas) {
-      if (!empresa.ativo) continue;
-
-      // Buscar meta desta empresa
-      const meta = metasMes.find((m) => m.empresaSlug === empresa.slug);
-      if (!meta || Number(meta.metaMensal) <= 0) continue;
-
-      const metaMensal = Number(meta.metaMensal);
-      const diasUteis = meta.diasUteis ?? 26;
-
-      // Meta esperada até hoje: proporcional aos dias passados no mês
-      // Usa dias corridos (diaHoje) como proxy para dias trabalhados
-      const totalDiasMes = new Date(ano, mes, 0).getDate();
-      const metaEsperadaHoje = (metaMensal / totalDiasMes) * diaHoje;
-
-      // Somar faturamento realizado desta empresa no mês (apenas dias passados, excluindo previstos)
-      const fatsEmpresa = faturamentosMes.filter(
-        (f) => f.empresaSlug === empresa.slug && f.data <= dataHoje
-      );
-      const totalRealizado = fatsEmpresa.reduce((acc, f) => {
-        return acc + [
-          Number(f.cat1), Number(f.cat2), Number(f.cat3),
-          Number(f.cat4), Number(f.cat5), Number(f.cat6),
-          Number(f.cat7), Number(f.cat8), Number(f.cat9),
-        ].reduce((a, b) => a + b, 0);
-      }, 0);
-
-      // Verificar se atingiu 100% da meta esperada até hoje
-      if (totalRealizado < metaEsperadaHoje) continue;
-
-      // Chave única por empresa por dia (evita duplicata no mesmo dia)
-      const chave = `meta_diaria_atingida:${empresa.slug}:${dataHoje}`;
-      const jaNotificado = await eventoJaNotificado(tenantId, chave);
-      if (jaNotificado) continue;
-
-      const pct = metaEsperadaHoje > 0 ? ((totalRealizado / metaEsperadaHoje) * 100).toFixed(1) : "100.0";
-      const fmtBRL = (v: number) =>
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
-
-      const mensagem =
-        `🎯 ${empresa.nome} atingiu a meta diária! ` +
-        `Realizado: ${fmtBRL(totalRealizado)} (${pct}% da meta esperada de ${fmtBRL(metaEsperadaHoje)} para o dia ${diaHoje}/${mes}).`;
-
-      await registrarEventoNotificado(tenantId, chave, "meta_diaria_atingida", empresa.slug, mensagem);
-
-      console.log(`[CashBarber Job] Meta diária atingida: ${empresa.nome} (${pct}%) - notificação ao admin removida`);
-    }
-  } catch (err) {
-    // Falha na verificação não deve interromper o job
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`[CashBarber Job] Falha ao verificar meta diária para tenant ${tenantId}:`, msg);
-  }
+/** Notificação de meta diária removida — função mantida para compatibilidade com chamadas existentes */
+export async function verificarMetaDiariaParaTenant(_tenantId: number): Promise<void> {
+  // Notificações desativadas
 }
 
 /**
@@ -494,105 +414,10 @@ cron.schedule("0 30 * * * *", async () => {
 
 console.log("[Dpote Job] Job horário do Dpote agendado (a cada hora no minuto :30, horário de funcionamento)");
 
-// ─── Job de Notificação Diária do Ranking (21h) ───────────────────────────────
-
+// Job de notificação diária do ranking removido — notificações desativadas
 async function enviarNotificacaoRankingDiario(): Promise<void> {
-  try {
-    const { listarColaboradores } = await import("./db");
-    const { cashbarberLogin, cashbarberRelatorio15 } = await import("./cashbarber");
-
-    // Buscar todos os tenants com configs ativas
-    const configs = await listAllActiveCashbarberConfigs();
-    const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
-
-    for (const tenantId of tenantIds) {
-      try {
-        const hoje = new Date();
-        const dataStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
-        const colaboradores = await listarColaboradores(tenantId);
-        const configsTenant = configs.filter((c) => c.tenantId === tenantId);
-
-        const EXCLUIDOS = /^(corte de cabelo|barba$|barba completa|corte kids|raspar na m[áa]quina|pezinho)/i;
-        const resultados: Array<{ nome: string; total: number }> = [];
-
-        for (const empresa of configsTenant) {
-          if (!empresa.cbEmail || !empresa.cbSenha || !empresa.cbFilialId) continue;
-          try {
-            const token = await cashbarberLogin(empresa.cbEmail, empresa.cbSenha);
-            if (!token) continue;
-            // Buscar dados por profissional individualmente
-            const colsEmpresa = colaboradores.filter(
-              (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.cashbarberProfissionalId != null && c.isGerencia !== 1
-            );
-            for (const col of colsEmpresa) {
-              try {
-                const relatorio = await cashbarberRelatorio15(
-                  token, dataStr, dataStr, empresa.cbFilialId, Number(col.cashbarberProfissionalId)
-                );
-                const totalServicos = (relatorio.servicos ?? [])
-                  .filter((s: any) => !EXCLUIDOS.test(s.ser_nome ?? ""))
-                  .reduce((acc: number, s: any) => acc + (parseFloat(String(s.sum ?? 0)) || 0), 0);
-                const totalProdutos = (relatorio.produtos ?? [])
-                  .reduce((acc: number, p: any) => acc + (parseFloat(String(p.total ?? p.sum ?? 0)) || 0), 0);
-                const total = totalServicos + totalProdutos;
-                if (total > 0) {
-                  const nomeExib = col.apelido || col.nome;
-                  const idx = resultados.findIndex((r) => r.nome === nomeExib);
-                  if (idx >= 0) {
-                    resultados[idx].total += total;
-                  } else {
-                    resultados.push({ nome: nomeExib, total });
-                  }
-                }
-              } catch {
-                // silenciar erro por profissional
-              }
-            }
-          } catch {
-            // silenciar erros por empresa
-          }
-        }
-
-        if (resultados.length === 0) continue;
-        resultados.sort((a, b) => b.total - a.total);
-        const top3 = resultados.slice(0, 3);
-        const ultimos3 = resultados.length > 3 ? resultados.slice(-3) : [];
-        const fmtBRL = (v: number) =>
-          v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-        const linhasTop = top3.map((r, i) => {
-          const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
-          return `${medalha} ${r.nome}: ${fmtBRL(r.total)}`;
-        });
-
-        const linhasUltimos = ultimos3.map((r, i) => {
-          const posicao = resultados.length - (ultimos3.length - 1 - i);
-          return `🔦 ${posicao}º ${r.nome}: ${fmtBRL(r.total)}`;
-        });
-
-        const conteudo = [
-          ...linhasTop,
-          ...(ultimos3.length > 0 ? ["\n⚠️ Zona de Lanterna:", ...linhasUltimos] : []),
-          `\n${resultados.length} profissionais com dados hoje.`,
-        ].join("\n");
-
-        console.log(`[Ranking Notif] Top 3 do dia para tenant ${tenantId}: ${top3.map((r) => r.nome).join(", ")} - notificação ao admin removida`);
-      } catch (e) {
-        console.error(`[Ranking Notif] Erro para tenant ${tenantId}:`, e);
-      }
-    }
-  } catch (e) {
-    console.error("[Ranking Notif] Erro geral:", e);
-  }
+  // Notificações desativadas
 }
-
-// Agendar notificação diária às 21h (horário do servidor)
-cron.schedule("0 0 21 * * *", () => {
-  console.log("[Ranking Notif] Enviando notificação do top 3 do dia...");
-  enviarNotificacaoRankingDiario().catch((e) =>
-    console.error("[Ranking Notif] Erro:", e)
-  );
-});
 
 // ─── Job de fallback diário às 7h05 BRT (10:05 UTC) ────────────────────────
 // Garante que o sync seja executado mesmo que o job das 7h falhe por hibernação.
@@ -1009,71 +834,6 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
     // Notificação ao gestor removida — resultado registrado apenas no log
     console.log(`[Quinzenal Job] ${titulo}: ${linhas.join(" | ")}`);
     await registrarEventoNotificado(tenantId, chaveGlobal, "meta_quinzenal_fechada", "todos", conteudo);
-
-    // ── Enviar push individual para cada profissional das unidades ──────────────
-    try {
-      const { enviarPushParaProfissional } = await import("./pushNotifications");
-      const { listarColaboradores } = await import("./db");
-      const colaboradores = await listarColaboradores(tenantId);
-      const ICON = "https://d2xsxph8kpxj0f.cloudfront.net/310519663456579702/MANH2fxvkecBuwjELBL3u8/icon-192_a3de3eb2.png";
-
-      // Para cada empresa que tinha meta quinzenal, notificar os profissionais da unidade
-      for (const empresa of empresas) {
-        if (!empresa.ativo) continue;
-        const meta = metasMes.find((m) => m.empresaSlug === empresa.slug);
-        const metaQuinzenal = parseFloat(meta?.metaQuinzenal || "0");
-        if (metaQuinzenal <= 0) continue;
-
-        // Recalcular totalQuinzenal para esta empresa
-        const faturamentosMes = await getAllFaturamentosByTenant(tenantId, mes, ano, empresa.slug);
-        const diasQuinzena = faturamentosMes.filter((r) => {
-          const dia = parseInt(r.data.split("-")[2], 10);
-          return dia >= 1 && dia <= 15;
-        });
-        const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
-          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
-          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
-        }, 0);
-        const pct = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
-        const atingiu = totalQuinzenal >= metaQuinzenal;
-        const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
-        const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-        // Profissionais desta unidade
-        const profUnidade = colaboradores.filter((c) => c.empresaSlug === empresa.slug && c.ativo !== 0);
-
-        for (const prof of profUnidade) {
-          let titulo_push: string;
-          let body_push: string;
-
-          if (atingiu) {
-            titulo_push = `🏅 Quinzenal Batida! — ${empresa.nome}`;
-            body_push = `Parabéns! A unidade ${empresa.nome} atingiu ${fmtBRL(totalQuinzenal)} na 1ª quinzena (${pct}% da meta). Você tem direito à bonificação quinzenal! 🎉`;
-          } else if (pct >= 80) {
-            titulo_push = `🟡 Quinzenal Quase Lá — ${empresa.nome}`;
-            body_push = `A unidade ${empresa.nome} ficou em ${fmtBRL(totalQuinzenal)} (${pct}% da meta). Faltou apenas ${fmtBRL(faltou)} para a bonificação quinzenal. No próximo mês chegamos lá! 💪`;
-          } else {
-            titulo_push = `📊 Resultado Quinzenal — ${empresa.nome}`;
-            body_push = `A unidade ${empresa.nome} fechou a 1ª quinzena com ${fmtBRL(totalQuinzenal)} (${pct}% de ${fmtBRL(metaQuinzenal)}). Faltou ${fmtBRL(faltou)} para a bonificação. Vamos acelerar na 2ª quinzena! 🚀`;
-          }
-
-          await enviarPushParaProfissional(tenantId, prof.id, {
-            title: titulo_push,
-            body: body_push,
-            icon: ICON,
-            badge: ICON,
-            tag: `quinzenal-${mes}-${ano}`,
-            data: { url: "/pro" },
-          });
-        }
-
-        console.log(`[Quinzenal Job] Push enviado para ${profUnidade.length} profissional(is) da ${empresa.nome}`);
-      }
-    } catch (pushErr) {
-      const msg = pushErr instanceof Error ? pushErr.message : String(pushErr);
-      console.error(`[Quinzenal Job] Erro ao enviar push para profissionais:`, msg);
-    }
-    // ────────────────────────────────────────────────────────────────────────────
 
     console.log(`[Quinzenal Job] Notificação enviada para tenant ${tenantId}: ${linhas.length} empresa(s)`);
   } catch (err) {
