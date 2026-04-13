@@ -563,12 +563,11 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: cat1..cat8 dos dias realizados até dia 15 + recorrência proporcional (15/totalDiasMes)
+      // Quinzenal: soma completa (cat1..cat9) dos dias realizados até dia 15
+      // Usa sumCats (inclui cat9 real do Dpote já distribuído) — sem proporção artificial
       const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const recorrenciaQuinzenal = !ehMesFuturo ? recorrenciaNoFaturamento * (15 / totalDiasMes) : 0;
-      const totalQuinzenal = totalQuinzenalSemRec + recorrenciaQuinzenal;
+      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
 
       // diasUteisRestantes: dias trabalhados que ainda faltam no mês
       // = dias trabalhados configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
