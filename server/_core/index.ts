@@ -11,7 +11,6 @@ import { inicializarJobsCashbarber } from "../cashbarberJob";
 import { iniciarJobAvec } from "../avecJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import * as cron from "node-cron";
-import { enviarPushRankingDiario } from "../pushNotifications";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -130,29 +129,6 @@ async function startServer() {
       console.error("[Avec Job] Falha na inicialização:", err);
     }
 
-    // ─── Job de push de ranking às 12h (horário de Brasília = UTC-3) ─────────
-    // Cron: 0 0 15 * * * = todo dia às 15:00 UTC = 12:00 BRT
-    cron.schedule("0 0 15 * * *", async () => {
-      console.log("[Push Ranking] Iniciando envio de push de ranking às 12h BRT...");
-      try {
-        const { getAllTenants } = await import("../db");
-        const allTenants = await getAllTenants();
-        for (const tenant of allTenants) {
-          if (!tenant.ativo) continue;
-          try {
-            const result = await enviarPushRankingDiario(tenant.id);
-            if (result.enviados > 0 || result.falhas > 0) {
-              console.log(`[Push Ranking] Tenant ${tenant.nome}: ${result.enviados} enviados, ${result.falhas} falhas`);
-            }
-          } catch (err) {
-            console.error(`[Push Ranking] Erro no tenant ${tenant.nome}:`, err);
-          }
-        }
-        console.log("[Push Ranking] Envio concluído.");
-      } catch (err) {
-        console.error("[Push Ranking] Erro geral:", err);
-      }
-    }, { timezone: "UTC" });
   });
 }
 
