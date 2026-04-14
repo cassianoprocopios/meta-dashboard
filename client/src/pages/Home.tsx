@@ -563,9 +563,11 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: soma completa (cat1..cat9) dos dias realizados até dia 15
-      // Usa sumCats (inclui cat9 real do Dpote já distribuído) — sem proporção artificial
-      const rowsQuinzenal = rowsRealizados.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15);
+      // Quinzenal: soma completa (cat1..cat9) dos dias 1-15 do mês
+      // IMPORTANTE: usa faturamentosData (dados completos do mês, sem filtro de semana)
+      // para garantir que o totalQuinzenal seja sempre correto independente do filtro de período
+      const rowsQuinzenal = (faturamentosData as any[])
+        .filter((r: any) => r.empresaSlug === emp.slug && parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
       const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
 
@@ -669,7 +671,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano]);
+  }, [empresasVisiveis, faturamentosData, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
