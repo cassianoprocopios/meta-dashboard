@@ -578,8 +578,13 @@ export default function Home() {
       // = dias trabalhados configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
       // Isso reflete a realidade: cada dia com lançamento é um dia trabalhado consumido
       const diasUteisRestantes = Math.max(0, diasUteis - diasRealizados);
-      // Para a quinzenal: dias trabalhados até dia 15 - dias já lançados até dia 15
-      const diasUteisRestantesQuinzenal = Math.max(0, diasUteisQuinzenal - diasLancadosQuinzenal);
+      // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
+      // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
+      const diasUteisRestantesQuinzenal = ehMesFuturo
+        ? 15
+        : (ehMesVigente && diaHoje <= 15)
+          ? Math.max(0, 15 - diaHoje + 1)
+          : 0;
 
       // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
       // Usa totalRealizado para não contar previstos como já conquistados
@@ -1588,7 +1593,11 @@ export default function Home() {
                         const atingiuQ = totalQuinzenalGeral >= metaQuinzenalTotal;
                         const faltaQ = Math.max(0, metaQuinzenalTotal - totalQuinzenalGeral);
                         const pctQ = metaQuinzenalTotal > 0 ? Math.round((totalQuinzenalGeral / metaQuinzenalTotal) * 100) : 0;
-                        const diasRestQ = statsPorEmpresa.reduce((s, e) => s + e.diasUteisRestantesQuinzenal, 0);
+                        // Dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
+                        const diaAtual = hoje.getDate();
+                        const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
+                        const ehMesFuturoQ = ano > hoje.getFullYear() || (ano === hoje.getFullYear() && mes > hoje.getMonth() + 1);
+                        const diasRestQ = ehMesFuturoQ ? 15 : (ehMesAtual && diaAtual <= 15) ? Math.max(0, 15 - diaAtual + 1) : 0;
                         const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
                         return (
                           <div className="mt-3 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
