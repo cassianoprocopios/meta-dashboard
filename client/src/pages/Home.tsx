@@ -1591,6 +1591,7 @@ export default function Home() {
                       {metaQuinzenalTotal > 0 && (() => {
                         const totalQuinzenalGeral = statsPorEmpresa.reduce((s, e) => s + e.totalQuinzenal, 0);
                         const atingiuQ = totalQuinzenalGeral >= metaQuinzenalTotal;
+                        const superouQ = totalQuinzenalGeral > metaQuinzenalTotal ? totalQuinzenalGeral - metaQuinzenalTotal : 0;
                         const faltaQ = Math.max(0, metaQuinzenalTotal - totalQuinzenalGeral);
                         const pctQ = metaQuinzenalTotal > 0 ? Math.round((totalQuinzenalGeral / metaQuinzenalTotal) * 100) : 0;
                         // Dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
@@ -1599,12 +1600,38 @@ export default function Home() {
                         const ehMesFuturoQ = ano > hoje.getFullYear() || (ano === hoje.getFullYear() && mes > hoje.getMonth() + 1);
                         const diasRestQ = ehMesFuturoQ ? 15 : (ehMesAtual && diaAtual <= 15) ? Math.max(0, 15 - diaAtual + 1) : 0;
                         const metaDiariaQ = diasRestQ > 0 ? faltaQ / diasRestQ : 0;
+                        // Quinzena encerrada: após dia 15 do mês vigente, ou em meses passados
+                        const quinzenaEncerradaGeral = !ehMesFuturoQ && (ehMesAtual ? diaAtual > 15 : true);
+                        // Resultado por unidade para o resumo pós-quinzena
+                        const resultadosPorUnidade = statsPorEmpresa.map(e => ({
+                          nome: e.emp.nome,
+                          atingiu: e.totalQuinzenal >= e.metaQuinzenal,
+                          pct: e.metaQuinzenal > 0 ? Math.round((e.totalQuinzenal / e.metaQuinzenal) * 100) : 0,
+                          total: e.totalQuinzenal,
+                          meta: e.metaQuinzenal,
+                        })).filter(e => e.meta > 0);
                         return (
-                          <div className="mt-3 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                          <div className={`mt-3 p-2.5 rounded-xl border ${
+                            quinzenaEncerradaGeral
+                              ? atingiuQ ? 'bg-emerald-500/10 border-emerald-500/30' : pctQ >= 80 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-red-500/10 border-red-500/30'
+                              : 'bg-purple-500/10 border-purple-500/20'
+                          }`}>
                             <div className="flex items-center justify-between mb-1.5">
                               <div className="flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                                <span className="text-xs text-purple-300 font-semibold">Meta Quinzenal</span>
+                                {quinzenaEncerradaGeral ? (
+                                  <span className="text-base leading-none">{atingiuQ ? '✅' : pctQ >= 80 ? '⚠️' : '❌'}</span>
+                                ) : (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                )}
+                                <span className={`text-xs font-semibold ${
+                                  quinzenaEncerradaGeral
+                                    ? atingiuQ ? 'text-emerald-300' : pctQ >= 80 ? 'text-yellow-300' : 'text-red-300'
+                                    : 'text-purple-300'
+                                }`}>
+                                  {quinzenaEncerradaGeral
+                                    ? (atingiuQ ? 'QUINZENAL ATINGIDA!' : 'QUINZENAL NÃO ATINGIDA')
+                                    : 'Meta Quinzenal'}
+                                </span>
                               </div>
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                                 atingiuQ ? 'bg-emerald-500/20 text-emerald-300' :
@@ -1616,7 +1643,29 @@ export default function Home() {
                               <span className="text-white/60">{fmt(totalQuinzenalGeral)}</span>
                               <span className="text-white/40">/ {fmt(metaQuinzenalTotal)}</span>
                             </div>
-                            {!atingiuQ && faltaQ > 0 && (
+                            {/* Resultado pós-quinzena: superou ou faltou */}
+                            {quinzenaEncerradaGeral && atingiuQ && superouQ > 0 && (
+                              <p className="text-xs font-semibold text-emerald-400 mt-1">+{fmt(superouQ)} acima da meta 🎉</p>
+                            )}
+                            {quinzenaEncerradaGeral && !atingiuQ && (
+                              <p className={`text-xs font-semibold mt-1 ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>Faltou {fmt(faltaQ)}</p>
+                            )}
+                            {/* Resultado por unidade (apenas pós-quinzena) */}
+                            {quinzenaEncerradaGeral && resultadosPorUnidade.length > 1 && (
+                              <div className="mt-1.5 pt-1.5 border-t border-white/10 flex flex-col gap-0.5">
+                                {resultadosPorUnidade.map(u => (
+                                  <div key={u.nome} className="flex items-center justify-between text-[10px]">
+                                    <span className="flex items-center gap-1">
+                                      <span>{u.atingiu ? '✅' : u.pct >= 80 ? '⚠️' : '❌'}</span>
+                                      <span className="text-white/60">{u.nome}</span>
+                                    </span>
+                                    <span className={`font-semibold ${u.atingiu ? 'text-emerald-400' : u.pct >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>{u.pct}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {/* Durante a quinzena: falta e meta/dia */}
+                            {!quinzenaEncerradaGeral && !atingiuQ && faltaQ > 0 && (
                               <div className="mt-1.5 text-xs">
                                 <span className="text-amber-400 font-semibold">Falta: {fmt(faltaQ)}</span>
                                 {metaDiariaQ > 0 && diasRestQ > 0 && (
@@ -1624,7 +1673,7 @@ export default function Home() {
                                 )}
                               </div>
                             )}
-                            {atingiuQ && (
+                            {!quinzenaEncerradaGeral && atingiuQ && (
                               <p className="text-xs font-semibold text-emerald-400 mt-1">✓ Quinzenal atingida!</p>
                             )}
                             <div className="mt-1.5 h-1 rounded-full bg-white/10 overflow-hidden">
@@ -2402,13 +2451,18 @@ export default function Home() {
                         {s.metaQuinzenal > 0 && (() => {
                           const atingiuQ = s.totalQuinzenal >= s.metaQuinzenal;
                           const faltaQ = Math.max(0, s.metaQuinzenal - s.totalQuinzenal);
+                          const superouQ = s.totalQuinzenal > s.metaQuinzenal ? s.totalQuinzenal - s.metaQuinzenal : 0;
                           const pctQ = Math.round(s.progressoQuinzenal);
                           const diaAtualQ = new Date().getDate();
-                          const naSegundaQ = diaAtualQ > 15;
+                          const mesAtualQ = new Date().getMonth() + 1;
+                          const anoAtualQ = new Date().getFullYear();
+                          const ehMesVigenteQ = mes === mesAtualQ && ano === anoAtualQ;
+                          const naSegundaQ = ehMesVigenteQ ? diaAtualQ > 15 : !ehMesVigenteQ;
+                          const quinzenaEncerrada = naSegundaQ || !ehMesVigenteQ;
                           // Semáforo de ritmo quinzenal: compara média diária atual vs meta diária necessária
                           const ritmoQ = (() => {
+                            if (quinzenaEncerrada) return null; // pós-quinzena usa indicador próprio
                             if (atingiuQ) return { emoji: '🟢', label: 'Quinzenal atingida!', cor: '#10b981' };
-                            if (naSegundaQ) return { emoji: pctQ >= 80 ? '🟡' : '🔴', label: 'Quinzenal encerrada', cor: pctQ >= 80 ? '#f59e0b' : '#ef4444' };
                             if (s.metaDiariaDinamicaQuinzenal <= 0) return null;
                             const ratio = s.mediaDiaria > 0 ? s.mediaDiaria / s.metaDiariaDinamicaQuinzenal : 0;
                             if (ratio >= 1.0) return { emoji: '🟢', label: 'No ritmo certo!', cor: '#10b981' };
@@ -2423,28 +2477,55 @@ export default function Home() {
                                 {pctQ}%
                               </span>
                             </div>
-                            {ritmoQ && (
-                              <div className="flex items-center gap-1 mb-1">
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: ritmoQ.cor + '22', color: ritmoQ.cor, border: `1px solid ${ritmoQ.cor}55` }}>
-                                  {ritmoQ.emoji} {ritmoQ.label}
-                                </span>
+                            {/* Indicador pós-quinzena: resultado final destacado */}
+                            {quinzenaEncerrada ? (
+                              <div className={`rounded-lg p-2 mb-1 border ${atingiuQ ? 'border-emerald-500/40 bg-emerald-500/10' : pctQ >= 80 ? 'border-yellow-500/40 bg-yellow-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="text-sm">{atingiuQ ? '✅' : pctQ >= 80 ? '⚠️' : '❌'}</span>
+                                  <span className={`text-[11px] font-bold ${atingiuQ ? 'text-emerald-400' : pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    {atingiuQ ? 'META ATINGIDA' : 'META NÃO ATINGIDA'}
+                                  </span>
+                                </div>
+                                <p className="text-[10px]" style={{ color: 'var(--meta-card-label)' }}>
+                                  {fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}
+                                </p>
+                                {atingiuQ && superouQ > 0 && (
+                                  <p className="text-[10px] font-semibold text-emerald-400">+{fmt(superouQ)} acima da meta</p>
+                                )}
+                                {!atingiuQ && (
+                                  <p className={`text-[10px] font-semibold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>Faltou {fmt(faltaQ)}</p>
+                                )}
                               </div>
+                            ) : (
+                              <>
+                                {ritmoQ && (
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: ritmoQ.cor + '22', color: ritmoQ.cor, border: `1px solid ${ritmoQ.cor}55` }}>
+                                      {ritmoQ.emoji} {ritmoQ.label}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
                             )}
                             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
                               <div className={`h-full rounded-full ${atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-yellow-500' : 'bg-purple-500'}`}
                                 style={{ width: `${Math.min(pctQ, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
                             </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
-                            {!atingiuQ && faltaQ > 0 && (
-                              <p className="text-[10px] font-semibold text-amber-400 mt-0.5">
-                                Falta: {fmt(faltaQ)}
-                                {s.metaDiariaDinamicaQuinzenal > 0 && s.diasUteisRestantesQuinzenal > 0 && (
-                                  <span className="text-purple-300/70 font-normal"> · {fmt(s.metaDiariaDinamicaQuinzenal)}/dia ({s.diasUteisRestantesQuinzenal}d)</span>
+                            {!quinzenaEncerrada && (
+                              <>
+                                <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
+                                {!atingiuQ && faltaQ > 0 && (
+                                  <p className="text-[10px] font-semibold text-amber-400 mt-0.5">
+                                    Falta: {fmt(faltaQ)}
+                                    {s.metaDiariaDinamicaQuinzenal > 0 && s.diasUteisRestantesQuinzenal > 0 && (
+                                      <span className="text-purple-300/70 font-normal"> · {fmt(s.metaDiariaDinamicaQuinzenal)}/dia ({s.diasUteisRestantesQuinzenal}d)</span>
+                                    )}
+                                  </p>
                                 )}
-                              </p>
-                            )}
-                            {atingiuQ && (
-                              <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">✓ Quinzenal atingida!</p>
+                                {atingiuQ && (
+                                  <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">✓ Quinzenal atingida!</p>
+                                )}
+                              </>
                             )}
                           </div>
                           );
