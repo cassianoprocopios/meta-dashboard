@@ -2777,6 +2777,7 @@ function AbaAnalise({ profissionalId }: { profissionalId: number }) {
 
 // ─── Aba Meu Desempenho ─────────────────────────────────────────────────────
 function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
+  const confettiRef = useRef<boolean>(false);
   const { data, isLoading, error } = trpc.desempenhoHistorico.useQuery(
     { profissionalId },
     { staleTime: 1000 * 60 * 10, refetchInterval: 30 * 60 * 1000 }
@@ -2856,12 +2857,45 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
     ? Math.round(faltaQUnidade / diasRestantesQ)
     : null;
 
+  const metaMensalBatida = pctMeta !== null && pctMeta >= 100;
+
+  // Disparar confetes quando meta mensal é batida (apenas uma vez por montagem)
+  useEffect(() => {
+    if (metaMensalBatida && !confettiRef.current) {
+      confettiRef.current = true;
+      import('canvas-confetti').then((mod) => {
+        const confetti = mod.default;
+        const duration = 3000;
+        const end = Date.now() + duration;
+        const colors = ['#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+        const frame = () => {
+          confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors,
+          });
+          confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors,
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        };
+        frame();
+      });
+    }
+  }, [metaMensalBatida]);
+
   let motivEmoji = '💪';
   let motivTitulo = '';
   let motivSubtitulo = '';
 
   // Prioridade 1: meta mensal batida
-  if (pctMeta !== null && pctMeta >= 100) {
+  if (metaMensalBatida) {
     motivEmoji = '🏆';
     motivTitulo = 'Meta batida! Incrível!';
     motivSubtitulo = 'Você superou sua meta do mês. Continue assim!';
@@ -2939,19 +2973,33 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   return (
     <div className="space-y-4">
       {/* ── Card Motivacional ── */}
-      <div className={`rounded-2xl p-4 border ${
-        pctMeta !== null && pctMeta >= 100
-          ? 'bg-emerald-500/15 border-emerald-500/30'
+      <div className={`rounded-2xl p-4 border relative overflow-hidden ${
+        metaMensalBatida
+          ? 'border-yellow-400/50'
           : mesAtualData.posicao === 1
           ? 'bg-amber-500/15 border-amber-500/30'
           : data.faltaParaSubir !== null && data.faltaParaSubir < 500
           ? 'bg-orange-500/15 border-orange-500/30'
           : 'bg-white/5 border-white/10'
-      }`}>
+      }`}
+        style={metaMensalBatida ? {
+          background: 'linear-gradient(135deg, rgba(255,215,0,0.18) 0%, rgba(34,197,94,0.15) 50%, rgba(255,165,0,0.18) 100%)',
+          animation: 'celebrationPulse 2s ease-in-out infinite',
+        } : undefined}
+      >
+        {/* Brilho decorativo no canto superior direito quando meta batida */}
+        {metaMensalBatida && (
+          <div className="absolute top-0 right-0 w-20 h-20 opacity-20 pointer-events-none"
+            style={{ background: 'radial-gradient(circle, #FFD700 0%, transparent 70%)' }}
+          />
+        )}
         <div className="flex items-start gap-3">
-          <span className="text-2xl leading-none mt-0.5">{motivEmoji}</span>
+          <span
+            className="text-2xl leading-none mt-0.5"
+            style={metaMensalBatida ? { animation: 'trophyBounce 0.8s ease-in-out infinite alternate' } : undefined}
+          >{motivEmoji}</span>
           <div>
-            <p className="text-white font-bold text-base leading-snug">{motivTitulo}</p>
+            <p className={`font-bold text-base leading-snug ${metaMensalBatida ? 'text-yellow-300' : 'text-white'}`}>{motivTitulo}</p>
             <p className="text-white/55 text-sm mt-0.5 leading-snug">{motivSubtitulo}</p>
           </div>
         </div>
