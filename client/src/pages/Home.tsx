@@ -1647,7 +1647,10 @@ export default function Home() {
                           (snap: any) => snap.mes === mes && snap.ano === ano
                         );
                         const empresasComMeta = resultadosPorUnidade.filter(e => e.meta > 0);
-                        const todosCongelados = empresasComMeta.length > 0 && snapshotsDoMes.length >= empresasComMeta.length;
+                        // Só considerar congelado se a quinzena já encerrou (dia > 15 ou mês passado)
+                        const todosCongelados = quinzenaEncerradaGeral && empresasComMeta.length > 0 && snapshotsDoMes.length >= empresasComMeta.length;
+                        // Indicador de tempo real: durante a quinzena ativa (dias 1-15 do mês vigente)
+                        const exibindoTempoReal = !quinzenaEncerradaGeral && ehMesAtual;
                         return (
                           <div className={`mt-3 p-2.5 rounded-xl border ${
                             quinzenaEncerradaGeral
@@ -1673,6 +1676,11 @@ export default function Home() {
                                 {todosCongelados && (
                                   <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
                                     DEFINITIVO
+                                  </span>
+                                )}
+                                {exibindoTempoReal && (
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                    TEMPO REAL
                                   </span>
                                 )}
                               </div>
@@ -1707,7 +1715,7 @@ export default function Home() {
                                 ))}
                               </div>
                             )}
-                            {/* Botão de congelar manual (apenas gerentes, quando quinzena encerrada e não congelado) */}
+                            {/* Botão de congelar manual (apenas gerentes, quando quinzena encerrada = dia 16+ e não congelado) */}
                             {quinzenaEncerradaGeral && !todosCongelados && isGerente && (
                               <button
                                 onClick={() => congelarQuinzenalMutation.mutate({ mes, ano })}
@@ -2522,9 +2530,13 @@ export default function Home() {
                             if (ratio >= 0.8) return { emoji: '🟡', label: 'Quase no ritmo', cor: '#f59e0b' };
                             return { emoji: '🔴', label: 'Precisa acelerar!', cor: '#ef4444' };
                           })();
-                          const snapshotQ = (snapshotsQuinzenais as any[]).find(
-                            (snap: any) => snap.empresaSlug === s.emp.slug && snap.mes === mes && snap.ano === ano
-                          );
+                          const snapshotQ = quinzenaEncerrada
+                            ? (snapshotsQuinzenais as any[]).find(
+                                (snap: any) => snap.empresaSlug === s.emp.slug && snap.mes === mes && snap.ano === ano
+                              )
+                            : undefined;
+                          // Indicador de tempo real: durante a quinzena ativa (dias 1-15 do mês vigente)
+                          const exibindoTempoRealQ = !quinzenaEncerrada && ehMesVigenteQ;
                           return (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
@@ -2533,6 +2545,11 @@ export default function Home() {
                                 {snapshotQ && (
                                   <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30" title={`Valor congelado em ${new Date(snapshotQ.congeladoEm).toLocaleDateString('pt-BR')}`}>
                                     DEFINITIVO
+                                  </span>
+                                )}
+                                {exibindoTempoRealQ && (
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                    TEMPO REAL
                                   </span>
                                 )}
                               </div>

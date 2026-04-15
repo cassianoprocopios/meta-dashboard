@@ -1229,3 +1229,6 @@
 - [ ] Mostrar meta em valor no ranking dos profissionais (ProfissionalRow)
 - [ ] Mostrar meta diária necessária no card de faturamento da unidade
 - [x] Corrigir meta quinzenal definitiva no Dashboard: só usar snapshot após dia 15 encerrar (diaHoje > 15)
+- [x] Remover snapshots quinzenais manuais prematuros de abril/2026 do banco (3 deletados)
+- [x] Bloquear badge DEFINITIVO e botão "Congelar Valores Agora" para só aparecer após dia 15 encerrar (dia > 15)
+- [x] Adicionar badge "TEMPO REAL" (laranja) no card quinzenal durante dias 1-15 do mês vigente
