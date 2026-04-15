@@ -1228,3 +1228,4 @@
 - [x] Ajustar job CashBarber para executar 2x por dia (7h e 16h) em vez de a cada hora
 - [ ] Mostrar meta em valor no ranking dos profissionais (ProfissionalRow)
 - [ ] Mostrar meta diária necessária no card de faturamento da unidade
+- [x] Corrigir meta quinzenal definitiva no Dashboard: só usar snapshot após dia 15 encerrar (diaHoje > 15)

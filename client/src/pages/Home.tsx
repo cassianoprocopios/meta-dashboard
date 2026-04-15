@@ -592,9 +592,16 @@ export default function Home() {
 
       // Se existe snapshot congelado para esta empresa/mês/ano, usar o valor definitivo
       // O snapshot é gerado automaticamente no dia 15 às 23h BRT e garante o valor correto para bonificações
-      const snapshotEmpresa = (snapshotsQuinzenais as any[]).find(
-        (s: any) => s.empresaSlug === emp.slug && s.mes === mes && s.ano === ano
-      );
+      // REGRA: só usar o snapshot após o dia 15 ter encerrado completamente.
+      // Durante o dia 15 (diaHoje === 15 no mês vigente), o valor ainda está sendo atualizado
+      // e deve continuar usando o cálculo em tempo real (totalQuinzenalCalculado).
+      // O snapshot só deve ser usado a partir do dia 16 em diante (ou em meses passados).
+      const quinzenaDefinitiva = ehMesVigente ? diaHoje > 15 : !ehMesFuturo;
+      const snapshotEmpresa = quinzenaDefinitiva
+        ? (snapshotsQuinzenais as any[]).find(
+            (s: any) => s.empresaSlug === emp.slug && s.mes === mes && s.ano === ano
+          )
+        : undefined;
       const totalQuinzenal = snapshotEmpresa
         ? parseFloat(snapshotEmpresa.totalRealizado)
         : totalQuinzenalCalculado;
