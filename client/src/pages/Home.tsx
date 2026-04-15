@@ -252,10 +252,13 @@ export default function Home() {
   const { data: empresasData = [], isLoading: loadingEmpresas } = trpc.empresa.listar.useQuery();
   const { data: faturamentosData = [], isLoading: loadingFat, refetch: refetchFat } =
     trpc.faturamento.listar.useQuery({ mes, ano }, {
-      // Atualiza automaticamente a cada 5 minutos para refletir o Dpote distribuído pelo job automático
-      refetchInterval: 5 * 60 * 1000,
+      // Atualiza automaticamente a cada 2 minutos para refletir o Dpote distribuído pelo job automático
+      refetchInterval: 2 * 60 * 1000,
       refetchIntervalInBackground: false, // só atualiza quando a aba está ativa
       staleTime: 0, // sempre busca dados frescos ao montar (sem cache antigo)
+      gcTime: 0, // não mantém dados em cache entre sessões/navegações
+      refetchOnWindowFocus: true, // atualiza ao voltar para a aba
+      refetchOnMount: 'always', // sempre busca ao montar o componente
     });
   const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
     trpc.meta.listar.useQuery({ mes, ano });
