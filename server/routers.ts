@@ -1882,6 +1882,133 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── SNAPSHOT QUINZENAL ──────────────────────────────────────────────────────
+  snapshotQuinzenal: router({
+    /** Lista todos os snapshots quinzenais do tenant */
+    listar: protectedProcedure
+      .input(z.object({
+        ano: z.number().min(2020).max(2100).optional(),
+      }))
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const { snapshotQuinzenal } = await import("../drizzle/schema.js");
+        const { eq, and, desc } = await import("drizzle-orm");
+        const conditions = [eq(snapshotQuinzenal.tenantId, tenantId)];
+        if (input?.ano) {
+          conditions.push(eq(snapshotQuinzenal.ano, input.ano));
+        }
+        return db
+          .select()
+          .from(snapshotQuinzenal)
+          .where(and(...conditions))
+          .orderBy(desc(snapshotQuinzenal.ano), desc(snapshotQuinzenal.mes));
+      }),
+
+    /** Busca o snapshot de um mês/empresa específico */
+    buscar: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+      }))
+      .query(async ({ input, ctx }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const { snapshotQuinzenal } = await import("../drizzle/schema.js");
+        const { eq, and } = await import("drizzle-orm");
+        const result = await db
+          .select()
+          .from(snapshotQuinzenal)
+          .where(
+            and(
+              eq(snapshotQuinzenal.tenantId, tenantId),
+              eq(snapshotQuinzenal.empresaSlug, input.empresaSlug),
+              eq(snapshotQuinzenal.mes, input.mes),
+              eq(snapshotQuinzenal.ano, input.ano)
+            )
+          )
+          .limit(1);
+        return result[0] ?? null;
+      }),
+
+    /** Dispara o congelamento manual do snapshot quinzenal (gerente/admin) */
+    congelarManual: protectedProcedure
+      .input(z.object({
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.perfil !== "gerente" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a gerentes e administradores." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { verificarMetaQuinzenalParaTenant } = await import("./cashbarberJob.js");
+        await verificarMetaQuinzenalParaTenant(tenantId, input.mes, input.ano);
+        return { success: true };
+      }),
+
+    /** Permite que admin sobrescreva o snapshot (correção manual) */
+    sobrescrever: protectedProcedure
+      .input(z.object({
+        empresaSlug: z.string(),
+        mes: z.number().min(1).max(12),
+        ano: z.number().min(2020).max(2100),
+        totalRealizado: z.string(),
+        metaQuinzenal: z.string(),
+        observacao: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem sobrescrever snapshots." });
+        }
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Banco de dados indisponível." });
+        const { snapshotQuinzenal } = await import("../drizzle/schema.js");
+        const { eq, and } = await import("drizzle-orm");
+        const total = parseFloat(input.totalRealizado);
+        const meta = parseFloat(input.metaQuinzenal);
+        const atingiu = total >= meta ? 1 : 0;
+        const percentual = meta > 0 ? ((total / meta) * 100).toFixed(2) : "0";
+        const payload = {
+          tenantId,
+          empresaSlug: input.empresaSlug,
+          mes: input.mes,
+          ano: input.ano,
+          totalRealizado: total.toFixed(2),
+          metaQuinzenal: meta.toFixed(2),
+          atingiu,
+          percentual,
+          origem: "manual",
+          congeladoEm: new Date(),
+        };
+        const existing = await db
+          .select()
+          .from(snapshotQuinzenal)
+          .where(
+            and(
+              eq(snapshotQuinzenal.tenantId, tenantId),
+              eq(snapshotQuinzenal.empresaSlug, input.empresaSlug),
+              eq(snapshotQuinzenal.mes, input.mes),
+              eq(snapshotQuinzenal.ano, input.ano)
+            )
+          )
+          .limit(1);
+        if (existing.length > 0) {
+          await db.update(snapshotQuinzenal).set(payload).where(eq(snapshotQuinzenal.id, existing[0].id));
+        } else {
+          await db.insert(snapshotQuinzenal).values(payload);
+        }
+        return { success: true };
+      }),
+  }),
+
   // ─── ADMIN DE UTILIZADORES ─────────────────────────────────────────────────
   admin: router({
     /** Lista todas as empresas do tenant (ativas E inativas) — exclusivo para o AdminPanel */

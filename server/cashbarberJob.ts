@@ -768,6 +768,7 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       getAllFaturamentosByTenant,
       eventoJaNotificado,
       registrarEventoNotificado,
+      getDb,
     } = await import("./db");
     const [empresas, metasMes] = await Promise.all([
       getEmpresasByTenant(tenantId),
@@ -810,6 +811,52 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
       const emoji = atingiu ? "🏅" : pct >= 80 ? "🟡" : "🔴";
       const status = atingiu ? "META ATINGIDA" : `faltou ${fmtBRL(faltou)}`;
+
+      // ─── Salvar snapshot congelado no banco ───────────────────────────────
+      try {
+        const db = await getDb();
+        if (db) {
+          const { snapshotQuinzenal } = await import("../drizzle/schema");
+          const { and, eq } = await import("drizzle-orm");
+          // Verificar se já existe snapshot para este período
+          const existing = await db
+            .select()
+            .from(snapshotQuinzenal)
+            .where(
+              and(
+                eq(snapshotQuinzenal.tenantId, tenantId),
+                eq(snapshotQuinzenal.empresaSlug, empresa.slug),
+                eq(snapshotQuinzenal.mes, mes),
+                eq(snapshotQuinzenal.ano, ano)
+              )
+            )
+            .limit(1);
+
+          const payload = {
+            tenantId,
+            empresaSlug: empresa.slug,
+            mes,
+            ano,
+            totalRealizado: totalQuinzenal.toFixed(2),
+            metaQuinzenal: metaQuinzenal.toFixed(2),
+            atingiu: atingiu ? 1 : 0,
+            percentual: pct.toFixed(2),
+            origem: "auto",
+            congeladoEm: new Date(),
+          };
+
+          if (existing.length === 0) {
+            await db.insert(snapshotQuinzenal).values(payload);
+            console.log(`[Quinzenal Job] Snapshot congelado para ${empresa.slug}: R$ ${totalQuinzenal.toFixed(2)}`);
+          } else {
+            console.log(`[Quinzenal Job] Snapshot já existe para ${empresa.slug} em ${mes}/${ano}, mantendo valor congelado.`);
+          }
+        }
+      } catch (snapErr) {
+        const snapMsg = snapErr instanceof Error ? snapErr.message : String(snapErr);
+        console.error(`[Quinzenal Job] Erro ao salvar snapshot para ${empresa.slug}:`, snapMsg);
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       linhas.push(
         `${emoji} ${empresa.nome}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pct}%) — ${status}`

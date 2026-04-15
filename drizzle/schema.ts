@@ -477,3 +477,28 @@ export const passwordResetTokens = mysqlTable("passwordResetTokens", {
 });
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+// ─── SNAPSHOT QUINZENAL (Valor congelado da 1ª quinzena no dia 15) ────────────
+// Registra o valor realizado da quinzena no momento do encerramento (dia 15),
+// garantindo imutabilidade para cálculo de bonificações.
+export const snapshotQuinzenal = mysqlTable("snapshotQuinzenal", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  /** Valor total realizado nos dias 1-15 (congelado) */
+  totalRealizado: decimal("totalRealizado", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Meta quinzenal configurada no momento do congelamento */
+  metaQuinzenal: decimal("metaQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** true = meta atingida */
+  atingiu: tinyint("atingiu").notNull().default(0),
+  /** Percentual atingido (ex: 95.4) */
+  percentual: decimal("percentual", { precision: 6, scale: 2 }).notNull().default("0"),
+  /** Quem gerou o snapshot: 'auto' (job) ou 'manual' (admin) */
+  origem: varchar("origem", { length: 16 }).notNull().default("auto"),
+  congeladoEm: timestamp("congeladoEm").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SnapshotQuinzenal = typeof snapshotQuinzenal.$inferSelect;
+export type InsertSnapshotQuinzenal = typeof snapshotQuinzenal.$inferInsert;

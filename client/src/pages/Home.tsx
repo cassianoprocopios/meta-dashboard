@@ -331,6 +331,22 @@ export default function Home() {
     { enabled: !!user && !isAdmin }
   );
 
+  // Snapshots quinzenais congelados (valores definitivos para bonificação)
+  const { data: snapshotsQuinzenais = [], refetch: refetchSnapshots } = trpc.snapshotQuinzenal.listar.useQuery(
+    { ano },
+    { staleTime: 5 * 60 * 1000, enabled: activeTab === "dashboard" }
+  );
+
+  const congelarQuinzenalMutation = trpc.snapshotQuinzenal.congelarManual.useMutation({
+    onSuccess: () => {
+      toast.success('Snapshot quinzenal congelado com sucesso! Valores definitivos salvos para bonificação.');
+      refetchSnapshots();
+    },
+    onError: (err) => {
+      toast.error(`Erro ao congelar snapshot: ${err.message}`);
+    },
+  });
+
   const deletarFat = trpc.faturamento.excluir.useMutation();
 
   // Mutation para notificar o gerente sobre projeção abaixo da meta
@@ -572,7 +588,16 @@ export default function Home() {
       const rowsQuinzenal = (faturamentosData as any[])
         .filter((r: any) => r.empresaSlug === emp.slug && parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenal = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
+      const totalQuinzenalCalculado = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
+
+      // Se existe snapshot congelado para esta empresa/mês/ano, usar o valor definitivo
+      // O snapshot é gerado automaticamente no dia 15 às 23h BRT e garante o valor correto para bonificações
+      const snapshotEmpresa = (snapshotsQuinzenais as any[]).find(
+        (s: any) => s.empresaSlug === emp.slug && s.mes === mes && s.ano === ano
+      );
+      const totalQuinzenal = snapshotEmpresa
+        ? parseFloat(snapshotEmpresa.totalRealizado)
+        : totalQuinzenalCalculado;
 
       // diasUteisRestantes: dias trabalhados que ainda faltam no mês
       // = dias trabalhados configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
@@ -679,7 +704,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosData, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano]);
+  }, [empresasVisiveis, faturamentosData, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano, snapshotsQuinzenais]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
@@ -1610,6 +1635,12 @@ export default function Home() {
                           total: e.totalQuinzenal,
                           meta: e.metaQuinzenal,
                         })).filter(e => e.meta > 0);
+                        // Verificar se todos os snapshots já estão congelados
+                        const snapshotsDoMes = (snapshotsQuinzenais as any[]).filter(
+                          (snap: any) => snap.mes === mes && snap.ano === ano
+                        );
+                        const empresasComMeta = resultadosPorUnidade.filter(e => e.meta > 0);
+                        const todosCongelados = empresasComMeta.length > 0 && snapshotsDoMes.length >= empresasComMeta.length;
                         return (
                           <div className={`mt-3 p-2.5 rounded-xl border ${
                             quinzenaEncerradaGeral
@@ -1617,7 +1648,7 @@ export default function Home() {
                               : 'bg-purple-500/10 border-purple-500/20'
                           }`}>
                             <div className="flex items-center justify-between mb-1.5">
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 {quinzenaEncerradaGeral ? (
                                   <span className="text-base leading-none">{atingiuQ ? '✅' : pctQ >= 80 ? '⚠️' : '❌'}</span>
                                 ) : (
@@ -1632,6 +1663,11 @@ export default function Home() {
                                     ? (atingiuQ ? 'QUINZENAL ATINGIDA!' : 'QUINZENAL NÃO ATINGIDA')
                                     : 'Meta Quinzenal'}
                                 </span>
+                                {todosCongelados && (
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                    DEFINITIVO
+                                  </span>
+                                )}
                               </div>
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                                 atingiuQ ? 'bg-emerald-500/20 text-emerald-300' :
@@ -1663,6 +1699,16 @@ export default function Home() {
                                   </div>
                                 ))}
                               </div>
+                            )}
+                            {/* Botão de congelar manual (apenas gerentes, quando quinzena encerrada e não congelado) */}
+                            {quinzenaEncerradaGeral && !todosCongelados && isGerente && (
+                              <button
+                                onClick={() => congelarQuinzenalMutation.mutate({ mes, ano })}
+                                disabled={congelarQuinzenalMutation.isPending}
+                                className="mt-2 w-full text-[10px] font-bold py-1.5 px-2 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                              >
+                                {congelarQuinzenalMutation.isPending ? 'Congelando...' : 'Congelar Valores Agora'}
+                              </button>
                             )}
                             {/* Durante a quinzena: falta e meta/dia */}
                             {!quinzenaEncerradaGeral && !atingiuQ && faltaQ > 0 && (
@@ -2469,10 +2515,20 @@ export default function Home() {
                             if (ratio >= 0.8) return { emoji: '🟡', label: 'Quase no ritmo', cor: '#f59e0b' };
                             return { emoji: '🔴', label: 'Precisa acelerar!', cor: '#ef4444' };
                           })();
+                          const snapshotQ = (snapshotsQuinzenais as any[]).find(
+                            (snap: any) => snap.empresaSlug === s.emp.slug && snap.mes === mes && snap.ano === ano
+                          );
                           return (
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>QUINZENAL</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>QUINZENAL</span>
+                                {snapshotQ && (
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30" title={`Valor congelado em ${new Date(snapshotQ.congeladoEm).toLocaleDateString('pt-BR')}`}>
+                                    DEFINITIVO
+                                  </span>
+                                )}
+                              </div>
                               <span className={`text-[10px] font-bold ${atingiuQ ? 'text-emerald-400' : pctQ >= 80 ? 'text-yellow-400' : 'text-purple-400'}`}>
                                 {pctQ}%
                               </span>
