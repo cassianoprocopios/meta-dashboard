@@ -1888,6 +1888,7 @@ export const appRouter = router({
     listar: protectedProcedure
       .input(z.object({
         ano: z.number().min(2020).max(2100).optional(),
+        mes: z.number().min(1).max(12).optional(),
       }))
       .query(async ({ input, ctx }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
@@ -1899,6 +1900,9 @@ export const appRouter = router({
         const conditions = [eq(snapshotQuinzenal.tenantId, tenantId)];
         if (input?.ano) {
           conditions.push(eq(snapshotQuinzenal.ano, input.ano));
+        }
+        if (input?.mes) {
+          conditions.push(eq(snapshotQuinzenal.mes, input.mes));
         }
         return db
           .select()

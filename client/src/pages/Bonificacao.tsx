@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star } from "lucide-react";
+import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 interface Empresa {
@@ -57,6 +57,19 @@ function fmt(v: number) {
 
 export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasData, faturamentosData, isAdmin }: Props) {
   const { data: bonificacoesData = [], refetch: refetchBon } = trpc.bonificacao.listar.useQuery();
+
+  // Buscar snapshots quinzenais congelados para o mês/ano atual
+  const { data: snapshotsData = [] } = trpc.snapshotQuinzenal.listar.useQuery(
+    { mes, ano },
+    { staleTime: 0, refetchOnMount: 'always' }
+  );
+
+  // Verificar se a quinzena está encerrada (dia atual > 15 no mês vigente, ou mês passado)
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth() + 1;
+  const anoAtual = hoje.getFullYear();
+  const diaAtual = hoje.getDate();
+  const quinzenaEncerrada = (ano < anoAtual) || (ano === anoAtual && mes < mesAtual) || (ano === anoAtual && mes === mesAtual && diaAtual > 15);
   const salvarBon = trpc.bonificacao.salvar.useMutation();
 
   // Estado de edição de percentuais (apenas admin)
@@ -111,7 +124,6 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     const rows = faturamentosData.filter((f) => f.empresaSlug === emp.slug);
 
     // Total mensal (apenas dias realizados — data <= hoje)
-    const hoje = new Date();
     const rowsRealizados = rows.filter((r) => new Date(r.data + "T00:00:00") <= hoje);
 
     // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
@@ -120,14 +132,23 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
         .reduce((a: number, v: any) => a + parseFloat(String(v || 0)), 0);
     const totalMensal = rowsRealizados.reduce((s: number, r) => s + sumCats(r), 0);
 
-    // Total quinzenal (dias 1-15, apenas realizados)
-    const rowsQ = rowsRealizados.filter((r) => {
-      const dia = parseInt(r.data.split("-")[2]);
-      return dia <= 15;
-    });
-    const totalQuinzenal = rowsQ.reduce((s: number, r) => s + sumCats(r), 0);
+    // Total quinzenal: usar snapshot congelado quando disponível (quinzena encerrada)
+    const snapshot = (snapshotsData as any[]).find((s: any) => s.empresaSlug === emp.slug);
+    const usandoSnapshot = quinzenaEncerrada && snapshot != null;
+    const totalQuinzenalCalculado = (() => {
+      const rowsQ = rowsRealizados.filter((r) => {
+        const dia = parseInt(r.data.split("-")[2]);
+        return dia <= 15;
+      });
+      return rowsQ.reduce((s: number, r) => s + sumCats(r), 0);
+    })();
+    const totalQuinzenal = usandoSnapshot
+      ? parseFloat(String(snapshot.totalRealizado))
+      : totalQuinzenalCalculado;
 
-    const atingiuQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
+    const atingiuQuinzenal = usandoSnapshot
+      ? snapshot.atingiu === 1
+      : metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
     const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;
     const atingiuSuperMeta = superMeta > 0 && totalMensal >= superMeta;
 
@@ -153,6 +174,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
       superMeta,
       totalMensal,
       totalQuinzenal,
+      usandoSnapshot,
       atingiuQuinzenal,
       atingiuMensal,
       atingiuSuperMeta,
@@ -325,9 +347,17 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
               {/* Seção Quinzenal */}
               <div className={`rounded-xl p-3 mb-3 ${c.atingiuQuinzenal ? "bg-emerald-50" : "bg-orange-50"}`}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-semibold uppercase tracking-wide ${c.atingiuQuinzenal ? "text-emerald-600" : "text-orange-600"}`}>
-                    Quinzenal
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-xs font-semibold uppercase tracking-wide ${c.atingiuQuinzenal ? "text-emerald-600" : "text-orange-600"}`}>
+                      Quinzenal
+                    </span>
+                    {c.usandoSnapshot && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                        <Lock className="w-2.5 h-2.5" />
+                        Definitivo
+                      </span>
+                    )}
+                  </div>
                   {c.atingiuQuinzenal
                     ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                     : <TrendingDown className="w-3.5 h-3.5 text-orange-500" />
