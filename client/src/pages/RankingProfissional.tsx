@@ -1275,7 +1275,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -1363,7 +1363,7 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -1817,7 +1817,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -1903,7 +1903,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -2300,7 +2300,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -2386,7 +2386,7 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                   const atingiuQ = pctQ >= 100;
                   const diaAtual = new Date().getDate();
                   const naSegundaQ = diaAtual > 15;
-                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — Bonificação garantida!`;
+                  if (atingiuQ) return `\n\n\ud83c\udfc5 META QUINZENAL ATINGIDA!\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) Parabéns, meta quinzenal batida! Agora foco na meta mensal! 💪`;
                   if (naSegundaQ) {
                     const emojiF = pctQ >= 80 ? '\ud83d\udfe1' : '\ud83d\udd34';
                     return `\n\n${emojiF} Quinzenal encerrada (dia 15):\n   ${formatarMoeda(fatQVal)} / ${formatarMoeda(mq)} (${pctQ}%) — faltou ${formatarMoeda(faltaQ)}`;
@@ -2871,40 +2871,40 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
       motivEmoji = '🔥';
       motivTitulo = `Quinzenal quase lá! ${pctQ}%`;
       motivSubtitulo = faltaQUnidade != null && faltaQUnidade > 0
-        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação quinzenal${metaDiariaQMotiv ? ` — ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
-        : 'Mais um esforço e a bonificação é sua!';
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para bater a meta quinzenal${metaDiariaQMotiv ? ` — ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
+        : 'Mais um esforço e a meta quinzenal é sua!';
     } else if (pctQ >= 70) {
       motivEmoji = '⚡';
       motivTitulo = `Atenção: quinzenal em ${pctQ}%`;
       motivSubtitulo = faltaQUnidade != null
-        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação${metaDiariaQMotiv ? ` — precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
-        : 'A unidade precisa acelerar para garantir a bonificação!';
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a meta quinzenal${metaDiariaQMotiv ? ` — precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia` : ''}!`
+        : 'A unidade precisa acelerar para bater a meta quinzenal!';
     } else {
       motivEmoji = '🚨';
       motivTitulo = `Quinzenal em risco! ${pctQ}%`;
       motivSubtitulo = faltaQUnidade != null
-        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a bonificação quinzenal. Cada atendimento conta!`
-        : 'A unidade precisa de um sprint final para garantir a bonificação!';
+        ? `Faltam ${fmtMoeda(faltaQUnidade)} para a meta quinzenal. Cada atendimento conta!`
+        : 'A unidade precisa de um sprint final para bater a meta quinzenal!';
     }
   // Prioridade 3: quinzenal batida na 1ª quinzena
   } else if (naPrimeiraQuinzena && pctQ != null && pctQ >= 100) {
     motivEmoji = '🏅';
-    motivTitulo = 'Quinzenal batida! Bonificação garantida!';
-    motivSubtitulo = 'A unidade já garantiu a bonificação quinzenal. Continue no ritmo!';
+    motivTitulo = 'Meta quinzenal batida! Parabéns!';
+    motivSubtitulo = 'Incrível! A unidade bateu a meta da quinzena. Agora é focar na meta mensal!';
   // Prioridade 4: quinzenal em andamento (dias 1-11)
   } else if (naPrimeiraQuinzena && pctQ != null && mqUnidade != null) {
     if (pctQ >= 60) {
       motivEmoji = '📈';
       motivTitulo = `Quinzenal em ${pctQ}% — no ritmo!`;
       motivSubtitulo = metaDiariaQMotiv != null
-        ? `Precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para garantir a bonificação quinzenal.`
-        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a bonificação quinzenal.`;
+        ? `Precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para bater a meta quinzenal.`
+        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a meta quinzenal.`;
     } else {
       motivEmoji = '🎯';
       motivTitulo = `Quinzenal em ${pctQ}% — acelere!`;
       motivSubtitulo = metaDiariaQMotiv != null
-        ? `A unidade precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para garantir a bonificação quinzenal.`
-        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a bonificação quinzenal.`;
+        ? `A unidade precisa de ${fmtMoeda(metaDiariaQMotiv)}/dia para bater a meta quinzenal.`
+        : `Faltam ${fmtMoeda(faltaQUnidade ?? 0)} para a meta quinzenal.`;
     }
   // Prioridade 5: falta pouco para subir no ranking
   } else if (data.faltaParaSubir !== null && data.faltaParaSubir > 0 && data.faltaParaSubir < 500) {
