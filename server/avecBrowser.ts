@@ -14,7 +14,7 @@
 import puppeteer from "puppeteer-core";
 
 const ADMIN_URL = "https://admin.avec.beauty";
-const CHROMIUM_PATH = "/usr/bin/chromium-browser";
+const CHROMIUM_PATH = "/usr/bin/chromium";
 
 // ─── Cache de sessão ──────────────────────────────────────────────────────────
 

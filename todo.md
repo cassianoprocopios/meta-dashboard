@@ -1232,3 +1232,5 @@
 - [x] Remover snapshots quinzenais manuais prematuros de abril/2026 do banco (3 deletados)
 - [x] Bloquear badge DEFINITIVO e botão "Congelar Valores Agora" para só aparecer após dia 15 encerrar (dia > 15)
 - [x] Adicionar badge "TEMPO REAL" (laranja) no card quinzenal durante dias 1-15 do mês vigente
+- [x] Corrigir caminho do Chromium de /usr/bin/chromium-browser para /usr/bin/chromium no avecBrowser.ts e cashbarberDpoteBrowser.ts
+- [x] Sincronizar manualmente faturamento Avec Seraphine abril/2026 (9 dias sincronizados)

@@ -14,7 +14,7 @@
 import puppeteer from "puppeteer-core";
 
 const CB_URL = "https://app.cashbarber.com.br";
-const CHROMIUM_PATH = "/usr/bin/chromium-browser";
+const CHROMIUM_PATH = "/usr/bin/chromium";
 
 export interface DpoteFilialResultado {
   id: number;
