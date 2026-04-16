@@ -1234,3 +1234,5 @@
 - [x] Adicionar badge "TEMPO REAL" (laranja) no card quinzenal durante dias 1-15 do mês vigente
 - [x] Corrigir caminho do Chromium de /usr/bin/chromium-browser para /usr/bin/chromium no avecBrowser.ts e cashbarberDpoteBrowser.ts
 - [x] Sincronizar manualmente faturamento Avec Seraphine abril/2026 (9 dias sincronizados)
+- [x] Criar snapshot quinzenal correto (dias 1-15 com D-Pote) para abril/2026: Mascote R$57.524, Morumbi R$111.647, Seraphine R$60.615
+- [x] Sincronizar faturamento do Morumbi dia 16 via CashBarber: R$3.234 serviços + R$4.581 D-Pote
