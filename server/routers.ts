@@ -5063,8 +5063,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             + rowsQ2.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
           totalQuinzenal = Math.round(totalQ2);
         }
-        // Recalcular pctMetaQuinzenal com base no valor final
-        if (pctMetaQuinzenal == null) {
+        // Recalcular pctMetaQuinzenal sempre com base no totalQuinzenal final
+        // Garante consistência quando totalQuinzenal vem do snapshot (valor definitivo)
+        if (metaQuinzenal && metaQuinzenal > 0 && totalQuinzenal != null) {
           pctMetaQuinzenal = Math.round((totalQuinzenal / metaQuinzenal) * 100);
         }
       }
