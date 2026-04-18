@@ -5334,6 +5334,103 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       };
     }),
   avec: avecRouter,
+
+  /** Painel de status unificado: CashBarber + Avec + D-Pote */
+  syncPainel: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB n\u00e3o dispon\u00edvel" });
+      const { desc, eq } = await import("drizzle-orm");
+      const { cashbarberSyncLog, avecSyncLog, dpoteSyncLog } = await import("../drizzle/schema");
+
+      const [cbLogs, avecLogs, dpoteLogs] = await Promise.all([
+        db.select().from(cashbarberSyncLog).where(eq(cashbarberSyncLog.tenantId, tenantId)).orderBy(desc(cashbarberSyncLog.executadoEm)).limit(30),
+        db.select().from(avecSyncLog).where(eq(avecSyncLog.tenantId, tenantId)).orderBy(desc(avecSyncLog.executadoEm)).limit(30),
+        db.select().from(dpoteSyncLog).where(eq(dpoteSyncLog.tenantId, tenantId)).orderBy(desc(dpoteSyncLog.executadoEm)).limit(30),
+      ]);
+
+      const ultimoPorEmpresa = <T extends { empresaSlug: string }>(logs: T[]): T[] =>
+        Object.values(logs.reduce((acc, log) => {
+          const k = log.empresaSlug.toLowerCase();
+          if (!acc[k]) acc[k] = log;
+          return acc;
+        }, {} as Record<string, T>));
+
+      const jobsCashbarber = getStatusJobsCashbarber();
+      const { getStatusJobAvec } = await import("./avecJob");
+      const jobsAvec = getStatusJobAvec();
+
+      return {
+        cashbarber: { porEmpresa: ultimoPorEmpresa(cbLogs), recentes: cbLogs.slice(0, 15), jobs: jobsCashbarber },
+        avec: { porEmpresa: ultimoPorEmpresa(avecLogs), recentes: avecLogs.slice(0, 15), jobs: jobsAvec },
+        dpote: { porEmpresa: ultimoPorEmpresa(dpoteLogs), recentes: dpoteLogs.slice(0, 15) },
+        agora: new Date(),
+      };
+    }),
+
+    syncCashbarber: protectedProcedure.mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const configs = await listCashbarberConfigs(tenantId);
+      const configsAtivas = configs.filter((c) => c.ativo === 1);
+      if (configsAtivas.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com CashBarber configurado" });
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      const resultados: Record<string, { ok: boolean; dias?: number; erro?: string }> = {};
+      for (const config of configsAtivas) {
+        try {
+          const r = await sincronizarFaturamentoCashbarber(tenantId, config.empresaSlug, mes, ano, "manual");
+          resultados[config.empresaSlug] = { ok: true, dias: r.diasSincronizados };
+        } catch (err) {
+          resultados[config.empresaSlug] = { ok: false, erro: err instanceof Error ? err.message : String(err) };
+        }
+      }
+      try {
+        const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+        await aplicarDpoteParaTenant(tenantId, mes, ano);
+      } catch (err) {
+        console.warn("[SyncPainel] Falha ao aplicar Dpote:", err);
+      }
+      return { ok: true, resultados };
+    }),
+
+    syncAvec: protectedProcedure.mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const { getDb } = await import("./db");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB n\u00e3o dispon\u00edvel" });
+      const { avecConfig } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const configs = await db.select().from(avecConfig).where(eq(avecConfig.tenantId, tenantId));
+      if (configs.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com Avec configurado" });
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      const { sincronizarFaturamentoAvec } = await import("./avecSincronizador");
+      const resultados: Record<string, { ok: boolean; dias?: number; erro?: string }> = {};
+      for (const config of configs) {
+        try {
+          const r = await sincronizarFaturamentoAvec(tenantId, config.empresaSlug, mes, ano, "manual");
+          resultados[config.empresaSlug] = { ok: true, dias: r.diasSincronizados };
+        } catch (err) {
+          resultados[config.empresaSlug] = { ok: false, erro: err instanceof Error ? err.message : String(err) };
+        }
+      }
+      return { ok: true, resultados };
+    }),
+
+    syncDpote: protectedProcedure.mutation(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const agora = new Date();
+      const mes = agora.getMonth() + 1;
+      const ano = agora.getFullYear();
+      const { aplicarDpoteParaTenant } = await import("./cashbarberSincronizador");
+      await aplicarDpoteParaTenant(tenantId, mes, ano);
+      return { ok: true };
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

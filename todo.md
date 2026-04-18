@@ -1243,3 +1243,6 @@
 - [x] Sincronizar dias 16, 17 e 18 da Seraphine via Avec
 - [x] Corrigir meta quinzenal no ranking profissional para usar snapshot definitivo (igual ao Dashboard)
 - [x] Garantir que envio por WhatsApp use o valor correto do snapshot quinzenal
+- [x] Implementar painel de status de sincronização unificado (CashBarber + Avec + D-Pote)
+- [x] Adicionar procedure syncPainel.status com histórico e último sync por empresa
+- [x] Adicionar botões de re-sync manual por sistema no painel
