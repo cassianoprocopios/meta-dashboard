@@ -1236,3 +1236,5 @@
 - [x] Sincronizar manualmente faturamento Avec Seraphine abril/2026 (9 dias sincronizados)
 - [x] Criar snapshot quinzenal correto (dias 1-15 com D-Pote) para abril/2026: Mascote R$57.524, Morumbi R$111.647, Seraphine R$60.615
 - [x] Sincronizar faturamento do Morumbi dia 16 via CashBarber: R$3.234 serviços + R$4.581 D-Pote
+- [x] Corrigir snapshot quinzenal Morumbi para valor definitivo R$112.496,07 (informado pelo gestor)
+- [x] Proteger dias 1-15 de alteração retroativa do D-Pote quando quinzena já tiver snapshot fechado

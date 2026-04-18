@@ -599,12 +599,51 @@ export async function aplicarDpoteParaTenant(
     // Valor diário = total ÷ dias JA REALIZADOS (até hoje para mês atual)
     // Garante que a soma até hoje = valor total do Dpote
     const valorDiario = Math.round((filial.valorDistribuido / diasRealizadosAplic) * 100) / 100;
+
+    // Verificar se a quinzena (dias 1-15) já foi fechada com snapshot para este mês/empresa
+    // Se sim, não alterar o cat9 dos dias 1-15 para preservar o valor definitivo do fechamento
+    let quinzenaFechada = false;
+    try {
+      const db = await import("../drizzle/schema.js").then(async (schema) => {
+        const { getDb } = await import("./db.js");
+        return { schema, db: await getDb() };
+      });
+      if (db.db) {
+        const { and, eq } = await import("drizzle-orm");
+        const snapshots = await db.db
+          .select()
+          .from(db.schema.snapshotQuinzenal)
+          .where(
+            and(
+              eq(db.schema.snapshotQuinzenal.tenantId, tenantId),
+              eq(db.schema.snapshotQuinzenal.empresaSlug, config.empresaSlug),
+              eq(db.schema.snapshotQuinzenal.mes, mes),
+              eq(db.schema.snapshotQuinzenal.ano, ano)
+            )
+          )
+          .limit(1);
+        quinzenaFechada = snapshots.length > 0;
+        if (quinzenaFechada) {
+          console.log(`[CashBarber Dpote] ${config.empresaSlug}: quinzena ${mes}/${ano} já fechada (snapshot existente) — dias 1-15 protegidos contra alteração de cat9`);
+        }
+      }
+    } catch (snapCheckErr) {
+      console.warn(`[CashBarber Dpote] ${config.empresaSlug}: erro ao verificar snapshot quinzenal, prosseguindo sem proteção:`, snapCheckErr);
+    }
+
     for (let dia = 1; dia <= totalDiasMes; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
 
       // Regra: dias passados e o dia vigente recebem valor diário; dias futuros recebem "0"
       const diaFuturoAplic = ehMesAtualAplic && dia > diaVigenteAplic;
+
+      // Proteção: se a quinzena já foi fechada (snapshot existe), não alterar cat9 dos dias 1-15
+      if (quinzenaFechada && dia <= 15) {
+        // Manter o cat9 existente sem alteração
+        continue;
+      }
+
       const cat9Valor = diaFuturoAplic ? "0" : String(valorDiario);
 
       await upsertFaturamento({
