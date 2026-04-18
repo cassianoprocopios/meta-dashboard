@@ -656,3 +656,164 @@ export async function avecBrowserBuscarFaturamentoMes(
 
   return resultado;
 }
+
+/**
+ * Busca o Relatório 0184 para todos os dias de um mês inteiro,
+ * fazendo login UMA ÚNICA VEZ e reutilizando a mesma sessão do browser.
+ * Muito mais eficiente que chamar avecBrowserBuscarRelatorio0184 para cada dia.
+ */
+export async function avecBrowserBuscarRelatorio0184Mes(
+  email: string,
+  senha: string,
+  mes: number,
+  ano: number
+): Promise<Map<string, { servicos: number; pacotes: number; produtos: number; caixinha: number; total: number }>> {
+  const resultado = new Map<string, { servicos: number; pacotes: number; produtos: number; caixinha: number; total: number }>();
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  const mesStr = String(mes).padStart(2, "0");
+  const hoje = new Date();
+  const salaoSlug = "seraphine-beauty-ltda";
+  const loginUrl = `${ADMIN_URL}/${salaoSlug}/admin/?email=${encodeURIComponent(email)}`;
+  const relUrl = `${ADMIN_URL}/admin/relatorio/0184`;
+
+  const browser = await puppeteer.launch({
+    executablePath: CHROMIUM_PATH,
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process",
+    ],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+
+    // ── 1. Login (uma única vez) ─────────────────────────────────────────────
+    console.log(`[Avec Rel0184 Mês] Fazendo login para ${mes}/${ano}...`);
+    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await new Promise(r => setTimeout(r, 1000));
+    await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+    const senhaInput = await page.$('input[type="password"]');
+    if (!senhaInput) throw new Error("[Avec Rel0184 Mês] Campo de senha não encontrado.");
+    await senhaInput.click({ clickCount: 3 });
+    await senhaInput.type(senha, { delay: 50 });
+    await new Promise(r => setTimeout(r, 500));
+    await page.evaluate(() => {
+      const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
+      const botao = botoes.find(b => b.textContent?.includes('Entrar') || (b as HTMLInputElement).value?.includes('Entrar') || (b as HTMLButtonElement).type === 'submit');
+      if (botao) botao.click();
+    });
+    await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
+    await new Promise(r => setTimeout(r, 2000));
+    const urlAposLogin = page.url();
+    if (urlAposLogin.includes("/login/")) {
+      throw new Error("[Avec Rel0184 Mês] Login falhou — credenciais inválidas.");
+    }
+    console.log(`[Avec Rel0184 Mês] Login OK. Iniciando busca de ${ultimoDia} dias para ${mes}/${ano}...`);
+
+    // ── 2. Iterar por cada dia reutilizando a sessão ─────────────────────────
+    for (let d = 1; d <= ultimoDia; d++) {
+      const diaStr = String(d).padStart(2, "0");
+      const dataYMD = `${ano}-${mesStr}-${diaStr}`;
+      const dataFormatada = `${diaStr}/${mesStr}/${ano}`;
+
+      // Não sincronizar dias futuros
+      const dataDia = new Date(`${dataYMD}T03:00:00Z`);
+      if (dataDia > hoje) break;
+
+      try {
+        // Navegar para o relatório (reutilizando a sessão autenticada)
+        await page.goto(relUrl, { waitUntil: "networkidle2", timeout: 30000 });
+        await new Promise(r => setTimeout(r, 1500));
+
+        // Preencher datas
+        await page.evaluate((dataFmt: string) => {
+          const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="date"]'));
+          const campoDataIni = inputs.find(i =>
+            i.name?.toLowerCase().includes('inicio') ||
+            i.id?.toLowerCase().includes('inicio') ||
+            i.placeholder?.toLowerCase().includes('início') ||
+            i.placeholder?.toLowerCase().includes('data ini')
+          ) || inputs[0];
+          if (campoDataIni) {
+            campoDataIni.value = dataFmt;
+            campoDataIni.dispatchEvent(new Event('input', { bubbles: true }));
+            campoDataIni.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          const campoDataFim = inputs.find(i =>
+            i.name?.toLowerCase().includes('fim') ||
+            i.id?.toLowerCase().includes('fim') ||
+            i.placeholder?.toLowerCase().includes('fim') ||
+            i.placeholder?.toLowerCase().includes('data fim')
+          ) || inputs[1];
+          if (campoDataFim && campoDataFim !== campoDataIni) {
+            campoDataFim.value = dataFmt;
+            campoDataFim.dispatchEvent(new Event('input', { bubbles: true }));
+            campoDataFim.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }, dataFormatada);
+        await new Promise(r => setTimeout(r, 500));
+
+        // Clicar em Buscar
+        await page.evaluate(() => {
+          const botoes = Array.from(document.querySelectorAll<HTMLElement>('button, input[type="submit"]'));
+          const botao = botoes.find(b =>
+            b.textContent?.toLowerCase().includes('buscar') ||
+            b.textContent?.toLowerCase().includes('pesquisar') ||
+            b.textContent?.toLowerCase().includes('filtrar') ||
+            (b as HTMLInputElement).value?.toLowerCase().includes('buscar')
+          );
+          if (botao) botao.click();
+        });
+        await new Promise(r => setTimeout(r, 2500));
+
+        // Extrair valores
+        const dadosExtraidos = await page.evaluate(() => {
+          const dados: Record<string, number> = {};
+          const rows = Array.from(document.querySelectorAll('tr'));
+          for (const row of rows) {
+            const cells = Array.from(row.querySelectorAll('td, th'));
+            if (cells.length >= 3) {
+              const label = cells[0].textContent?.trim().toLowerCase() || '';
+              const valorCell = cells.length >= 4 ? cells[2] : cells[cells.length - 1];
+              const valorStr = valorCell.textContent?.trim() || '';
+              const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+              if (label.includes('servi')) dados['servicos'] = (dados['servicos'] || 0) + valor;
+              else if (label.includes('pacote')) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
+              else if (label.includes('produto')) dados['produtos'] = (dados['produtos'] || 0) + valor;
+              else if (label.includes('caixinha') || label.includes('gorjeta') || label.includes('tip')) dados['caixinha'] = (dados['caixinha'] || 0) + valor;
+            }
+          }
+          return dados;
+        });
+
+        const servicos = dadosExtraidos['servicos'] || 0;
+        const pacotes = dadosExtraidos['pacotes'] || 0;
+        const produtos = dadosExtraidos['produtos'] || 0;
+        const caixinha = dadosExtraidos['caixinha'] || 0;
+        const total = servicos + pacotes + produtos + caixinha;
+
+        resultado.set(dataYMD, { servicos, pacotes, produtos, caixinha, total });
+        console.log(`[Avec Rel0184 Mês] ${dataFormatada}: Total R$${total.toFixed(2)} (serv R$${servicos.toFixed(2)}, pac R$${pacotes.toFixed(2)}, prod R$${produtos.toFixed(2)}, caixa R$${caixinha.toFixed(2)})`);
+
+        // Pausa entre dias para não sobrecarregar o Avec
+        await new Promise(r => setTimeout(r, 1000));
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[Avec Rel0184 Mês] Erro no dia ${dataYMD}:`, msg);
+        // Continuar com os demais dias mesmo com erro
+      }
+    }
+
+    console.log(`[Avec Rel0184 Mês] Concluído: ${resultado.size} dias processados para ${mes}/${ano}`);
+    return resultado;
+  } finally {
+    await browser.close();
+  }
+}

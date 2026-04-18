@@ -12,7 +12,7 @@
  */
 
 import { getDb } from "./db";
-import { avecBrowserBuscarRelatorio0184 } from "./avecBrowser";
+import { avecBrowserBuscarRelatorio0184Mes } from "./avecBrowser";
 
 export interface ResultadoSincAvec {
   diasSincronizados: number;
@@ -200,7 +200,16 @@ export async function sincronizarFaturamentoAvec(
       throw new Error("Configuração do Avec não encontrada. Configure email e senha nas configurações da empresa.");
     }
 
-    // 2. Iterar por cada dia do mês
+    // 2. Buscar todos os dias do mês de uma vez (login único, mais eficiente)
+    console.log(`[Avec Sync] Buscando faturamento de ${mes}/${ano} via Relatório 0184 (login único)...`);
+    const dadosMes = await avecBrowserBuscarRelatorio0184Mes(
+      config.avecEmail,
+      config.avecSenha,
+      mes,
+      ano
+    );
+
+    // 3. Processar cada dia retornado
     const ultimoDia = new Date(ano, mes, 0).getDate();
     const hoje = new Date();
     const mesStr = String(mes).padStart(2, "0");
@@ -209,29 +218,22 @@ export async function sincronizarFaturamentoAvec(
       const diaStr = String(d).padStart(2, "0");
       const dataYMD = `${ano}-${mesStr}-${diaStr}`;
 
-      // Não sincronizar dias futuros (usa fim do dia em BRT = UTC-3, ou seja 03:00 UTC do dia seguinte)
-      // Isso garante que o dia atual seja sempre sincronizado a partir de 00:00 BRT
-      const dataDia = new Date(`${dataYMD}T03:00:00Z`); // 00:00 BRT = 03:00 UTC
+      // Não sincronizar dias futuros
+      const dataDia = new Date(`${dataYMD}T03:00:00Z`);
       if (dataDia > hoje) {
         resultado.diasIgnorados++;
         resultado.detalhes.push({ data: dataYMD, status: "ignorado", mensagem: "Dia futuro" });
         continue;
       }
 
+      const dadosDia = dadosMes.get(dataYMD);
+      if (!dadosDia || dadosDia.total === 0) {
+        resultado.diasFechados++;
+        resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem faturamento (fechado ou sem dados)" });
+        continue;
+      }
+
       try {
-        // Buscar faturamento do dia via Relatório 0184
-        const dadosDia = await avecBrowserBuscarRelatorio0184(
-          config.avecEmail,
-          config.avecSenha,
-          dataYMD
-        );
-
-        if (dadosDia.total === 0) {
-          resultado.diasFechados++;
-          resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem faturamento (fechado ou sem dados)" });
-          continue;
-        }
-
         // Salvar no banco: Serviços→cat1, Pacotes→cat2, Produtos→cat3, Caixinha→cat4
         await upsertFaturamentoAvecRel0184({
           tenantId,
@@ -250,13 +252,10 @@ export async function sincronizarFaturamentoAvec(
           total: dadosDia.total,
           mensagem: `Serviços R$${dadosDia.servicos.toFixed(2)}, Pacotes R$${dadosDia.pacotes.toFixed(2)}, Produtos R$${dadosDia.produtos.toFixed(2)}, Caixinha R$${dadosDia.caixinha.toFixed(2)}`,
         });
-
-        // Pausa entre dias para não sobrecarregar o Avec
-        await new Promise(r => setTimeout(r, 2000));
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });
-        console.error(`[Avec Sync] Erro no dia ${dataYMD}:`, msg);
+        console.error(`[Avec Sync] Erro ao salvar dia ${dataYMD}:`, msg);
       }
     }
 
