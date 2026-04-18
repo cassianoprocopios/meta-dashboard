@@ -5019,7 +5019,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
       }
 
-      // Calcular totalQuinzenal: valor real acumulado dos dias 1-15 (ou até hoje se < 15)
+      // Calcular totalQuinzenal: usar snapshot definitivo após dia 15, ou cálculo em tempo real
+      // REGRA: igual ao Dashboard principal (Home.tsx) - snapshot só após quinzena encerrar
       let totalQuinzenal: number | null = null;
       if (metaQuinzenal && metaQuinzenal > 0 && input.tipo === 'mensal' && input.mes && input.ano) {
         const hoje = new Date();
@@ -5027,18 +5028,44 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         const mesAtualNum = hoje.getMonth() + 1;
         const anoAtualNum = hoje.getFullYear();
         const ehMesVigenteQ2 = input.mes === mesAtualNum && input.ano === anoAtualNum;
-        const diaCorteQ2 = ehMesVigenteQ2 ? Math.min(diaAtual, 15) : 15;
-        const prefixQ2 = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
-        const rowsQ2 = rows.filter((r: any) => {
-          const dia = parseInt(r.data.split('-')[2], 10);
-          return r.data.startsWith(prefixQ2) && dia <= diaCorteQ2;
-        });
-        const totalQ2 = rowsQ2.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
-          + rowsQ2.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
-        totalQuinzenal = Math.round(totalQ2);
-        // Recalcular pctMetaQuinzenal com base no valor real
+        // Quinzena definitiva: após dia 15 no mês vigente, ou qualquer mês passado
+        const quinzenaDefinitivaQ2 = ehMesVigenteQ2 ? diaAtual > 15 : (input.ano < anoAtualNum || (input.ano === anoAtualNum && input.mes < mesAtualNum));
+
+        // Tentar usar snapshot congelado quando quinzena já encerrou
+        let snapshotValor: number | null = null;
+        if (quinzenaDefinitivaQ2) {
+          const { snapshotQuinzenal: snapshotTable } = await import('../drizzle/schema.js');
+          const snapRows = await db.select().from(snapshotTable).where(
+            drizzleAnd(
+              drizzleEq(snapshotTable.tenantId, tenantId),
+              drizzleEq(snapshotTable.empresaSlug, empresaSlugNorm),
+              drizzleEq(snapshotTable.mes, input.mes),
+              drizzleEq(snapshotTable.ano, input.ano)
+            )
+          ).limit(1);
+          if (snapRows.length > 0) {
+            snapshotValor = parseFloat(snapRows[0].totalRealizado);
+          }
+        }
+
+        if (snapshotValor !== null) {
+          // Usar valor definitivo do snapshot (igual ao Dashboard principal)
+          totalQuinzenal = Math.round(snapshotValor);
+        } else {
+          // Cálculo em tempo real: dias 1-15 (ou até hoje se < 15)
+          const diaCorteQ2 = ehMesVigenteQ2 ? Math.min(diaAtual, 15) : 15;
+          const prefixQ2 = `${input.ano}-${String(input.mes).padStart(2, '0')}`;
+          const rowsQ2 = rows.filter((r: any) => {
+            const dia = parseInt(r.data.split('-')[2], 10);
+            return r.data.startsWith(prefixQ2) && dia <= diaCorteQ2;
+          });
+          const totalQ2 = rowsQ2.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0)
+            + rowsQ2.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);
+          totalQuinzenal = Math.round(totalQ2);
+        }
+        // Recalcular pctMetaQuinzenal com base no valor final
         if (pctMetaQuinzenal == null) {
-          pctMetaQuinzenal = Math.round((totalQ2 / metaQuinzenal) * 100);
+          pctMetaQuinzenal = Math.round((totalQuinzenal / metaQuinzenal) * 100);
         }
       }
 

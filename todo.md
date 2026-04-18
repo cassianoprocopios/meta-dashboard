@@ -1241,3 +1241,5 @@
 - [x] Refatorar avecBrowserBuscarRelatorio0184 para usar login único por mês (avecBrowserBuscarRelatorio0184Mes)
 - [x] Corrigir erro "detached Frame" no Avec sincronizando com browser reutilizado
 - [x] Sincronizar dias 16, 17 e 18 da Seraphine via Avec
+- [x] Corrigir meta quinzenal no ranking profissional para usar snapshot definitivo (igual ao Dashboard)
+- [x] Garantir que envio por WhatsApp use o valor correto do snapshot quinzenal
