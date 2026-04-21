@@ -13,15 +13,17 @@
 
 import { getDb } from "./db";
 import { avecBrowserBuscarRelatorio0184Mes } from "./avecBrowser";
+import { registrarRetryFalha, marcarComSucesso, verificarRetry } from "./avecRetryManager";
 
 export interface ResultadoSincAvec {
   diasSincronizados: number;
   diasIgnorados: number;
   diasFechados: number;
+  diasRetry?: number;
   erros?: string;
   detalhes: Array<{
     data: string;
-    status: "sincronizado" | "ignorado" | "fechado" | "erro";
+    status: "sincronizado" | "ignorado" | "fechado" | "erro" | "retry" | "aguardando_retry" | "retry_registrado";
     total?: number;
     mensagem?: string;
   }>;
@@ -228,11 +230,60 @@ export async function sincronizarFaturamentoAvec(
 
       const dadosDia = dadosMes.get(dataYMD);
       if (!dadosDia || dadosDia.total === 0) {
-        resultado.diasFechados++;
-        resultado.detalhes.push({ data: dataYMD, status: "fechado", total: 0, mensagem: "Sem faturamento (fechado ou sem dados)" });
-        continue;
+        // Verificar se este dia já tem retry pendente
+        const retryStatus = await verificarRetry({ tenantId, empresaSlug, data: dataYMD });
+        
+        if (retryStatus && retryStatus.podeRetentar) {
+          // Pode retentar: registrar e continuar para próxima tentativa
+          console.log(`[Avec Sync] ${dataYMD}: Retry pendente (tentativa ${retryStatus.tentativas}/3)`);
+          resultado.detalhes.push({
+            data: dataYMD,
+            status: "retry",
+            total: 0,
+            mensagem: `Retry pendente (tentativa ${retryStatus.tentativas}/3)`,
+          });
+          continue;
+        } else if (retryStatus && !retryStatus.podeRetentar && retryStatus.tentativas < 3) {
+          // Ainda não pode retentar (menos de 5 minutos)
+          console.log(`[Avec Sync] ${dataYMD}: Aguardando 5 minutos para retry`);
+          resultado.detalhes.push({
+            data: dataYMD,
+            status: "aguardando_retry",
+            total: 0,
+            mensagem: `Aguardando retry (próxima em ${Math.ceil((retryStatus.proximaTentativaEm - Date.now()) / 60000)} min)`,
+          });
+          continue;
+        } else if (retryStatus && retryStatus.status === "falhou") {
+          // Já falhou 3 vezes
+          resultado.diasFechados++;
+          resultado.detalhes.push({
+            data: dataYMD,
+            status: "fechado",
+            total: 0,
+            mensagem: "Sem faturamento (3 tentativas de retry falharam)",
+          });
+          continue;
+        } else if (!retryStatus) {
+          // Primeira vez que falha: registrar retry
+          await registrarRetryFalha({
+            tenantId,
+            empresaSlug,
+            data: dataYMD,
+            erroMensagem: "Nenhum dado encontrado no Relatório 0184",
+          });
+          resultado.detalhes.push({
+            data: dataYMD,
+            status: "retry_registrado",
+            total: 0,
+            mensagem: "Primeira tentativa falhou. Retry agendado para 5 minutos",
+          });
+          continue;
+        }
       }
 
+      // Neste ponto, dadosDia está garantido de existir e ter total > 0
+      if (!dadosDia) continue; // Segurança extra
+      
       try {
         // Salvar no banco: Serviços→cat1, Pacotes→cat2, Produtos→cat3, Caixinha→cat4
         await upsertFaturamentoAvecRel0184({
@@ -252,6 +303,9 @@ export async function sincronizarFaturamentoAvec(
           total: dadosDia.total,
           mensagem: `Serviços R$${dadosDia.servicos.toFixed(2)}, Pacotes R$${dadosDia.pacotes.toFixed(2)}, Produtos R$${dadosDia.produtos.toFixed(2)}, Caixinha R$${dadosDia.caixinha.toFixed(2)}`,
         });
+        
+        // Marcar como sucesso se havia retry pendente
+        await marcarComSucesso({ tenantId, empresaSlug, data: dataYMD });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });

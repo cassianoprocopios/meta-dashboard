@@ -1246,3 +1246,15 @@
 - [x] Implementar painel de status de sincronização unificado (CashBarber + Avec + D-Pote)
 - [x] Adicionar procedure syncPainel.status com histórico e último sync por empresa
 - [x] Adicionar botões de re-sync manual por sistema no painel
+
+## Evolução v12 - Retry Automático para Sync do Avec
+
+- [x] Criar tabela `avecRetry` (id, tenantId, empresaSlug, data, tentativas, ultimaTentativa, status, erroMensagem)
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Implementar lógica de retry na função avecBrowserBuscarRelatorio0184Mes
+- [x] Quando total = 0, aguardar 5 minutos e tentar novamente (máximo 3 tentativas)
+- [x] Registrar cada tentativa na tabela avecRetry
+- [x] Após 3 tentativas falhadas, marcar como "fechado/sem dados"
+- [ ] Adicionar coluna `tentativas` e `ultimaTentativa` na tabela avecSyncLog
+- [ ] Exibir status de retry no painel de sync (quantas tentativas, próxima tentativa em X minutos)
+- [ ] Testes da lógica de retry (aguardando ambiente de testes com DB)

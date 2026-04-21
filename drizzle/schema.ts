@@ -502,3 +502,26 @@ export const snapshotQuinzenal = mysqlTable("snapshotQuinzenal", {
 });
 export type SnapshotQuinzenal = typeof snapshotQuinzenal.$inferSelect;
 export type InsertSnapshotQuinzenal = typeof snapshotQuinzenal.$inferInsert;
+
+// ─── RETRY DE SINCRONIZAÇÃO DO AVEC ─────────────────────────────────────────
+// Registra tentativas de sincronização que falharam (total = 0)
+// Permite retry automático após 5 minutos, máximo 3 tentativas
+export const avecRetry = mysqlTable("avecRetry", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** Data do dia que falhou (YYYY-MM-DD) */
+  data: varchar("data", { length: 10 }).notNull(),
+  /** Número de tentativas já realizadas (1, 2, 3) */
+  tentativas: int("tentativas").notNull().default(0),
+  /** Timestamp da última tentativa */
+  ultimaTentativa: timestamp("ultimaTentativa").defaultNow().notNull(),
+  /** Status: 'pendente', 'sucesso', 'falhou' */
+  status: varchar("status", { length: 16 }).notNull().default("pendente"),
+  /** Mensagem de erro da última tentativa */
+  erroMensagem: text("erroMensagem"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AvecRetry = typeof avecRetry.$inferSelect;
+export type InsertAvecRetry = typeof avecRetry.$inferInsert;
