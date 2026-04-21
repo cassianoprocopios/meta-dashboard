@@ -1255,6 +1255,8 @@
 - [x] Quando total = 0, aguardar 5 minutos e tentar novamente (máximo 3 tentativas)
 - [x] Registrar cada tentativa na tabela avecRetry
 - [x] Após 3 tentativas falhadas, marcar como "fechado/sem dados"
+- [x] Instalar Chromium para Puppeteer funcionar
+- [x] Corrigir erro de Frame detached adicionando try-catch em operações de retry
 - [ ] Adicionar coluna `tentativas` e `ultimaTentativa` na tabela avecSyncLog
 - [ ] Exibir status de retry no painel de sync (quantas tentativas, próxima tentativa em X minutos)
 - [ ] Testes da lógica de retry (aguardando ambiente de testes com DB)

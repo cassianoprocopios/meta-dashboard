@@ -231,7 +231,12 @@ export async function sincronizarFaturamentoAvec(
       const dadosDia = dadosMes.get(dataYMD);
       if (!dadosDia || dadosDia.total === 0) {
         // Verificar se este dia já tem retry pendente
-        const retryStatus = await verificarRetry({ tenantId, empresaSlug, data: dataYMD });
+        let retryStatus = null;
+        try {
+          retryStatus = await verificarRetry({ tenantId, empresaSlug, data: dataYMD });
+        } catch (retryErr) {
+          console.warn(`[Avec Sync] Aviso ao verificar retry para ${dataYMD}:`, retryErr instanceof Error ? retryErr.message : String(retryErr));
+        }
         
         if (retryStatus && retryStatus.podeRetentar) {
           // Pode retentar: registrar e continuar para próxima tentativa
@@ -265,12 +270,16 @@ export async function sincronizarFaturamentoAvec(
           continue;
         } else if (!retryStatus) {
           // Primeira vez que falha: registrar retry
-          await registrarRetryFalha({
-            tenantId,
-            empresaSlug,
-            data: dataYMD,
-            erroMensagem: "Nenhum dado encontrado no Relatório 0184",
-          });
+          try {
+            await registrarRetryFalha({
+              tenantId,
+              empresaSlug,
+              data: dataYMD,
+              erroMensagem: "Nenhum dado encontrado no Relatório 0184",
+            });
+          } catch (retryErr) {
+            console.warn(`[Avec Sync] Aviso ao registrar retry para ${dataYMD}:`, retryErr instanceof Error ? retryErr.message : String(retryErr));
+          }
           resultado.detalhes.push({
             data: dataYMD,
             status: "retry_registrado",
@@ -305,7 +314,12 @@ export async function sincronizarFaturamentoAvec(
         });
         
         // Marcar como sucesso se havia retry pendente
-        await marcarComSucesso({ tenantId, empresaSlug, data: dataYMD });
+        try {
+          await marcarComSucesso({ tenantId, empresaSlug, data: dataYMD });
+        } catch (retryErr) {
+          console.warn(`[Avec Sync] Aviso ao marcar retry como sucesso para ${dataYMD}:`, retryErr instanceof Error ? retryErr.message : String(retryErr));
+          // Continuar mesmo se falhar ao marcar retry
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });
