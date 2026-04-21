@@ -1260,3 +1260,9 @@
 - [ ] Adicionar coluna `tentativas` e `ultimaTentativa` na tabela avecSyncLog
 - [ ] Exibir status de retry no painel de sync (quantas tentativas, próxima tentativa em X minutos)
 - [ ] Testes da lógica de retry (aguardando ambiente de testes com DB)
+
+## Meta - Validação e UI de Retry
+
+- [x] Validar dados sincronizados — Verificar se valores do Avec dia 21 (R$6.090,00) estão corretos no dashboard
+- [x] Adicionar UI para status de retry — Endpoint `retryStatus` que retorna dias com retry pendente
+- [x] Sincronização retroativa — Endpoint `syncAvecRetroativo` para reprocessar dias 13-20 que falharam

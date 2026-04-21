@@ -367,3 +367,111 @@ export async function sincronizarFaturamentoAvec(
 
   return resultado;
 }
+
+/**
+ * Sincroniza faturamento do Avec para um período específico (retroativo)
+ * Útil para reprocessar dias que falharam com erro de Frame
+ */
+export async function sincronizarFaturamentoAvecPorData(
+  tenantId: number,
+  empresaSlug: string,
+  dataInicio: string, // YYYY-MM-DD
+  dataFim: string // YYYY-MM-DD
+): Promise<ResultadoSincAvec> {
+  empresaSlug = empresaSlug.toUpperCase();
+
+  const resultado: ResultadoSincAvec = {
+    diasSincronizados: 0,
+    diasIgnorados: 0,
+    diasFechados: 0,
+    detalhes: [],
+  };
+
+  try {
+    // 1. Buscar configuração do Avec
+    const config = await getAvecConfig(tenantId, empresaSlug);
+    if (!config || !config.avecEmail || !config.avecSenha) {
+      throw new Error("Configuração do Avec não encontrada");
+    }
+
+    // 2. Extrair mês e ano da data de início
+    const [anoStr, mesStr] = dataInicio.split("-");
+    const mes = parseInt(mesStr, 10);
+    const ano = parseInt(anoStr, 10);
+
+    console.log(`[Avec Sync Retroativo] Sincronizando ${dataInicio} a ${dataFim} para ${empresaSlug}...`);
+    const dadosMes = await avecBrowserBuscarRelatorio0184Mes(
+      config.avecEmail,
+      config.avecSenha,
+      mes,
+      ano
+    );
+
+    // 3. Processar apenas os dias no intervalo
+    const dataInicioObj = new Date(`${dataInicio}T00:00:00Z`);
+    const dataFimObj = new Date(`${dataFim}T23:59:59Z`);
+
+    for (const entry of Array.from(dadosMes.entries())) {
+      const [dataYMD, dadosDia] = entry;
+      const dataObj = new Date(`${dataYMD}T00:00:00Z`);
+      
+      // Verificar se está no intervalo
+      if (dataObj < dataInicioObj || dataObj > dataFimObj) {
+        continue;
+      }
+
+      if (!dadosDia || dadosDia.total === 0) {
+        resultado.diasFechados++;
+        resultado.detalhes.push({
+          data: dataYMD,
+          status: "fechado",
+          total: 0,
+          mensagem: "Sem faturamento",
+        });
+        continue;
+      }
+
+      try {
+        await upsertFaturamentoAvecRel0184({
+          tenantId,
+          empresaSlug,
+          data: dataYMD,
+          servicos: dadosDia.servicos,
+          pacotes: dadosDia.pacotes,
+          produtos: dadosDia.produtos,
+          caixinha: dadosDia.caixinha,
+        });
+
+        resultado.diasSincronizados++;
+        resultado.detalhes.push({
+          data: dataYMD,
+          status: "sincronizado",
+          total: dadosDia.total,
+          mensagem: `Serviços R$${dadosDia.servicos.toFixed(2)}, Pacotes R$${dadosDia.pacotes.toFixed(2)}, Produtos R$${dadosDia.produtos.toFixed(2)}, Caixinha R$${dadosDia.caixinha.toFixed(2)}`,
+        });
+
+        // Marcar como sucesso se havia retry pendente
+        try {
+          await marcarComSucesso({ tenantId, empresaSlug, data: dataYMD });
+        } catch (retryErr) {
+          console.warn(`[Avec Sync Retroativo] Aviso ao marcar retry como sucesso para ${dataYMD}:`, retryErr instanceof Error ? retryErr.message : String(retryErr));
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        resultado.detalhes.push({ data: dataYMD, status: "erro", mensagem: msg });
+        console.error(`[Avec Sync Retroativo] Erro ao salvar dia ${dataYMD}:`, msg);
+      }
+    }
+
+    console.log(
+      `[Avec Sync Retroativo] Concluído para ${empresaSlug} ${dataInicio} a ${dataFim}: ` +
+      `${resultado.diasSincronizados} sincronizados, ${resultado.diasFechados} fechados`
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    resultado.erros = msg;
+    console.error(`[Avec Sync Retroativo] Erro crítico:`, msg);
+  }
+
+  return resultado;
+}

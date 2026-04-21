@@ -5431,6 +5431,21 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       await aplicarDpoteParaTenant(tenantId, mes, ano);
       return { ok: true };
     }),
+
+    retryStatus: protectedProcedure.query(async ({ ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const { listarRetrysPendentes } = await import("./avecRetryManager");
+      const retries = await listarRetrysPendentes({ tenantId, empresaSlug: "SERAPHINE" });
+      return { retries };
+    }),
+    syncAvecRetroativo: protectedProcedure
+      .input(z.object({ dataInicio: z.string(), dataFim: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { sincronizarFaturamentoAvecPorData } = await import("./avecSincronizador");
+        const resultado = await sincronizarFaturamentoAvecPorData(tenantId, "SERAPHINE", input.dataInicio, input.dataFim);
+        return { ok: true, resultado };
+      }),
   }),
 });
 
