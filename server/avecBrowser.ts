@@ -773,23 +773,51 @@ export async function avecBrowserBuscarRelatorio0184Mes(
         });
         await new Promise(r => setTimeout(r, 2500));
 
-        // Extrair valores
+        // Extrair valores com múltiplas estratégias
         const dadosExtraidos = await page.evaluate(() => {
           const dados: Record<string, number> = {};
+          const html = document.documentElement.innerHTML;
+          
+          // Estratégia 1: Procurar por padrões de texto "Serviços", "Pacotes", etc. em qualquer célula
           const rows = Array.from(document.querySelectorAll('tr'));
-          for (const row of rows) {
+          console.log(`[DEBUG] Total de linhas encontradas: ${rows.length}`);
+          
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
             const cells = Array.from(row.querySelectorAll('td, th'));
-            if (cells.length >= 3) {
-              const label = cells[0].textContent?.trim().toLowerCase() || '';
-              const valorCell = cells.length >= 4 ? cells[2] : cells[cells.length - 1];
-              const valorStr = valorCell.textContent?.trim() || '';
-              const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-              if (label.includes('servi')) dados['servicos'] = (dados['servicos'] || 0) + valor;
-              else if (label.includes('pacote')) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
-              else if (label.includes('produto')) dados['produtos'] = (dados['produtos'] || 0) + valor;
-              else if (label.includes('caixinha') || label.includes('gorjeta') || label.includes('tip')) dados['caixinha'] = (dados['caixinha'] || 0) + valor;
+            const rowText = row.textContent?.toLowerCase() || '';
+            
+            // Procurar por qualquer célula que contenha o rótulo
+            for (let j = 0; j < cells.length; j++) {
+              const cellText = cells[j].textContent?.trim().toLowerCase() || '';
+              
+              // Se encontrar um rótulo, procurar o valor na mesma linha
+              if (cellText.includes('serviço') || cellText === 'serviços' || cellText.includes('servi')) {
+                // Procurar valor na próxima célula ou célula anterior
+                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
+                const valorStr = valorCell?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) dados['servicos'] = (dados['servicos'] || 0) + valor;
+              } else if (cellText.includes('pacote')) {
+                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
+                const valorStr = valorCell?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
+              } else if (cellText.includes('produto')) {
+                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
+                const valorStr = valorCell?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) dados['produtos'] = (dados['produtos'] || 0) + valor;
+              } else if (cellText.includes('caixinha') || cellText.includes('gorjeta') || cellText.includes('tip')) {
+                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
+                const valorStr = valorCell?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) dados['caixinha'] = (dados['caixinha'] || 0) + valor;
+              }
             }
           }
+          
+          console.log(`[DEBUG] Dados extraídos:`, dados);
           return dados;
         });
 
@@ -800,7 +828,12 @@ export async function avecBrowserBuscarRelatorio0184Mes(
         const total = servicos + pacotes + produtos + caixinha;
 
         resultado.set(dataYMD, { servicos, pacotes, produtos, caixinha, total });
-        console.log(`[Avec Rel0184 Mês] ${dataFormatada}: Total R$${total.toFixed(2)} (serv R$${servicos.toFixed(2)}, pac R$${pacotes.toFixed(2)}, prod R$${produtos.toFixed(2)}, caixa R$${caixinha.toFixed(2)})`);
+        
+        if (total === 0) {
+          console.warn(`[Avec Rel0184 Mês] AVISO ${dataFormatada}: Total R$0.00 - Nenhum valor encontrado!`);
+        } else {
+          console.log(`[Avec Rel0184 Mês] ${dataFormatada}: Total R$${total.toFixed(2)} (serv R$${servicos.toFixed(2)}, pac R$${pacotes.toFixed(2)}, prod R$${produtos.toFixed(2)}, caixa R$${caixinha.toFixed(2)})`);
+        }
 
         // Pausa entre dias para não sobrecarregar o Avec
         await new Promise(r => setTimeout(r, 1000));
