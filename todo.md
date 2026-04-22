@@ -1289,3 +1289,6 @@
 
 - [x] Aplicar tema escuro em páginas de Lançamentos, Metas, Bonificação, Histórico, Profissionais, Ranking (6 páginas modificadas)
 - [x] Ajustar contraste de textos em cards para garantir legibilidade contra fundo escuro (Validado - Contraste perfeito)
+
+- [x] Aplicar tema escuro em modais e popovers (ManusDialog atualizado, Dialog/Popover já herdam tema)
+- [x] Adicionar animação de transição de tema (fade suave 300ms com cubic-bezier)
