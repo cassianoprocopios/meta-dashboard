@@ -433,7 +433,7 @@ export default function AcessoProfissionais() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-slate-950 text-foreground">
       {/* Modais */}
       {qrProfissional && <QRModal profissional={qrProfissional} onClose={() => setQrProfissional(null)} />}
       {telProfissional && (

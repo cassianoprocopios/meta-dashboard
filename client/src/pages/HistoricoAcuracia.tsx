@@ -97,7 +97,7 @@ export default function HistoricoAcuracia() {
   const CORES_EMPRESAS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-slate-950 text-foreground">
       {/* Header */}
       <div className="border-b border-border/40 bg-card/60 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">

@@ -837,7 +837,7 @@ export default function RankingPublico() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-slate-950">
         {/* Header fixo */}
         <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">

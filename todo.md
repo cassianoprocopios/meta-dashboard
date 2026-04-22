@@ -1286,3 +1286,6 @@
 ## UI/UX - Melhorias Visuais
 
 - [x] Escurecer fundo da página de visão geral (mudado de bg-background para bg-slate-950)
+
+- [x] Aplicar tema escuro em páginas de Lançamentos, Metas, Bonificação, Histórico, Profissionais, Ranking (6 páginas modificadas)
+- [x] Ajustar contraste de textos em cards para garantir legibilidade contra fundo escuro (Validado - Contraste perfeito)
