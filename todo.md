@@ -1280,5 +1280,5 @@
 - [x] Identificar causa: função somava múltiplas linhas de "Serviços" em vez de procurar pela linha de TOTAL
 - [x] Implementar nova estratégia: procurar especificamente pela linha que contém "TOTAL" ou "Total Geral"
 - [x] Modificar avecBrowser.ts para usar estratégia corrigida
-- [ ] Testar com Avec (aguardando estabilidade da conexão)
-- [ ] Validar que dia 21 retorna R$6.090,00 correto
+- [x] Testar com Avec (aguardando estabilidade da conexão)
+- [x] Validar que dia 21 retorna R$6.090,00 correto - VALIDADO NO DASHBOARD: Dia 21 = R$6.090 ✅, Dia 18 = R$8.540 ✅

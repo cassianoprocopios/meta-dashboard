@@ -66,7 +66,7 @@ export async function avecBrowserLogin(
     await page.setViewport({ width: 1280, height: 900 });
 
     console.log(`[Avec Browser] Acessando ${loginUrl}...`);
-    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 60000 });
     await new Promise(r => setTimeout(r, 1000));
 
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
@@ -88,10 +88,10 @@ export async function avecBrowserLogin(
     });
 
     if (botaoClicado) {
-      await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 }).catch(() => {});
     } else {
       await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {}),
+        page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 }).catch(() => {}),
         page.keyboard.press("Enter"),
       ]);
     }
@@ -456,7 +456,7 @@ export async function avecBrowserBuscarRelatorio0184(
 
     // ── 1. Login ────────────────────────────────────────────────────────────────
     console.log(`[Avec Rel0184] Fazendo login...`);
-    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 30000 });
+    await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 60000 });
     await new Promise(r => setTimeout(r, 1000));
 
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
@@ -794,45 +794,57 @@ export async function avecBrowserBuscarRelatorio0184Mes(
             });
           }
           
-          // ESTRATÉGIA CORRIGIDA: Procurar APENAS pela linha de TOTAL
+          // ESTRATÉGIA CORRIGIDA: Pular coluna de QUANTIDADE e pegar coluna de VALOR
           const rows = Array.from(document.querySelectorAll('tr'));
           console.log(`[DEBUG] Total de linhas encontradas: ${rows.length}`);
-          let totalLineFound = false;
-          for (let i = 0; i < rows.length; i++) {
+          
+          // Procurar pela última linha com rótulos de categorias
+          for (let i = rows.length - 1; i >= 0; i--) {
             const row = rows[i];
-            const rowText = row.textContent?.toLowerCase() || '';
             const cells = Array.from(row.querySelectorAll('td, th'));
+            const rowText = row.textContent?.toLowerCase() || '';
             
-            // Verificar se é a linha de TOTAL
-            if (rowText.includes('total geral') || (rowText.includes('total') && cells.length >= 4 && !rowText.includes('total de'))) {
-              console.log(`[DEBUG] ✓ Linha de TOTAL encontrada no índice ${i}`);
-              totalLineFound = true;
+            // Procurar por rótulos
+            for (let j = 0; j < cells.length; j++) {
+              const cellText = cells[j].textContent?.trim().toLowerCase() || '';
               
-              // Procurar pelos valores nesta linha
-              for (let j = 0; j < cells.length; j++) {
-                const cellText = cells[j].textContent?.trim().toLowerCase() || '';
-                const nextCell = cells[j + 1]?.textContent?.trim() || '';
-                const valor = parseFloat(nextCell.replace(/\./g, '').replace(',', '.')) || 0;
-                
-                if (cellText.includes('serviço') || cellText === 'serviços') {
+              // Se encontrou um rótulo, a próxima célula é QUANTIDADE, a célula depois é VALOR
+              if (cellText.includes('serviço') || cellText === 'serviços') {
+                // cells[j+1] = quantidade, cells[j+2] = valor
+                const valorStr = cells[j + 2]?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 100) {
                   dados['servicos'] = valor;
-                } else if (cellText.includes('pacote')) {
+                  console.log(`[DEBUG] ✓ Serviços: ${valor}`);
+                }
+              } else if (cellText.includes('pacote')) {
+                const valorStr = cells[j + 2]?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) {
                   dados['pacotes'] = valor;
-                } else if (cellText.includes('produto')) {
+                  console.log(`[DEBUG] ✓ Pacotes: ${valor}`);
+                }
+              } else if (cellText.includes('produto')) {
+                const valorStr = cells[j + 2]?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) {
                   dados['produtos'] = valor;
-                } else if (cellText.includes('caixinha') || cellText.includes('gorjeta')) {
+                  console.log(`[DEBUG] ✓ Produtos: ${valor}`);
+                }
+              } else if (cellText.includes('caixinha') || cellText.includes('gorjeta')) {
+                const valorStr = cells[j + 2]?.textContent?.trim() || '';
+                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+                if (valor > 0) {
                   dados['caixinha'] = valor;
+                  console.log(`[DEBUG] ✓ Caixinha: ${valor}`);
                 }
               }
-              break;
             }
           }
           
-          if (!totalLineFound) {
-            console.log(`[DEBUG] ✗ Nenhuma linha de TOTAL encontrada!`);
-          }
+          console.log(`[DEBUG] Dados finais extraídos:`, dados);
           
-          console.log(`[DEBUG] Dados extraídos:`, dados);
+
           return dados;
         });
 
