@@ -1266,3 +1266,19 @@
 - [x] Validar dados sincronizados — Verificar se valores do Avec dia 21 (R$6.090,00) estão corretos no dashboard
 - [x] Adicionar UI para status de retry — Endpoint `retryStatus` que retorna dias com retry pendente
 - [x] Sincronização retroativa — Endpoint `syncAvecRetroativo` para reprocessar dias 13-20 que falharam
+
+## Bug - Lançamentos do Faturamento da Seraphine Incorretos
+
+- [ ] Comparar valores do Avec (Relatório 0184) com valores salvos no dashboard
+- [ ] Identificar se o problema é na extração, mapeamento de categorias ou cálculo
+- [ ] Corrigir o mapeamento de categorias (Serviços, Pacotes, Produtos, Caixinha)
+- [ ] Validar que todos os dias estão com valores corretos
+- [ ] Testar sincronização retroativa dos dias com erro
+
+## Correção - Lançamentos do Avec Incorretos (R$83 em vez de R$6.090)
+
+- [x] Identificar causa: função somava múltiplas linhas de "Serviços" em vez de procurar pela linha de TOTAL
+- [x] Implementar nova estratégia: procurar especificamente pela linha que contém "TOTAL" ou "Total Geral"
+- [x] Modificar avecBrowser.ts para usar estratégia corrigida
+- [ ] Testar com Avec (aguardando estabilidade da conexão)
+- [ ] Validar que dia 21 retorna R$6.090,00 correto

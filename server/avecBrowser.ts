@@ -778,43 +778,58 @@ export async function avecBrowserBuscarRelatorio0184Mes(
           const dados: Record<string, number> = {};
           const html = document.documentElement.innerHTML;
           
-          // Estratégia 1: Procurar por padrões de texto "Serviços", "Pacotes", etc. em qualquer célula
+          // Salvar HTML da tabela para debug
+          const tables = Array.from(document.querySelectorAll('table'));
+          if (tables.length > 0) {
+            console.log(`[DEBUG] Tabelas encontradas: ${tables.length}`);
+            const mainTable = tables[0];
+            console.log(`[DEBUG] HTML da tabela (primeiras 2000 chars):`);
+            console.log(mainTable.outerHTML.substring(0, 2000));
+            
+            const rows = Array.from(mainTable.querySelectorAll('tr'));
+            console.log(`[DEBUG] Total de linhas na tabela: ${rows.length}`);
+            rows.forEach((row, idx) => {
+              const cells = Array.from(row.querySelectorAll('td, th')).map(c => c.textContent?.trim() || '');
+              console.log(`[DEBUG] Linha ${idx}: ${cells.join(' | ')}`);
+            });
+          }
+          
+          // ESTRATÉGIA CORRIGIDA: Procurar APENAS pela linha de TOTAL
           const rows = Array.from(document.querySelectorAll('tr'));
           console.log(`[DEBUG] Total de linhas encontradas: ${rows.length}`);
-          
+          let totalLineFound = false;
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            const cells = Array.from(row.querySelectorAll('td, th'));
             const rowText = row.textContent?.toLowerCase() || '';
+            const cells = Array.from(row.querySelectorAll('td, th'));
             
-            // Procurar por qualquer célula que contenha o rótulo
-            for (let j = 0; j < cells.length; j++) {
-              const cellText = cells[j].textContent?.trim().toLowerCase() || '';
+            // Verificar se é a linha de TOTAL
+            if (rowText.includes('total geral') || (rowText.includes('total') && cells.length >= 4 && !rowText.includes('total de'))) {
+              console.log(`[DEBUG] ✓ Linha de TOTAL encontrada no índice ${i}`);
+              totalLineFound = true;
               
-              // Se encontrar um rótulo, procurar o valor na mesma linha
-              if (cellText.includes('serviço') || cellText === 'serviços' || cellText.includes('servi')) {
-                // Procurar valor na próxima célula ou célula anterior
-                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
-                const valorStr = valorCell?.textContent?.trim() || '';
-                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-                if (valor > 0) dados['servicos'] = (dados['servicos'] || 0) + valor;
-              } else if (cellText.includes('pacote')) {
-                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
-                const valorStr = valorCell?.textContent?.trim() || '';
-                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-                if (valor > 0) dados['pacotes'] = (dados['pacotes'] || 0) + valor;
-              } else if (cellText.includes('produto')) {
-                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
-                const valorStr = valorCell?.textContent?.trim() || '';
-                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-                if (valor > 0) dados['produtos'] = (dados['produtos'] || 0) + valor;
-              } else if (cellText.includes('caixinha') || cellText.includes('gorjeta') || cellText.includes('tip')) {
-                const valorCell = cells[j + 1] || cells[j - 1] || cells[cells.length - 1];
-                const valorStr = valorCell?.textContent?.trim() || '';
-                const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
-                if (valor > 0) dados['caixinha'] = (dados['caixinha'] || 0) + valor;
+              // Procurar pelos valores nesta linha
+              for (let j = 0; j < cells.length; j++) {
+                const cellText = cells[j].textContent?.trim().toLowerCase() || '';
+                const nextCell = cells[j + 1]?.textContent?.trim() || '';
+                const valor = parseFloat(nextCell.replace(/\./g, '').replace(',', '.')) || 0;
+                
+                if (cellText.includes('serviço') || cellText === 'serviços') {
+                  dados['servicos'] = valor;
+                } else if (cellText.includes('pacote')) {
+                  dados['pacotes'] = valor;
+                } else if (cellText.includes('produto')) {
+                  dados['produtos'] = valor;
+                } else if (cellText.includes('caixinha') || cellText.includes('gorjeta')) {
+                  dados['caixinha'] = valor;
+                }
               }
+              break;
             }
+          }
+          
+          if (!totalLineFound) {
+            console.log(`[DEBUG] ✗ Nenhuma linha de TOTAL encontrada!`);
           }
           
           console.log(`[DEBUG] Dados extraídos:`, dados);
