@@ -1292,3 +1292,9 @@
 
 - [x] Aplicar tema escuro em modais e popovers (ManusDialog atualizado, Dialog/Popover já herdam tema)
 - [x] Adicionar animação de transição de tema (fade suave 300ms com cubic-bezier)
+
+## UI/UX - Redesign da Página de Metas
+
+- [x] Alterar layout da página de Metas - Configurar metas mensais (novo layout com 3 colunas por empresa)
+- [x] Mudar paleta de cores para cinza, preto e branco (grayscale aplicado com sucesso)
+- [x] Validar legibilidade e contraste do novo design (Validado - Excelente contraste e legibilidade)
