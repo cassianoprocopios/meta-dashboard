@@ -1282,3 +1282,7 @@
 - [x] Modificar avecBrowser.ts para usar estratégia corrigida
 - [x] Testar com Avec (aguardando estabilidade da conexão)
 - [x] Validar que dia 21 retorna R$6.090,00 correto - VALIDADO NO DASHBOARD: Dia 21 = R$6.090 ✅, Dia 18 = R$8.540 ✅
+
+## UI/UX - Melhorias Visuais
+
+- [x] Escurecer fundo da página de visão geral (mudado de bg-background para bg-slate-950)
