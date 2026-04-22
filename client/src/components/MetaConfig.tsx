@@ -145,15 +145,15 @@ export default function MetaConfig({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 border border-gray-700">
+      <div className="flex items-center justify-between bg-black rounded-2xl p-6 border border-gray-800">
         <div>
           <h2 className="text-2xl font-bold text-white">Metas de {mesLabel} {ano}</h2>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-300 mt-2">
             Configure os valores alvo, super meta e os dias úteis de cada empresa para o mês.
           </p>
         </div>
         {!isGerente && (
-          <div className="flex items-center gap-1.5 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-medium border border-gray-600">
+          <div className="flex items-center gap-1.5 bg-gray-900 text-gray-200 px-4 py-2 rounded-lg text-xs font-medium border border-gray-700">
             <Lock className="w-3.5 h-3.5" /> Somente leitura
           </div>
         )}
@@ -179,13 +179,13 @@ export default function MetaConfig({
           const atingiuSuperMeta = realizado >= superMetaVal && superMetaVal > 0;
 
           return (
-            <Card key={emp.slug} className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-gray-800 overflow-hidden relative">
+            <Card key={emp.slug} className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-gray-950 overflow-hidden relative">
               {/* Barra de cor no topo */}
               <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ backgroundColor: emp.cor }} />
 
               {/* Header da empresa */}
               <div className="flex items-center gap-3 mb-5 mt-1">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-700 border border-gray-600">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-800 border border-gray-700">
                   <Target className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -200,30 +200,30 @@ export default function MetaConfig({
 
               {/* Percentuais de atingimento */}
               {realizado > 0 && mensal > 0 && (
-                <div className="mb-5 space-y-3 pb-5 border-b border-gray-700">
+                <div className="mb-5 space-y-3 pb-5 border-b border-gray-800">
                   {/* Barra de meta mensal */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Target className="w-4 h-4 text-gray-400" />
-                        <span className="text-xs font-semibold text-gray-300">Meta Mensal</span>
+                        <span className="text-xs font-semibold text-white">Meta Mensal</span>
                         {atingiuMeta && (
-                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gray-700 text-white text-[10px] font-bold border border-gray-600">
+                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white text-black text-[10px] font-bold border border-white">
                             <Trophy className="w-2.5 h-2.5" /> Atingida!
                           </span>
                         )}
                       </div>
-                      <span className={`text-xs font-bold ${atingiuMeta ? "text-white" : pctMeta >= 80 ? "text-gray-300" : "text-gray-400"}`}>
+                      <span className={`text-xs font-bold ${atingiuMeta ? "text-white" : pctMeta >= 80 ? "text-white" : "text-gray-300"}`}>
                         {fmtPct(pctMeta)}
                       </span>
                     </div>
-                    <div className="h-2.5 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
+                    <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
                       <div
-                        className={`h-full rounded-full transition-all ${atingiuMeta ? "bg-white" : pctMeta >= 80 ? "bg-gray-500" : "bg-gray-600"}`}
+                        className={`h-full rounded-full transition-all ${atingiuMeta ? "bg-white" : pctMeta >= 80 ? "bg-gray-400" : "bg-gray-600"}`}
                         style={{ width: `${Math.min(pctMeta, 100)}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-1">{fmt(realizado)} de {fmt(mensal)}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{fmt(realizado)} de {fmt(mensal)}</p>
                   </div>
 
                   {/* Barra de super meta */}
@@ -232,24 +232,24 @@ export default function MetaConfig({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Star className="w-4 h-4 text-gray-400" />
-                          <span className="text-xs font-semibold text-gray-300">Super Meta</span>
+                          <span className="text-xs font-semibold text-white">Super Meta</span>
                           {atingiuSuperMeta && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gray-700 text-white text-[10px] font-bold border border-gray-600">
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white text-black text-[10px] font-bold border border-white">
                               <Star className="w-2.5 h-2.5" /> Superada!
                             </span>
                           )}
                         </div>
-                        <span className={`text-xs font-bold ${atingiuSuperMeta ? "text-white" : "text-gray-500"}`}>
+                        <span className={`text-xs font-bold ${atingiuSuperMeta ? "text-white" : "text-gray-300"}`}>
                           {fmtPct(pctSuperMeta)}
                         </span>
                       </div>
-                      <div className="h-2.5 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
+                      <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
                         <div
-                          className={`h-full rounded-full transition-all ${atingiuSuperMeta ? "bg-white" : "bg-gray-500"}`}
+                          className={`h-full rounded-full transition-all ${atingiuSuperMeta ? "bg-white" : "bg-gray-400"}`}
                           style={{ width: `${Math.min(pctSuperMeta, 100)}%` }}
                         />
                       </div>
-                      <p className="text-[10px] text-gray-500 mt-1">{fmt(realizado)} de {fmt(superMetaVal)}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{fmt(realizado)} de {fmt(superMetaVal)}</p>
                     </div>
                   )}
                 </div>
@@ -257,17 +257,17 @@ export default function MetaConfig({
 
               {/* Meta Mensal */}
               <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-300 mb-2 block uppercase tracking-wide">
+                <label className="text-xs font-semibold text-white mb-2 block uppercase tracking-wide">
                   Meta Mensal (R$)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">R$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
                   <input
                     type="number" step="100" min="0" placeholder="0,00"
                     disabled={!isGerente}
                     value={v.mensal}
                     onChange={(e) => setField(emp.slug, "mensal", e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-700 text-white placeholder-gray-500"
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-900 text-white placeholder-gray-500"
                   />
                 </div>
                 {metaDiariaMensal > 0 && (
@@ -277,17 +277,17 @@ export default function MetaConfig({
 
               {/* Super Meta */}
               <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-300 mb-2 block uppercase tracking-wide flex items-center gap-1">
+                <label className="text-xs font-semibold text-white mb-2 block uppercase tracking-wide flex items-center gap-1">
                   <Star className="w-3 h-3" /> Super Meta (R$)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">R$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
                   <input
                     type="number" step="100" min="0" placeholder="0,00 (opcional)"
                     disabled={!isGerente}
                     value={v.superMeta}
                     onChange={(e) => setField(emp.slug, "superMeta", e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-700 text-white placeholder-gray-500"
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-900 text-white placeholder-gray-500"
                   />
                 </div>
                 {superMetaVal > 0 && mensal > 0 && (
@@ -299,7 +299,7 @@ export default function MetaConfig({
 
               {/* Dias úteis mensais */}
               <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-300 mb-2 block uppercase tracking-wide">
+                <label className="text-xs font-semibold text-white mb-2 block uppercase tracking-wide">
                   Dias Úteis no Mês
                 </label>
                 <input
@@ -307,24 +307,24 @@ export default function MetaConfig({
                   disabled={!isGerente}
                   value={v.diasUteis}
                   onChange={(e) => setField(emp.slug, "diasUteis", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-700 text-white placeholder-gray-500"
+                  className="w-full px-4 py-2.5 border border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-900 text-white placeholder-gray-500"
                 />
-                <p className="text-xs text-gray-500 mt-1.5">Informe os dias úteis reais desta unidade.</p>
+                <p className="text-xs text-gray-400 mt-1.5">Informe os dias úteis reais desta unidade.</p>
               </div>
 
               {/* Meta Quinzenal */}
               <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-300 mb-2 block uppercase tracking-wide">
+                <label className="text-xs font-semibold text-white mb-2 block uppercase tracking-wide">
                   Meta Quinzenal (R$) — Dias 1–15
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">R$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
                   <input
                     type="number" step="100" min="0" placeholder="0,00"
                     disabled={!isGerente}
                     value={v.quinzenal}
                     onChange={(e) => setField(emp.slug, "quinzenal", e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-700 text-white placeholder-gray-500"
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-900 text-white placeholder-gray-500"
                   />
                 </div>
                 {metaDiariaQuinzenal > 0 && (
@@ -334,7 +334,7 @@ export default function MetaConfig({
 
               {/* Dias úteis quinzenais */}
               <div className="mb-5">
-                <label className="text-xs font-semibold text-gray-300 mb-2 block uppercase tracking-wide">
+                <label className="text-xs font-semibold text-white mb-2 block uppercase tracking-wide">
                   Dias Úteis Quinzenal (1–15)
                 </label>
                 <input
@@ -342,13 +342,13 @@ export default function MetaConfig({
                   disabled={!isGerente}
                   value={v.diasUteisQuinzenal}
                   onChange={(e) => setField(emp.slug, "diasUteisQuinzenal", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-700 text-white placeholder-gray-500"
+                  className="w-full px-4 py-2.5 border border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-900 text-white placeholder-gray-500"
                 />
               </div>
 
               {/* Resumo */}
               {(mensal > 0 || quinzenal > 0 || superMetaVal > 0) && (
-                <div className="bg-gray-700 rounded-lg p-4 space-y-2 border border-gray-600">
+                <div className="bg-gray-900 rounded-lg p-4 space-y-2 border border-gray-700">
                   {mensal > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-400">Meta mensal ({diasUteis}d úteis)</span>
@@ -368,7 +368,7 @@ export default function MetaConfig({
                     </div>
                   )}
                   {mensal > 0 && quinzenal > 0 && (
-                    <div className="flex justify-between text-xs border-t border-gray-600 pt-2">
+                    <div className="flex justify-between text-xs border-t border-gray-700 pt-2">
                       <span className="text-gray-400">2ª quinzena implícita</span>
                       <span className="font-semibold text-white">{fmt(Math.max(0, mensal - quinzenal))}</span>
                     </div>
@@ -382,7 +382,7 @@ export default function MetaConfig({
 
       {/* Resumo total */}
       {(totalMetaMensal > 0 || totalMetaQuinzenal > 0 || totalSuperMeta > 0) && (
-        <Card className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-gradient-to-r from-gray-800 to-gray-900">
+        <Card className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-black">
           <div className="flex items-center gap-3 mb-5">
             <TrendingUp className="w-5 h-5 text-white" />
             <h3 className="font-bold text-white text-lg">Resumo das Metas</h3>
@@ -395,7 +395,7 @@ export default function MetaConfig({
               const superMetaVal = parseVal(v.superMeta);
               const pct = totalMetaMensal > 0 ? (mensal / totalMetaMensal) * 100 : 0;
               return (
-                <div key={emp.slug} className="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
+                <div key={emp.slug} className="text-center p-3 bg-gray-900 rounded-lg border border-gray-700">
                   <div
                     className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-xs font-bold text-white border-2"
                     style={{ borderColor: emp.cor, backgroundColor: emp.cor + "30" }}
@@ -414,8 +414,8 @@ export default function MetaConfig({
               );
             })}
             {empresasVisiveis.length > 1 && (
-              <div className="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-xs font-bold text-white bg-gray-600 border-2 border-white">Σ</div>
+              <div className="text-center p-3 bg-gray-900 rounded-lg border border-gray-700">
+                <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-xs font-bold text-white bg-gray-800 border-2 border-white">Σ</div>
                 <p className="text-xs text-gray-400">Total</p>
                 <p className="text-sm font-semibold text-white">{fmt(totalMetaMensal)}</p>
                 {totalSuperMeta > 0 && (
@@ -435,7 +435,7 @@ export default function MetaConfig({
         <Button
           onClick={handleSave}
           disabled={salvarMeta.isPending}
-          className="w-full bg-white hover:bg-gray-100 text-black rounded-lg gap-2 py-3 font-semibold border border-gray-300"
+          className="w-full bg-white hover:bg-gray-200 text-black rounded-lg gap-2 py-3 font-semibold border border-gray-300"
         >
           {salvarMeta.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Salvar Metas de {mesLabel}
