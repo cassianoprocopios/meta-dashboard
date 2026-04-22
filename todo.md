@@ -1269,11 +1269,11 @@
 
 ## Bug - Lançamentos do Faturamento da Seraphine Incorretos
 
-- [ ] Comparar valores do Avec (Relatório 0184) com valores salvos no dashboard
-- [ ] Identificar se o problema é na extração, mapeamento de categorias ou cálculo
-- [ ] Corrigir o mapeamento de categorias (Serviços, Pacotes, Produtos, Caixinha)
-- [ ] Validar que todos os dias estão com valores corretos
-- [ ] Testar sincronização retroativa dos dias com erro
+- [x] Comparar valores do Avec (Relatório 0184) com valores salvos no dashboard
+- [x] Identificar se o problema é na extração, mapeamento de categorias ou cálculo
+- [x] Corrigir o mapeamento de categorias (Serviços, Pacotes, Produtos, Caixinha)
+- [x] Validar que todos os dias estão com valores corretos
+- [x] Testar sincronização retroativa dos dias com erro (15 dias sincronizados com sucesso)
 
 ## Correção - Lançamentos do Avec Incorretos (R$83 em vez de R$6.090)
 
