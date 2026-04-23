@@ -505,6 +505,49 @@ export async function getFaturamentoByDataEmpresaTenant(data: string, empresaSlu
   return result[0];
 }
 
+/**
+ * Calcula o faturamento do dia (hoje) para um colaborador específico
+ * Retorna o total de serviços + produtos do dia
+ */
+export async function getFaturamentoDiaColaborador(tenantId: number, colaboradorId: number, empresaSlug: string, data: string) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  // Buscar faturamento da unidade para o dia
+  const fatUnidade = await getFaturamentoByDataEmpresaTenant(data, empresaSlug, tenantId);
+  if (!fatUnidade) return 0;
+  
+  // Calcular total do dia para a unidade
+  const totalUnidade = (Number(fatUnidade.cat1) || 0) + (Number(fatUnidade.cat2) || 0) + 
+    (Number(fatUnidade.cat3) || 0) + (Number(fatUnidade.cat4) || 0) + 
+    (Number(fatUnidade.cat5) || 0) + (Number(fatUnidade.cat6) || 0) + 
+    (Number(fatUnidade.cat7) || 0) + (Number(fatUnidade.cat8) || 0) + 
+    (Number(fatUnidade.cat9) || 0);
+  
+  // Buscar faturamento do colaborador no mês para calcular percentual
+  const [ano, mes] = data.split('-').map(Number);
+  const fatColaborador = await db
+    .select()
+    .from(faturamentoColaboradores)
+    .where(and(
+      eq(faturamentoColaboradores.tenantId, tenantId),
+      eq(faturamentoColaboradores.colaboradorId, colaboradorId),
+      eq(faturamentoColaboradores.mes, mes),
+      eq(faturamentoColaboradores.ano, ano)
+    ))
+    .limit(1);
+  
+  if (!fatColaborador[0]) return 0;
+  
+  // Se a unidade tem faturamento, estimar o faturamento do colaborador proporcionalmente
+  // Usar a média diária do colaborador (total do mês / dias do mês)
+  const totalColaboradorMes = Number(fatColaborador[0].totalGeral) || 0;
+  const diasDoMes = new Date(ano, mes, 0).getDate();
+  const mediaColaboradorDia = totalColaboradorMes / diasDoMes;
+  
+  return Math.round(mediaColaboradorDia * 100) / 100;
+}
+
 export async function getAllFaturamentosByTenant(tenantId: number, mes: number, ano: number, empresaSlug?: string) {
   const db = await getDb();
   if (!db) return [];

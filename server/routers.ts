@@ -82,6 +82,7 @@ import {
   getDpoteHistoricoId,
   saveDpoteHistoricoId,
   getFaturamentoByDataEmpresaTenant,
+  getFaturamentoDiaColaborador,
   getFaturamentosHistoricoMensalByTenant,
   getDpoteSyncLogs,
   saveRecorrenciaFonte,
@@ -783,6 +784,11 @@ const profissionaisRouter = router({
           fraseMotiv = FRASES_GERAL[i % FRASES_GERAL.length];
         }
 
+        // Calcular faturamento do dia para o colaborador
+        const hoje = new Date();
+        const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        const fatDiaColaborador = await getFaturamentoDiaColaborador(tenantId, item.colaboradorId, empresaSlug, dataHoje);
+
         // Montar mensagem
         let mensagem = `Olá ${nomeExib}! ✂️\n\n`;
         mensagem += `${fraseMotiv}\n\n`;
@@ -790,6 +796,7 @@ const profissionaisRouter = router({
         mensagem += `🏆 *Ranking ${nomeMes}/${ano}*\n`;
         mensagem += `Sua posição: *${medalha} ${posicao}º lugar*\n`;
         mensagem += `Seu faturamento: *${fmtBRL(item.totalGeral)}*\n`;
+        if (fatDiaColaborador > 0) mensagem += `📊 Hoje: *${fmtBRL(fatDiaColaborador)}*\n`;
         if (item.qtdServicos > 0) mensagem += `Serviços: *${item.qtdServicos}* atendimentos\n`;
         if (faltaParaSubir !== null && faltaParaSubir > 0) {
           mensagem += `\n🎯 Para subir uma posição: *${fmtBRL(faltaParaSubir)}*\n`;

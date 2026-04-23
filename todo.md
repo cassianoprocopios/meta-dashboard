@@ -1102,6 +1102,7 @@
 - [x] Mensagem personalizada por profissional: posição, faturamento, valor para subir
 - [x] Botão "Ranking WhatsApp" na página de Profissionais abre modal com todos os links
 - [x] Modal exibe posição, faturamento, falta para subir e botão "Abrir WhatsApp" por profissional
+- [x] Adicionar faturamento do dia na mensagem de WhatsApp (função getFaturamentoDiaColaborador + cálculo de média diária)
 
 ## Tela "Meu Desempenho" para Profissional
 
