@@ -64,7 +64,14 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   );
   const [observacao, setObservacao] = useState<string>(initialData?.observacao ?? "");
 
-  const salvar = trpc.faturamento.salvar.useMutation();
+  const utils = trpc.useUtils();
+  const salvar = trpc.faturamento.salvar.useMutation({
+    onSuccess: () => {
+      // Invalidar todas as queries relacionadas ao faturamento
+      utils.faturamento.listar.invalidate();
+      utils.profissionais.ranking.invalidate();
+    },
+  });
 
   const empresaAtual = empresas.find((e) => e.slug === empresaSlug);
   const futuro = isDataFutura(data);

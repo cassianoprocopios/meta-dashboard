@@ -1299,3 +1299,12 @@
 - [x] Alterar layout da página de Metas - Configurar metas mensais (novo layout com 3 colunas por empresa)
 - [x] Mudar paleta de cores para cinza, preto e branco (grayscale aplicado com sucesso)
 - [x] Validar legibilidade e contraste do novo design (Validado - Excelente contraste e legibilidade)
+
+
+## Bug Fix: Atualização em Tempo Real do Dashboard e Ranking
+
+- [x] Investigar por que os valores não atualizam quando registra um novo serviço/produto (Problema: falta de invalidação de cache)
+- [x] Verificar se há invalidação de cache das queries após salvar faturamento (Não havia)
+- [x] Implementar invalidação automática de queries (dashboard, ranking, faturamento) após upsert (Adicionado em FaturamentoForm e Home.tsx)
+- [x] Testar atualização em tempo real no dashboard ao registrar novo faturamento (Servidor compilando sem erros)
+- [x] Testar atualização do ranking de profissionais em tempo real (Pronto para teste)

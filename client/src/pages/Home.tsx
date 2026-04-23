@@ -100,6 +100,7 @@ export default function Home() {
   const isSuperAdmin = isAdmin && !(user as any)?.tenantId;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [syncingCashbarber, setSyncingCashbarber] = useState(false);
+  const utils = trpc.useUtils();
 
   const sincronizarTodasMutation = trpc.cashbarber.sincronizarTodas.useMutation({
     onSuccess: (data) => {
@@ -347,7 +348,13 @@ export default function Home() {
     },
   });
 
-  const deletarFat = trpc.faturamento.excluir.useMutation();
+  const deletarFat = trpc.faturamento.excluir.useMutation({
+    onSuccess: () => {
+      // Invalidar queries após deletar
+      utils.faturamento.listar.invalidate();
+      utils.profissionais.ranking.invalidate();
+    },
+  });
 
   // Mutation para notificar o gerente sobre projeção abaixo da meta
   const notificarAlerta = trpc.alertas.notificarProjecaoBaixaMeta.useMutation({
