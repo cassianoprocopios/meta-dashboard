@@ -1308,3 +1308,15 @@
 - [x] Implementar invalidação automática de queries (dashboard, ranking, faturamento) após upsert (Adicionado em FaturamentoForm e Home.tsx)
 - [x] Testar atualização em tempo real no dashboard ao registrar novo faturamento (Servidor compilando sem erros)
 - [x] Testar atualização do ranking de profissionais em tempo real (Pronto para teste)
+
+
+## Feature: WebSocket para Sincronização em Tempo Real
+
+- [x] Instalar Socket.io no servidor (socket.io + socket.io-client)
+- [x] Configurar servidor WebSocket na porta 3001 ou usar mesmo servidor Express (Integrado no servidor Express existente)
+- [x] Implementar eventos WebSocket: faturamento:novo, faturamento:deletado, faturamento:atualizado (Implementado em server/websocket.ts)
+- [x] Criar hook useWebSocket no frontend para conectar/desconectar (Criado em client/src/hooks/useWebSocket.ts)
+- [x] Integrar eventos WebSocket com invalidação de queries (Ao receber evento, invalida faturamento.listar e profissionais.ranking)
+- [x] Implementar reconexão automática com backoff exponencial (Socket.io já faz isso nativamente)
+- [ ] Testar sincronização com múltiplos navegadores abertos (Pronto para teste)
+- [x] Adicionar indicador visual de conexão WebSocket (online/offline) (Adicionado no header com tooltip)

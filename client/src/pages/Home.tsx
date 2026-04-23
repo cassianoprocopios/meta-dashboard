@@ -37,6 +37,7 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 import LancamentosSkeleton from "@/components/LancamentosSkeleton";
 import MetasSkeleton from "@/components/MetasSkeleton";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -101,6 +102,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [syncingCashbarber, setSyncingCashbarber] = useState(false);
   const utils = trpc.useUtils();
+  const { isConnected: wsConnected, totalConnected } = useWebSocket();
 
   const sincronizarTodasMutation = trpc.cashbarber.sincronizarTodas.useMutation({
     onSuccess: (data) => {
@@ -1230,6 +1232,18 @@ export default function Home() {
                   <Plus className="w-4 h-4" /> Novo Lançamento
                 </Button>
               )}
+              {/* Indicador de conexão WebSocket */}
+              <UITooltip>
+                <UITooltipTrigger asChild>
+                  <div className={`w-3 h-3 rounded-full ${
+                    wsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                  }`} />
+                </UITooltipTrigger>
+                <UITooltipContent>
+                  {wsConnected ? `Conectado (${totalConnected} usuário(s) online)` : 'Desconectado'}
+                </UITooltipContent>
+              </UITooltip>
+
               {/* Botão de alternância de tema */}
               {toggleTheme && (
                 <button

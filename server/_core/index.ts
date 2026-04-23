@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
 import { iniciarJobAvec } from "../avecJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
+import { setupWebSocket } from "../websocket";
 import * as cron from "node-cron";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -101,6 +102,10 @@ async function startServer() {
       createContext,
     })
   );
+  // Setup WebSocket para sincronização em tempo real
+  setupWebSocket(server);
+  console.log("[WebSocket] Servidor WebSocket inicializado");
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
