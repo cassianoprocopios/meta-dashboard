@@ -810,17 +810,22 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
         return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
       }, 0);
 
+      console.log(`[Quinzenal Job] ${empresa.slug}: dias=${diasQuinzena.length}, totalQuinzenal=${totalQuinzenal}, metaQuinzenal=${metaQuinzenal}`);
+
       const pctAtingimento = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
       const atingiu = totalQuinzenal >= metaQuinzenal;
+      console.log(`[Quinzenal Job] ${empresa.slug}: atingiu=${atingiu}, pctAtingimento=${pctAtingimento}%`);
       const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
       const emoji = atingiu ? "🏅" : pctAtingimento >= 80 ? "🟡" : "🔴";
       const status = atingiu ? "META ATINGIDA" : `faltou ${fmtBRL(faltou)}`;
 
       // Buscar percentual de bonificação correto (0,3% se atingiu, ou sem meta se não atingiu)
       const bonifConfig = bonificacoesConfig.find((b: any) => b.empresaSlug === empresa.slug);
+      // O percentual vem do banco como 0.3 (para 0,3%), não precisa dividir por 100
       const pctBonificacao = atingiu
         ? parseFloat(bonifConfig?.pctQuinzenalComMeta || "0")
         : parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0");
+      console.log(`[Quinzenal Job] ${empresa.slug}: pctBonificacao=${pctBonificacao}%, atingiu=${atingiu}`);
 
       // ─── Salvar snapshot congelado no banco ───────────────────────────────
       try {
