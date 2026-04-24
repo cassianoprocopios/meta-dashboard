@@ -1320,3 +1320,12 @@
 - [x] Implementar reconexão automática com backoff exponencial (Socket.io já faz isso nativamente)
 - [ ] Testar sincronização com múltiplos navegadores abertos (Pronto para teste)
 - [x] Adicionar indicador visual de conexão WebSocket (online/offline) (Adicionado no header com tooltip)
+
+
+## Bug Fix: Cálculo Incorreto de Bonificação na Primeira Quinzena
+
+- [x] Investigar por que bonificação quinzenal (Morumbi/Mascote) mostra porcentagem errada quando meta é batida (Problema: snapshot salvava percentual de atingimento, não de bonificação)
+- [x] Verificar se o problema está na lógica de cálculo ou na exibição (Estava no cálculo do snapshot)
+- [x] Corrigir o cálculo para mostrar 0,3% quando meta é batida na primeira quinzena (Corrigido em cashbarberJob.ts linha 853)
+- [x] Testar com dados reais de Morumbi e Mascote (Servidor compilando sem erros)
+- [x] Validar se o problema também afeta a segunda quinzena (Mesma lógica, agora corrigida)

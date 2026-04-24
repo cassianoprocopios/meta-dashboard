@@ -785,6 +785,10 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       return;
     }
 
+    // Buscar configurações de bonificação
+    const { getAllBonificacoesByTenant } = await import("./db");
+    const bonificacoesConfig = await getAllBonificacoesByTenant(tenantId);
+
     const linhas: string[] = [];
 
     for (const empresa of empresas) {
@@ -806,11 +810,17 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
         return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
       }, 0);
 
-      const pct = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
+      const pctAtingimento = metaQuinzenal > 0 ? Math.round((totalQuinzenal / metaQuinzenal) * 100) : 0;
       const atingiu = totalQuinzenal >= metaQuinzenal;
       const faltou = Math.max(0, metaQuinzenal - totalQuinzenal);
-      const emoji = atingiu ? "🏅" : pct >= 80 ? "🟡" : "🔴";
+      const emoji = atingiu ? "🏅" : pctAtingimento >= 80 ? "🟡" : "🔴";
       const status = atingiu ? "META ATINGIDA" : `faltou ${fmtBRL(faltou)}`;
+
+      // Buscar percentual de bonificação correto (0,3% se atingiu, ou sem meta se não atingiu)
+      const bonifConfig = bonificacoesConfig.find((b: any) => b.empresaSlug === empresa.slug);
+      const pctBonificacao = atingiu
+        ? parseFloat(bonifConfig?.pctQuinzenalComMeta || "0")
+        : parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0");
 
       // ─── Salvar snapshot congelado no banco ───────────────────────────────
       try {
@@ -840,7 +850,7 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
             totalRealizado: totalQuinzenal.toFixed(2),
             metaQuinzenal: metaQuinzenal.toFixed(2),
             atingiu: atingiu ? 1 : 0,
-            percentual: pct.toFixed(2),
+            percentual: pctBonificacao.toFixed(2),
             origem: "auto",
             congeladoEm: new Date(),
           };
@@ -859,10 +869,10 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       // ─────────────────────────────────────────────────────────────────────
 
       linhas.push(
-        `${emoji} ${empresa.nome}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pct}%) — ${status}`
+        `${emoji} ${empresa.nome}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pctAtingimento}%) — ${status}`
       );
 
-      console.log(`[Quinzenal Job] ${empresa.slug}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pct}%) — ${status}`);
+      console.log(`[Quinzenal Job] ${empresa.slug}: ${fmtBRL(totalQuinzenal)} / ${fmtBRL(metaQuinzenal)} (${pctAtingimento}%) — ${status}`);
     }
 
     if (linhas.length === 0) {
