@@ -862,24 +862,10 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
 
           if (existing.length === 0) {
             await db.insert(snapshotQuinzenal).values(payload);
-            console.log(`[Quinzenal Job] Snapshot congelado para ${empresa.slug}: R$ ${totalQuinzenal.toFixed(2)}`);
+            console.log(`[Quinzenal Job] Snapshot CONGELADO para ${empresa.slug}: R$ ${totalQuinzenal.toFixed(2)} (${pctAtingimento}% - ${atingiu ? 'META ATINGIDA' : 'NAO ATINGIU'})`);
           } else {
-            // Atualizar snapshot existente com novos valores (permite correcao de bonificacao)
-            await db.update(snapshotQuinzenal)
-              .set({
-                totalRealizado: payload.totalRealizado,
-                metaQuinzenal: payload.metaQuinzenal,
-                atingiu: payload.atingiu,
-                percentual: payload.percentual,
-                congeladoEm: payload.congeladoEm,
-              })
-              .where(and(
-                eq(snapshotQuinzenal.tenantId, tenantId),
-                eq(snapshotQuinzenal.empresaSlug, empresa.slug),
-                eq(snapshotQuinzenal.mes, mes),
-                eq(snapshotQuinzenal.ano, ano)
-              ));
-            console.log(`[Quinzenal Job] Snapshot atualizado para ${empresa.slug} em ${mes}/${ano} com novo percentual: ${pctBonificacao.toFixed(2)}%`);
+            // NAO atualizar snapshot existente - uma vez congelado, nao pode mudar mais
+            console.log(`[Quinzenal Job] Snapshot JA EXISTE para ${empresa.slug} - nao sera atualizado (congelado em ${existing[0].congeladoEm})`);
           }
         }
       } catch (snapErr) {

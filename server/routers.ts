@@ -1986,7 +1986,14 @@ export const appRouter = router({
         const total = parseFloat(input.totalRealizado);
         const meta = parseFloat(input.metaQuinzenal);
         const atingiu = total >= meta ? 1 : 0;
-        const percentual = meta > 0 ? ((total / meta) * 100).toFixed(2) : "0";
+        
+        // Buscar percentual de bonificação correto da configuração
+        const { getBonificacaoByEmpresaTenant } = await import("./db.js");
+        const bonifConfig = await getBonificacaoByEmpresaTenant(input.empresaSlug, tenantId);
+        const pctBonificacao = atingiu
+          ? parseFloat(bonifConfig?.pctQuinzenalComMeta || "0")
+          : parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0");
+        const percentual = pctBonificacao.toFixed(2);
         const payload = {
           tenantId,
           empresaSlug: input.empresaSlug,
@@ -4110,6 +4117,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               erros: [e instanceof Error ? e.message : String(e)],
             });
           }
+        }
+        // Executar verificação de meta quinzenal após sincronização
+        try {
+          const { verificarMetaQuinzenalParaTenant } = await import("./cashbarberJob.js");
+          await verificarMetaQuinzenalParaTenant(tenantId, input.mes, input.ano);
+          console.log(`[sincronizarTodas] Verificação de meta quinzenal executada para ${input.mes}/${input.ano}`);
+        } catch (e) {
+          console.error(`[sincronizarTodas] Erro ao verificar meta quinzenal: ${e}`);
         }
         return { resultados };
       }),

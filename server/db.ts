@@ -556,12 +556,21 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
     .from(faturamentos)
     .where(eq(faturamentos.tenantId, tenantId))
     .orderBy(asc(faturamentos.data), asc(faturamentos.empresaSlug));
-  return allRows.filter((row) => {
+  const filtered = allRows.filter((row) => {
     const [rowAno, rowMes] = row.data.split("-").map(Number);
     const matchesMes = rowMes === mes && rowAno === ano;
     const matchesEmpresa = empresaSlug ? row.empresaSlug === empresaSlug : true;
     return matchesMes && matchesEmpresa;
   });
+  if (empresaSlug && mes === 4 && ano === 2026) {
+    console.log(`[getAllFaturamentosByTenant] ${empresaSlug}: mes=${mes}, ano=${ano}, found=${filtered.length} rows`);
+    filtered.slice(0, 20).forEach(r => {
+      const dia = parseInt(r.data.split("-")[2], 10);
+      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((s, c) => s + parseFloat(c || "0"), 0);
+      console.log(`  dia=${dia}, total=${total}, data=${r.data}`);
+    });
+  }
+  return filtered;
 }
 
 export async function upsertFaturamento(input: InsertFaturamento) {

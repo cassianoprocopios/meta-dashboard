@@ -1331,3 +1331,13 @@
 - [x] Validar se o problema também afeta a segunda quinzena (Mesma lógica, agora corrigida)
 - [x] Implementar atualização de snapshot existente (Adicionado UPDATE em vez de apenas INSERT)
 - [x] Validar no dashboard que bonificação quinzenal está corrigida (Mascote e Morumbi agora mostram 0,3% corretamente)
+
+
+## Bug Fix: Percentual de Bonificação Incorreto na Procedure sobrescrever
+
+- [x] Investigar por que procedure `snapshotQuinzenal.sobrescrever` calcula percentual errado (estava calculando % de atingimento, não % de bonificação)
+- [x] Corrigir cálculo para buscar percentual de bonificação correto da tabela `bonificacoes` (0.2% ou 0.3%)
+- [x] Adicionar chamada para `verificarMetaQuinzenalParaTenant` na procedure `sincronizarTodas` para recalcular snapshots após sincronização
+- [x] Recalcular snapshots de abril com valores corretos do banco de dados
+- [ ] Investigar discrepância entre valores esperados pelo usuário (R$ 57.524 / R$ 112.496) e valores no banco (R$ 55.605,78 / R$ 109.553,42)
+- [ ] Confirmar com usuário se os valores esperados são de um período diferente ou fonte diferente
