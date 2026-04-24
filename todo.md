@@ -1329,3 +1329,5 @@
 - [x] Corrigir o cálculo para mostrar 0,3% quando meta é batida na primeira quinzena (Corrigido em cashbarberJob.ts linha 853)
 - [x] Testar com dados reais de Morumbi e Mascote (Servidor compilando sem erros)
 - [x] Validar se o problema também afeta a segunda quinzena (Mesma lógica, agora corrigida)
+- [x] Implementar atualização de snapshot existente (Adicionado UPDATE em vez de apenas INSERT)
+- [x] Validar no dashboard que bonificação quinzenal está corrigida (Mascote e Morumbi agora mostram 0,3% corretamente)

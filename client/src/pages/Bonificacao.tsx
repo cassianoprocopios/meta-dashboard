@@ -152,7 +152,10 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;
     const atingiuSuperMeta = superMeta > 0 && totalMensal >= superMeta;
 
-    const pctQ = atingiuQuinzenal
+    // Usar percentual do snapshot se disponível, senão usar da configuração
+    const pctQ = usandoSnapshot && snapshot
+      ? parseFloat(String(snapshot.percentual ?? 0))
+      : atingiuQuinzenal
       ? parseFloat(String(bon?.pctQuinzenalComMeta ?? 0))
       : parseFloat(String(bon?.pctQuinzenalSemMeta ?? 0));
     const pctM = atingiuMensal
