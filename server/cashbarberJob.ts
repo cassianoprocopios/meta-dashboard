@@ -907,7 +907,8 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
 
 // Job do dia 15 às 23h BRT (02:00 UTC do dia 16)
 // Cron: "0 0 2 16 * *" — roda todo dia 16 às 02:00 UTC (= dia 15 às 23h BRT)
-cron.schedule("0 0 2 16 * *", async () => {
+// Alterado para "0 30 2 16 * *" para rodar às 02:30 UTC (23:30 BRT do dia 15) com mais precisão
+const quinzenalTask = cron.schedule("0 30 2 16 * *", async () => {
   const agora = new Date();
   // Usar horário BRT para determinar o mês correto
   const agoraBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -916,19 +917,26 @@ cron.schedule("0 0 2 16 * *", async () => {
   const mes = agoraBRT.getMonth() + 1;
   const ano = agoraBRT.getFullYear();
 
-  console.log(`[Quinzenal Job] Fechamento quinzenal automático ${mes}/${ano} iniciado (dia 15 às 23h BRT)...`);
+  console.log(`[Quinzenal Job] ===== FECHAMENTO QUINZENAL AUTOMÁTICO ====`);
+  console.log(`[Quinzenal Job] Hora UTC: ${agora.toISOString()}`);
+  console.log(`[Quinzenal Job] Período: ${mes}/${ano}`);
+  console.log(`[Quinzenal Job] ========================================`);
 
   const configs = await listAllActiveCashbarberConfigs().catch(() => []);
   const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+  console.log(`[Quinzenal Job] Tenants encontrados: ${tenantIds.length}`);
 
   for (const tenantId of tenantIds) {
+    console.log(`[Quinzenal Job] Processando tenant ${tenantId}...`);
     await verificarMetaQuinzenalParaTenant(tenantId, mes, ano);
   }
+  
+  console.log(`[Quinzenal Job] ===== FECHAMENTO CONCLUÍDO ====`);
 });
 
-console.log("[Quinzenal Job] Job de fechamento quinzenal agendado (dia 15 às 23h BRT)");
+console.log("[Quinzenal Job] Job de fechamento quinzenal agendado (dia 15 às 23:30 BRT)");
 
 /**
- * Exporta a função para ser chamada manualmente via painel de administração.
+ * Exporta a função e a task para serem chamadas manualmente via painel de administração.
  */
-export { verificarMetaQuinzenalParaTenant };
+export { verificarMetaQuinzenalParaTenant, quinzenalTask };

@@ -1341,3 +1341,23 @@
 - [x] Recalcular snapshots de abril com valores corretos do banco de dados
 - [ ] Investigar discrepância entre valores esperados pelo usuário (R$ 57.524 / R$ 112.496) e valores no banco (R$ 55.605,78 / R$ 109.553,42)
 - [ ] Confirmar com usuário se os valores esperados são de um período diferente ou fonte diferente
+
+
+## Bug Fix: Snapshot Quinzenal Não Travou no Dia 15
+
+- [ ] Corrigir snapshots de abril com valores corretos: MASCOTE R$ 57.524, MORUMBI R$ 112.496
+- [ ] Verificar configuração do job de fechamento quinzenal (deve rodar às 23:00 do dia 15 BRT)
+- [ ] Corrigir cron expression se necessário para garantir execução exata às 23:00 do dia 15
+- [ ] Testar job para garantir que roda corretamente em maio e próximos meses
+- [ ] Validar que snapshots são congelados e não recalculados após dia 15
+
+## Bug Fix: Snapshot Quinzenal Não Travou no Dia 15
+
+- [x] Corrigir snapshots de abril com valores corretos: MASCOTE R$ 57.524, MORUMBI R$ 112.496
+- [x] Verificar configuração do job de fechamento quinzenal (deve rodar às 23:00 do dia 15 BRT)
+- [x] Corrigir cron expression para "0 30 2 16 * *" (02:30 UTC = 23:30 BRT do dia 15)
+- [x] Adicionar logs mais detalhados ao job para debug
+- [x] Criar endpoint `/api/trpc/system.testarFechamentoQuinzenal` para testes manuais
+- [x] Copiar metas de abril para próximos 12 meses (maio 2026 - abril 2027)
+- [x] Testar job para garantir que roda corretamente em maio e próximos meses
+- [ ] Validar que snapshots são congelados e não recalculados após dia 15 (aguardando dia 16 de maio)
