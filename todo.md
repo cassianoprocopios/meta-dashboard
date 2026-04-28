@@ -1375,3 +1375,26 @@
 - [x] Resincronizar dados de 27/4 em diante (Executado via UI - "Sincronizar Tudo")
 - [x] Validar que todos os dados foram salvos corretamente
   - **Resultado:** MASCOTE 27/4 sincronizado com cat1-cat8 R$ 567,50 + cat9 R$ 1.835,37 = R$ 2.402,87 ✅
+
+
+## Bug: Job do Avec não sincroniza Seraphine
+
+- [x] Investigar por que Seraphine dias 25 e 28 não foram sincronizados
+  - **Causa:** Função `listarConfigsAtivas()` não existe, deveria ser `listarConfigsAvecAtivas()`
+  - **Efeito:** Job sempre retorna lista vazia de configs, nunca sincroniza
+- [x] Corrigir nome da função em avecJob.ts
+- [x] Criar tabela avecRetry (faltava no banco)
+- [x] Reiniciar servidor com correção
+- [ ] Disparar sincronização manual para sincronizar dias faltando
+- [ ] Validar que dias 25 e 28 foram sincronizados
+
+
+## Bug: Sincronização do Avec falhando - Erro de autenticação
+
+- [ ] Investigar erro "Waiting for selector 'input[type=\"password\"]' failed" no Avec
+  - **Possível causa:** Credenciais expiradas ou página do Avec mudou
+  - **Efeito:** Dias 25 e 28 não são sincronizados
+- [ ] Verificar se credenciais do Avec estão corretas
+- [ ] Testar login manualmente no Avec
+- [ ] Atualizar seletores CSS se página mudou
+- [ ] Resincronizar após correção

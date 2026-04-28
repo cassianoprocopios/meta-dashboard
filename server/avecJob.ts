@@ -54,7 +54,7 @@ async function executarSyncAvec() {
   console.log(`[Avec Job] Iniciando sync automático às ${_ultimaExecucao.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`);
 
   try {
-    const configs = await listarConfigsAtivas();
+    const configs = await listarConfigsAvecAtivas();
     if (configs.length === 0) {
       console.log("[Avec Job] Nenhuma empresa com sync automático ativo.");
       _statusJob = "idle";
