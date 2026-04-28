@@ -1361,3 +1361,16 @@
 - [x] Copiar metas de abril para próximos 12 meses (maio 2026 - abril 2027)
 - [x] Testar job para garantir que roda corretamente em maio e próximos meses
 - [ ] Validar que snapshots são congelados e não recalculados após dia 15 (aguardando dia 16 de maio)
+
+
+## Bug: Sincronização do CashBarber de 27/4 não salvou dados em Mascote e Morumbi
+
+- [x] Investigar por que sincronização de 27/4 não salvou dados (apenas cat9 tem valor, cat1-cat8 estão zerados)
+  - **Causa:** Tabelas de catálogo (cashbarberServicoCatalogo, cashbarberProdutoCatalogo) não existem
+  - **Efeito:** Função não conseguia mapear serviços/produtos para categorias
+- [x] Verificar se há erro na API do CashBarber ou na função de sincronização
+  - **Resultado:** Erro na função de sincronização (falta de catálogos)
+- [x] Corrigir sincronização
+  - **Solução:** Modificada função para funcionar sem catálogos
+- [ ] Resincronizar dados de 27/4 em diante (aguardando execução manual via UI)
+- [ ] Validar que todos os dados foram salvos corretamente

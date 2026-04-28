@@ -394,13 +394,15 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
   }
 
   // Mapear serviços do catálogo: id → cat_id
+  // Se catalogoServicos estiver vazio, usar mapa vazio
   const servicoCatMap = new Map<number, number>(
-    catalogoServicos.map((s) => [s.id, s.ser_id_categoria])
+    (catalogoServicos || []).map((s) => [s.id, s.ser_id_categoria])
   );
 
   // Mapear produtos do catálogo: id → cat_id
+  // Se catalogoProdutos estiver vazio, usar mapa vazio
   const produtoCatMap = new Map<number, number>(
-    catalogoProdutos.map((p) => [p.id, p.pro_id_categoria])
+    (catalogoProdutos || []).map((p) => [p.id, p.pro_id_categoria])
   );
 
   const resultado = { cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0 };
@@ -418,7 +420,7 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
       const catId = servicoCatMap.get(s.ags_id_servico);
       if (catId) metaCat = mapaServicoCat.get(String(catId));
     }
-    metaCat = metaCat || "cat1"; // fallback
+    metaCat = metaCat || "cat1"; // fallback final
 
     if (metaCat !== "ignorar" && metaCat in resultado) {
       (resultado as any)[metaCat] += valor;
@@ -438,7 +440,7 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
       const catId = produtoCatMap.get(p.cop_id_produto);
       if (catId) metaCat = mapaProdutoCat.get(String(catId));
     }
-    metaCat = metaCat || "cat2"; // fallback para produtos
+    metaCat = metaCat || "cat2"; // fallback final para produtos
 
     if (metaCat !== "ignorar" && metaCat in resultado) {
       (resultado as any)[metaCat] += valor;
