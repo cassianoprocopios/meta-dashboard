@@ -73,26 +73,46 @@ export async function avecBrowserLogin(
     const pageTitle = await page.title();
     console.log(`[Avec Browser] Título da página: ${pageTitle}`);
     
-    // Procurar pelo campo de senha com timeout maior
+    // Procurar pelo campo de senha com múltiplos seletores
     console.log(`[Avec Browser] Procurando campo de senha...`);
-    try {
-      await page.waitForSelector('input[type="password"]', { timeout: 30000 });
-      console.log(`[Avec Browser] Campo de senha encontrado!`);
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[Avec Browser] Timeout ao procurar campo de senha:`, errMsg);
+    let senhaInput = null;
+    
+    const seletores = [
+      '#formSenha',                    // ID específico (mais robusto)
+      'input[id="formSenha"]',         // ID com atributo
+      'input[type="password"]',        // Type attribute
+      'input[name="password"]',        // Name attribute
+      'input[name="senha"]',           // Name attribute português
+    ];
+    
+    for (const seletor of seletores) {
+      try {
+        console.log(`[Avec Browser] Tentando seletor: ${seletor}`);
+        await page.waitForSelector(seletor, { timeout: 10000 });
+        senhaInput = await page.$(seletor);
+        if (senhaInput) {
+          console.log(`[Avec Browser] ✅ Campo de senha encontrado com seletor: ${seletor}`);
+          break;
+        }
+      } catch (err) {
+        console.log(`[Avec Browser] Seletor falhou: ${seletor}`);
+      }
+    }
+    
+    if (!senhaInput) {
+      console.error(`[Avec Browser] ❌ Nenhum seletor funcionou!`);
       // Listar todos os inputs da página para debug
       const inputs = await page.$$('input');
       console.log(`[Avec Browser] Total de inputs encontrados: ${inputs.length}`);
-      for (let i = 0; i < Math.min(inputs.length, 5); i++) {
+      for (let i = 0; i < Math.min(inputs.length, 10); i++) {
         const type = await inputs[i].evaluate(el => (el as HTMLInputElement).type);
         const name = await inputs[i].evaluate(el => (el as HTMLInputElement).name);
-        console.log(`[Avec Browser] Input ${i}: type="${type}", name="${name}"`);
+        const id = await inputs[i].evaluate(el => (el as HTMLInputElement).id);
+        const placeholder = await inputs[i].evaluate(el => (el as HTMLInputElement).placeholder);
+        console.log(`[Avec Browser] Input ${i}: id="${id}", type="${type}", name="${name}", placeholder="${placeholder}"`);
       }
-      throw new Error(`[Avec Browser] Campo de senha não encontrado após 30s: ${errMsg}`);
+      throw new Error(`[Avec Browser] Campo de senha não encontrado com nenhum seletor`);
     }
-    const senhaInput = await page.$('input[type="password"]');
-    if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado após waitForSelector.");
 
     await senhaInput.click({ clickCount: 3 });
     await senhaInput.type(senha, { delay: 50 });
