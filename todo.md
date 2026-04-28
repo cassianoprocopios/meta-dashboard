@@ -1398,3 +1398,13 @@
 - [ ] Testar login manualmente no Avec
 - [ ] Atualizar seletores CSS se página mudou
 - [ ] Resincronizar após correção
+
+
+## Melhorias implementadas para debug de Avec
+
+- [x] Aumentar timeout de espera do campo de senha de 10s para 30s
+- [x] Adicionar logs detalhados de título da página
+- [x] Adicionar logs de inputs encontrados na página
+- [x] Melhorar mensagens de erro com contexto
+- [ ] Próximo passo: Disparar "Sync Avec" manualmente para ver logs detalhados
+- [ ] Analisar logs e ajustar seletores CSS se necessário

@@ -67,11 +67,32 @@ export async function avecBrowserLogin(
 
     console.log(`[Avec Browser] Acessando ${loginUrl}...`);
     await page.goto(loginUrl, { waitUntil: "networkidle2", timeout: 60000 });
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 2000));
 
-    await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+    // Verificar se a página carregou corretamente
+    const pageTitle = await page.title();
+    console.log(`[Avec Browser] Título da página: ${pageTitle}`);
+    
+    // Procurar pelo campo de senha com timeout maior
+    console.log(`[Avec Browser] Procurando campo de senha...`);
+    try {
+      await page.waitForSelector('input[type="password"]', { timeout: 30000 });
+      console.log(`[Avec Browser] Campo de senha encontrado!`);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[Avec Browser] Timeout ao procurar campo de senha:`, errMsg);
+      // Listar todos os inputs da página para debug
+      const inputs = await page.$$('input');
+      console.log(`[Avec Browser] Total de inputs encontrados: ${inputs.length}`);
+      for (let i = 0; i < Math.min(inputs.length, 5); i++) {
+        const type = await inputs[i].evaluate(el => (el as HTMLInputElement).type);
+        const name = await inputs[i].evaluate(el => (el as HTMLInputElement).name);
+        console.log(`[Avec Browser] Input ${i}: type="${type}", name="${name}"`);
+      }
+      throw new Error(`[Avec Browser] Campo de senha não encontrado após 30s: ${errMsg}`);
+    }
     const senhaInput = await page.$('input[type="password"]');
-    if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado.");
+    if (!senhaInput) throw new Error("[Avec Browser] Campo de senha não encontrado após waitForSelector.");
 
     await senhaInput.click({ clickCount: 3 });
     await senhaInput.type(senha, { delay: 50 });
@@ -88,8 +109,10 @@ export async function avecBrowserLogin(
     });
 
     if (botaoClicado) {
+      console.log(`[Avec Browser] Aguardando navegação após clique no botão...`);
       await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 }).catch(() => {});
     } else {
+      console.log(`[Avec Browser] Botão não encontrado, tentando Enter...`);
       await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 }).catch(() => {}),
         page.keyboard.press("Enter"),
