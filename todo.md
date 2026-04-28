@@ -1372,5 +1372,6 @@
   - **Resultado:** Erro na função de sincronização (falta de catálogos)
 - [x] Corrigir sincronização
   - **Solução:** Modificada função para funcionar sem catálogos
-- [ ] Resincronizar dados de 27/4 em diante (aguardando execução manual via UI)
-- [ ] Validar que todos os dados foram salvos corretamente
+- [x] Resincronizar dados de 27/4 em diante (Executado via UI - "Sincronizar Tudo")
+- [x] Validar que todos os dados foram salvos corretamente
+  - **Resultado:** MASCOTE 27/4 sincronizado com cat1-cat8 R$ 567,50 + cat9 R$ 1.835,37 = R$ 2.402,87 ✅
