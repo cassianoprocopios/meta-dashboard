@@ -556,8 +556,11 @@ export default function Home() {
         .filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje)
         .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
+      // diasLancados: quantidade total de lançamentos (pode ter múltiplos por dia)
+      // diasRealizados: quantidade de DIAS ÚNICOS com lançamento (cada dia conta uma vez)
       const diasLancados = rows.length;
-      const diasRealizados = rowsRealizados.length;
+      const diasRealizadosSet = new Set(rowsRealizados.map((r: any) => r.data.split("-")[2]));
+      const diasRealizados = diasRealizadosSet.size;
       const diasPrevistos = rowsPrevistos.length;
 
       // Média diária = total do dia (cat1..cat9) realizados / dias realizados
@@ -615,13 +618,10 @@ export default function Home() {
         ? parseFloat(snapshotEmpresa.totalRealizado)
         : totalQuinzenalCalculado;
 
-      // diasUteisRestantes: dias de calendário que ainda faltam no mês
-      // Usa dias de calendário (não dias trabalhados) para refletir corretamente quantos dias ainda restam
-      // Ex: dia 28 de 30 dias = 2 dias restantes (29 e 30)
-      const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
-      const diasUteisRestantes = ehMesVigente
-        ? Math.max(0, ultimoDiaDoMes - diaHoje)
-        : (ehMesFuturo ? ultimoDiaDoMes : 0);
+      // diasUteisRestantes: dias úteis que ainda faltam no mês
+      // = dias úteis configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
+      // Isso reflete a realidade: cada dia com lançamento é um dia útil consumido
+      const diasUteisRestantes = Math.max(0, diasUteis - diasRealizados);
       // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
       // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
       const diasUteisRestantesQuinzenal = ehMesFuturo
