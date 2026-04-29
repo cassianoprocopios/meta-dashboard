@@ -110,6 +110,9 @@ import {
 } from "./cashbarber";
 import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
+import { getDb } from "./db";
+import { faturamentos, metas } from "../drizzle/schema";
+import { sql } from "drizzle-orm";
 
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -1105,9 +1108,79 @@ const profissionaisRouter = router({
   dispararPushRankingParaTodos: protectedProcedure
     .mutation(async () => ({ enviados: 0, erros: 0 })),
 });
+// ─── FATURAMENTO CHECK ────────────────────────────────────────────────────────
+const faturamentoCheckRouter = router({
+  getDiasRestantes: publicProcedure.query(async () => {
+    try {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
+      // Pegar faturamento acumulado de cada empresa em abril 2026
+      const faturamentosAcumulados = await db
+        .selectDistinct({
+          empresaSlug: faturamentos.empresaSlug,
+          totalAcumulado: sql<number>`SUM(CAST(${faturamentos.cat1} AS DECIMAL(12,2)) + CAST(${faturamentos.cat2} AS DECIMAL(12,2)) + CAST(${faturamentos.cat3} AS DECIMAL(12,2)) + CAST(${faturamentos.cat4} AS DECIMAL(12,2)) + CAST(${faturamentos.cat5} AS DECIMAL(12,2)) + CAST(${faturamentos.cat6} AS DECIMAL(12,2)) + CAST(${faturamentos.cat7} AS DECIMAL(12,2)) + CAST(${faturamentos.cat8} AS DECIMAL(12,2)) + CAST(${faturamentos.cat9} AS DECIMAL(12,2)))`,
+          diasSincronizados: sql<number>`COUNT(DISTINCT ${faturamentos.data})`,
+          ultimaSincronizacao: sql<string>`MAX(${faturamentos.updatedAt})`,
+        })
+        .from(faturamentos)
+        .where(
+          sql`YEAR(STR_TO_DATE(${faturamentos.data}, '%Y-%m-%d')) = 2026 AND MONTH(STR_TO_DATE(${faturamentos.data}, '%Y-%m-%d')) = 4`
+        )
+        .groupBy(faturamentos.empresaSlug);
+
+      // Pegar metas mensais
+      const metasList = await db
+        .select({
+          empresaSlug: metas.empresaSlug,
+          metaMensal: metas.metaMensal,
+        })
+        .from(metas)
+        .where(
+          sql`${metas.ano} = 2026 AND ${metas.mes} = 4`
+        );
+
+      // Calcular análise
+      const analise = faturamentosAcumulados.map((fat: any) => {
+        const meta = metasList.find((m: any) => m.empresaSlug === fat.empresaSlug);
+        if (!meta) return null;
+
+        const totalAcumulado = Number(fat.totalAcumulado) || 0;
+        const metaMensal = Number(meta.metaMensal) || 0;
+        const faltando = metaMensal - totalAcumulado;
+        const percentual = (totalAcumulado / metaMensal) * 100;
+        const mediaPodia = faltando / 2; // 2 dias restantes
+
+        return {
+          empresa: fat.empresaSlug,
+          meta: metaMensal,
+          acumulado: totalAcumulado,
+          faltando,
+          percentual: percentual.toFixed(1),
+          diasRestantes: 2,
+          mediaPodia: mediaPodia.toFixed(2),
+          ultimaSincronizacao: fat.ultimaSincronizacao,
+        };
+      });
+
+      return {
+        diasRestantes: 2,
+        dataAtual: "2026-04-28",
+        diasFaltantes: ["2026-04-29", "2026-04-30"],
+        analise: analise.filter((a: any) => a !== null),
+      };
+    } catch (error) {
+      console.error("Erro ao consultar dias restantes:", error);
+      throw error;
+    }
+  }),
+});
+
+
 export const appRouter = router({
   system: systemRouter,
   profissionais: profissionaisRouter,
+  faturamentoCheck: faturamentoCheckRouter,
 
   // ─── AUTH ─────────────────────────────────────────────────────────────────
   auth: router({

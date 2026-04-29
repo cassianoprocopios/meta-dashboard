@@ -615,10 +615,13 @@ export default function Home() {
         ? parseFloat(snapshotEmpresa.totalRealizado)
         : totalQuinzenalCalculado;
 
-      // diasUteisRestantes: dias trabalhados que ainda faltam no mês
-      // = dias trabalhados configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
-      // Isso reflete a realidade: cada dia com lançamento é um dia trabalhado consumido
-      const diasUteisRestantes = Math.max(0, diasUteis - diasRealizados);
+      // diasUteisRestantes: dias de calendário que ainda faltam no mês
+      // Usa dias de calendário (não dias trabalhados) para refletir corretamente quantos dias ainda restam
+      // Ex: dia 28 de 30 dias = 2 dias restantes (29 e 30)
+      const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+      const diasUteisRestantes = ehMesVigente
+        ? Math.max(0, ultimoDiaDoMes - diaHoje)
+        : (ehMesFuturo ? ultimoDiaDoMes : 0);
       // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
       // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
       const diasUteisRestantesQuinzenal = ehMesFuturo
