@@ -1408,3 +1408,21 @@
 - [x] Melhorar mensagens de erro com contexto
 - [ ] Próximo passo: Disparar "Sync Avec" manualmente para ver logs detalhados
 - [ ] Analisar logs e ajustar seletores CSS se necessário
+
+
+## Bug: Dashboard mostrando valores zerados apesar de dados existirem no banco
+
+- [x] Investigar por que dashboard mostra R$ 0 para todas as empresas em abril/2026
+  - **Causa:** Case sensitivity nos slugs de empresas
+    - Faturamentos tinham slugs em MAIÚSCULAS: `MASCOTE`, `MORUMBI`, `SERAPHINE`
+    - Empresas tinham slugs em minúsculas: `barbiero-mascote`, `barbiero-morumbi`, `barbiero-seraphine`
+    - Query filtrava por slug da empresa (minúsculas) mas não encontrava dados (MAIÚSCULAS)
+  - **Efeito:** Nenhum dado era retornado para o dashboard
+- [x] Corrigir slugs em faturamentos para minúsculas
+  - **Solução:** UPDATE de todos os registros de faturamentos para usar slugs corretos
+  - **Resultado:** 
+    - `MASCOTE` → `barbiero-mascote` (30 registros)
+    - `MORUMBI` → `barbiero-morumbi` (30 registros)
+    - `SERAPHINE` → `barbiero-seraphine` (22 registros)
+- [x] Validar que dados agora são retornados corretamente
+  - **Resultado:** ✅ Dados agora aparecem no banco com slugs corretos
