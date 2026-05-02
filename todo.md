@@ -1534,3 +1534,19 @@
   - **Resultado**: Avec tem dados apenas para dias 01 e 02 de maio (R$ 13.264,50)
 - [x] Verificar se há problema na sincronização automática
   - **Resultado**: Sincronização funcionando corretamente, ignorando 29 dias sem dados
+
+
+## Sincronização CashBarber - Maio/2026
+
+- [x] Sincronizar Morumbi com CashBarber (maio/2026)
+  - Corrigidos slugs em cashbarberConfig (morumbi → barbiero-morumbi)
+  - Criados mapeamentos de categorias (AVULSO→cat1, CLUBE→cat2, OUTROS→cat4)
+  - Resultado: 2 dias sincronizados, Dpote R$ 10.058,00
+- [x] Sincronizar Mascote com CashBarber (maio/2026)
+  - Corrigidos slugs em cashbarberConfig (mascote → barbiero-mascote)
+  - Criados mapeamentos de categorias (AVULSO→cat1, CLUBE→cat2, OUTROS→cat4)
+  - Resultado: 2 dias sincronizados, Dpote R$ 3.001,00
+- [x] Fazer lançamentos diários conforme dados do CashBarber
+  - Status: Sincronização automática ativa para ambas unidades
+- [x] Validar totais e criar checkpoint
+  - Testes passando (18/18)
