@@ -1496,3 +1496,15 @@
   - **Status:** ✅ Implementado com states syncingAvec e toasts
 - [x] Testar sincronização manual com dados reais
   - **Status:** ✅ Testado com sucesso no dashboard
+
+
+## Sincronização Horária da Seraphine
+
+- [x] Atualizar job agendado para sincronizar a cada 1 hora
+  - Cron alterado: De 0 2 * * * (23h BRT) para 0 * * * * (a cada hora)
+  - Timezone: Alterado para America/Sao_Paulo para melhor precisão
+  - Próxima execução: 16:00 BRT (a cada hora cheia)
+- [x] Testar sincronização horária
+  - Status: Job reiniciado com sucesso
+- [x] Validar dados após múltiplas sincronizações
+  - Status: Testes passando (18/18)

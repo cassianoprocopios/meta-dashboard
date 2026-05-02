@@ -50,6 +50,9 @@ async function executarSyncAvec() {
   console.log(
     `[Avec Job] Iniciando sync automático às ${_ultimaExecucao.toLocaleString("pt-BR", {
       timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
     })}`
   );
 
@@ -96,11 +99,11 @@ async function executarSyncAvec() {
     _statusJob = "idle";
     _ultimoErro = null;
 
-    // Calcular próxima execução (amanhã às 23h BRT)
-    const amanha = new Date(agoraBRT);
-    amanha.setDate(amanha.getDate() + 1);
-    amanha.setHours(23, 0, 0, 0);
-    _proximaExecucao = amanha;
+    // Calcular próxima execução (próxima hora cheia)
+    const proxima = new Date(agoraBRT);
+    proxima.setMinutes(0, 0, 0);
+    proxima.setHours(proxima.getHours() + 1);
+    _proximaExecucao = proxima;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[Avec Job] Erro crítico no job:", msg);
@@ -121,9 +124,8 @@ async function listarConfigsAtivas() {
 // ─── Inicialização do job ─────────────────────────────────────────────────────
 /**
  * Inicializa o job de sincronização do Avec.
- * Agenda execução diariamente às 23h (horário de Brasília).
- * BRT = UTC-3, então 23:00 BRT = 02:00 UTC do dia seguinte.
- * Cron: "0 2 * * *" = 02:00 UTC todos os dias = 23:00 BRT
+ * Agenda execução a cada 1 hora (60 minutos).
+ * Cron: "0 * * * *" = a cada hora, no minuto 0
  */
 export function iniciarJobAvec() {
   if (_cronTask) {
@@ -131,35 +133,31 @@ export function iniciarJobAvec() {
     return;
   }
 
-  // Cron: 02:00 UTC = 23:00 BRT (diariamente)
-  const CRON_EXPR = "0 2 * * *";
+  // Cron: "0 * * * *" = a cada hora, no minuto 0
+  const CRON_EXPR = "0 * * * *";
   console.log(
-    `[Avec Job] Iniciando job de sync automático diariamente às 23h BRT (cron: ${CRON_EXPR} UTC)`
+    `[Avec Job] Iniciando job de sync automático a cada 1 hora (cron: ${CRON_EXPR})`
   );
 
-  // Calcular próxima execução (próximas 23h BRT)
+  // Calcular próxima execução (próxima hora cheia)
   const agora = new Date();
   const agoraBRT = new Date(
     agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
   );
   const proxima = new Date(agoraBRT);
-  proxima.setHours(23, 0, 0, 0);
-
-  // Se já passou das 23h hoje, próxima execução é amanhã
-  if (agoraBRT.getHours() >= 23) {
-    proxima.setDate(proxima.getDate() + 1);
-  }
+  proxima.setMinutes(0, 0, 0);
+  proxima.setHours(proxima.getHours() + 1);
 
   _proximaExecucao = proxima;
 
   _cronTask = cron.schedule(CRON_EXPR, async () => {
     await executarSyncAvec();
-  }, { timezone: "UTC" });
+  }, { timezone: "America/Sao_Paulo" });
 
   console.log(
     `[Avec Job] Job agendado. Próxima execução: ${_proximaExecucao.toLocaleString(
       "pt-BR",
-      { timeZone: "America/Sao_Paulo" }
+      { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }
     )} BRT`
   );
 }
