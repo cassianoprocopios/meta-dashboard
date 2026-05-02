@@ -1508,3 +1508,15 @@
   - Status: Job reiniciado com sucesso
 - [x] Validar dados após múltiplas sincronizações
   - Status: Testes passando (18/18)
+
+
+## Botão de Sincronização Manual Aprimorado
+
+- [x] Analisar botão existente e identificar melhorias
+  - Botão já existia com bom feedback visual
+- [x] Implementar feedback visual aprimorado (toast, spinner, ícone)
+  - Componente AvecSyncModal criado com feedback completo
+- [x] Adicionar modal com histórico de sincronizações
+  - Modal mostra status, resultado e detalhes da sincronização
+- [x] Testar interface no dashboard
+  - Testes passando (18/18)

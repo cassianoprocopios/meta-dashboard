@@ -38,6 +38,7 @@ import LancamentosSkeleton from "@/components/LancamentosSkeleton";
 import MetasSkeleton from "@/components/MetasSkeleton";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import AvecSyncModal from "@/components/AvecSyncModal";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -125,6 +126,7 @@ export default function Home() {
 
   // ─── Sync Avec (Seraphine) ────────────────────────────────────────────────
   const [syncingAvec, setSyncingAvec] = useState(false);
+  const [avecSyncModalOpen, setAvecSyncModalOpen] = useState(false);
   // Polling do status do job automático do Avec (a cada 10s)
   const { data: avecJobStatus } = trpc.avec.statusJob.useQuery(undefined, {
     refetchInterval: 10000,
@@ -1212,13 +1214,7 @@ export default function Home() {
               )}
               {isGerente && empresasData.some((e) => e.tipoCategorias === "seraphine") && (
                 <button
-                  onClick={() => {
-                    setSyncingAvec(true);
-                    const seraphineEmp = empresasData.find((e) => e.tipoCategorias === "seraphine");
-                    if (seraphineEmp) {
-                      sincronizarAvecMutation.mutate({ empresaSlug: seraphineEmp.slug, mes, ano });
-                    }
-                  }}
+                  onClick={() => setAvecSyncModalOpen(true)}
                   disabled={syncingAvec || avecJobRodando}
                   title={avecJobRodando ? "Sync Avec em andamento (job automático)" : "Sincronizar faturamento da Seraphine via Avec agora"}
                   className="flex items-center gap-1.5 text-sm text-pink-600 hover:text-pink-700 px-3 py-1.5 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
@@ -3853,6 +3849,17 @@ export default function Home() {
         <div className="fixed inset-0 z-50 bg-slate-50 overflow-auto">
           <SuperAdmin onBack={() => setShowSuperAdmin(false)} />
         </div>
+      )}
+
+      {/* Modal de Sincronização Avec */}
+      {empresasData && (
+        <AvecSyncModal
+          open={avecSyncModalOpen}
+          onOpenChange={setAvecSyncModalOpen}
+          empresaSlug={empresasData.find((e) => e.tipoCategorias === "seraphine")?.slug || ""}
+          mes={mes}
+          ano={ano}
+        />
       )}
     </div>
   );
