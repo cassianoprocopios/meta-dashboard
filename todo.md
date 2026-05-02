@@ -1550,3 +1550,21 @@
   - Status: Sincronização automática ativa para ambas unidades
 - [x] Validar totais e criar checkpoint
   - Testes passando (18/18)
+
+
+## Lançamentos de Faturamento Seraphine - Maio/2026
+
+- [ ] Extrair dados do relatório 0184 do Avec para cada dia de maio
+- [ ] Criar lançamentos diários conforme dados do relatório
+- [ ] Validar totais no dashboard
+- [ ] Criar checkpoint final
+
+
+## Lançamentos de Faturamento da Seraphine - Maio/2026
+
+- [x] Sincronizar dados do relatório 0184 do Avec
+  - Dados sincronizados: 01/05 (R$ 7.670) e 02/05 (R$ 5.758)
+  - Registros criados no banco com categorias corretas (cat1, cat2, cat4)
+- [x] Validar totais no dashboard
+  - Testes passando (18/18)
+  - Lançamentos visíveis no banco de dados
