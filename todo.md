@@ -1520,3 +1520,17 @@
   - Modal mostra status, resultado e detalhes da sincronização
 - [x] Testar interface no dashboard
   - Testes passando (18/18)
+
+
+## Investigação de Problemas - Maio/2026
+
+- [x] Investigar por que faturamento de maio não entrou para Seraphine
+  - **Causa**: Email e senha do Avec não estavam configurados em avecConfig
+  - **Solução**: Atualizado avecEmail e avecSenha com credenciais corretas
+- [x] Investigar por que lançamentos do CashBarber não foram vinculados
+  - **Causa**: Seraphine não tinha configuração em cashbarberConfig
+  - **Solução**: Criada configuração CashBarber para Seraphine (ativo=1, sincAutoAtiva=1)
+- [x] Verificar se há dados no Avec para maio
+  - **Resultado**: Avec tem dados apenas para dias 01 e 02 de maio (R$ 13.264,50)
+- [x] Verificar se há problema na sincronização automática
+  - **Resultado**: Sincronização funcionando corretamente, ignorando 29 dias sem dados
