@@ -1436,3 +1436,19 @@
 - [x] Validar que todos os testes de faturamento passam (18 tests passed)
 - [x] Remover logs de debug
 - [ ] Testar dashboard com dados de abril/2026
+
+
+## Recuperação de Metas dos Meses Passados
+
+- [x] Investigar por que metas dos meses passados sumiram
+  - **Causa:** Case sensitivity nos slugs de metas (MAIÚSCULAS vs minúsculas)
+  - **Efeito:** Dashboard não encontrava metas porque slugs não correspondiam
+- [x] Corrigir slugs de metas antigas
+  - **Solução:** UPDATE de 43 metas para usar slugs normalizados
+  - **Resultado:** Metas de março/2026 até abril/2027 agora com slugs corretos
+- [x] Remover duplicatas de metas
+  - **Problema:** Maio/2026 tinha 2 registros para cada empresa
+  - **Solução:** Mantidas as metas com valores mais altos
+- [x] Implementar normalização de slug em upsertMeta
+  - **Solução:** Normalizar slug em INSERT e UPDATE de metas
+  - **Resultado:** ✅ Todos os testes de faturamento passando (18 tests passed)

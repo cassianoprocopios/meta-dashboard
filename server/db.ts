@@ -699,11 +699,13 @@ export async function getFaturamentosAnoByTenant(tenantId: number, ano: number) 
 export async function getMetaByEmpresaMesTenant(empresaSlug: string, mes: number, ano: number, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
+  // Normalizar slug para minúsculas
+  const normalizedSlug = empresaSlug.toLowerCase();
   const result = await db
     .select()
     .from(metas)
     .where(and(
-      eq(metas.empresaSlug, empresaSlug),
+      eq(metas.empresaSlug, normalizedSlug),
       eq(metas.mes, mes),
       eq(metas.ano, ano),
       eq(metas.tenantId, tenantId)
@@ -715,24 +717,33 @@ export async function getMetaByEmpresaMesTenant(empresaSlug: string, mes: number
 export async function upsertMeta(input: InsertMeta) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  
+  // Normalizar slug para minúsculas para evitar case sensitivity issues
+  const normalizedSlug = (input.empresaSlug as string).toLowerCase();
+  
   const existing = await getMetaByEmpresaMesTenant(
-    input.empresaSlug as string,
+    normalizedSlug,
     input.mes as number,
     input.ano as number,
     input.tenantId as number
   );
   if (existing) {
     await db.update(metas).set({
+      empresaSlug: normalizedSlug, // Normalizar slug também no UPDATE
       metaMensal: input.metaMensal,
       metaQuinzenal: input.metaQuinzenal,
       superMeta: input.superMeta ?? "0",
       diasUteis: input.diasUteis,
       diasUteisQuinzenal: input.diasUteisQuinzenal,
     }).where(eq(metas.id, existing.id));
-    return { ...existing, ...input, id: existing.id };
+    return { ...existing, ...input, empresaSlug: normalizedSlug, id: existing.id };
   } else {
-    const result = await db.insert(metas).values(input);
-    return { ...input, id: (result as any).insertId };
+    const insertData = {
+      ...input,
+      empresaSlug: normalizedSlug, // Normalizar slug ao inserir
+    };
+    const result = await db.insert(metas).values(insertData);
+    return { ...insertData, id: (result as any).insertId };
   }
 }
 
