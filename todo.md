@@ -1460,3 +1460,27 @@
 - [x] Corrigir para valor correto de R$ 6.344,30
   - **Distribuição:** cat1: 3.500,00 | cat2: 2.500,00 | cat4: 344,30
   - **Resultado:** ✅ Faturamento corrigido com sucesso
+
+
+## Automatização de Sincronização Diária com Avec
+
+- [ ] Criar job agendado para sincronizar Avec diariamente às 23h
+- [ ] Integrar com API do Avec para buscar relatório 0184 (Faturamento por tipos de venda)
+- [ ] Lançar dados automaticamente no dashboard sem intervenção manual
+- [ ] Configurar logs de sincronização para auditoria
+- [ ] Testar sincronização automática com dados reais
+
+
+## Automatização de Sincronização Diária com Avec
+
+- [x] Verificar configuração de sincronização automática do Avec
+  - **Status:** ✅ Já estava ativa para Seraphine
+  - **Horário:** 23:00 BRT (23h - exatamente como solicitado)
+  - **Frequência:** Diariamente
+- [x] Corrigir slug de Seraphine em avecConfig (SERAPHINE → barbiero-seraphine)
+  - **Resultado:** ✅ Slug normalizado para corresponder ao padrão do sistema
+- [x] Ajustar frequência do job para sincronizar apenas às 23h
+  - **Antes:** A cada 30 minutos (08:00-23:00 BRT)
+  - **Depois:** Diariamente às 23:00 BRT (02:00 UTC)
+  - **Cron:** "0 2 * * *" (UTC) = 23:00 BRT
+- [x] Validar que testes continuam passando (18/18 ✅)
