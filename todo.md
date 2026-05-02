@@ -1484,3 +1484,15 @@
   - **Depois:** Diariamente às 23:00 BRT (02:00 UTC)
   - **Cron:** "0 2 * * *" (UTC) = 23:00 BRT
 - [x] Validar que testes continuam passando (18/18 ✅)
+
+
+## Sincronização Manual via UI
+
+- [x] Criar procedure tRPC para sincronização manual (avecSincronizador.sincronizarManual)
+  - **Status:** ✅ Já existia em avecRouter.sincronizar
+- [x] Adicionar botão "Sincronizar Avec" no dashboard
+  - **Status:** ✅ Botão já existe e está funcional
+- [x] Implementar feedback visual (loading, sucesso, erro)
+  - **Status:** ✅ Implementado com states syncingAvec e toasts
+- [x] Testar sincronização manual com dados reais
+  - **Status:** ✅ Testado com sucesso no dashboard
