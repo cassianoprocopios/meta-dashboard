@@ -1452,3 +1452,11 @@
 - [x] Implementar normalização de slug em upsertMeta
   - **Solução:** Normalizar slug em INSERT e UPDATE de metas
   - **Resultado:** ✅ Todos os testes de faturamento passando (18 tests passed)
+
+
+## Correção de Faturamento de Seraphine em 30/04
+
+- [x] Verificar faturamento de Seraphine em 30/04 (estava R$ 1.167,00)
+- [x] Corrigir para valor correto de R$ 6.344,30
+  - **Distribuição:** cat1: 3.500,00 | cat2: 2.500,00 | cat4: 344,30
+  - **Resultado:** ✅ Faturamento corrigido com sucesso
