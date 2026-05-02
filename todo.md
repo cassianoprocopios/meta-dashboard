@@ -1426,3 +1426,13 @@
     - `SERAPHINE` → `barbiero-seraphine` (22 registros)
 - [x] Validar que dados agora são retornados corretamente
   - **Resultado:** ✅ Dados agora aparecem no banco com slugs corretos
+
+
+## Implementação de Validação de Case Sensitivity nos Slugs
+
+- [x] Adicionar normalização de slug em `upsertFaturamento` (INSERT e UPDATE)
+- [x] Adicionar normalização de slug em `getFaturamentoByDataEmpresaTenant`
+- [x] Adicionar normalização de slug em `getAllFaturamentosByTenant`
+- [x] Validar que todos os testes de faturamento passam (18 tests passed)
+- [x] Remover logs de debug
+- [ ] Testar dashboard com dados de abril/2026

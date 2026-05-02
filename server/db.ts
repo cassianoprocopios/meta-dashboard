@@ -493,12 +493,15 @@ export async function updateEmpresa(
 export async function getFaturamentoByDataEmpresaTenant(data: string, empresaSlug: string, tenantId: number) {
   const db = await getDb();
   if (!db) return undefined;
+  // Normalizar slug para minúsculas
+  const normalizedSlug = empresaSlug.toLowerCase();
+
   const result = await db
     .select()
     .from(faturamentos)
     .where(and(
       eq(faturamentos.data, data),
-      eq(faturamentos.empresaSlug, empresaSlug),
+      eq(faturamentos.empresaSlug, normalizedSlug),
       eq(faturamentos.tenantId, tenantId)
     ))
     .limit(1);
@@ -551,6 +554,8 @@ export async function getFaturamentoDiaColaborador(tenantId: number, colaborador
 export async function getAllFaturamentosByTenant(tenantId: number, mes: number, ano: number, empresaSlug?: string) {
   const db = await getDb();
   if (!db) return [];
+  // Normalizar slug para minúsculas
+  const normalizedSlug = empresaSlug ? empresaSlug.toLowerCase() : undefined;
   const allRows = await db
     .select()
     .from(faturamentos)
@@ -559,7 +564,7 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
   const filtered = allRows.filter((row) => {
     const [rowAno, rowMes] = row.data.split("-").map(Number);
     const matchesMes = rowMes === mes && rowAno === ano;
-    const matchesEmpresa = empresaSlug ? row.empresaSlug === empresaSlug : true;
+    const matchesEmpresa = normalizedSlug ? row.empresaSlug === normalizedSlug : true;
     return matchesMes && matchesEmpresa;
   });
   if (empresaSlug && mes === 4 && ano === 2026) {
@@ -576,9 +581,14 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
 export async function upsertFaturamento(input: InsertFaturamento) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  
+  // Normalizar slug para minúsculas para evitar case sensitivity issues
+  const normalizedSlug = (input.empresaSlug as string).toLowerCase();
+
+  
   const existing = await getFaturamentoByDataEmpresaTenant(
     input.data as string,
-    input.empresaSlug as string,
+    normalizedSlug,
     input.tenantId as number
   );
   if (existing) {
@@ -612,6 +622,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat9: input.cat9,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
+      empresaSlug: normalizedSlug, // Normalizar slug também no UPDATE
       // Propaga sincronizadoCB se fornecido (1 = importado pelo CashBarber)
       ...(input.sincronizadoCB !== undefined ? { sincronizadoCB: input.sincronizadoCB } : {}),
     };
@@ -620,7 +631,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       setObj.totalPrevisto = novoTotal.toFixed(2);
     }
     await db.update(faturamentos).set(setObj).where(eq(faturamentos.id, existing.id));
-    return { ...existing, ...input, id: existing.id };
+    return { ...existing, ...input, empresaSlug: normalizedSlug, id: existing.id };
   } else {
     // Ao criar, se o dia for futuro, registra o totalPrevisto
     const hoje = new Date();
@@ -640,8 +651,10 @@ export async function upsertFaturamento(input: InsertFaturamento) {
     ].reduce((a, b) => a + b, 0);
     const insertData = {
       ...input,
+      empresaSlug: normalizedSlug, // Sobrescreve o slug do input com o normalizado
       totalPrevisto: isFuturo ? total.toFixed(2) : null,
     };
+
     const result = await db.insert(faturamentos).values(insertData);
     return { ...insertData, id: (result as any).insertId };
   }
