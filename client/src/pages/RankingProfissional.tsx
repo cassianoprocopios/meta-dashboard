@@ -385,14 +385,45 @@ function RankingCard({
                 style={{ width: `${Math.min(pctMeta, 100)}%` }}
               />
             </div>
+            {/* Informações de média diária, projeção e falta para meta */}
+            {(() => {
+              const totalAcumulado = totalMes ?? totalGeral;
+              const falta = Math.max(0, metaMensal - totalAcumulado);
+              const diasNoMes = 30; // Assumindo 30 dias no mês
+              const diasPassados = diasNoMes - (diasRestantes ?? 0);
+              const mediaDiaria = diasPassados > 0 ? totalAcumulado / diasPassados : 0;
+              const projecao = mediaDiaria * diasNoMes;
+              
+              return (
+                <div className="text-xs text-white/50 mt-1.5 space-y-0.5">
+                  <div className="flex justify-between">
+                    <span>📊 Média/dia:</span>
+                    <span className="text-white/70 font-semibold">{formatarMoeda(mediaDiaria)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>📈 Projeção:</span>
+                    <span className={`font-semibold ${
+                      projecao >= metaMensal ? "text-emerald-400" : 
+                      projecao >= metaMensal * 0.85 ? "text-yellow-400" : 
+                      "text-red-400"
+                    }`}>{formatarMoeda(projecao)}</span>
+                  </div>
+                  {pctMeta < 100 && (
+                    <div className="flex justify-between">
+                      <span>💰 Falta:</span>
+                      <span className="text-amber-400 font-semibold">{formatarMoeda(falta)}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {/* Meta diária individual necessária */}
             {pctMeta < 100 && diasRestantes != null && diasRestantes > 0 && (() => {
-              // Usar totalMes (acumulado do mês) se disponível, senão totalGeral
               const totalAcumulado = totalMes ?? totalGeral;
               const falta = Math.max(0, metaMensal - totalAcumulado);
               const metaDiariaInd = falta / diasRestantes;
               return (
-                <div className="text-xs text-blue-300/60 mt-0.5">
+                <div className="text-xs text-blue-300/60 mt-1">
                   Precisa {formatarMoeda(metaDiariaInd)}/dia
                 </div>
               );

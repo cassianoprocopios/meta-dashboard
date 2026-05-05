@@ -442,6 +442,67 @@ export default function Profissionais() {
           </div>
         </div>
 
+        {/* Cards de Faturamento da Unidade */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {empresasData.map((empresa) => {
+            const profissionaisEmpresa = profissionais.filter(p => p.empresaSlug === empresa.slug && p.ativo);
+            const totalFaturamento = profissionaisEmpresa.reduce((sum, p) => sum + ((p as any).totalMes ?? 0), 0);
+            const metaMensal = 100000; // Ajustar conforme necessário
+            const diasNoMes = 30;
+            const hoje = new Date();
+            const diasPassados = hoje.getDate();
+            const mediaDiaria = diasPassados > 0 ? totalFaturamento / diasPassados : 0;
+            const projecao = mediaDiaria * diasNoMes;
+            const falta = Math.max(0, metaMensal - totalFaturamento);
+            const percentualMeta = (totalFaturamento / metaMensal) * 100;
+            
+            const corProjecao = projecao >= metaMensal ? 'text-green-400' : projecao >= metaMensal * 0.85 ? 'text-yellow-400' : 'text-red-400';
+            
+            return (
+              <div key={empresa.slug} className="bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white font-semibold">{empresa.nome}</h3>
+                  <span className="text-xs bg-white/10 px-2 py-1 rounded text-white/70">{profissionaisEmpresa.length} prof.</span>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/60">Faturamento:</span>
+                    <span className="text-white font-bold">R$ {totalFaturamento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/60">Média/dia:</span>
+                    <span className="text-blue-400 font-semibold">R$ {mediaDiaria.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/60">Projeção:</span>
+                    <span className={`font-semibold ${corProjecao}`}>R$ {projecao.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/60">Falta:</span>
+                    <span className="text-orange-400 font-semibold">R$ {falta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                  </div>
+                  
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden mt-2">
+                    <div 
+                      className={`h-full transition-all ${
+                        percentualMeta >= 100 ? 'bg-green-500' : 
+                        percentualMeta >= 85 ? 'bg-yellow-500' : 
+                        'bg-red-500'
+                      }`}
+                      style={{width: `${Math.min(percentualMeta, 100)}%`}}
+                    />
+                  </div>
+                  <div className="text-xs text-white/50 text-right">{percentualMeta.toFixed(1)}% da meta</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Busca */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />

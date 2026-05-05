@@ -40,6 +40,7 @@ import {
   deleteUser,
   updateUserFull,
   getUserEmpresaSlugs,
+  getEmpresaBySlugAndTenant,
   setUserEmpresas,
   getAllBonificacoesByTenant,
   getBonificacaoByEmpresaTenant,
@@ -112,7 +113,7 @@ import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
 import { getDb } from "./db";
 import { faturamentos, metas } from "../drizzle/schema";
-import { sql } from "drizzle-orm";
+import { sql, sum } from "drizzle-orm";
 
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
@@ -183,6 +184,7 @@ const profissionaisRouter = router({
   listar: protectedProcedure.query(async ({ ctx }) => {
     const tenantId = await getTenantIdFromCtx(ctx);
     const lista = await listarColaboradores(tenantId);
+    
     return lista.map((c) => ({
       id: c.id,
       nome: c.nome,
@@ -198,6 +200,7 @@ const profissionaisRouter = router({
       pinAcesso: c.pinAcesso ?? null,
       telefone: c.telefone ?? null,
       metaMensal: c.metaMensal ? Number(c.metaMensal) : null,
+      totalMes: (c as any).totalMes ?? 0,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     }));
@@ -328,6 +331,36 @@ const profissionaisRouter = router({
 
   periodos: protectedProcedure.query(async ({ ctx }) => {
     const tenantId = await getTenantIdFromCtx(ctx);
+    const appToken = getCookie(ctx.req, APP_COOKIE);
+    let userId: number | undefined;
+    
+    if (appToken) {
+      const payload = await verifyAppToken(appToken);
+      if (payload) userId = payload.userId;
+    }
+    
+    // Se o usuário tem múltiplas empresas, retornar dados de todas
+    if (userId) {
+      const empresas = await getUserEmpresaSlugs(userId);
+      if (empresas.length > 1) {
+        // Usuário tem múltiplas empresas - retornar dados agregados
+        const allPeriodos = new Map<string, { mes: number; ano: number }>();
+        for (const empresaSlug of empresas) {
+          const empresa = await getEmpresaBySlugAndTenant(empresaSlug, tenantId);
+          if (empresa) {
+            const periodos = await listarPeriodosComDados(tenantId);
+            for (const p of periodos) {
+              const key = `${p.ano}-${p.mes}`;
+              if (!allPeriodos.has(key)) {
+                allPeriodos.set(key, p);
+              }
+            }
+          }
+        }
+        return Array.from(allPeriodos.values());
+      }
+    }
+    
     return listarPeriodosComDados(tenantId);
   }),
 
