@@ -1129,6 +1129,75 @@ const profissionaisRouter = router({
       return { ativo };
     }),
 
+  getRankingByUnit: protectedProcedure
+    .input(z.object({
+      empresaSlug: z.string().min(1),
+      mes: z.number().int().min(1).max(12),
+      ano: z.number().int().min(2020),
+    }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const [profissionais, { itens: faturamentos }] = await Promise.all([
+        listarColaboradores(tenantId),
+        listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+      ]);
+      
+      // Filtrar profissionais da unidade especificada
+      const profissionaisDaUnidade = profissionais.filter(
+        (p) => p.empresaSlug === input.empresaSlug && p.ativo === 1 && p.isGerencia !== 1
+      );
+      
+      const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
+      
+      const lista = profissionaisDaUnidade
+        .filter((p) => {
+          if (p.exibirNoRanking === 1) return true;
+          const fat = faturamentoMap.get(p.id);
+          if (p.categoriaRanking === 'recepcao') {
+            return fat && fat.totalProdutos > 0;
+          }
+          return false;
+        })
+        .map((p) => {
+          const fat = faturamentoMap.get(p.id);
+          return {
+            id: p.id,
+            nome: p.nome,
+            apelido: p.apelido,
+            fotoUrl: p.fotoUrl,
+            totalServicos: fat?.totalServicos ?? 0,
+            totalProdutos: fat?.totalProdutos ?? 0,
+            totalGeral: fat?.totalGeral ?? 0,
+            qtdServicos: fat?.detalhesServicos?.length ?? 0,
+            qtdProdutos: fat?.detalhesProdutos?.length ?? 0,
+            metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
+            posicaoAnterior: null,
+          };
+        })
+        .sort((a, b) => b.totalGeral - a.totalGeral);
+      
+      // Calcular estatísticas da unidade
+      const totalRealizado = lista.reduce((sum, p) => sum + p.totalGeral, 0);
+      const metaMensal = profissionaisDaUnidade.reduce((sum, p) => {
+        const meta = p.metaMensal ? parseFloat(String(p.metaMensal)) : 0;
+        return sum + meta;
+      }, 0);
+      
+      const hoje = new Date();
+      const diaAtual = hoje.getDate();
+      const diasNoMes = new Date(input.ano, input.mes, 0).getDate();
+      const diasRestantes = Math.max(0, diasNoMes - diaAtual + 1);
+      const metaDiaria = diasRestantes > 0 ? metaMensal / diasRestantes : 0;
+      
+      return {
+        profissionais: lista,
+        totalRealizado,
+        metaMensal,
+        metaDiaria,
+        diasRestantes,
+      };
+    }),
+
   // Procedures de push removidas — notificações desativadas
   enviarPushRankingManual: protectedProcedure
     .input(z.object({

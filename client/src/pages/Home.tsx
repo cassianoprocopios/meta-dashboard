@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -39,6 +40,7 @@ import MetasSkeleton from "@/components/MetasSkeleton";
 import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigger as UITooltipTrigger } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import AvecSyncModal from "@/components/AvecSyncModal";
+import UnitDrilldownModal from "@/components/UnitDrilldownModal";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -93,6 +95,7 @@ export default function Home() {
   const [editingFaturamento, setEditingFaturamento] = useState<any>(null);
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
   const [expandirPrevistos, setExpandirPrevistos] = useState(false);
+  const [selectedUnitForDrilldown, setSelectedUnitForDrilldown] = useState<string | null>(null);
 
   const isAdmin = user?.role === "admin";
   const isGerente = user?.perfil === "gerente" || isAdmin;
@@ -2070,7 +2073,11 @@ export default function Home() {
                       : null;
                     const projecaoAtingeMeta = projecao >= s.metaMensal;
                     return (
-                      <div key={s.emp.slug}>
+                      <div
+                        key={s.emp.slug}
+                        onClick={() => setSelectedUnitForDrilldown(s.emp.slug)}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                      >
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.emp.cor }} />
@@ -3857,6 +3864,21 @@ export default function Home() {
           open={avecSyncModalOpen}
           onOpenChange={setAvecSyncModalOpen}
           empresaSlug={empresasData.find((e) => e.tipoCategorias === "seraphine")?.slug || ""}
+          mes={mes}
+          ano={ano}
+        />
+      )}
+
+      {/* Modal de Drill-down de Ranking por Unidade */}
+      {selectedUnitForDrilldown && empresasData && (
+        <UnitDrilldownModal
+          open={!!selectedUnitForDrilldown}
+          onOpenChange={(open) => {
+            if (!open) setSelectedUnitForDrilldown(null);
+          }}
+          unitSlug={selectedUnitForDrilldown}
+          unitName={empresasData.find((e) => e.slug === selectedUnitForDrilldown)?.nome || ""}
+          unitColor={empresasData.find((e) => e.slug === selectedUnitForDrilldown)?.cor}
           mes={mes}
           ano={ano}
         />
