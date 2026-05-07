@@ -4,9 +4,10 @@ import {
   pararSincronizacaoHorariaAvec,
   obterStatusSincronizacaoAvec,
   executarSincronizacaoManualAvec,
+  obterInfoHorarioComercial,
 } from "./avecHourlySync";
 
-describe("Avec Hourly Sync", () => {
+describe("Avec Hourly Sync com Restrição de Horário", () => {
   beforeEach(() => {
     // Limpar erros anteriores
     pararSincronizacaoHorariaAvec();
@@ -35,7 +36,17 @@ describe("Avec Hourly Sync", () => {
     const status = obterStatusSincronizacaoAvec();
     expect(status).toHaveProperty("ativo");
     expect(status).toHaveProperty("erros");
+    expect(status).toHaveProperty("horarioInicio");
+    expect(status).toHaveProperty("horarioFim");
     expect(Array.isArray(status.erros)).toBe(true);
+  });
+
+  it("deve retornar horário comercial correto", () => {
+    const info = obterInfoHorarioComercial();
+    expect(info.horarioInicio).toBe("10:00");
+    expect(info.horarioFim).toBe("20:30");
+    expect(info).toHaveProperty("estaNoHorario");
+    expect(info).toHaveProperty("horaAtual");
   });
 
   it("não deve iniciar job duplicado", () => {
@@ -53,15 +64,21 @@ describe("Avec Hourly Sync", () => {
     await expect(executarSincronizacaoManualAvec()).resolves.not.toThrow();
   });
 
-  it("deve manter histórico de erros", () => {
+  it("deve manter histórico de erros (máximo 10)", () => {
     const status = obterStatusSincronizacaoAvec();
     expect(Array.isArray(status.erros)).toBe(true);
-    expect(status.erros.length).toBeLessThanOrEqual(10); // Máximo 10 erros
+    expect(status.erros.length).toBeLessThanOrEqual(10);
   });
 
   it("deve parar corretamente um job parado", () => {
     pararSincronizacaoHorariaAvec();
     const status = obterStatusSincronizacaoAvec();
     expect(status.ativo).toBe(false);
+  });
+
+  it("deve ter horário comercial definido", () => {
+    const status = obterStatusSincronizacaoAvec();
+    expect(status.horarioInicio).toBe("10:00");
+    expect(status.horarioFim).toBe("20:30");
   });
 });

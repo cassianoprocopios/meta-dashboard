@@ -12,7 +12,6 @@ import { iniciarJobAvec } from "../avecJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import { setupWebSocket } from "../websocket";
 import { iniciarSincronizacaoHoraria } from "../cashbarberHourlySync";
-import { iniciarSincronizacaoHorariaAvec } from "../avecHourlySync";
 import * as cron from "node-cron";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -142,14 +141,6 @@ async function startServer() {
       console.log("[CashBarber Hourly Sync] Job de sincronização horária iniciado com sucesso");
     } catch (err) {
       console.error("[CashBarber Hourly Sync] Falha na inicialização:", err);
-    }
-
-    // Inicializar sincronização horária do Avec (Seraphine)
-    try {
-      iniciarSincronizacaoHorariaAvec();
-      console.log("[Avec Hourly Sync] Job de sincronização horária iniciado com sucesso");
-    } catch (err) {
-      console.error("[Avec Hourly Sync] Falha na inicialização:", err);
     }
 
   });

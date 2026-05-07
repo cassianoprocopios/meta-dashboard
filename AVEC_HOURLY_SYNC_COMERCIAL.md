@@ -1,8 +1,26 @@
-# Sincronização Horária do Avec
+# Sincronização Horária do Avec - Horário Comercial (10:00 a 20:30)
 
 ## Visão Geral
 
-A sincronização horária do Avec é um job automático que executa a cada 1 hora para sincronizar dados de faturamento da unidade **Seraphine** com o sistema Avec via Relatório 0184.
+A sincronização horária do Avec é um job automático que executa **a cada 1 hora APENAS entre 10:00 e 20:30** para sincronizar dados de faturamento da unidade **Seraphine** com o sistema Avec via Relatório 0184.
+
+## Horários de Execução
+
+O job executa nos seguintes horários:
+- **10:00** ✓
+- **11:00** ✓
+- **12:00** ✓
+- **13:00** ✓
+- **14:00** ✓
+- **15:00** ✓
+- **16:00** ✓
+- **17:00** ✓
+- **18:00** ✓
+- **19:00** ✓
+- **20:00** ✓
+- **21:00** ✗ (fora do horário)
+- **22:00** ✗ (fora do horário)
+- ... e assim por diante
 
 ## Arquivos Implementados
 
@@ -12,13 +30,15 @@ Módulo principal de sincronização horária com as seguintes funções:
 - **`iniciarSincronizacaoHorariaAvec()`** - Inicia o job de sincronização
 - **`pararSincronizacaoHorariaAvec()`** - Para o job
 - **`obterStatusSincronizacaoAvec()`** - Retorna o status atual
-- **`executarSincronizacaoManualAvec()`** - Executa sincronização sob demanda
+- **`executarSincronizacaoManualAvec()`** - Executa sincronização sob demanda (fora do horário)
+- **`obterInfoHorarioComercial()`** - Retorna informações sobre o horário comercial
 
 ### 2. `server/avecHourlySync.test.ts`
 Testes unitários para validar:
 - Inicialização do job
 - Parada do job
 - Status do job
+- Horário comercial
 - Prevenção de jobs duplicados
 - Sincronização manual
 - Histórico de erros
@@ -28,16 +48,13 @@ O job é inicializado automaticamente quando o servidor inicia.
 
 ## Como Funciona
 
-### Cronograma
-- **Frequência**: A cada 1 hora (minuto 0 de cada hora)
-- **Expressão Cron**: `0 * * * *`
-- **Unidade sincronizada**: Seraphine
-
 ### Fluxo de Execução
 
-1. **Buscar configurações** - Obtém todas as configurações de Avec do banco de dados
-2. **Filtrar unidades** - Identifica apenas Seraphine
-3. **Sincronizar dados** - Para cada unidade:
+1. **Verificar horário** - Valida se está entre 10:00 e 20:30
+2. **Se fora do horário** - Pula a execução e registra no log
+3. **Se dentro do horário**:
+   - Busca configurações de Avec do banco de dados
+   - Filtra apenas Seraphine
    - Conecta ao Avec via browser headless
    - Busca o Relatório 0184 (Faturamento por tipos de venda)
    - Extrai valores de:
@@ -46,13 +63,22 @@ O job é inicializado automaticamente quando o servidor inicia.
      - **cat3**: Produtos
      - **cat4**: Caixinha
    - Atualiza banco de dados
-4. **Registrar logs** - Documenta cada sincronização
-5. **Tratar erros** - Captura e registra erros sem interromper o fluxo
+   - Registra logs
 
 ## Uso
 
 ### Iniciar o Job
 O job é iniciado automaticamente quando o servidor inicia. Nenhuma ação manual é necessária.
+
+```bash
+pnpm dev
+```
+
+Você deverá ver nos logs:
+```
+[Avec Hourly Sync] Iniciando job de sincronização horária (10:00 - 20:30)...
+[Avec Hourly Sync] ✓ Job iniciado com sucesso (executará entre 10:00 e 20:30)
+```
 
 ### Sincronização Manual
 Para sincronizar manualmente (fora do horário agendado):
@@ -65,7 +91,7 @@ await executarSincronizacaoManualAvec();
 
 ### Verificar Status
 ```typescript
-import { obterStatusSincronizacaoAvec } from "./avecHourlySync";
+import { obterStatusSincronizacaoAvec, obterInfoHorarioComercial } from "./avecHourlySync";
 
 const status = obterStatusSincronizacaoAvec();
 console.log(status);
@@ -74,7 +100,19 @@ console.log(status);
 //   ativo: true,
 //   ultimaExecucao: Date,
 //   proximaExecucao: Date,
+//   horarioInicio: "10:00",
+//   horarioFim: "20:30",
 //   erros: [...]
+// }
+
+const info = obterInfoHorarioComercial();
+console.log(info);
+// Saída:
+// {
+//   horarioInicio: "10:00",
+//   horarioFim: "20:30",
+//   estaNoHorario: true,
+//   horaAtual: "14:30:45"
 // }
 ```
 
@@ -89,11 +127,17 @@ pararSincronizacaoHorariaAvec();
 
 Os logs da sincronização aparecem no console do servidor com prefixo `[Avec Hourly Sync]`:
 
+### Dentro do Horário Comercial
 ```
 [Avec Hourly Sync] Iniciando sincronização às 14:00:00
 [Avec Hourly Sync] Sincronizando seraphine (tenant: 1, mês: 5/2026)
 [Avec Hourly Sync] ✓ seraphine: 5 dias sincronizados, 0 fechados, 0 ignorados
 [Avec Hourly Sync] Sincronização concluída às 14:00:45
+```
+
+### Fora do Horário Comercial
+```
+[Avec Hourly Sync] Fora do horário comercial (21:00). Sincronização não será executada.
 ```
 
 ## Tratamento de Erros
@@ -108,6 +152,20 @@ Para executar os testes:
 
 ```bash
 pnpm test avecHourlySync.test.ts
+```
+
+Saída esperada:
+```
+✓ Avec Hourly Sync com Restrição de Horário (9 testes)
+  ✓ deve iniciar o job de sincronização horária
+  ✓ deve parar o job de sincronização horária
+  ✓ deve retornar status correto do job
+  ✓ deve retornar horário comercial correto
+  ✓ não deve iniciar job duplicado
+  ✓ deve permitir sincronização manual
+  ✓ deve manter histórico de erros (máximo 10)
+  ✓ deve parar corretamente um job parado
+  ✓ deve ter horário comercial definido
 ```
 
 ## Configuração
@@ -159,28 +217,50 @@ As credenciais devem estar configuradas na tabela `avecConfig`:
    - O servidor Avec pode estar lento
    - Tente sincronizar manualmente para diagnosticar
 
-## Comparação com Job Diário
+## Alterações Futuras
 
-| Aspecto | Job Diário (avecJob.ts) | Job Horário (avecHourlySync.ts) |
-|---------|------------------------|--------------------------------|
-| Frequência | Uma vez por dia às 23h | A cada 1 hora |
-| Unidades | Todas com sincAutoAtiva=1 | Apenas Seraphine |
-| Uso | Sincronização completa diária | Sincronização frequente |
-| Dados | Relatório 0184 completo | Relatório 0184 do período |
+### Modificar Horário Comercial
 
-## Próximas Melhorias
+Para alterar o horário de execução, edite `avecHourlySync.ts`:
 
-- [ ] Dashboard de monitoramento em tempo real
-- [ ] Alertas automáticos por email em caso de falha
-- [ ] Histórico detalhado de sincronizações
-- [ ] Retry automático em caso de falha
-- [ ] Sincronização de outras unidades além de Seraphine
-- [ ] Integração com webhook para notificações
+```typescript
+// Linha 26 - Expressão cron
+const CRON_HORARIO_COMERCIAL = "0 9-21 * * *";  // 09:00 a 21:00
+
+// Linhas 76-85 - Função de verificação
+function estaNoHorarioComercial(): boolean {
+  const horaInicio = 9;      // Início às 9:00
+  const horaFim = 21;        // Fim às 21:00
+  const minutoFim = 0;
+  // ... resto do código
+}
+```
+
+### Adicionar Mais Unidades
+
+Para sincronizar outras unidades além de Seraphine, edite `avecHourlySync.ts`:
+
+```typescript
+// Linha 130
+const unidadesParaSincronizar = configsDoTenant.filter(
+  (c) =>
+    c.empresaSlug &&
+    (c.empresaSlug.toLowerCase().includes("seraphine") ||
+      c.empresaSlug.toLowerCase().includes("outra-unidade"))  // Adicione aqui
+);
+```
+
+## Próximas Etapas
+
+1. ✅ Implementação concluída
+2. ⏳ Aguardando execução no seu computador local
+3. 📊 Monitorar sincronizações nos primeiros dias
+4. 🔧 Ajustar configurações conforme necessário
 
 ## Suporte
 
-Para questões ou problemas, verifique:
-1. Os logs do servidor
-2. O status do job com `obterStatusSincronizacaoAvec()`
-3. A configuração de Avec no banco de dados
-4. A conectividade com www.avec.app
+Para questões ou problemas:
+1. Consulte este documento
+2. Verifique os logs do servidor
+3. Execute os testes: `pnpm test avecHourlySync.test.ts`
+4. Verifique a configuração de Avec no banco de dados

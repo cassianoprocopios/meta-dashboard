@@ -1,10 +1,11 @@
 /**
- * Sincronização Horária do Avec
+ * Sincronização Horária do Avec - Versão com Restrição de Horário
  *
- * Executa a cada 1 hora para sincronizar faturamento da unidade Seraphine
- * com dados do Avec via Relatório 0184.
+ * Executa a cada 1 hora APENAS entre 10:00 e 20:30 para sincronizar 
+ * faturamento da unidade Seraphine com dados do Avec via Relatório 0184.
  *
- * Usa node-cron para agendar a execução a cada 60 minutos.
+ * Horários de execução: 10:00, 11:00, 12:00, ..., 19:00, 20:00
+ * (não executa às 21:00 ou depois)
  */
 
 import * as cron from "node-cron";
@@ -14,18 +15,27 @@ import { getDb } from "./db";
 // ─── Configuração ─────────────────────────────────────────────────────────────
 
 /**
- * Expressão cron para executar a cada 1 hora
+ * Expressão cron para executar a cada 1 hora entre 10:00 e 20:30
  * Formato: "minuto hora dia mês dia_semana"
- * "0 * * * *" = a cada hora, no minuto 0
+ * "0 10-20 * * *" = minuto 0, horas 10-20 (10:00 até 20:00)
+ * 
+ * Nota: Cron executa no minuto 0 de cada hora, então:
+ * - 10:00 ✓ (dentro do intervalo)
+ * - 11:00 ✓ (dentro do intervalo)
+ * - ...
+ * - 20:00 ✓ (dentro do intervalo)
+ * - 21:00 ✗ (fora do intervalo)
  */
-const CRON_HOURLY = "0 * * * *";
+const CRON_HORARIO_COMERCIAL = "0 10-20 * * *";
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
+// ─── Tipos ────────────────────────────────────────────────────────────────
 
 interface HourlySyncStatus {
   ativo: boolean;
   ultimaExecucao?: Date;
   proximaExecucao?: Date;
+  horarioInicio: string;
+  horarioFim: string;
   task?: ReturnType<typeof cron.schedule>;
   erros: string[];
 }
@@ -34,10 +44,33 @@ interface HourlySyncStatus {
 
 let syncStatus: HourlySyncStatus = {
   ativo: false,
+  horarioInicio: "10:00",
+  horarioFim: "20:30",
   erros: [],
 };
 
 // ─── Funções ──────────────────────────────────────────────────────────────────
+
+/**
+ * Verifica se a hora atual está dentro do horário comercial (10:00 a 20:30)
+ */
+function estaNoHorarioComercial(): boolean {
+  const agora = new Date();
+  const hora = agora.getHours();
+  const minuto = agora.getMinutes();
+  
+  // Horário comercial: 10:00 até 20:30
+  const horaInicio = 10;
+  const minutoInicio = 0;
+  const horaFim = 20;
+  const minutoFim = 30;
+  
+  const tempoAtual = hora * 60 + minuto;
+  const tempoInicio = horaInicio * 60 + minutoInicio;
+  const tempoFim = horaFim * 60 + minutoFim;
+  
+  return tempoAtual >= tempoInicio && tempoAtual <= tempoFim;
+}
 
 /**
  * Busca configurações do Avec ativas para sincronização
@@ -58,10 +91,26 @@ async function listarConfigsAvecAtivas() {
  */
 async function executarSincronizacaoHoraria(): Promise<void> {
   const agora = new Date();
+  
+  // Verificar se está no horário comercial
+  if (!estaNoHorarioComercial()) {
+    console.log(
+      `[Avec Hourly Sync] Fora do horário comercial (${agora.getHours()}:${String(agora.getMinutes()).padStart(2, "0")}). Sincronização não será executada.`
+    );
+    return;
+  }
+
   const mes = agora.getMonth() + 1;
   const ano = agora.getFullYear();
 
-  console.log(`[Avec Hourly Sync] Iniciando sincronização às ${agora.toLocaleString("pt-BR")}`);
+  console.log(
+    `[Avec Hourly Sync] Iniciando sincronização às ${agora.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })}`
+  );
 
   try {
     // Buscar todas as configurações de Avec ativas
@@ -127,8 +176,21 @@ async function executarSincronizacaoHoraria(): Promise<void> {
     }
 
     syncStatus.ultimaExecucao = agora;
-    syncStatus.proximaExecucao = new Date(agora.getTime() + 60 * 60 * 1000); // +1 hora
-    console.log(`[Avec Hourly Sync] Sincronização concluída às ${agora.toLocaleString("pt-BR")}`);
+    // Próxima execução será no minuto 0 da próxima hora dentro do horário comercial
+    const proximaHora = new Date(agora);
+    proximaHora.setHours(proximaHora.getHours() + 1);
+    proximaHora.setMinutes(0);
+    proximaHora.setSeconds(0);
+    syncStatus.proximaExecucao = proximaHora;
+
+    console.log(
+      `[Avec Hourly Sync] Sincronização concluída às ${agora.toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })}`
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[Avec Hourly Sync] Erro fatal:", msg);
@@ -145,9 +207,11 @@ export function iniciarSincronizacaoHorariaAvec(): void {
     return;
   }
 
-  console.log("[Avec Hourly Sync] Iniciando job de sincronização horária...");
+  console.log(
+    "[Avec Hourly Sync] Iniciando job de sincronização horária (10:00 - 20:30)..."
+  );
 
-  syncStatus.task = cron.schedule(CRON_HOURLY, () => {
+  syncStatus.task = cron.schedule(CRON_HORARIO_COMERCIAL, () => {
     executarSincronizacaoHoraria().catch((err) => {
       console.error("[Avec Hourly Sync] Erro não tratado:", err);
     });
@@ -155,7 +219,7 @@ export function iniciarSincronizacaoHorariaAvec(): void {
 
   syncStatus.ativo = true;
   syncStatus.erros = [];
-  console.log("[Avec Hourly Sync] ✓ Job iniciado com sucesso");
+  console.log("[Avec Hourly Sync] ✓ Job iniciado com sucesso (executará entre 10:00 e 20:30)");
 }
 
 /**
@@ -183,9 +247,26 @@ export function obterStatusSincronizacaoAvec(): HourlySyncStatus {
 }
 
 /**
- * Executa uma sincronização manual imediatamente
+ * Executa uma sincronização manual imediatamente (independente do horário)
  */
 export async function executarSincronizacaoManualAvec(): Promise<void> {
-  console.log("[Avec Hourly Sync] Executando sincronização manual...");
+  console.log("[Avec Hourly Sync] Executando sincronização manual (fora do horário comercial)...");
   await executarSincronizacaoHoraria();
+}
+
+/**
+ * Retorna informações sobre o horário comercial
+ */
+export function obterInfoHorarioComercial() {
+  return {
+    horarioInicio: "10:00",
+    horarioFim: "20:30",
+    estaNoHorario: estaNoHorarioComercial(),
+    horaAtual: new Date().toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
+  };
 }
