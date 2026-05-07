@@ -1822,7 +1822,7 @@ export async function listarHistoricoUnidades(
       desc(faturamentoColaboradores.mes),
       faturamentoColaboradores.empresaSlug
     )
-    .limit(ultimos * 3); // 3 unidades possíveis por mês
+    .limit((ultimos || 24) * 3); // 3 unidades possíveis por mês - aumentado para garantir que dados recentes apareçam
   return rows.map(r => ({
     mes: r.mes,
     ano: r.ano,
