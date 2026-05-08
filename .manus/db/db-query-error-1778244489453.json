@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT fc.id, c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos, c.meta as metaMensal\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.id = 150021;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT fc.id, c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos, c.meta as metaMensal\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.id = 150021;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'c.meta' in 'field list'"
+  ]
+}

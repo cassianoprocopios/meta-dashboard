@@ -1,0 +1,20 @@
+{
+  "query": "\n-- Verificar se já existe um registro com colaboradorId=90001 para maio 2026 na Mascote\nSELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral\nFROM faturamentoColaboradores\nWHERE colaboradorId IN (19, 90001) AND empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar se já existe um registro com colaboradorId=90001 para maio 2026 na Mascote\nSELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral\nFROM faturamentoColaboradores\nWHERE colaboradorId IN (19, 90001) AND empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n",
+  "rows": [
+    {
+      "id": "150021",
+      "colaboradorId": "19",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "873.40",
+      "totalProdutos": "260.72",
+      "totalGeral": "1134.12"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcolaboradorId\tempresaSlug\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\n150021\t19\tbarbiero-mascote\t5\t2026\t873.40\t260.72\t1134.12\n",
+  "stderr": "",
+  "execution_time_ms": 260
+}

@@ -1,0 +1,13 @@
+{
+  "query": "SELECT MAX(ultimaSyncEm) as lastSync FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT MAX(ultimaSyncEm) as lastSync FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026;",
+  "rows": [
+    {
+      "lastSync": "2026-05-07 01:13:02"
+    }
+  ],
+  "messages": [],
+  "stdout": "lastSync\n2026-05-07 01:13:02\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

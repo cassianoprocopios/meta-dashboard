@@ -1,0 +1,18 @@
+{
+  "query": "\nSELECT fc.id, c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.id = 150021;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT fc.id, c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.id = 150021;\n",
+  "rows": [
+    {
+      "id": "150021",
+      "nome": "Renan",
+      "totalServicos": "178.40",
+      "totalProdutos": "260.72",
+      "totalGeral": "439.12",
+      "qtdServicos": "5"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\ttotalServicos\ttotalProdutos\ttotalGeral\tqtdServicos\n150021\tRenan\t178.40\t260.72\t439.12\t5\n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

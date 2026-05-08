@@ -1,0 +1,153 @@
+{
+  "query": "SELECT * FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi' LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT * FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi' LIMIT 20;",
+  "rows": [
+    {
+      "id": "120014",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120015",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120016",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120017",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120018",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120019",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120020",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120021",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120022",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120023",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Barbiero",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat6",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120024",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Barbiero",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat6",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120025",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Keune",
+      "cbNome": "Keune",
+      "metaCategoria": "cat7",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    },
+    {
+      "id": "120026",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Keune",
+      "cbNome": "Keune",
+      "metaCategoria": "cat7",
+      "createdAt": "2026-05-05 11:21:12",
+      "updatedAt": "2026-05-05 11:21:12"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\ttipo\tcbId\tcbNome\tmetaCategoria\tcreatedAt\tupdatedAt\n120014\t1\tbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120015\t1\tbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120016\t1\tbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120017\t1\tbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120018\t1\tbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120019\t1\tbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120020\t1\tbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120021\t1\tbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120022\t1\tbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120023\t1\tbarbiero-morumbi\tproduto_categoria\tBarbiero\tBarbiero\tcat6\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120024\t1\tbarbiero-morumbi\tproduto_categoria\tBarbiero\tBarbiero\tcat6\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120025\t1\tbarbiero-morumbi\tproduto_categoria\tKeune\tKeune\tcat7\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n120026\t1\tbarbiero-morumbi\tproduto_categoria\tKeune\tKeune\tcat7\t2026-05-05 11:21:12\t2026-05-05 11:21:12\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

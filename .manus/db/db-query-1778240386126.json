@@ -1,0 +1,160 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE cashbarberProfissionalId IS NOT NULL ORDER BY empresaSlug, nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE cashbarberProfissionalId IS NOT NULL ORDER BY empresaSlug, nome;",
+  "rows": [
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "32423"
+    },
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "27520"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22436"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "34288"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23224"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "29459"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "25571"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22435"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23105"
+    },
+    {
+      "id": "90001",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "32423"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "24720"
+    },
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "24575"
+    },
+    {
+      "id": "60002",
+      "nome": "Camila Nascimento",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "3"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "19442"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "585"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "24784"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "34191"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "23173"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "580"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "587"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "34337"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "35930"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "23104"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "12372"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "2603"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\n19\tRenan\tbarbiero-grupo\t32423\n5\tCaio\tbarbiero-mascote\t27520\n6\tEdinho\tbarbiero-mascote\t22436\n22\tFelipe\tbarbiero-mascote\t34288\n8\tIsabella\tbarbiero-mascote\t23224\n10\tKaren\tbarbiero-mascote\t29459\n11\tMell\tbarbiero-mascote\t25571\n13\tNeudo\tbarbiero-mascote\t22435\n16\tRecepção Mascote\tbarbiero-mascote\t23105\n90001\tRenan\tbarbiero-mascote\t32423\n17\tVinicius\tbarbiero-mascote\t24720\n1\tAdailton\tbarbiero-morumbi\t24575\n60002\tCamila Nascimento\tbarbiero-morumbi\t3\n7\tChristian\tbarbiero-morumbi\t19442\n12\tCleison\tbarbiero-morumbi\t585\n2\tDan\tbarbiero-morumbi\t24784\n23\tEduarda\tbarbiero-morumbi\t34191\n3\tEmerson\tbarbiero-morumbi\t23173\n18\tFábio\tbarbiero-morumbi\t580\n14\tJoão\tbarbiero-morumbi\t587\n21\tKaleb\tbarbiero-morumbi\t34337\n20\tMirela\tbarbiero-morumbi\t35930\n4\tRecepção Morumbi\tbarbiero-morumbi\t23104\n9\tSamuel\tbarbiero-morumbi\t12372\n15\tVanilson\tbarbiero-morumbi\t2603\n",
+  "stderr": "",
+  "execution_time_ms": 283
+}

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT fc.*, c.nome, c.empresaSlug, c.cashbarberProfissionalId \nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE c.nome = 'Renan'\nORDER BY fc.data DESC\nLIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT fc.*, c.nome, c.empresaSlug, c.cashbarberProfissionalId \nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE c.nome = 'Renan'\nORDER BY fc.data DESC\nLIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'fc.data' in 'order clause'"
+  ]
+}

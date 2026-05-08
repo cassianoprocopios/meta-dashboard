@@ -1,0 +1,18 @@
+{
+  "query": "SELECT empresaSlug, SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalFat FROM faturamentos WHERE data >= '2026-05-01' AND data <= '2026-05-07' AND tenantId = 1 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalFat FROM faturamentos WHERE data >= '2026-05-01' AND data <= '2026-05-07' AND tenantId = 1 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "totalFat": "19163.14"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "totalFat": "5789.36"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotalFat\nbarbiero-morumbi\t19163.14\nbarbiero-mascote\t5789.36\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -1137,9 +1137,11 @@ const profissionaisRouter = router({
     }))
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const [profissionais, { itens: faturamentos }] = await Promise.all([
+      const [profissionais, { itens: faturamentosProf }, fatUnidadeRows, metasUnidade] = await Promise.all([
         listarColaboradores(tenantId),
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+        getAllFaturamentosByTenant(tenantId, input.mes, input.ano, input.empresaSlug),
+        getMetasByMesAndTenant(tenantId, input.mes, input.ano),
       ]);
       
       // Filtrar profissionais da unidade especificada
@@ -1147,7 +1149,7 @@ const profissionaisRouter = router({
         (p) => p.empresaSlug === input.empresaSlug && p.ativo === 1 && p.isGerencia !== 1
       );
       
-      const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
+      const faturamentoMap = new Map(faturamentosProf.map((f) => [f.colaboradorId, f]));
       
       const lista = profissionaisDaUnidade
         .filter((p) => {
@@ -1176,14 +1178,20 @@ const profissionaisRouter = router({
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
       
-      // Calcular estatísticas da unidade
-      const totalRealizado = lista.reduce((sum, p) => sum + p.totalGeral, 0);
-      const metaMensal = profissionaisDaUnidade.reduce((sum, p) => {
-        const meta = p.metaMensal ? parseFloat(String(p.metaMensal)) : 0;
-        return sum + meta;
-      }, 0);
-      
+      // Calcular faturamento REAL da unidade a partir da tabela faturamentos
       const hoje = new Date();
+      const hojeStr = hoje.toISOString().slice(0, 10);
+      const totalRealizado = fatUnidadeRows
+        .filter((r) => r.data <= hojeStr)
+        .reduce((sum, r) => {
+          return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+            .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
+        }, 0);
+
+      // Meta da unidade a partir da tabela metas
+      const metaUnidade = metasUnidade.find((m) => m.empresaSlug === input.empresaSlug);
+      const metaMensal = metaUnidade ? parseFloat(String(metaUnidade.metaMensal)) : 0;
+      
       const diaAtual = hoje.getDate();
       const diasNoMes = new Date(input.ano, input.mes, 0).getDate();
       const diasRestantes = Math.max(0, diasNoMes - diaAtual + 1);

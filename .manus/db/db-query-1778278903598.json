@@ -1,0 +1,115 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  data,\n  cat1 + cat2 + cat9 as totalDia\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\n  AND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi', 'barbiero-seraphine')\n  AND (cat1 + cat2 + cat9) > 0\nORDER BY empresaSlug, data;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  data,\n  cat1 + cat2 + cat9 as totalDia\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\n  AND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi', 'barbiero-seraphine')\n  AND (cat1 + cat2 + cat9) > 0\nORDER BY empresaSlug, data;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-01",
+      "totalDia": "3311.71"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-02",
+      "totalDia": "4282.92"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-03",
+      "totalDia": "2044.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-04",
+      "totalDia": "2262.90"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-05",
+      "totalDia": "3138.92"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-06",
+      "totalDia": "3012.91"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-07",
+      "totalDia": "3598.25"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-08",
+      "totalDia": "3958.82"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-01",
+      "totalDia": "9785.45"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-02",
+      "totalDia": "10587.50"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-03",
+      "totalDia": "4984.88"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-04",
+      "totalDia": "8550.78"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-05",
+      "totalDia": "7509.93"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-06",
+      "totalDia": "7653.88"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-07",
+      "totalDia": "8353.19"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-08",
+      "totalDia": "7202.39"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-01",
+      "totalDia": "7670.00"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-02",
+      "totalDia": "9319.00"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-05",
+      "totalDia": "2963.00"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-06",
+      "totalDia": "3896.00"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-07",
+      "totalDia": "3790.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\ttotalDia\nbarbiero-mascote\t2026-05-01\t3311.71\nbarbiero-mascote\t2026-05-02\t4282.92\nbarbiero-mascote\t2026-05-03\t2044.00\nbarbiero-mascote\t2026-05-04\t2262.90\nbarbiero-mascote\t2026-05-05\t3138.92\nbarbiero-mascote\t2026-05-06\t3012.91\nbarbiero-mascote\t2026-05-07\t3598.25\nbarbiero-mascote\t2026-05-08\t3958.82\nbarbiero-morumbi\t2026-05-01\t9785.45\nbarbiero-morumbi\t2026-05-02\t10587.50\nbarbiero-morumbi\t2026-05-03\t4984.88\nbarbiero-morumbi\t2026-05-04\t8550.78\nbarbiero-morumbi\t2026-05-05\t7509.93\nbarbiero-morumbi\t2026-05-06\t7653.88\nbarbiero-morumbi\t2026-05-07\t8353.19\nbarbiero-morumbi\t2026-05-08\t7202.39\nbarbiero-seraphine\t2026-05-01\t7670.00\nbarbiero-seraphine\t2026-05-02\t9319.00\nbarbiero-seraphine\t2026-05-05\t2963.00\nbarbiero-seraphine\t2026-05-06\t3896.00\nbarbiero-seraphine\t2026-05-07\t3790.00\n",
+  "stderr": "",
+  "execution_time_ms": 279
+}

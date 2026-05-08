@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Novo cálculo:\n-- Serviços mantidos: Barboterapia R$30.40 + Depilação Nariz R$36.00 + Hidratação Barba R$80.50 + Sobrancelha R$31.50 = R$178.40\n-- Produtos mantidos: Balm Barbiero R$179.82 + Leave-in Barbiero R$80.90 = R$260.72\n-- Novo totalGeral = 178.40 + 260.72 = R$439.12\n-- qtdServicos = 5 (Barboterapia 1 + Depilação Nariz 1 + Hidratação Barba 2 + Sobrancelha 1)\n\nUPDATE faturamentoColaboradores \nSET \n  totalServicos = 178.40,\n  totalGeral = 439.12,\n  qtdServicos = 5\nWHERE id = 150021;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Novo cálculo:\n-- Serviços mantidos: Barboterapia R$30.40 + Depilação Nariz R$36.00 + Hidratação Barba R$80.50 + Sobrancelha R$31.50 = R$178.40\n-- Produtos mantidos: Balm Barbiero R$179.82 + Leave-in Barbiero R$80.90 = R$260.72\n-- Novo totalGeral = 178.40 + 260.72 = R$439.12\n-- qtdServicos = 5 (Barboterapia 1 + Depilação Nariz 1 + Hidratação Barba 2 + Sobrancelha 1)\n\nUPDATE faturamentoColaboradores \nSET \n  totalServicos = 178.40,\n  totalGeral = 439.12,\n  qtdServicos = 5\nWHERE id = 150021;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 395
+}

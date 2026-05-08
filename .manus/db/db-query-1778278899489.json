@@ -1,0 +1,58 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat9) as totalFaturado,\n  SUM(cat1) as totalAvulso,\n  SUM(cat2) as totalClube,\n  SUM(cat9) as totalDpote,\n  COUNT(*) as qtdDias\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat9) as totalFaturado,\n  SUM(cat1) as totalAvulso,\n  SUM(cat2) as totalClube,\n  SUM(cat9) as totalDpote,\n  COUNT(*) as qtdDias\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "totalFaturado": "25610.43",
+      "totalAvulso": "7721.90",
+      "totalClube": "1536.53",
+      "totalDpote": "16352.00",
+      "qtdDias": "31"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "totalFaturado": "64628.00",
+      "totalAvulso": "21154.35",
+      "totalClube": "3594.61",
+      "totalDpote": "39879.04",
+      "qtdDias": "31"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "totalFaturado": "27638.00",
+      "totalAvulso": "22203.00",
+      "totalClube": "5435.00",
+      "totalDpote": "0.00",
+      "qtdDias": "5"
+    },
+    {
+      "empresaSlug": "mascote",
+      "totalFaturado": "4263.00",
+      "totalAvulso": "1400.40",
+      "totalClube": "498.60",
+      "totalDpote": "2364.00",
+      "qtdDias": "31"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "totalFaturado": "16931.50",
+      "totalAvulso": "4387.00",
+      "totalClube": "1848.50",
+      "totalDpote": "10696.00",
+      "qtdDias": "31"
+    },
+    {
+      "empresaSlug": "seraphine",
+      "totalFaturado": "45214.00",
+      "totalAvulso": "38666.00",
+      "totalClube": "6548.00",
+      "totalDpote": "0.00",
+      "qtdDias": "12"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotalFaturado\ttotalAvulso\ttotalClube\ttotalDpote\tqtdDias\nbarbiero-mascote\t25610.43\t7721.90\t1536.53\t16352.00\t31\nbarbiero-morumbi\t64628.00\t21154.35\t3594.61\t39879.04\t31\nbarbiero-seraphine\t27638.00\t22203.00\t5435.00\t0.00\t5\nmascote\t4263.00\t1400.40\t498.60\t2364.00\t31\nmorumbi\t16931.50\t4387.00\t1848.50\t10696.00\t31\nseraphine\t45214.00\t38666.00\t6548.00\t0.00\t12\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

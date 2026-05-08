@@ -1,0 +1,20 @@
+{
+  "query": "\n-- Atualizar o colaboradorId para usar o registro correto do Renan na Mascote (id=90001)\nUPDATE faturamentoColaboradores \nSET colaboradorId = 90001, updatedAt = NOW()\nWHERE id = 150021;\n\n-- Verificar resultado\nSELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral\nFROM faturamentoColaboradores\nWHERE id = 150021;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Atualizar o colaboradorId para usar o registro correto do Renan na Mascote (id=90001)\nUPDATE faturamentoColaboradores \nSET colaboradorId = 90001, updatedAt = NOW()\nWHERE id = 150021;\n\n-- Verificar resultado\nSELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral\nFROM faturamentoColaboradores\nWHERE id = 150021;\n",
+  "rows": [
+    {
+      "id": "150021",
+      "colaboradorId": "90001",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "873.40",
+      "totalProdutos": "260.72",
+      "totalGeral": "1134.12"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcolaboradorId\tempresaSlug\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\n150021\t90001\tbarbiero-mascote\t5\t2026\t873.40\t260.72\t1134.12\n",
+  "stderr": "",
+  "execution_time_ms": 275
+}

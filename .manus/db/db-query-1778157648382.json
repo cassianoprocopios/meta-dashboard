@@ -1,0 +1,42 @@
+{
+  "query": "SELECT id, data, tenantId, empresaSlug, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, sincronizadoCB FROM faturamentos WHERE data = '2026-05-06' AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, data, tenantId, empresaSlug, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, sincronizadoCB FROM faturamentos WHERE data = '2026-05-06' AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "id": "1050009",
+      "data": "2026-05-06",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-mascote",
+      "cat1": "752.00",
+      "cat2": "216.91",
+      "cat3": "0.00",
+      "cat4": "0.00",
+      "cat5": "0.00",
+      "cat6": "0.00",
+      "cat7": "0.00",
+      "cat8": "0.00",
+      "cat9": "1506.00",
+      "sincronizadoCB": "1"
+    },
+    {
+      "id": "1050042",
+      "data": "2026-05-06",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "cat1": "2590.00",
+      "cat2": "79.00",
+      "cat3": "0.00",
+      "cat4": "0.00",
+      "cat5": "0.00",
+      "cat6": "0.00",
+      "cat7": "0.00",
+      "cat8": "0.00",
+      "cat9": "4419.29",
+      "sincronizadoCB": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tdata\ttenantId\tempresaSlug\tcat1\tcat2\tcat3\tcat4\tcat5\tcat6\tcat7\tcat8\tcat9\tsincronizadoCB\n1050009\t2026-05-06\t1\tbarbiero-mascote\t752.00\t216.91\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t1506.00\t1\n1050042\t2026-05-06\t1\tbarbiero-morumbi\t2590.00\t79.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t4419.29\t1\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

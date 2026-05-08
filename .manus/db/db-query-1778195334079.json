@@ -1,0 +1,149 @@
+{
+  "query": "DESCRIBE colaboradores;\nSELECT * FROM colaboradores WHERE nome LIKE '%Renan%' OR nome LIKE '%renan%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute DESCRIBE colaboradores;\nSELECT * FROM colaboradores WHERE nome LIKE '%Renan%' OR nome LIKE '%renan%';",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "tenantId",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "empresaSlug",
+      "Type": "varchar(64)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "nome",
+      "Type": "varchar(128)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "apelido",
+      "Type": "varchar(64)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "fotoUrl",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "cargo",
+      "Type": "varchar(64)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "barbeiro",
+      "Extra": ""
+    },
+    {
+      "Field": "exibirNoRanking",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "1",
+      "Extra": ""
+    },
+    {
+      "Field": "ativo",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "1",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    },
+    {
+      "Field": "cashbarberProfissionalId",
+      "Type": "int",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "pinAcesso",
+      "Type": "varchar(20)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "telefone",
+      "Type": "varchar(32)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "categoriaRanking",
+      "Type": "enum('barbeiro','auxiliar','recepcao')",
+      "Null": "YES",
+      "Key": "",
+      "Default": "barbeiro",
+      "Extra": ""
+    },
+    {
+      "Field": "metaMensal",
+      "Type": "decimal(10,2)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "isGerencia",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    }
+  ],
+  "messages": [
+    "id\ttenantId\tempresaSlug\tnome\tapelido\tfotoUrl\tcargo\texibirNoRanking\tativo\tcreatedAt\tupdatedAt\tcashbarberProfissionalId\tpinAcesso\ttelefone\tcategoriaRanking\tmetaMensal\tisGerencia",
+    "19\t1\tbarbiero-grupo\tRenan\tNULL\tNULL\tBarbeiro\t1\t1\t2026-03-27 03:46:17\t2026-05-07 17:10:36\t32423\t7819\t11945543459\tbarbeiro\t4000.00\t0"
+  ],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\ntenantId\tint\tNO\t\tNULL\t\nempresaSlug\tvarchar(64)\tNO\t\tNULL\t\nnome\tvarchar(128)\tNO\t\tNULL\t\napelido\tvarchar(64)\tYES\t\tNULL\t\nfotoUrl\ttext\tYES\t\tNULL\t\ncargo\tvarchar(64)\tYES\t\tbarbeiro\t\nexibirNoRanking\tint\tNO\t\t1\t\nativo\tint\tNO\t\t1\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\ncashbarberProfissionalId\tint\tYES\t\tNULL\t\npinAcesso\tvarchar(20)\tYES\t\tNULL\t\ntelefone\tvarchar(32)\tYES\t\tNULL\t\ncategoriaRanking\tenum('barbeiro','auxiliar','recepcao')\tYES\t\tbarbeiro\t\nmetaMensal\tdecimal(10,2)\tYES\t\tNULL\t\nisGerencia\tint\tNO\t\t0\t\nid\ttenantId\tempresaSlug\tnome\tapelido\tfotoUrl\tcargo\texibirNoRanking\tativo\tcreatedAt\tupdatedAt\tcashbarberProfissionalId\tpinAcesso\ttelefone\tcategoriaRanking\tmetaMensal\tisGerencia\n19\t1\tbarbiero-grupo\tRenan\tNULL\tNULL\tBarbeiro\t1\t1\t2026-03-27 03:46:17\t2026-05-07 17:10:36\t32423\t7819\t11945543459\tbarbeiro\t4000.00\t0\n",
+  "stderr": "",
+  "execution_time_ms": 275
+}

@@ -1,0 +1,31 @@
+{
+  "query": "SELECT DISTINCT tenantId, empresaSlug, MIN(data) as primeiro_dia, MAX(data) as ultimo_dia, COUNT(*) as total_registros FROM faturamentos WHERE empresaSlug = 'SERAPHINE' GROUP BY tenantId, empresaSlug ORDER BY tenantId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT tenantId, empresaSlug, MIN(data) as primeiro_dia, MAX(data) as ultimo_dia, COUNT(*) as total_registros FROM faturamentos WHERE empresaSlug = 'SERAPHINE' GROUP BY tenantId, empresaSlug ORDER BY tenantId;",
+  "rows": [
+    {
+      "tenantId": "1",
+      "empresaSlug": "seraphine",
+      "primeiro_dia": "2026-05-01",
+      "ultimo_dia": "2026-05-05",
+      "total_registros": "4"
+    },
+    {
+      "tenantId": "2",
+      "empresaSlug": "SERAPHINE",
+      "primeiro_dia": "2026-05-05",
+      "ultimo_dia": "2026-05-06",
+      "total_registros": "2"
+    },
+    {
+      "tenantId": "3",
+      "empresaSlug": "SERAPHINE",
+      "primeiro_dia": "2026-05-05",
+      "ultimo_dia": "2026-05-06",
+      "total_registros": "2"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaSlug\tprimeiro_dia\tultimo_dia\ttotal_registros\n1\tseraphine\t2026-05-01\t2026-05-05\t4\n2\tSERAPHINE\t2026-05-05\t2026-05-06\t2\n3\tSERAPHINE\t2026-05-05\t2026-05-06\t2\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}

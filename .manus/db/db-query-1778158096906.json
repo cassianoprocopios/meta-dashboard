@@ -1,0 +1,210 @@
+{
+  "query": "SELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, colaboradorId, empresaSlug, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') LIMIT 20;",
+  "rows": [
+    {
+      "id": "150001",
+      "colaboradorId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "640.10",
+      "totalProdutos": "476.20",
+      "totalGeral": "1116.30"
+    },
+    {
+      "id": "150002",
+      "colaboradorId": "5",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "242.20",
+      "totalProdutos": "89.00",
+      "totalGeral": "331.20"
+    },
+    {
+      "id": "150003",
+      "colaboradorId": "60002",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00"
+    },
+    {
+      "id": "150004",
+      "colaboradorId": "7",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "355.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "355.00"
+    },
+    {
+      "id": "150005",
+      "colaboradorId": "12",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "246.25",
+      "totalProdutos": "89.90",
+      "totalGeral": "336.15"
+    },
+    {
+      "id": "150006",
+      "colaboradorId": "2",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "261.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "261.00"
+    },
+    {
+      "id": "150007",
+      "colaboradorId": "6",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "327.70",
+      "totalProdutos": "80.91",
+      "totalGeral": "408.61"
+    },
+    {
+      "id": "150008",
+      "colaboradorId": "23",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "512.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "512.00"
+    },
+    {
+      "id": "150009",
+      "colaboradorId": "3",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "708.00",
+      "totalProdutos": "161.82",
+      "totalGeral": "869.82"
+    },
+    {
+      "id": "150010",
+      "colaboradorId": "18",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "447.50",
+      "totalProdutos": "241.80",
+      "totalGeral": "689.30"
+    },
+    {
+      "id": "150011",
+      "colaboradorId": "22",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "65.70",
+      "totalProdutos": "0.00",
+      "totalGeral": "65.70"
+    },
+    {
+      "id": "150012",
+      "colaboradorId": "8",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "54.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "54.00"
+    },
+    {
+      "id": "150013",
+      "colaboradorId": "14",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "111.00",
+      "totalProdutos": "89.90",
+      "totalGeral": "200.90"
+    },
+    {
+      "id": "150014",
+      "colaboradorId": "21",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "530.00",
+      "totalProdutos": "162.27",
+      "totalGeral": "692.27"
+    },
+    {
+      "id": "150015",
+      "colaboradorId": "10",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "587.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "587.00"
+    },
+    {
+      "id": "150016",
+      "colaboradorId": "11",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "153.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "153.00"
+    },
+    {
+      "id": "150017",
+      "colaboradorId": "20",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "239.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "239.00"
+    },
+    {
+      "id": "150018",
+      "colaboradorId": "13",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "203.50",
+      "totalProdutos": "99.90",
+      "totalGeral": "303.40"
+    },
+    {
+      "id": "150019",
+      "colaboradorId": "16",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "0.00",
+      "totalProdutos": "179.82",
+      "totalGeral": "179.82"
+    },
+    {
+      "id": "150020",
+      "colaboradorId": "4",
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "120.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "120.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcolaboradorId\tempresaSlug\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\n150001\t1\tbarbiero-morumbi\t5\t2026\t640.10\t476.20\t1116.30\n150002\t5\tbarbiero-mascote\t5\t2026\t242.20\t89.00\t331.20\n150003\t60002\tbarbiero-morumbi\t5\t2026\t0.00\t0.00\t0.00\n150004\t7\tbarbiero-morumbi\t5\t2026\t355.00\t0.00\t355.00\n150005\t12\tbarbiero-morumbi\t5\t2026\t246.25\t89.90\t336.15\n150006\t2\tbarbiero-morumbi\t5\t2026\t261.00\t0.00\t261.00\n150007\t6\tbarbiero-mascote\t5\t2026\t327.70\t80.91\t408.61\n150008\t23\tbarbiero-morumbi\t5\t2026\t512.00\t0.00\t512.00\n150009\t3\tbarbiero-morumbi\t5\t2026\t708.00\t161.82\t869.82\n150010\t18\tbarbiero-morumbi\t5\t2026\t447.50\t241.80\t689.30\n150011\t22\tbarbiero-mascote\t5\t2026\t65.70\t0.00\t65.70\n150012\t8\tbarbiero-mascote\t5\t2026\t54.00\t0.00\t54.00\n150013\t14\tbarbiero-morumbi\t5\t2026\t111.00\t89.90\t200.90\n150014\t21\tbarbiero-morumbi\t5\t2026\t530.00\t162.27\t692.27\n150015\t10\tbarbiero-mascote\t5\t2026\t587.00\t0.00\t587.00\n150016\t11\tbarbiero-mascote\t5\t2026\t153.00\t0.00\t153.00\n150017\t20\tbarbiero-morumbi\t5\t2026\t239.00\t0.00\t239.00\n150018\t13\tbarbiero-mascote\t5\t2026\t203.50\t99.90\t303.40\n150019\t16\tbarbiero-mascote\t5\t2026\t0.00\t179.82\t179.82\n150020\t4\tbarbiero-morumbi\t5\t2026\t120.00\t0.00\t120.00\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

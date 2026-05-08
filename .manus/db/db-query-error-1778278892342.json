@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat9) as totalFaturado,\n  SUM(cat1) as totalAvulso,\n  SUM(cat2) as totalClube,\n  SUM(cat9) as totalDpote,\n  COUNT(*) as qtdDias\nFROM faturamentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat9) as totalFaturado,\n  SUM(cat1) as totalAvulso,\n  SUM(cat2) as totalClube,\n  SUM(cat9) as totalDpote,\n  COUNT(*) as qtdDias\nFROM faturamentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'mes' in 'where clause'"
+  ]
+}

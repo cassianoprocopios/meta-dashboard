@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, empresaSlug, data, cat1, cat2, cat3, tenantId, lancadoPor FROM faturamentos WHERE tenantId IN (2, 3) AND data = '2026-05-06';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, data, cat1, cat2, cat3, tenantId, lancadoPor FROM faturamentos WHERE tenantId IN (2, 3) AND data = '2026-05-06';",
+  "rows": [
+    {
+      "id": "1320002",
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-05-06",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "tenantId": "2",
+      "lancadoPor": "sync-avec-dia6"
+    },
+    {
+      "id": "1320003",
+      "empresaSlug": "SERAPHINE",
+      "data": "2026-05-06",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "tenantId": "3",
+      "lancadoPor": "sync-avec-dia6"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tdata\tcat1\tcat2\tcat3\ttenantId\tlancadoPor\n1320002\tSERAPHINE\t2026-05-06\t3260.00\t636.00\t7.50\t2\tsync-avec-dia6\n1320003\tSERAPHINE\t2026-05-06\t3260.00\t636.00\t7.50\t3\tsync-avec-dia6\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

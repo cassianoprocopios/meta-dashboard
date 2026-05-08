@@ -1,0 +1,26 @@
+{
+  "query": "\n-- Verificar o colaboradorId 90001 (Renan Mascote inserido anteriormente)\nSELECT id, nome, empresaSlug, cashbarberProfissionalId, cargo, metaMensal \nFROM colaboradores \nWHERE id = 90001 OR (nome LIKE '%Renan%');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar o colaboradorId 90001 (Renan Mascote inserido anteriormente)\nSELECT id, nome, empresaSlug, cashbarberProfissionalId, cargo, metaMensal \nFROM colaboradores \nWHERE id = 90001 OR (nome LIKE '%Renan%');\n",
+  "rows": [
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "32423",
+      "cargo": "Barbeiro",
+      "metaMensal": "4000.00"
+    },
+    {
+      "id": "90001",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "32423",
+      "cargo": "Barbeiro",
+      "metaMensal": "3000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\tcargo\tmetaMensal\n19\tRenan\tbarbiero-grupo\t32423\tBarbeiro\t4000.00\n90001\tRenan\tbarbiero-mascote\t32423\tBarbeiro\t3000.00\n",
+  "stderr": "",
+  "execution_time_ms": 331
+}

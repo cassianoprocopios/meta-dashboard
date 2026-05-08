@@ -1,0 +1,20 @@
+{
+  "query": "SELECT empresaSlug, SUM(cat9) as totalDpote, COUNT(*) as dias FROM faturamentos WHERE data >= '2026-05-01' AND data <= '2026-05-07' AND tenantId = 1 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(cat9) as totalDpote, COUNT(*) as dias FROM faturamentos WHERE data >= '2026-05-01' AND data <= '2026-05-07' AND tenantId = 1 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "totalDpote": "30935.03",
+      "dias": "7"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "totalDpote": "10542.00",
+      "dias": "7"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotalDpote\tdias\nbarbiero-morumbi\t30935.03\t7\nbarbiero-mascote\t10542.00\t7\n",
+  "stderr": "",
+  "execution_time_ms": 73
+}

@@ -1,0 +1,20 @@
+{
+  "query": "\nSELECT empresaSlug, data, cat1 + cat2 + cat9 as totalDia\nFROM faturamentos\nWHERE data = '2026-05-08'\n  AND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi', 'barbiero-seraphine');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, data, cat1 + cat2 + cat9 as totalDia\nFROM faturamentos\nWHERE data = '2026-05-08'\n  AND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi', 'barbiero-seraphine');\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-08",
+      "totalDia": "3958.82"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-08",
+      "totalDia": "7202.39"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\ttotalDia\nbarbiero-mascote\t2026-05-08\t3958.82\nbarbiero-morumbi\t2026-05-08\t7202.39\n",
+  "stderr": "",
+  "execution_time_ms": 260
+}

@@ -1,0 +1,75 @@
+{
+  "query": "SELECT * FROM cashbarberSyncLog ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT * FROM cashbarberSyncLog ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "6690003",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-mascote",
+      "origem": "auto",
+      "status": "ok",
+      "mes": "5",
+      "ano": "2026",
+      "diasSincronizados": "7",
+      "diasIgnorados": "0",
+      "erros": "NULL",
+      "executadoEm": "2026-05-07 10:05:56"
+    },
+    {
+      "id": "6690002",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "origem": "auto",
+      "status": "ok",
+      "mes": "5",
+      "ano": "2026",
+      "diasSincronizados": "7",
+      "diasIgnorados": "0",
+      "erros": "NULL",
+      "executadoEm": "2026-05-07 10:05:30"
+    },
+    {
+      "id": "6690001",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "origem": "auto",
+      "status": "ok",
+      "mes": "5",
+      "ano": "2026",
+      "diasSincronizados": "7",
+      "diasIgnorados": "0",
+      "erros": "NULL",
+      "executadoEm": "2026-05-07 10:00:36"
+    },
+    {
+      "id": "6660001",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "origem": "auto",
+      "status": "ok",
+      "mes": "5",
+      "ano": "2026",
+      "diasSincronizados": "6",
+      "diasIgnorados": "0",
+      "erros": "NULL",
+      "executadoEm": "2026-05-06 21:00:31"
+    },
+    {
+      "id": "6630002",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "origem": "auto",
+      "status": "ok",
+      "mes": "5",
+      "ano": "2026",
+      "diasSincronizados": "6",
+      "diasIgnorados": "0",
+      "erros": "NULL",
+      "executadoEm": "2026-05-06 11:33:42"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\torigem\tstatus\tmes\tano\tdiasSincronizados\tdiasIgnorados\terros\texecutadoEm\n6690003\t1\tbarbiero-mascote\tauto\tok\t5\t2026\t7\t0\tNULL\t2026-05-07 10:05:56\n6690002\t1\tbarbiero-morumbi\tauto\tok\t5\t2026\t7\t0\tNULL\t2026-05-07 10:05:30\n6690001\t1\tbarbiero-morumbi\tauto\tok\t5\t2026\t7\t0\tNULL\t2026-05-07 10:00:36\n6660001\t1\tbarbiero-morumbi\tauto\tok\t5\t2026\t6\t0\tNULL\t2026-05-06 21:00:31\n6630002\t1\tbarbiero-morumbi\tauto\tok\t5\t2026\t6\t0\tNULL\t2026-05-06 11:33:42\n",
+  "stderr": "",
+  "execution_time_ms": 73
+}

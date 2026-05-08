@@ -1,0 +1,114 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cashbarberProfissionalId, cargo, metaMensal FROM colaboradores WHERE empresaSlug IN ('barbiero-mascote', 'barbiero-grupo') ORDER BY empresaSlug, nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cashbarberProfissionalId, cargo, metaMensal FROM colaboradores WHERE empresaSlug IN ('barbiero-mascote', 'barbiero-grupo') ORDER BY empresaSlug, nome;",
+  "rows": [
+    {
+      "id": "60001",
+      "nome": "Cassiano",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "NULL",
+      "cargo": "Gerente",
+      "metaMensal": "NULL"
+    },
+    {
+      "id": "30001",
+      "nome": "Daniela",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "NULL",
+      "cargo": "Gerente",
+      "metaMensal": "NULL"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "32423",
+      "cargo": "Barbeiro",
+      "metaMensal": "4000.00"
+    },
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "27520",
+      "cargo": "Barbeiro",
+      "metaMensal": "2000.00"
+    },
+    {
+      "id": "60003",
+      "nome": "Cintia",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "NULL",
+      "cargo": "Barbeiro",
+      "metaMensal": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22436",
+      "cargo": "Barbeiro",
+      "metaMensal": "3500.00"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "34288",
+      "cargo": "Barbeiro",
+      "metaMensal": "2000.00"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23224",
+      "cargo": "Barbeiro",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "29459",
+      "cargo": "Barbeiro",
+      "metaMensal": "6000.00"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "25571",
+      "cargo": "Barbeiro",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22435",
+      "cargo": "Barbeiro",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23105",
+      "cargo": "Barbeiro",
+      "metaMensal": "6000.00"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "24720",
+      "cargo": "Barbeiro",
+      "metaMensal": "3500.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\tcargo\tmetaMensal\n60001\tCassiano\tbarbiero-grupo\tNULL\tGerente\tNULL\n30001\tDaniela\tbarbiero-grupo\tNULL\tGerente\tNULL\n19\tRenan\tbarbiero-grupo\t32423\tBarbeiro\t4000.00\n5\tCaio\tbarbiero-mascote\t27520\tBarbeiro\t2000.00\n60003\tCintia\tbarbiero-mascote\tNULL\tBarbeiro\tNULL\n6\tEdinho\tbarbiero-mascote\t22436\tBarbeiro\t3500.00\n22\tFelipe\tbarbiero-mascote\t34288\tBarbeiro\t2000.00\n8\tIsabella\tbarbiero-mascote\t23224\tBarbeiro\t2500.00\n10\tKaren\tbarbiero-mascote\t29459\tBarbeiro\t6000.00\n11\tMell\tbarbiero-mascote\t25571\tBarbeiro\t2500.00\n13\tNeudo\tbarbiero-mascote\t22435\tBarbeiro\t2500.00\n16\tRecepção Mascote\tbarbiero-mascote\t23105\tBarbeiro\t6000.00\n17\tVinicius\tbarbiero-mascote\t24720\tBarbeiro\t3500.00\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

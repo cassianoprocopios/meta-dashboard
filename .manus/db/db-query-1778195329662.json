@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE '%profissional%';\nSHOW TABLES LIKE '%colaborador%';\nSHOW TABLES LIKE '%barbeiro%';\nSHOW TABLES LIKE '%ranking%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW TABLES LIKE '%profissional%';\nSHOW TABLES LIKE '%colaborador%';\nSHOW TABLES LIKE '%barbeiro%';\nSHOW TABLES LIKE '%ranking%';",
+  "rows": [
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%colaborador%)": "colaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%colaborador%)": "faturamentoColaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%colaborador%)": "metasColaboradores"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_MANH2fxvkecBuwjELBL3u8 (%colaborador%)\ncolaboradores\nfaturamentoColaboradores\nmetasColaboradores\n",
+  "stderr": "",
+  "execution_time_ms": 277
+}

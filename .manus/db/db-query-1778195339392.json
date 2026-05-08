@@ -1,0 +1,120 @@
+{
+  "query": "SELECT id, empresaSlug, nome, cargo, exibirNoRanking, ativo, cashbarberProfissionalId, categoriaRanking, metaMensal\nFROM colaboradores \nWHERE empresaSlug LIKE '%mascote%' OR empresaSlug LIKE '%Mascote%'\nORDER BY empresaSlug, nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, nome, cargo, exibirNoRanking, ativo, cashbarberProfissionalId, categoriaRanking, metaMensal\nFROM colaboradores \nWHERE empresaSlug LIKE '%mascote%' OR empresaSlug LIKE '%Mascote%'\nORDER BY empresaSlug, nome;",
+  "rows": [
+    {
+      "id": "5",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Caio",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "27520",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "2000.00"
+    },
+    {
+      "id": "60003",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Cintia",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "NULL",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "NULL"
+    },
+    {
+      "id": "6",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Edinho",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "22436",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "3500.00"
+    },
+    {
+      "id": "22",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Felipe",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "34288",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "2000.00"
+    },
+    {
+      "id": "8",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Isabella",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "23224",
+      "categoriaRanking": "auxiliar",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "10",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Karen",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "29459",
+      "categoriaRanking": "auxiliar",
+      "metaMensal": "6000.00"
+    },
+    {
+      "id": "11",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Mell",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "25571",
+      "categoriaRanking": "auxiliar",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "13",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Neudo",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "22435",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "2500.00"
+    },
+    {
+      "id": "16",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Recepção Mascote",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "23105",
+      "categoriaRanking": "recepcao",
+      "metaMensal": "6000.00"
+    },
+    {
+      "id": "17",
+      "empresaSlug": "barbiero-mascote",
+      "nome": "Vinicius",
+      "cargo": "Barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "cashbarberProfissionalId": "24720",
+      "categoriaRanking": "barbeiro",
+      "metaMensal": "3500.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tnome\tcargo\texibirNoRanking\tativo\tcashbarberProfissionalId\tcategoriaRanking\tmetaMensal\n5\tbarbiero-mascote\tCaio\tBarbeiro\t1\t1\t27520\tbarbeiro\t2000.00\n60003\tbarbiero-mascote\tCintia\tBarbeiro\t1\t1\tNULL\tbarbeiro\tNULL\n6\tbarbiero-mascote\tEdinho\tBarbeiro\t1\t1\t22436\tbarbeiro\t3500.00\n22\tbarbiero-mascote\tFelipe\tBarbeiro\t1\t1\t34288\tbarbeiro\t2000.00\n8\tbarbiero-mascote\tIsabella\tBarbeiro\t1\t1\t23224\tauxiliar\t2500.00\n10\tbarbiero-mascote\tKaren\tBarbeiro\t1\t1\t29459\tauxiliar\t6000.00\n11\tbarbiero-mascote\tMell\tBarbeiro\t1\t1\t25571\tauxiliar\t2500.00\n13\tbarbiero-mascote\tNeudo\tBarbeiro\t1\t1\t22435\tbarbeiro\t2500.00\n16\tbarbiero-mascote\tRecepção Mascote\tBarbeiro\t1\t1\t23105\trecepcao\t6000.00\n17\tbarbiero-mascote\tVinicius\tBarbeiro\t1\t1\t24720\tbarbeiro\t3500.00\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

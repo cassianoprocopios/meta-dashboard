@@ -1,0 +1,50 @@
+{
+  "query": "SELECT data, cat1 as servicos, cat2 as pacotes, cat3 as produtos, \n       (cat1+cat2+cat3) as total, lancadoPor\nFROM faturamentos \nWHERE empresaSlug='barbiero-seraphine' AND data LIKE '2026-05%'\nORDER BY data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat1 as servicos, cat2 as pacotes, cat3 as produtos, \n       (cat1+cat2+cat3) as total, lancadoPor\nFROM faturamentos \nWHERE empresaSlug='barbiero-seraphine' AND data LIKE '2026-05%'\nORDER BY data;",
+  "rows": [
+    {
+      "data": "2026-05-01",
+      "servicos": "5862.00",
+      "pacotes": "1808.00",
+      "produtos": "34.50",
+      "total": "7704.50",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "data": "2026-05-02",
+      "servicos": "6882.00",
+      "pacotes": "2437.00",
+      "produtos": "62.00",
+      "total": "9381.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "data": "2026-05-05",
+      "servicos": "2409.00",
+      "pacotes": "554.00",
+      "produtos": "6.00",
+      "total": "2969.00",
+      "lancadoPor": "avec-rel0184-dia5"
+    },
+    {
+      "data": "2026-05-06",
+      "servicos": "3260.00",
+      "pacotes": "636.00",
+      "produtos": "7.50",
+      "total": "3903.50",
+      "lancadoPor": "avec-rel0184-dia6"
+    },
+    {
+      "data": "2026-05-07",
+      "servicos": "3790.00",
+      "pacotes": "0.00",
+      "produtos": "53.00",
+      "total": "3843.00",
+      "lancadoPor": "avec-rel0184-dia7"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tservicos\tpacotes\tprodutos\ttotal\tlancadoPor\n2026-05-01\t5862.00\t1808.00\t34.50\t7704.50\tavec-sync-rel0184\n2026-05-02\t6882.00\t2437.00\t62.00\t9381.00\tavec-sync-rel0184\n2026-05-05\t2409.00\t554.00\t6.00\t2969.00\tavec-rel0184-dia5\n2026-05-06\t3260.00\t636.00\t7.50\t3903.50\tavec-rel0184-dia6\n2026-05-07\t3790.00\t0.00\t53.00\t3843.00\tavec-rel0184-dia7\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

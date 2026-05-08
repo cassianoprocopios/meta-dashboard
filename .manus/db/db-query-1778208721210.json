@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cashbarberProfissionalId, metaMensal FROM colaboradores WHERE nome = 'Renan' OR cashbarberProfissionalId = 32423;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cashbarberProfissionalId, metaMensal FROM colaboradores WHERE nome = 'Renan' OR cashbarberProfissionalId = 32423;",
+  "rows": [
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-grupo",
+      "cashbarberProfissionalId": "32423",
+      "metaMensal": "4000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\tmetaMensal\n19\tRenan\tbarbiero-grupo\t32423\t4000.00\n",
+  "stderr": "",
+  "execution_time_ms": 280
+}

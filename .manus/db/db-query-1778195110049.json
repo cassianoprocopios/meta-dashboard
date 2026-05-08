@@ -1,0 +1,55 @@
+{
+  "query": "SELECT data, empresaSlug, tenantId, cat1, cat2, cat3, lancadoPor \nFROM faturamentos \nWHERE empresaSlug IN ('SERAPHINE', 'seraphine', 'barbiero-seraphine') \nAND data IN ('2026-05-05', '2026-05-06', '2026-05-07')\nORDER BY data, empresaSlug, tenantId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, empresaSlug, tenantId, cat1, cat2, cat3, lancadoPor \nFROM faturamentos \nWHERE empresaSlug IN ('SERAPHINE', 'seraphine', 'barbiero-seraphine') \nAND data IN ('2026-05-05', '2026-05-06', '2026-05-07')\nORDER BY data, empresaSlug, tenantId;",
+  "rows": [
+    {
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "1",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "lancadoPor": "manual-dia5"
+    },
+    {
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "2",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "lancadoPor": "manual-dia5"
+    },
+    {
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "3",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "lancadoPor": "manual-dia5"
+    },
+    {
+      "data": "2026-05-06",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "2",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "lancadoPor": "sync-avec-dia6"
+    },
+    {
+      "data": "2026-05-06",
+      "empresaSlug": "SERAPHINE",
+      "tenantId": "3",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "lancadoPor": "sync-avec-dia6"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tempresaSlug\ttenantId\tcat1\tcat2\tcat3\tlancadoPor\n2026-05-05\tSERAPHINE\t1\t2409.00\t554.00\t6.00\tmanual-dia5\n2026-05-05\tSERAPHINE\t2\t2409.00\t554.00\t6.00\tmanual-dia5\n2026-05-05\tSERAPHINE\t3\t2409.00\t554.00\t6.00\tmanual-dia5\n2026-05-06\tSERAPHINE\t2\t3260.00\t636.00\t7.50\tsync-avec-dia6\n2026-05-06\tSERAPHINE\t3\t3260.00\t636.00\t7.50\tsync-avec-dia6\n",
+  "stderr": "",
+  "execution_time_ms": 276
+}

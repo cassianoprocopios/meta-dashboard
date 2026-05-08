@@ -1,0 +1,22 @@
+{
+  "query": "SELECT DISTINCT tenantId, empresaSlug FROM faturamentos WHERE empresaSlug = 'SERAPHINE' ORDER BY tenantId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT tenantId, empresaSlug FROM faturamentos WHERE empresaSlug = 'SERAPHINE' ORDER BY tenantId;",
+  "rows": [
+    {
+      "tenantId": "1",
+      "empresaSlug": "seraphine"
+    },
+    {
+      "tenantId": "2",
+      "empresaSlug": "SERAPHINE"
+    },
+    {
+      "tenantId": "3",
+      "empresaSlug": "SERAPHINE"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaSlug\n1\tseraphine\n2\tSERAPHINE\n3\tSERAPHINE\n",
+  "stderr": "",
+  "execution_time_ms": 261
+}

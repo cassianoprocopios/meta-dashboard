@@ -1,0 +1,80 @@
+{
+  "query": "\nSELECT c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.empresaSlug = 'barbiero-mascote' AND fc.mes = 5 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT c.nome, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.empresaSlug = 'barbiero-mascote' AND fc.mes = 5 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC;\n",
+  "rows": [
+    {
+      "nome": "Vinicius",
+      "totalServicos": "402.50",
+      "totalProdutos": "440.55",
+      "totalGeral": "843.05",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Karen",
+      "totalServicos": "711.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "711.00",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Edinho",
+      "totalServicos": "392.70",
+      "totalProdutos": "161.82",
+      "totalGeral": "554.52",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Renan",
+      "totalServicos": "178.40",
+      "totalProdutos": "260.72",
+      "totalGeral": "439.12",
+      "qtdServicos": "5"
+    },
+    {
+      "nome": "Neudo",
+      "totalServicos": "235.00",
+      "totalProdutos": "99.90",
+      "totalGeral": "334.90",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Caio",
+      "totalServicos": "242.20",
+      "totalProdutos": "89.00",
+      "totalGeral": "331.20",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Recepção Mascote",
+      "totalServicos": "0.00",
+      "totalProdutos": "179.82",
+      "totalGeral": "179.82",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Mell",
+      "totalServicos": "177.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "177.00",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Felipe",
+      "totalServicos": "65.70",
+      "totalProdutos": "0.00",
+      "totalGeral": "65.70",
+      "qtdServicos": "0"
+    },
+    {
+      "nome": "Isabella",
+      "totalServicos": "54.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "54.00",
+      "qtdServicos": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\ttotalServicos\ttotalProdutos\ttotalGeral\tqtdServicos\nVinicius\t402.50\t440.55\t843.05\t0\nKaren\t711.00\t0.00\t711.00\t0\nEdinho\t392.70\t161.82\t554.52\t0\nRenan\t178.40\t260.72\t439.12\t5\nNeudo\t235.00\t99.90\t334.90\t0\nCaio\t242.20\t89.00\t331.20\t0\nRecepção Mascote\t0.00\t179.82\t179.82\t0\nMell\t177.00\t0.00\t177.00\t0\nFelipe\t65.70\t0.00\t65.70\t0\nIsabella\t54.00\t0.00\t54.00\t0\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

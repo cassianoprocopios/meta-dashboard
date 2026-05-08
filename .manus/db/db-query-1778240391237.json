@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE cashbarberProfissionalId IS NOT NULL AND id NOT IN (19,5,6,22,8,10,11,13,16,90001,17,1,60002,7,12,2,23,3,18,14) ORDER BY empresaSlug, nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cashbarberProfissionalId FROM colaboradores WHERE cashbarberProfissionalId IS NOT NULL AND id NOT IN (19,5,6,22,8,10,11,13,16,90001,17,1,60002,7,12,2,23,3,18,14) ORDER BY empresaSlug, nome;",
+  "rows": [
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "34337"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "35930"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "23104"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "12372"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "2603"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\n21\tKaleb\tbarbiero-morumbi\t34337\n20\tMirela\tbarbiero-morumbi\t35930\n4\tRecepção Morumbi\tbarbiero-morumbi\t23104\n9\tSamuel\tbarbiero-morumbi\t12372\n15\tVanilson\tbarbiero-morumbi\t2603\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}

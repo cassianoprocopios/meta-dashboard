@@ -1,0 +1,65 @@
+{
+  "query": "\n-- Verificar o tenantId do registro e comparar com os outros profissionais da Mascote\nSELECT fc.id, fc.tenantId, fc.colaboradorId, fc.empresaSlug, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos, c.nome\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.empresaSlug = 'barbiero-mascote' AND fc.mes = 5 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC\nLIMIT 5;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar o tenantId do registro e comparar com os outros profissionais da Mascote\nSELECT fc.id, fc.tenantId, fc.colaboradorId, fc.empresaSlug, fc.totalServicos, fc.totalProdutos, fc.totalGeral, fc.qtdServicos, c.nome\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON fc.colaboradorId = c.id\nWHERE fc.empresaSlug = 'barbiero-mascote' AND fc.mes = 5 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC\nLIMIT 5;\n",
+  "rows": [
+    {
+      "id": "150021",
+      "tenantId": "1",
+      "colaboradorId": "90001",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "873.40",
+      "totalProdutos": "260.72",
+      "totalGeral": "1134.12",
+      "qtdServicos": "35",
+      "nome": "Renan"
+    },
+    {
+      "id": "150024",
+      "tenantId": "1",
+      "colaboradorId": "17",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "402.50",
+      "totalProdutos": "440.55",
+      "totalGeral": "843.05",
+      "qtdServicos": "0",
+      "nome": "Vinicius"
+    },
+    {
+      "id": "150015",
+      "tenantId": "1",
+      "colaboradorId": "10",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "711.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "711.00",
+      "qtdServicos": "0",
+      "nome": "Karen"
+    },
+    {
+      "id": "150007",
+      "tenantId": "1",
+      "colaboradorId": "6",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "392.70",
+      "totalProdutos": "161.82",
+      "totalGeral": "554.52",
+      "qtdServicos": "0",
+      "nome": "Edinho"
+    },
+    {
+      "id": "150018",
+      "tenantId": "1",
+      "colaboradorId": "13",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "235.00",
+      "totalProdutos": "99.90",
+      "totalGeral": "334.90",
+      "qtdServicos": "0",
+      "nome": "Neudo"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tcolaboradorId\tempresaSlug\ttotalServicos\ttotalProdutos\ttotalGeral\tqtdServicos\tnome\n150021\t1\t90001\tbarbiero-mascote\t873.40\t260.72\t1134.12\t35\tRenan\n150024\t1\t17\tbarbiero-mascote\t402.50\t440.55\t843.05\t0\tVinicius\n150015\t1\t10\tbarbiero-mascote\t711.00\t0.00\t711.00\t0\tKaren\n150007\t1\t6\tbarbiero-mascote\t392.70\t161.82\t554.52\t0\tEdinho\n150018\t1\t13\tbarbiero-mascote\t235.00\t99.90\t334.90\t0\tNeudo\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

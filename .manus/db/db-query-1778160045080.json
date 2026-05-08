@@ -1,0 +1,22 @@
+{
+  "query": "SELECT empresaSlug, SUM(totalServicos) as servicos, SUM(totalProdutos) as produtos, SUM(totalGeral) as total FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(totalServicos) as servicos, SUM(totalProdutos) as produtos, SUM(totalGeral) as total FROM faturamentoColaboradores WHERE mes = 5 AND ano = 2026 AND empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote') GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "servicos": "2105.00",
+      "produtos": "791.26",
+      "total": "2896.26"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "servicos": "5278.85",
+      "produtos": "1311.79",
+      "total": "6590.64"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tservicos\tprodutos\ttotal\nbarbiero-mascote\t2105.00\t791.26\t2896.26\nbarbiero-morumbi\t5278.85\t1311.79\t6590.64\n",
+  "stderr": "",
+  "execution_time_ms": 79
+}
