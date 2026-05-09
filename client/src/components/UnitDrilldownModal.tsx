@@ -1,10 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Loader2, TrendingUp, TrendingDown, Minus, X,
-  Target, BarChart2, Zap, Calendar, ArrowUp, ArrowDown
+  Target, BarChart2, Zap, Calendar, ArrowUp, ArrowDown,
+  MessageCircle
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useMemo } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ReferenceLine, ResponsiveContainer, Cell
+} from "recharts";
 
 interface UnitDrilldownModalProps {
   open: boolean;
@@ -58,10 +63,10 @@ function ProgressBar({ pct, color }: { pct: number; color: string }) {
 }
 
 function getColor(pct: number) {
-  if (pct >= 100) return "#34d399"; // emerald
-  if (pct >= 75) return "#60a5fa";  // blue
-  if (pct >= 50) return "#fbbf24";  // amber
-  return "#f87171";                  // red
+  if (pct >= 100) return "#34d399";
+  if (pct >= 75) return "#60a5fa";
+  if (pct >= 50) return "#fbbf24";
+  return "#f87171";
 }
 
 function getSemaforo(pct: number) {
@@ -69,6 +74,23 @@ function getSemaforo(pct: number) {
   if (pct >= 75) return { emoji: "🔵", label: "No caminho certo" };
   if (pct >= 50) return { emoji: "🟡", label: "Atenção necessária" };
   return { emoji: "🔴", label: "Abaixo da meta" };
+}
+
+const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (active && payload && payload.length) {
+    const item = payload[0]?.payload;
+    const val = (payload[0]?.value ?? 0) + (payload[1]?.value ?? 0);
+    return (
+      <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-xs shadow-xl">
+        <p className="text-slate-400 mb-1">Dia {label}</p>
+        <p className="text-white font-bold">{fmt(val)}</p>
+        {item?.isFuturo && <p className="text-slate-500 italic mt-0.5">Projeção</p>}
+      </div>
+    );
+  }
+  return null;
 }
 
 export default function UnitDrilldownModal({
@@ -105,10 +127,25 @@ export default function UnitDrilldownModal({
   const semaforo = d ? getSemaforo(pctMeta) : null;
   const color = getColor(pctMeta);
 
+  const chartData = useMemo(() => {
+    if (!d?.faturamentoPorDia) return [];
+    const hoje = new Date();
+    const diaAtual = (mes === hoje.getMonth() + 1 && ano === hoje.getFullYear()) ? hoje.getDate() : d.diasNoMes;
+    return d.faturamentoPorDia.map((item: any) => ({
+      dia: item.dia,
+      realizado: item.isFuturo ? 0 : item.total,
+      projecao: item.isFuturo ? (d.mediaDiaria ?? 0) : 0,
+      isFuturo: item.isFuturo,
+      isHoje: item.dia === diaAtual,
+    }));
+  }, [d, mes, ano]);
+
+  const metaDiaria = d && d.metaMensal > 0 ? d.metaMensal / d.diasNoMes : 0;
+  const variacaoPositiva = (d?.variacaoVsMesAnterior ?? 0) >= 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 p-0">
-        {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-0">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: unitColor }} />
@@ -130,7 +167,6 @@ export default function UnitDrilldownModal({
 
             {/* ── BLOCO 1: Faturamento principal ── */}
             <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-4 space-y-3">
-              {/* Semáforo + Realizado */}
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Faturamento Realizado</p>
@@ -149,11 +185,7 @@ export default function UnitDrilldownModal({
                   )}
                 </div>
               </div>
-
-              {/* Barra de progresso */}
               <ProgressBar pct={pctMeta} color={color} />
-
-              {/* Linha: Falta meta + Projeção */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="bg-slate-700/40 rounded-lg p-3">
                   <p className="text-xs text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1">
@@ -176,7 +208,120 @@ export default function UnitDrilldownModal({
               </div>
             </div>
 
-            {/* ── BLOCO 2: Métricas de ritmo ── */}
+            {/* ── BLOCO 2: Gráfico de barras diário ── */}
+            {chartData.length > 0 && (
+              <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-slate-400 uppercase tracking-wide flex items-center gap-1">
+                    <BarChart2 className="w-3 h-3" /> Faturamento por dia
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: unitColor }} />
+                      Realizado
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-sm inline-block bg-slate-600" />
+                      Projeção
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-400">
+                      — Meta/dia
+                    </span>
+                  </div>
+                </div>
+                <div style={{ height: 180 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barCategoryGap="15%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                      <XAxis
+                        dataKey="dia"
+                        tick={{ fill: '#64748b', fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={chartData.length > 20 ? 4 : 2}
+                      />
+                      <YAxis
+                        tick={{ fill: '#64748b', fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
+                        width={36}
+                      />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                      {metaDiaria > 0 && (
+                        <ReferenceLine
+                          y={metaDiaria}
+                          stroke="#fbbf24"
+                          strokeDasharray="4 3"
+                          strokeWidth={1.5}
+                        />
+                      )}
+                      <Bar dataKey="realizado" radius={[3, 3, 0, 0]} maxBarSize={20}>
+                        {chartData.map((entry: any, index: number) => (
+                          <Cell
+                            key={`cell-r-${index}`}
+                            fill={entry.isHoje ? '#f59e0b' : unitColor}
+                            opacity={entry.realizado === 0 ? 0 : 1}
+                          />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="projecao" radius={[3, 3, 0, 0]} maxBarSize={20}>
+                        {chartData.map((entry: any, index: number) => (
+                          <Cell
+                            key={`cell-p-${index}`}
+                            fill="#475569"
+                            opacity={entry.projecao === 0 ? 0 : 0.55}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-slate-500 mt-1 text-center">
+                  Barra amarela = hoje · Barras cinzas = projeção (média atual)
+                </p>
+              </div>
+            )}
+
+            {/* ── BLOCO 3: Comparativo mês anterior ── */}
+            {d.totalMesAnteriorMesmoPeriodo > 0 && (
+              <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
+                <p className="text-xs text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1">
+                  <BarChart2 className="w-3 h-3" /> Comparativo vs {MESES_PT[(d.mesAnterior ?? 1) - 1]}/{d.anoAnterior}
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Mesmo período</p>
+                    <p className="text-sm font-bold text-slate-300">{fmt(d.totalMesAnteriorMesmoPeriodo)}</p>
+                    <p className="text-xs text-slate-500">({d.diasPassados} dias)</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Mês completo</p>
+                    <p className="text-sm font-bold text-slate-300">{fmt(d.totalMesAnteriorCompleto)}</p>
+                    <p className="text-xs text-slate-500">({d.diasNoMesAnterior} dias)</p>
+                  </div>
+                  <div className="flex flex-col items-end justify-center">
+                    {d.variacaoVsMesAnterior !== null ? (
+                      <div className={`flex items-center gap-1 px-3 py-2 rounded-lg ${
+                        variacaoPositiva ? 'bg-emerald-900/30 border border-emerald-700/40' : 'bg-red-900/30 border border-red-700/40'
+                      }`}>
+                        {variacaoPositiva
+                          ? <TrendingUp className="w-4 h-4 text-emerald-400" />
+                          : <TrendingDown className="w-4 h-4 text-red-400" />
+                        }
+                        <span className={`text-lg font-black ${variacaoPositiva ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {variacaoPositiva ? '+' : ''}{d.variacaoVsMesAnterior}%
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 text-xs">Sem dados</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── BLOCO 4: Métricas de ritmo ── */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-3">
                 <p className="text-xs text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1">
@@ -203,7 +348,7 @@ export default function UnitDrilldownModal({
               </div>
             </div>
 
-            {/* ── BLOCO 3: Meta quinzenal ── */}
+            {/* ── BLOCO 5: Meta quinzenal ── */}
             {d.metaQuinzenal !== null && d.metaQuinzenal > 0 && (
               <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-4 space-y-2">
                 <div className="flex items-center justify-between">
@@ -229,7 +374,7 @@ export default function UnitDrilldownModal({
               </div>
             )}
 
-            {/* ── BLOCO 4: Melhor e pior dia ── */}
+            {/* ── BLOCO 6: Melhor e pior dia ── */}
             {(d.melhorDia || d.piorDia) && (
               <div className="grid grid-cols-2 gap-3">
                 {d.melhorDia && (
@@ -257,7 +402,7 @@ export default function UnitDrilldownModal({
               </div>
             )}
 
-            {/* ── BLOCO 5: Super Meta (se existir) ── */}
+            {/* ── BLOCO 7: Super Meta ── */}
             {d.superMeta !== null && d.superMeta > 0 && (
               <div className="bg-slate-800/60 rounded-xl border border-yellow-700/30 p-3 flex items-center justify-between">
                 <div>
@@ -280,7 +425,21 @@ export default function UnitDrilldownModal({
               </div>
             )}
 
-            {/* ── BLOCO 6: Lista de profissionais ── */}
+            {/* ── BLOCO 8: Botão WhatsApp ── */}
+            {d.whatsappGrupoLink && (
+              <a
+                href={d.whatsappGrupoLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+                style={{ backgroundColor: '#25D366', color: '#fff' }}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Abrir grupo do WhatsApp — {unitName}
+              </a>
+            )}
+
+            {/* ── BLOCO 9: Lista de profissionais ── */}
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1">
                 <span>👥</span> Profissionais ({profissionais.length})
@@ -304,7 +463,6 @@ export default function UnitDrilldownModal({
                         key={prof.id}
                         className="flex items-start gap-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/60 hover:border-slate-600 transition-all"
                       >
-                        {/* Posição */}
                         <div className="w-8 flex flex-col items-center gap-0.5 flex-shrink-0 pt-0.5">
                           {medalha ? (
                             <span className="text-lg leading-none">{medalha}</span>
@@ -314,10 +472,8 @@ export default function UnitDrilldownModal({
                           {renderIndicadorPosicao(pos, prof.posicaoAnterior)}
                         </div>
 
-                        {/* Avatar */}
                         <Avatar nome={prof.nome} fotoUrl={prof.fotoUrl} size={38} />
 
-                        {/* Informações */}
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-white truncate text-sm">
                             {prof.apelido || prof.nome.split(" ")[0]}
@@ -350,7 +506,6 @@ export default function UnitDrilldownModal({
                           )}
                         </div>
 
-                        {/* Total */}
                         <div className="text-right flex-shrink-0">
                           <p className="font-bold text-white text-sm">{fmt(prof.totalGeral)}</p>
                         </div>

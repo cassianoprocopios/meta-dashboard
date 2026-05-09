@@ -1126,11 +1126,15 @@ const profissionaisRouter = router({
     }))
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const [profissionais, { itens: faturamentosProf }, fatUnidadeRows, metasUnidade] = await Promise.all([
+      // Calcular mês anterior
+      const mesAnterior = input.mes === 1 ? 12 : input.mes - 1;
+      const anoAnterior = input.mes === 1 ? input.ano - 1 : input.ano;
+      const [profissionais, { itens: faturamentosProf }, fatUnidadeRows, metasUnidade, fatMesAnteriorRows] = await Promise.all([
         listarColaboradores(tenantId),
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
         getAllFaturamentosByTenant(tenantId, input.mes, input.ano, input.empresaSlug),
         getMetasByMesAndTenant(tenantId, input.mes, input.ano),
+        getAllFaturamentosByTenant(tenantId, mesAnterior, anoAnterior, input.empresaSlug),
       ]);
       
       // Filtrar profissionais da unidade especificada
@@ -1231,6 +1235,38 @@ const profissionaisRouter = router({
         ? faltaMeta / diasRestantes
         : null;
 
+      // Dados diários para o gráfico (todos os dias do mês, mesmo os sem faturamento)
+      const faturamentoPorDia: { dia: number; total: number; isFuturo: boolean }[] = [];
+      for (let d = 1; d <= diasNoMes; d++) {
+        const dataStr = `${input.ano}-${String(input.mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const row = rowsRealizados.find((r) => r.data === dataStr);
+        const total = row
+          ? [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9]
+              .reduce((s, v) => s + parseFloat(String(v) || '0'), 0)
+          : 0;
+        faturamentoPorDia.push({ dia: d, total, isFuturo: d > diaAtual });
+      }
+
+      // Comparativo com mês anterior (mesmo número de dias já passados)
+      const diasNoMesAnterior = new Date(anoAnterior, mesAnterior, 0).getDate();
+      let totalMesAnteriorMesmoPeriodo = 0;
+      let totalMesAnteriorCompleto = 0;
+      for (const r of fatMesAnteriorRows) {
+        const dia = parseInt(r.data.slice(8, 10));
+        const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
+        totalMesAnteriorCompleto += total;
+        if (dia <= diaAtual) totalMesAnteriorMesmoPeriodo += total;
+      }
+      const variacaoVsMesAnterior = totalMesAnteriorMesmoPeriodo > 0
+        ? Math.round(((totalRealizado - totalMesAnteriorMesmoPeriodo) / totalMesAnteriorMesmoPeriodo) * 100)
+        : null;
+
+      // Link WhatsApp do grupo da unidade
+      const empresasAll = await getEmpresasByTenant(tenantId);
+      const empresa = empresasAll.find((e) => e.slug === input.empresaSlug);
+      const whatsappGrupoLink = empresa?.whatsappGrupoLink ?? null;
+
       return {
         profissionais: lista,
         totalRealizado,
@@ -1253,7 +1289,15 @@ const profissionaisRouter = router({
         faltaMetaQuinzenal,
         melhorDia,
         piorDia,
-      };;
+        faturamentoPorDia,
+        totalMesAnteriorMesmoPeriodo,
+        totalMesAnteriorCompleto,
+        variacaoVsMesAnterior,
+        mesAnterior,
+        anoAnterior,
+        diasNoMesAnterior,
+        whatsappGrupoLink,
+      };
     }),
 
   // Procedures de push removidas — notificações desativadas
