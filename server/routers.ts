@@ -403,12 +403,12 @@ const profissionaisRouter = router({
           // Todos os demais serviços + produtos são contabilizados
           // Excluir: Corte de Cabelo, Corte Kids, Raspar na Máquina, Barba simples/completa, Pezinho
           // INCLUIR: Barba com Barboterapia, Pigmentação Barba, Camulagem Barba, Hidratação Barba
-          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
           const servicosRanking = relatorio.servicos.filter(
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           // Excluir produtos de bar/bebidas/caixinha do ranking
-          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
           const produtosRanking = relatorio.produtos.filter(
             (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
           );
@@ -492,7 +492,7 @@ const profissionaisRouter = router({
       // Todos os demais serviços + produtos são contabilizados
       // Excluir: Corte de Cabelo, Corte Kids, Raspar na Máquina, Barba simples/completa, Pezinho
           // INCLUIR: Barba com Barboterapia, Pigmentação Barba, Camulagem Barba, Hidratação Barba
-          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+          const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
       let sincronizados = 0;
       let erros = 0;
       for (const col of comId) {
@@ -502,7 +502,7 @@ const profissionaisRouter = router({
             (s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? '')
           );
           // Excluir produtos de bar/bebidas/caixinha do ranking
-          const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+          const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
           const produtosRanking = relatorio.produtos.filter(
             (p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? '')
           );
@@ -938,8 +938,8 @@ const profissionaisRouter = router({
         }
         const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
         const colaboradoresList = await listarColaboradores(tenantId);
-        const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-        const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+        const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+        const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
         const colsUnidade = colaboradoresList.filter(
           (c) => c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1 &&
           c.cashbarberProfissionalId &&
@@ -1157,8 +1157,8 @@ const profissionaisRouter = router({
         .map((p) => {
           const fat = faturamentoMap.get(p.id);
           // Filtrar serviços e produtos excluídos do ranking
-          const EXCL_SERV_RANK = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
-          const EXCL_PROD_RANK = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+          const EXCL_SERV_RANK = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+          const EXCL_PROD_RANK = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
           const rawServicos: Array<{ser_nome: string; sum: number; count: number}> = fat?.detalhesServicos ? JSON.parse(fat.detalhesServicos) : [];
           const rawProdutos: Array<{pro_nome: string; sum: number; count: number}> = fat?.detalhesProdutos ? JSON.parse(fat.detalhesProdutos) : [];
           const servicosFiltrados = rawServicos.filter(s => !EXCL_SERV_RANK.test(s.ser_nome ?? ''));
@@ -1289,8 +1289,8 @@ const profissionaisRouter = router({
           const tokenCB = await cashbarberLogin(configCB.cbEmail, configCB.cbSenha);
           const hoje = new Date();
           const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-          const EXCL_SERV = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
-          const EXCL_PROD = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+          const EXCL_SERV = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+          const EXCL_PROD = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
           const profAtivos = profissionaisDaUnidade.filter((p) => p.cashbarberProfissionalId && p.ativo === 1 && p.isGerencia !== 1);
           const resultadosDia = await Promise.all(
             profAtivos.map(async (col) => {
@@ -4746,8 +4746,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
       const colaboradoresList = await listarColaboradores(tenantId);
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
       // Calcular início do mês para buscar total acumulado mensal
       const [anoStr, mesStr] = input.data.split('-');
       const inicioMes = `${anoStr}-${mesStr}-01`;
@@ -4830,8 +4830,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
       const colaboradoresList = await listarColaboradores(tenantId);
       const comId = colaboradoresList.filter((c) => c.cashbarberProfissionalId && c.ativo === 1 && c.exibirNoRanking === 1 && c.isGerencia !== 1);
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
       // Calcular início do mês baseado na dataInicio da semana
       const [anoStrSem, mesStrSem] = input.dataInicio.split('-');
       const inicioMesSem = `${anoStrSem}-${mesStrSem}-01`;
@@ -4910,7 +4910,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         listarColaboradores(tenantId),
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
       ]);
-      const EXCLUIDOS_RANKING = /^(corte de cabelo|barba$|barba completa|corte kids|raspar na m[áa]quina|pezinho)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
       const lista = profissionais
         .filter((p) => p.ativo === 1 && p.exibirNoRanking === 1 && p.isGerencia !== 1)
         .map((p) => {
@@ -4953,8 +4953,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const todosGerentes = colaboradoresList.filter((c) => c.ativo === 1 && c.isGerencia === 1);
       const gerentesComCB = todosGerentes.filter((c) => c.cashbarberProfissionalId);
       const gerentesSemCB = todosGerentes.filter((c) => !c.cashbarberProfissionalId);
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
       const resultadosCB = await Promise.all(
         gerentesComCB.map(async (col) => {
           try {
@@ -4994,8 +4994,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const todosGerentesSem = colaboradoresList.filter((c) => c.ativo === 1 && c.isGerencia === 1);
       const gerentesComCBSem = todosGerentesSem.filter((c) => c.cashbarberProfissionalId);
       const gerentesSemCBSem = todosGerentesSem.filter((c) => !c.cashbarberProfissionalId);
-      const EXCLUIDOS_RANKING2 = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS2 = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const EXCLUIDOS_RANKING2 = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS2 = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
       const resultadosCBSem = await Promise.all(
         gerentesComCBSem.map(async (col) => {
           try {
@@ -5162,8 +5162,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const cbToken = await cashbarberLogin(config.cbEmail, config.cbSenha);
       const relatorio = await cashbarberRelatorio15(cbToken, input.dataInicio, input.dataFim, null, col.cashbarberProfissionalId);
 
-      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
-      const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+      const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
 
       const servicosFiltrados = (relatorio.servicos ?? []).filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ''));
       const produtosFiltrados = (relatorio.produtos ?? []).filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ''));
@@ -5498,7 +5498,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
           const config = await getCashbarberConfig(tenantId, empresaSlug);
           if (config?.cbEmail && config?.cbSenha) {
             const token = await cashbarberLogin(config.cbEmail, config.cbSenha);
-            const EXCL_SVC = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[áa]quina|barba\s*(completa|simples|na\s*tesoura|na\s*m[áa]quina)?$|pezinho)/i;
+            const EXCL_SVC = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
             const EXCL_PRD = /^(caixinha|[áa]gua|heineken|refrigerante|corona)/i;
             const [relSemA, relSemP] = await Promise.all([
               cashbarberRelatorio15(token, toDateStr(inicioSemAtual), toDateStr(fimSemAtual), null, col.cashbarberProfissionalId),
@@ -5681,8 +5681,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         : null;
       const nomeProximo = acimaDele?.nome ?? null;
       // Itens do mês atual com filtro de categorias básicas
-      const EXCL_SERV_DES = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
-      const EXCL_PROD_DES = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+      const EXCL_SERV_DES = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+      const EXCL_PROD_DES = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
       const meuFatAtual = rankingMesAtual.itens.find((i) => i.colaboradorId === input.profissionalId);
       const rawServMes: Array<{ser_nome: string; sum: number; count: number}> = meuFatAtual?.detalhesServicos ? JSON.parse(meuFatAtual.detalhesServicos) : [];
       const rawProdMes: Array<{pro_nome: string; sum: number; count: number}> = meuFatAtual?.detalhesProdutos ? JSON.parse(meuFatAtual.detalhesProdutos) : [];

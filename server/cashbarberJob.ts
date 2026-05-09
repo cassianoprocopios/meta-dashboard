@@ -500,8 +500,8 @@ export async function executarRecalculoRanking(tenantId: number): Promise<{ sinc
     console.warn("[Ranking Job] Não foi possível buscar relatório 13:", e);
   }
   // Regras globais de exclusão (aplicadas a TODOS os profissionais)
-  const EXCLUIDOS_RANKING_GLOBAL = /^(raspar\s*na\s*máquina|pezinho)/i;
-  const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+  const EXCLUIDOS_RANKING_GLOBAL = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+  const EXCLUIDOS_PRODUTOS = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
   // Buscar regras de exclusão personalizadas por colaborador
   const mapaExclusoes = await getAllExclusoesByTenant(tenantId);
   let sincronizados = 0;

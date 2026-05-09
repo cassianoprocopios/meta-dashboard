@@ -11,8 +11,8 @@ import cron from "node-cron";
 import { getDb, listarRankingPorPeriodo, listarColaboradores, getAllTenants } from "./db";
 import { enviarPushParaProfissional } from "./pushNotifications";
 
-const EXCL_SERV = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
-const EXCL_PROD = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+const EXCL_SERV = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s+(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina|com\s+\w+))?|pezinho)/i;
+const EXCL_PROD = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?\d+|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
 
 interface ItemVendido {
   nome: string;
