@@ -589,6 +589,7 @@ export default function UnitDrilldownModal({
           diasRestantes={d.diasRestantes}
           diasNoMes={d.diasNoMes}
           profissionais={profissionais}
+          top3Dia={d.top3Dia ?? []}
         />
       </div>
     )}

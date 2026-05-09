@@ -44,6 +44,18 @@ interface Prof {
   metaMensal?: number | null;
 }
 
+interface Top3Item {
+  id: number;
+  nome: string;
+  apelido?: string | null;
+  fotoUrl?: string | null;
+  totalGeral: number;
+  totalServicos: number;
+  totalProdutos: number;
+  qtdServicos: number;
+  qtdProdutos: number;
+}
+
 interface RankingExportCardProps {
   unitName: string;
   unitColor: string;
@@ -59,6 +71,7 @@ interface RankingExportCardProps {
   diasRestantes: number;
   diasNoMes: number;
   profissionais: Prof[];
+  top3Dia?: Top3Item[];
 }
 
 export const RankingExportCard = forwardRef<HTMLDivElement, RankingExportCardProps>(
@@ -78,6 +91,7 @@ export const RankingExportCard = forwardRef<HTMLDivElement, RankingExportCardPro
       diasRestantes,
       diasNoMes,
       profissionais,
+      top3Dia,
     },
     ref
   ) {
@@ -311,6 +325,62 @@ export const RankingExportCard = forwardRef<HTMLDivElement, RankingExportCardPro
             );
           })}
         </div>
+
+        {/* Top 3 do Dia */}
+        {top3Dia && top3Dia.length > 0 && (
+          <>
+            <div style={{ height: 1, background: "rgba(51,65,85,0.6)", margin: "12px 0" }} />
+            <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+              🔥 Top 3 do Dia
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {top3Dia.map((prof, idx) => {
+                const medalhas = ["🥇", "🥈", "🥉"];
+                const nome = prof.apelido || prof.nome.split(" ")[0];
+                const initials = (prof.nome || "?")[0].toUpperCase();
+                return (
+                  <div key={prof.id} style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    background: idx === 0 ? "rgba(251,191,36,0.08)" : "rgba(30,41,59,0.6)",
+                    border: `1px solid ${idx === 0 ? "rgba(251,191,36,0.3)" : "rgba(51,65,85,0.5)"}`,
+                    borderRadius: 10, padding: "8px 12px",
+                  }}>
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>{medalhas[idx]}</span>
+                    {prof.fotoUrl ? (
+                      <img src={prof.fotoUrl} alt={nome} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                    ) : (
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: `linear-gradient(135deg, ${idx === 0 ? "#fbbf24" : idx === 1 ? "#94a3b8" : "#b45309"}cc, ${idx === 0 ? "#fbbf24" : idx === 1 ? "#94a3b8" : "#b45309"}66)`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0,
+                      }}>{initials}</div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: idx === 0 ? "#fbbf24" : "#f1f5f9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {nome}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+                        {prof.qtdServicos > 0 && (
+                          <span style={{ fontSize: 10, color: "#94a3b8", background: "rgba(51,65,85,0.5)", padding: "1px 5px", borderRadius: 4 }}>✂️ {prof.qtdServicos}</span>
+                        )}
+                        {prof.qtdProdutos > 0 && (
+                          <span style={{ fontSize: 10, color: "#94a3b8", background: "rgba(51,65,85,0.5)", padding: "1px 5px", borderRadius: 4 }}>🛍️ {prof.qtdProdutos}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: idx === 0 ? "#fbbf24" : "#fff" }}>{fmt(prof.totalGeral)}</div>
+                      {prof.totalServicos > 0 && prof.totalProdutos > 0 && (
+                        <div style={{ fontSize: 10, color: "#64748b", marginTop: 1 }}>{fmtShort(prof.totalServicos)} + {fmtShort(prof.totalProdutos)}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {/* Footer */}
         <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid rgba(51,65,85,0.4)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

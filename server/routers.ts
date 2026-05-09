@@ -1267,6 +1267,35 @@ const profissionaisRouter = router({
       const empresa = empresasAll.find((e) => e.slug === input.empresaSlug);
       const whatsappGrupoLink = empresa?.whatsappGrupoLink ?? null;
 
+      // ── Top 3 do dia (busca ao vivo do CashBarber) ──
+      let top3Dia: Array<{ id: number; nome: string; apelido: string | null; fotoUrl: string | null; totalGeral: number; totalServicos: number; totalProdutos: number; qtdServicos: number; qtdProdutos: number }> = [];
+      try {
+        const configCB = await getCashbarberConfig(tenantId, input.empresaSlug);
+        if (configCB?.cbEmail && configCB?.cbSenha) {
+          const tokenCB = await cashbarberLogin(configCB.cbEmail, configCB.cbSenha);
+          const hoje = new Date();
+          const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+          const EXCL_SERV = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
+          const EXCL_PROD = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+          const profAtivos = profissionaisDaUnidade.filter((p) => p.cashbarberProfissionalId && p.ativo === 1 && p.isGerencia !== 1);
+          const resultadosDia = await Promise.all(
+            profAtivos.map(async (col) => {
+              try {
+                const rel = await cashbarberRelatorio15(tokenCB, hojeStr, hojeStr, null, col.cashbarberProfissionalId);
+                const servs = rel.servicos.filter((s: any) => !EXCL_SERV.test(s.ser_nome ?? ''));
+                const prods = rel.produtos.filter((p: any) => !EXCL_PROD.test(p.pro_nome ?? ''));
+                const totalServicos = servs.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
+                const totalProdutos = prods.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
+                const qtdServicos = servs.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
+                const qtdProdutos = prods.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
+                return { id: col.id, nome: col.nome, apelido: col.apelido ?? null, fotoUrl: col.fotoUrl ?? null, totalGeral: totalServicos + totalProdutos, totalServicos, totalProdutos, qtdServicos, qtdProdutos };
+              } catch { return { id: col.id, nome: col.nome, apelido: col.apelido ?? null, fotoUrl: col.fotoUrl ?? null, totalGeral: 0, totalServicos: 0, totalProdutos: 0, qtdServicos: 0, qtdProdutos: 0 }; }
+            })
+          );
+          top3Dia = resultadosDia.filter((r) => r.totalGeral > 0).sort((a, b) => b.totalGeral - a.totalGeral).slice(0, 3);
+        }
+      } catch { /* top3Dia fica vazio se falhar */ }
+
       return {
         profissionais: lista,
         totalRealizado,
@@ -1297,10 +1326,10 @@ const profissionaisRouter = router({
         anoAnterior,
         diasNoMesAnterior,
         whatsappGrupoLink,
+        top3Dia,
       };
     }),
-
-  // Procedures de push removidas — notificações desativadas
+  // Procedures de push removidass — notificações desativadas
   enviarPushRankingManual: protectedProcedure
     .input(z.object({
       profissionalId: z.number().int().positive(),
