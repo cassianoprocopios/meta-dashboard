@@ -2,10 +2,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   Loader2, TrendingUp, TrendingDown, Minus, X,
   Target, BarChart2, Zap, Calendar, ArrowUp, ArrowDown,
-  MessageCircle
+  MessageCircle, Download
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
+import { toPng } from "html-to-image";
+import { RankingExportCard } from "./RankingExportCard";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ResponsiveContainer, Cell
@@ -141,9 +143,34 @@ export default function UnitDrilldownModal({
   }, [d, mes, ano]);
 
   const metaDiaria = d && d.metaMensal > 0 ? d.metaMensal / d.diasNoMes : 0;
-  const variacaoPositiva = (d?.variacaoVsMesAnterior ?? 0) >= 0;
+   const variacaoPositiva = (d?.variacaoVsMesAnterior ?? 0) >= 0;
+
+  // Export
+  const exportCardRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportImage = async () => {
+    if (!exportCardRef.current || !d) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(exportCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#0f172a",
+      });
+      const link = document.createElement("a");
+      link.download = `ranking-${unitName?.toLowerCase().replace(/\s+/g, "-")}-${mes}-${ano}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Erro ao exportar imagem:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 p-0">
         <DialogHeader className="px-5 pt-5 pb-0">
@@ -425,7 +452,22 @@ export default function UnitDrilldownModal({
               </div>
             )}
 
-            {/* ── BLOCO 8: Botão WhatsApp ── */}
+            {/* ── BLOCO 8: Botão Exportar Imagem ── */}
+            <button
+              onClick={handleExportImage}
+              disabled={isExporting}
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: '#334155', color: '#e2e8f0', border: '1px solid rgba(71,85,105,0.6)' }}
+            >
+              {isExporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {isExporting ? "Gerando imagem..." : "Exportar ranking como imagem"}
+            </button>
+
+            {/* ── BLOCO 9: Botão WhatsApp ── */}
             {d.whatsappGrupoLink && (
               <a
                 href={d.whatsappGrupoLink}
@@ -439,7 +481,7 @@ export default function UnitDrilldownModal({
               </a>
             )}
 
-            {/* ── BLOCO 9: Lista de profissionais ── */}
+            {/* ── BLOCO 10: Lista de profissionais ── */}
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1">
                 <span>👥</span> Profissionais ({profissionais.length})
@@ -519,5 +561,37 @@ export default function UnitDrilldownModal({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Card oculto para exportação — renderizado fora da viewport */}
+    {d && (
+      <div
+        style={{
+          position: "fixed",
+          top: "-9999px",
+          left: "-9999px",
+          zIndex: -1,
+          pointerEvents: "none",
+        }}
+      >
+        <RankingExportCard
+          ref={exportCardRef}
+          unitName={unitName ?? ""}
+          unitColor={unitColor}
+          mes={mes}
+          ano={ano}
+          totalRealizado={d.totalRealizado}
+          metaMensal={d.metaMensal}
+          pctMeta={d.pctMeta ?? 0}
+          faltaMeta={d.faltaMeta ?? null}
+          projecaoFimMes={d.projecaoFimMes}
+          mediaDiaria={d.mediaDiaria}
+          metaDiariaNecessaria={d.metaDiariaNecessaria ?? null}
+          diasRestantes={d.diasRestantes}
+          diasNoMes={d.diasNoMes}
+          profissionais={profissionais}
+        />
+      </div>
+    )}
+    </>
   );
 }
