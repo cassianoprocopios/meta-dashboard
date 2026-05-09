@@ -5684,12 +5684,43 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const rawProdMes: Array<{pro_nome: string; sum: number; count: number}> = meuFatAtual?.detalhesProdutos ? JSON.parse(meuFatAtual.detalhesProdutos) : [];
       const servicosMes = rawServMes.filter(s => !EXCL_SERV_DES.test(s.ser_nome ?? '')).sort((a, b) => b.sum - a.sum);
       const produtosMes = rawProdMes.filter(p => !EXCL_PROD_DES.test(p.pro_nome ?? '')).sort((a, b) => b.sum - a.sum);
+      // Itens do mês anterior para comparativo
+      const rankingMesAnterior = resultados[resultados.length - 2];
+      const meuFatAnterior = rankingMesAnterior?.itens.find((i) => i.colaboradorId === input.profissionalId);
+      const rawServAnt: Array<{ser_nome: string; sum: number; count: number}> = meuFatAnterior?.detalhesServicos ? JSON.parse(meuFatAnterior.detalhesServicos) : [];
+      const rawProdAnt: Array<{pro_nome: string; sum: number; count: number}> = meuFatAnterior?.detalhesProdutos ? JSON.parse(meuFatAnterior.detalhesProdutos) : [];
+      const servicosAntMap = new Map(rawServAnt.filter(s => !EXCL_SERV_DES.test(s.ser_nome ?? '')).map(s => [s.ser_nome, s.sum]));
+      const produtosAntMap = new Map(rawProdAnt.filter(p => !EXCL_PROD_DES.test(p.pro_nome ?? '')).map(p => [p.pro_nome, p.sum]));
+      // Calcular recorde histórico por item (máximo dos últimos 6 meses exceto o atual)
+      const recordeServMap = new Map<string, number>();
+      const recordeProdMap = new Map<string, number>();
+      for (let i = 0; i < resultados.length - 1; i++) {
+        const fat = resultados[i].itens.find((it) => it.colaboradorId === input.profissionalId);
+        if (!fat) continue;
+        const srvs: Array<{ser_nome: string; sum: number}> = fat.detalhesServicos ? JSON.parse(fat.detalhesServicos) : [];
+        const prds: Array<{pro_nome: string; sum: number}> = fat.detalhesProdutos ? JSON.parse(fat.detalhesProdutos) : [];
+        srvs.forEach(s => { if (!EXCL_SERV_DES.test(s.ser_nome ?? '')) recordeServMap.set(s.ser_nome, Math.max(recordeServMap.get(s.ser_nome) ?? 0, s.sum)); });
+        prds.forEach(p => { if (!EXCL_PROD_DES.test(p.pro_nome ?? '')) recordeProdMap.set(p.pro_nome, Math.max(recordeProdMap.get(p.pro_nome) ?? 0, p.sum)); });
+      }
+      // Enriquecer itens com comparativo e flag de recorde
+      const servicosMesEnriquecidos = servicosMes.map(s => ({
+        ...s,
+        sumAnterior: servicosAntMap.get(s.ser_nome) ?? null,
+        novoRecorde: (recordeServMap.get(s.ser_nome) ?? 0) > 0 && s.sum > (recordeServMap.get(s.ser_nome) ?? 0),
+      }));
+      const produtosMesEnriquecidos = produtosMes.map(p => ({
+        ...p,
+        sumAnterior: produtosAntMap.get(p.pro_nome) ?? null,
+        novoRecorde: (recordeProdMap.get(p.pro_nome) ?? 0) > 0 && p.sum > (recordeProdMap.get(p.pro_nome) ?? 0),
+      }));
       // Item mais vendido (maior valor)
       const todosItens = [
-        ...servicosMes.map(s => ({ nome: s.ser_nome, sum: s.sum, count: s.count, tipo: 'servico' as const })),
-        ...produtosMes.map(p => ({ nome: p.pro_nome, sum: p.sum, count: p.count, tipo: 'produto' as const })),
+        ...servicosMesEnriquecidos.map(s => ({ nome: s.ser_nome, sum: s.sum, count: s.count, tipo: 'servico' as const, novoRecorde: s.novoRecorde })),
+        ...produtosMesEnriquecidos.map(p => ({ nome: p.pro_nome, sum: p.sum, count: p.count, tipo: 'produto' as const, novoRecorde: p.novoRecorde })),
       ].sort((a, b) => b.sum - a.sum);
       const itemMaisVendido = todosItens.length > 0 ? todosItens[0] : null;
+      // Itens com novo recorde (para notificação push)
+      const itensComRecorde = todosItens.filter(i => i.novoRecorde);
       return {
         historico,
         metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
@@ -5700,9 +5731,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         mediaDiaria: Math.round(mediaDiaria * 100) / 100,
         faltaParaSubir,
         nomeProximo,
-        servicosMes,
-        produtosMes,
+        servicosMes: servicosMesEnriquecidos,
+        produtosMes: produtosMesEnriquecidos,
         itemMaisVendido,
+        itensComRecorde,
       };
     }),
   performance: performanceRouter,

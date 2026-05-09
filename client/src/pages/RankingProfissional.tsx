@@ -3439,7 +3439,12 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
             <div className="mb-3 flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
               <span className="text-lg">🏆</span>
               <div className="flex-1 min-w-0">
-                <p className="text-amber-300 text-xs font-semibold truncate">Seu carro-chefe do mês</p>
+                <p className="text-amber-300 text-xs font-semibold truncate">
+                  Seu carro-chefe do mês
+                  {(data as any).itemMaisVendido.novoRecorde && (
+                    <span className="ml-1.5 bg-amber-400/20 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-amber-400/30">🎯 RECORDE</span>
+                  )}
+                </p>
                 <p className="text-white text-sm font-bold truncate">{(data as any).itemMaisVendido.nome}</p>
               </div>
               <div className="text-right flex-shrink-0">
@@ -3453,14 +3458,26 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
             <div className="mb-3">
               <p className="text-purple-300/70 text-xs font-semibold mb-2">✂️ Serviços Extras</p>
               <div className="space-y-1.5">
-                {(data as any).servicosMes.map((s: {ser_nome: string; sum: number; count: number}, i: number) => {
+                {(data as any).servicosMes.map((s: {ser_nome: string; sum: number; count: number; sumAnterior: number | null; novoRecorde: boolean}, i: number) => {
                   const maxSum = (data as any).servicosMes[0]?.sum ?? 1;
                   const pct = Math.round((s.sum / maxSum) * 100);
+                  const diff = s.sumAnterior != null ? s.sum - s.sumAnterior : null;
+                  const diffPct = s.sumAnterior != null && s.sumAnterior > 0 ? Math.round(((s.sum - s.sumAnterior) / s.sumAnterior) * 100) : null;
                   return (
                     <div key={i}>
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-white/70 truncate mr-2">{s.ser_nome} <span className="text-white/30">×{s.count}</span></span>
-                        <span className="text-white font-semibold flex-shrink-0">{formatarMoeda(s.sum)}</span>
+                      <div className="flex justify-between text-xs mb-0.5 gap-1">
+                        <span className="text-white/70 truncate">
+                          {s.ser_nome} <span className="text-white/30">×{s.count}</span>
+                          {s.novoRecorde && <span className="ml-1 text-amber-400 text-[9px] font-bold">🎯</span>}
+                        </span>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {diff !== null && (
+                            <span className={`text-[9px] font-semibold ${diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-red-400' : 'text-white/30'}`}>
+                              {diff > 0 ? '↑' : diff < 0 ? '↓' : '='}{diffPct !== null ? `${Math.abs(diffPct)}%` : ''}
+                            </span>
+                          )}
+                          <span className="text-white font-semibold">{formatarMoeda(s.sum)}</span>
+                        </div>
                       </div>
                       <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                         <div className="h-full bg-purple-400/60 rounded-full" style={{ width: `${pct}%` }} />
@@ -3476,14 +3493,26 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
             <div>
               <p className="text-emerald-300/70 text-xs font-semibold mb-2">🛍️ Produtos</p>
               <div className="space-y-1.5">
-                {(data as any).produtosMes.map((p: {pro_nome: string; sum: number; count: number}, i: number) => {
+                {(data as any).produtosMes.map((p: {pro_nome: string; sum: number; count: number; sumAnterior: number | null; novoRecorde: boolean}, i: number) => {
                   const maxSum = (data as any).produtosMes[0]?.sum ?? 1;
                   const pct = Math.round((p.sum / maxSum) * 100);
+                  const diff = p.sumAnterior != null ? p.sum - p.sumAnterior : null;
+                  const diffPct = p.sumAnterior != null && p.sumAnterior > 0 ? Math.round(((p.sum - p.sumAnterior) / p.sumAnterior) * 100) : null;
                   return (
                     <div key={i}>
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-white/70 truncate mr-2">{p.pro_nome} <span className="text-white/30">×{p.count}</span></span>
-                        <span className="text-white font-semibold flex-shrink-0">{formatarMoeda(p.sum)}</span>
+                      <div className="flex justify-between text-xs mb-0.5 gap-1">
+                        <span className="text-white/70 truncate">
+                          {p.pro_nome} <span className="text-white/30">×{p.count}</span>
+                          {p.novoRecorde && <span className="ml-1 text-amber-400 text-[9px] font-bold">🎯</span>}
+                        </span>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {diff !== null && (
+                            <span className={`text-[9px] font-semibold ${diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-red-400' : 'text-white/30'}`}>
+                              {diff > 0 ? '↑' : diff < 0 ? '↓' : '='}{diffPct !== null ? `${Math.abs(diffPct)}%` : ''}
+                            </span>
+                          )}
+                          <span className="text-white font-semibold">{formatarMoeda(p.sum)}</span>
+                        </div>
                       </div>
                       <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-400/60 rounded-full" style={{ width: `${pct}%` }} />

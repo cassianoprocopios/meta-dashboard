@@ -1576,3 +1576,8 @@
 - [x] Ferramenta 3: Notificação WhatsApp às 12h com ranking personalizado por profissional
 - [x] Ferramenta 4: Ranking semanal automático (recorte semanal + envio automático)
 - [x] Ferramenta 5: Análise de padrão por dia da semana por profissional
+
+## Comparativo e Recorde de Itens Vendidos
+
+- [x] Comparativo com mês anterior nos itens vendidos (setas ↑↓ por item na aba Meu)
+- [x] Notificação push de novo recorde pessoal de item específico no mês

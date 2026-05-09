@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
 import { iniciarJobAvec } from "../avecJob";
 import { iniciarPerformanceNotifJob } from "../performanceNotifJob";
+import { iniciarJobRecordeNotif } from "../recordeNotifJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import { setupWebSocket } from "../websocket";
 import { iniciarSincronizacaoHoraria } from "../cashbarberHourlySync";
@@ -147,6 +148,7 @@ async function startServer() {
     // Inicializar jobs de notificação de performance (12h diário + semanal segunda 09h)
     try {
       iniciarPerformanceNotifJob();
+      iniciarJobRecordeNotif();
     } catch (err) {
       console.error("[Performance Notif] Falha na inicialização:", err);
     }
