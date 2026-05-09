@@ -797,15 +797,7 @@ const profissionaisRouter = router({
         const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : `${posicao}º`;
 
         // Dados da unidade do profissional
-        const empresaSlugRaw = col?.empresaSlug ?? item.empresaSlug ?? '';
-        // Mapeamento: slug do colaborador (barbiero-morumbi) -> slug da tabela faturamentos (MORUMBI)
-        const SLUG_MAP: Record<string, string> = {
-          'barbiero-morumbi': 'MORUMBI',
-          'barbiero-mascote': 'MASCOTE',
-          'barbiero-seraphine': 'SERAPHINE',
-          'barbiero-grupo': 'GRUPO',
-        };
-        const empresaSlug = SLUG_MAP[empresaSlugRaw] ?? empresaSlugRaw;
+        const empresaSlug = col?.empresaSlug ?? item.empresaSlug ?? '';
         const empresa = empresasList.find((e) => e.slug === empresaSlug);
         const nomeEmpresa = empresa?.nome ?? empresaSlug;
         const fatUnidade = fatPorEmpresa.get(empresaSlug) ?? 0;
@@ -928,14 +920,8 @@ const profissionaisRouter = router({
       const nomeEmpresa = empresa?.nome ?? input.empresaSlug;
       const grupoLink = empresa?.whatsappGrupoLink ?? null;
 
-      // Mapeamento inverso: slug da empresa (MORUMBI) -> slug do colaborador (barbiero-morumbi)
-      const SLUG_MAP_INV: Record<string, string> = {
-        'MORUMBI': 'barbiero-morumbi',
-        'MASCOTE': 'barbiero-mascote',
-        'SERAPHINE': 'barbiero-seraphine',
-        'GRUPO': 'barbiero-grupo',
-      };
-      const empresaSlugColaborador = SLUG_MAP_INV[input.empresaSlug] ?? input.empresaSlug;
+      // O slug já é o slug correto (barbiero-morumbi, barbiero-mascote, etc.)
+      const empresaSlugColaborador = input.empresaSlug;
 
       const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -4532,14 +4518,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       )
       .mutation(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
-        // Mapear slug de colaborador para slug usado nos faturamentos
-        const slugMap: Record<string, string> = {
-          'barbiero-morumbi': 'MORUMBI',
-          'barbiero-mascote': 'MASCOTE',
-          'barbiero-seraphine': 'SERAPHINE',
-          'barbiero-grupo': 'GRUPO',
-        };
-        const empresaSlugNorm = slugMap[input.empresaSlug] ?? input.empresaSlug;
+        // Usar o slug diretamente (os registros no banco usam barbiero-mascote, barbiero-morumbi, etc.)
+        const empresaSlugNorm = input.empresaSlug;
         try {
           const resultado = await sincronizarFaturamentoCashbarber(
             tenantId,
@@ -5083,14 +5063,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       if (!db) return { total: 0, totalOperacional: 0, recorrencia: 0 };
       const { faturamentos: fatTable } = await import('../drizzle/schema.js');
       const { and: drizzleAnd, eq: drizzleEq } = await import('drizzle-orm');
-      // Mapeamento: slug do colaborador → slug usado nos faturamentos
-      const slugMap: Record<string, string> = {
-        'barbiero-morumbi': 'MORUMBI',
-        'barbiero-mascote': 'MASCOTE',
-        'barbiero-seraphine': 'SERAPHINE',
-        'barbiero-grupo': 'GRUPO',
-      };
-      const empresaSlugNorm = slugMap[input.empresaSlug] ?? input.empresaSlug;
+      // Usar o slug diretamente (os registros no banco usam barbiero-mascote, barbiero-morumbi, etc.)
+      const empresaSlugNorm = input.empresaSlug;
       let rows: any[] = [];
       if (input.tipo === 'diario' && input.data) {
         rows = await db.select().from(fatTable).where(

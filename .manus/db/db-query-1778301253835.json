@@ -1,0 +1,26 @@
+{
+  "query": "\nDELETE FROM faturamentos WHERE empresaSlug IN ('mascote', 'morumbi');\nSELECT empresaSlug, COUNT(*) as registros FROM faturamentos GROUP BY empresaSlug ORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nDELETE FROM faturamentos WHERE empresaSlug IN ('mascote', 'morumbi');\nSELECT empresaSlug, COUNT(*) as registros FROM faturamentos GROUP BY empresaSlug ORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "registros": "122"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "registros": "122"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "registros": "49"
+    },
+    {
+      "empresaSlug": "DOM_",
+      "registros": "25"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tregistros\nbarbiero-mascote\t122\nbarbiero-morumbi\t122\nbarbiero-seraphine\t49\nDOM_\t25\n",
+  "stderr": "",
+  "execution_time_ms": 280
+}

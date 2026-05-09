@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, nome, slug FROM empresas ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, slug FROM empresas ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Morumbi",
+      "slug": "barbiero-morumbi"
+    },
+    {
+      "id": "2",
+      "nome": "Mascote",
+      "slug": "barbiero-mascote"
+    },
+    {
+      "id": "3",
+      "nome": "Seraphine",
+      "slug": "barbiero-seraphine"
+    },
+    {
+      "id": "60005",
+      "nome": "Dom Pablo",
+      "slug": "DOM_"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tslug\n1\tMorumbi\tbarbiero-morumbi\n2\tMascote\tbarbiero-mascote\n3\tSeraphine\tbarbiero-seraphine\n60005\tDom Pablo\tDOM_\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

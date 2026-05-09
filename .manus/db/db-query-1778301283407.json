@@ -1,0 +1,25 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_geral\nFROM faturamentos\nWHERE data >= '2026-05-01' AND data <= '2026-05-09'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_geral\nFROM faturamentos\nWHERE data >= '2026-05-01' AND data <= '2026-05-09'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dias": "9",
+      "total_geral": "27969.99"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dias": "9",
+      "total_geral": "70368.24"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "dias": "6",
+      "total_geral": "35268.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias\ttotal_geral\nbarbiero-mascote\t9\t27969.99\nbarbiero-morumbi\t9\t70368.24\nbarbiero-seraphine\t6\t35268.00\n",
+  "stderr": "",
+  "execution_time_ms": 283
+}

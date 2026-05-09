@@ -1,0 +1,38 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_geral,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as total_operacional,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as recorrencia\nFROM faturamentos\nWHERE data >= '2026-05-01' AND data <= '2026-05-09'\n  AND empresaSlug IN ('barbiero-mascote', 'mascote', 'barbiero-morumbi', 'morumbi')\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(*) as dias,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_geral,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + \n      CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + \n      CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as total_operacional,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as recorrencia\nFROM faturamentos\nWHERE data >= '2026-05-01' AND data <= '2026-05-09'\n  AND empresaSlug IN ('barbiero-mascote', 'mascote', 'barbiero-morumbi', 'morumbi')\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dias": "9",
+      "total_geral": "27969.99",
+      "total_operacional": "9848.84",
+      "recorrencia": "18121.15"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dias": "9",
+      "total_geral": "70368.24",
+      "total_operacional": "26010.46",
+      "recorrencia": "44357.78"
+    },
+    {
+      "empresaSlug": "mascote",
+      "dias": "9",
+      "total_geral": "4644.61",
+      "total_operacional": "2280.61",
+      "recorrencia": "2364.00"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "dias": "9",
+      "total_geral": "18526.29",
+      "total_operacional": "7830.29",
+      "recorrencia": "10696.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias\ttotal_geral\ttotal_operacional\trecorrencia\nbarbiero-mascote\t9\t27969.99\t9848.84\t18121.15\nbarbiero-morumbi\t9\t70368.24\t26010.46\t44357.78\nmascote\t9\t4644.61\t2280.61\t2364.00\nmorumbi\t9\t18526.29\t7830.29\t10696.00\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}
