@@ -1170,29 +1170,90 @@ const profissionaisRouter = router({
       // Calcular faturamento REAL da unidade a partir da tabela faturamentos
       const hoje = new Date();
       const hojeStr = hoje.toISOString().slice(0, 10);
-      const totalRealizado = fatUnidadeRows
-        .filter((r) => r.data <= hojeStr)
-        .reduce((sum, r) => {
-          return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
-            .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
-        }, 0);
+      const rowsRealizados = fatUnidadeRows.filter((r) => r.data <= hojeStr);
+      const totalRealizado = rowsRealizados.reduce((sum, r) => {
+        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
+      }, 0);
 
       // Meta da unidade a partir da tabela metas
       const metaUnidade = metasUnidade.find((m) => m.empresaSlug === input.empresaSlug);
       const metaMensal = metaUnidade ? parseFloat(String(metaUnidade.metaMensal)) : 0;
-      
+      const superMeta = metaUnidade?.superMeta ? parseFloat(String(metaUnidade.superMeta)) : null;
+      const metaQuinzenal = metaUnidade?.metaQuinzenal ? parseFloat(String(metaUnidade.metaQuinzenal)) : null;
+
+      // Datas e dias
       const diaAtual = hoje.getDate();
       const diasNoMes = new Date(input.ano, input.mes, 0).getDate();
-      const diasRestantes = Math.max(0, diasNoMes - diaAtual + 1);
-      const metaDiaria = diasRestantes > 0 ? metaMensal / diasRestantes : 0;
-      
+      const diasPassados = rowsRealizados.length > 0 ? rowsRealizados.length : Math.max(1, diaAtual);
+      const diasRestantes = Math.max(0, diasNoMes - diaAtual);
+
+      // Métricas de performance
+      const mediaDiaria = diasPassados > 0 ? totalRealizado / diasPassados : 0;
+      const projecaoFimMes = totalRealizado + (mediaDiaria * diasRestantes);
+      const pctMeta = metaMensal > 0 ? Math.round((totalRealizado / metaMensal) * 100) : null;
+      const faltaMeta = metaMensal > 0 ? Math.max(0, metaMensal - totalRealizado) : null;
+      const faltaSuperMeta = superMeta && superMeta > 0 ? Math.max(0, superMeta - totalRealizado) : null;
+      const pctSuperMeta = superMeta && superMeta > 0 ? Math.round((totalRealizado / superMeta) * 100) : null;
+
+      // Meta quinzenal: calcular progresso
+      const ehPrimeiraQuinzena = diaAtual <= 15;
+      const rowsQuinzena = rowsRealizados.filter((r) => {
+        const dia = parseInt(r.data.slice(8, 10));
+        return ehPrimeiraQuinzena ? dia <= 15 : dia > 15;
+      });
+      const totalQuinzena = rowsQuinzena.reduce((sum, r) => {
+        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
+      }, 0);
+      const pctMetaQuinzenal = metaQuinzenal && metaQuinzenal > 0
+        ? Math.round((totalQuinzena / metaQuinzenal) * 100)
+        : null;
+      const faltaMetaQuinzenal = metaQuinzenal && metaQuinzenal > 0
+        ? Math.max(0, metaQuinzenal - totalQuinzena)
+        : null;
+
+      // Melhor e pior dia
+      const totaisPorDia = rowsRealizados.map((r) => ({
+        data: r.data,
+        total: [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0),
+      }));
+      const melhorDia = totaisPorDia.length > 0
+        ? totaisPorDia.reduce((a, b) => a.total > b.total ? a : b)
+        : null;
+      const piorDia = totaisPorDia.length > 0
+        ? totaisPorDia.reduce((a, b) => a.total < b.total ? a : b)
+        : null;
+
+      // Meta diária necessária para bater a meta com os dias restantes
+      const metaDiariaNecessaria = diasRestantes > 0 && faltaMeta !== null
+        ? faltaMeta / diasRestantes
+        : null;
+
       return {
         profissionais: lista,
         totalRealizado,
         metaMensal,
-        metaDiaria,
+        superMeta,
+        metaQuinzenal,
+        metaDiaria: metaMensal > 0 ? metaMensal / diasNoMes : 0,
+        metaDiariaNecessaria,
         diasRestantes,
-      };
+        diasPassados,
+        diasNoMes,
+        mediaDiaria,
+        projecaoFimMes,
+        pctMeta,
+        faltaMeta,
+        faltaSuperMeta,
+        pctSuperMeta,
+        totalQuinzena,
+        pctMetaQuinzenal,
+        faltaMetaQuinzenal,
+        melhorDia,
+        piorDia,
+      };;
     }),
 
   // Procedures de push removidas — notificações desativadas
