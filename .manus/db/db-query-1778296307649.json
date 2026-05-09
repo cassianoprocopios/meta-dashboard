@@ -1,0 +1,19 @@
+{
+  "query": "SELECT data, empresaSlug, cat1, cat2, cat3, cat4, lancadoPor FROM faturamentos WHERE data = '2026-05-08' AND (empresaSlug LIKE '%seraphine%' OR empresaSlug LIKE '%SERAPHINE%');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, empresaSlug, cat1, cat2, cat3, cat4, lancadoPor FROM faturamentos WHERE data = '2026-05-08' AND (empresaSlug LIKE '%seraphine%' OR empresaSlug LIKE '%SERAPHINE%');",
+  "rows": [
+    {
+      "data": "2026-05-08",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "5895.00",
+      "cat2": "1519.00",
+      "cat3": "45.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tempresaSlug\tcat1\tcat2\tcat3\tcat4\tlancadoPor\n2026-05-08\tbarbiero-seraphine\t5895.00\t1519.00\t45.00\t0.00\tavec-sync-rel0184\n",
+  "stderr": "",
+  "execution_time_ms": 266
+}

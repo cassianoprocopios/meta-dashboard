@@ -1,0 +1,17 @@
+{
+  "query": "SELECT tenantId, empresaSlug, avecEmail, statusUltimaSinc, ultimaSincronizacao FROM avecConfig WHERE empresaSlug LIKE '%seraphine%' OR empresaSlug LIKE '%SERAPHINE%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT tenantId, empresaSlug, avecEmail, statusUltimaSinc, ultimaSincronizacao FROM avecConfig WHERE empresaSlug LIKE '%seraphine%' OR empresaSlug LIKE '%SERAPHINE%';",
+  "rows": [
+    {
+      "tenantId": "1",
+      "empresaSlug": "barbiero-seraphine",
+      "avecEmail": "seraphinebeauty24@gmail.com",
+      "statusUltimaSinc": "sucesso",
+      "ultimaSincronizacao": "2026-05-09 03:03:02"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaSlug\tavecEmail\tstatusUltimaSinc\tultimaSincronizacao\n1\tbarbiero-seraphine\tseraphinebeauty24@gmail.com\tsucesso\t2026-05-09 03:03:02\n",
+  "stderr": "",
+  "execution_time_ms": 280
+}

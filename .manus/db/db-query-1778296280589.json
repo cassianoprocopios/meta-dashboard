@@ -1,0 +1,28 @@
+{
+  "query": "SELECT DISTINCT empresaSlug FROM faturamentos WHERE data >= '2026-05-01' ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT empresaSlug FROM faturamentos WHERE data >= '2026-05-01' ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine"
+    },
+    {
+      "empresaSlug": "mascote"
+    },
+    {
+      "empresaSlug": "morumbi"
+    },
+    {
+      "empresaSlug": "seraphine"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\nbarbiero-mascote\nbarbiero-morumbi\nbarbiero-seraphine\nmascote\nmorumbi\nseraphine\n",
+  "stderr": "",
+  "execution_time_ms": 261
+}
