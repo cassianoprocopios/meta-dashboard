@@ -1,0 +1,13 @@
+{
+  "query": "\nSELECT DISTINCT JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.ser_nome')) AS ser_nome,\n       SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.sum')) AS DECIMAL(10,2))) AS total\nFROM faturamento_colaboradores fc\nJOIN JSON_TABLE(fc.detalhes_servicos, '$[*]' COLUMNS (value JSON PATH '$')) AS j\nWHERE fc.mes = 5 AND fc.ano = 2026\n  AND JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.ser_nome')) IS NOT NULL\nGROUP BY ser_nome\nORDER BY total DESC\nLIMIT 50;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT DISTINCT JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.ser_nome')) AS ser_nome,\n       SUM(CAST(JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.sum')) AS DECIMAL(10,2))) AS total\nFROM faturamento_colaboradores fc\nJOIN JSON_TABLE(fc.detalhes_servicos, '$[*]' COLUMNS (value JSON PATH '$')) AS j\nWHERE fc.mes = 5 AND fc.ano = 2026\n  AND JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.ser_nome')) IS NOT NULL\nGROUP BY ser_nome\nORDER BY total DESC\nLIMIT 50;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 2: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 4 column 17 near \"(fc.detalhes_servicos, '$[*]' COLUMNS (value JSON PATH '$')) AS j",
+    "WHERE fc.mes = 5 AND fc.ano = 2026",
+    "  AND JSON_UNQUOTE(JSON_EXTRACT(j.value, '$.ser_nome')) IS NOT NULL",
+    "GROUP BY ser_nome",
+    "ORDER BY total DESC",
+    "LIMIT 50\""
+  ]
+}

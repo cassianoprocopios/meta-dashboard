@@ -1163,16 +1163,20 @@ const profissionaisRouter = router({
           const rawProdutos: Array<{pro_nome: string; sum: number; count: number}> = fat?.detalhesProdutos ? JSON.parse(fat.detalhesProdutos) : [];
           const servicosFiltrados = rawServicos.filter(s => !EXCL_SERV_RANK.test(s.ser_nome ?? ''));
           const produtosFiltrados = rawProdutos.filter(p => !EXCL_PROD_RANK.test(p.pro_nome ?? ''));
+          // Recalcular totais usando apenas os itens filtrados (exclui corte, barba, etc.)
+          const totalServicosRank = servicosFiltrados.reduce((acc, s) => acc + (Number(s.sum) || 0), 0);
+          const totalProdutosRank = produtosFiltrados.reduce((acc, p) => acc + (Number(p.sum) || 0), 0);
+          const totalGeralRank = totalServicosRank + totalProdutosRank;
           return {
             id: p.id,
             nome: p.nome,
             apelido: p.apelido,
             fotoUrl: p.fotoUrl,
-            totalServicos: fat?.totalServicos ?? 0,
-            totalProdutos: fat?.totalProdutos ?? 0,
-            totalGeral: fat?.totalGeral ?? 0,
-            qtdServicos: fat?.detalhesServicos?.length ?? 0,
-            qtdProdutos: fat?.detalhesProdutos?.length ?? 0,
+            totalServicos: totalServicosRank,
+            totalProdutos: totalProdutosRank,
+            totalGeral: totalGeralRank,
+            qtdServicos: servicosFiltrados.length,
+            qtdProdutos: produtosFiltrados.length,
             metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
             posicaoAnterior: null,
             servicosFiltrados,

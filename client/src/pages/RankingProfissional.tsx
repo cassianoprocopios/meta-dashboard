@@ -466,7 +466,7 @@ function RankingCard({
   );
 }
 
-// ─── Componente de itens vendidos (toggle) ───────────────────────────────────
+// ─── Componente de itens vendidos (sempre visível) ───────────────────────────
 function ItensVendidosToggle({
   servicos,
   produtos,
@@ -474,46 +474,44 @@ function ItensVendidosToggle({
   servicos: Array<{ser_nome: string; sum: number; count: number}>;
   produtos: Array<{pro_nome: string; sum: number; count: number}>;
 }) {
-  const [aberto, setAberto] = useState(false);
   const totalItens = servicos.length + produtos.length;
   if (totalItens === 0) return null;
   return (
-    <div className="mt-1.5">
-      <button
-        onClick={() => setAberto(v => !v)}
-        className="text-xs text-white/40 hover:text-white/70 flex items-center gap-1 transition-colors"
-      >
-        <span>{aberto ? "▲" : "▼"}</span>
-        <span>{totalItens} {totalItens === 1 ? "item" : "itens"} vendido{totalItens !== 1 ? "s" : ""}</span>
-      </button>
-      {aberto && (
-        <div className="mt-1.5 space-y-1">
-          {servicos.length > 0 && (
-            <div>
-              <div className="text-xs text-purple-300/70 font-semibold mb-0.5">✂️ Serviços extras</div>
-              <div className="space-y-0.5">
-                {servicos.sort((a, b) => b.sum - a.sum).map((s, i) => (
-                  <div key={i} className="flex justify-between text-xs text-white/60">
-                    <span className="truncate mr-2">{s.ser_nome} <span className="text-white/30">×{s.count}</span></span>
-                    <span className="text-white/80 font-medium flex-shrink-0">R$ {s.sum.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                ))}
+    <div className="mt-2 pt-2 border-t border-white/10">
+      {servicos.length > 0 && (
+        <div className="mb-1.5">
+          <div className="text-[10px] text-purple-300/60 font-semibold uppercase tracking-wide mb-1">✂️ Serviços extras</div>
+          <div className="space-y-1">
+            {[...servicos].sort((a, b) => b.sum - a.sum).map((s, i) => (
+              <div key={i} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="inline-flex items-center justify-center bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded px-1 py-0.5 flex-shrink-0 min-w-[20px]">
+                    ×{s.count}
+                  </span>
+                  <span className="text-xs text-white/70 truncate">{s.ser_nome}</span>
+                </div>
+                <span className="text-xs text-white/90 font-semibold flex-shrink-0">R$ {Number(s.sum).toFixed(2).replace('.', ',')}</span>
               </div>
-            </div>
-          )}
-          {produtos.length > 0 && (
-            <div className={servicos.length > 0 ? "mt-1.5" : ""}>
-              <div className="text-xs text-emerald-300/70 font-semibold mb-0.5">🛍️ Produtos</div>
-              <div className="space-y-0.5">
-                {produtos.sort((a, b) => b.sum - a.sum).map((p, i) => (
-                  <div key={i} className="flex justify-between text-xs text-white/60">
-                    <span className="truncate mr-2">{p.pro_nome} <span className="text-white/30">×{p.count}</span></span>
-                    <span className="text-white/80 font-medium flex-shrink-0">R$ {p.sum.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                ))}
+            ))}
+          </div>
+        </div>
+      )}
+      {produtos.length > 0 && (
+        <div>
+          <div className="text-[10px] text-emerald-300/60 font-semibold uppercase tracking-wide mb-1">🛍️ Produtos</div>
+          <div className="space-y-1">
+            {[...produtos].sort((a, b) => b.sum - a.sum).map((p, i) => (
+              <div key={i} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="inline-flex items-center justify-center bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded px-1 py-0.5 flex-shrink-0 min-w-[20px]">
+                    ×{p.count}
+                  </span>
+                  <span className="text-xs text-white/70 truncate">{p.pro_nome}</span>
+                </div>
+                <span className="text-xs text-white/90 font-semibold flex-shrink-0">R$ {Number(p.sum).toFixed(2).replace('.', ',')}</span>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>
