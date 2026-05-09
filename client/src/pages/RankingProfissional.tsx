@@ -265,6 +265,8 @@ function RankingCard({
   mostrarEmpresa = false,
   isUltimo = false,
   animIndex = 0,
+  servicosFiltrados,
+  produtosFiltrados,
 }: {
   pos: number;
   nome: string;
@@ -285,6 +287,8 @@ function RankingCard({
   mostrarEmpresa?: boolean;
   isUltimo?: boolean;
   animIndex?: number;
+  servicosFiltrados?: Array<{ser_nome: string; sum: number; count: number}>;
+  produtosFiltrados?: Array<{pro_nome: string; sum: number; count: number}>;
 }) {
   const medalha = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
   const nomeExibido = apelido || nome.split(" ")[0];
@@ -430,11 +434,72 @@ function RankingCard({
             })()}
           </div>
         )}
+        {/* Lista de itens vendidos (serviços extras + produtos) */}
+        {((servicosFiltrados && servicosFiltrados.length > 0) || (produtosFiltrados && produtosFiltrados.length > 0)) && (
+          <ItensVendidosToggle
+            servicos={servicosFiltrados ?? []}
+            produtos={produtosFiltrados ?? []}
+          />
+        )}
       </div>
       {/* Total */}
       <div className={`text-right flex-shrink-0 font-bold text-sm ${isMe ? "text-blue-300" : "text-white"}`}>
         {formatarMoeda(totalGeral)}
       </div>
+    </div>
+  );
+}
+
+// ─── Componente de itens vendidos (toggle) ───────────────────────────────────
+function ItensVendidosToggle({
+  servicos,
+  produtos,
+}: {
+  servicos: Array<{ser_nome: string; sum: number; count: number}>;
+  produtos: Array<{pro_nome: string; sum: number; count: number}>;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const totalItens = servicos.length + produtos.length;
+  if (totalItens === 0) return null;
+  return (
+    <div className="mt-1.5">
+      <button
+        onClick={() => setAberto(v => !v)}
+        className="text-xs text-white/40 hover:text-white/70 flex items-center gap-1 transition-colors"
+      >
+        <span>{aberto ? "▲" : "▼"}</span>
+        <span>{totalItens} {totalItens === 1 ? "item" : "itens"} vendido{totalItens !== 1 ? "s" : ""}</span>
+      </button>
+      {aberto && (
+        <div className="mt-1.5 space-y-1">
+          {servicos.length > 0 && (
+            <div>
+              <div className="text-xs text-purple-300/70 font-semibold mb-0.5">✂️ Serviços extras</div>
+              <div className="space-y-0.5">
+                {servicos.sort((a, b) => b.sum - a.sum).map((s, i) => (
+                  <div key={i} className="flex justify-between text-xs text-white/60">
+                    <span className="truncate mr-2">{s.ser_nome} <span className="text-white/30">×{s.count}</span></span>
+                    <span className="text-white/80 font-medium flex-shrink-0">R$ {s.sum.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {produtos.length > 0 && (
+            <div className={servicos.length > 0 ? "mt-1.5" : ""}>
+              <div className="text-xs text-emerald-300/70 font-semibold mb-0.5">🛍️ Produtos</div>
+              <div className="space-y-0.5">
+                {produtos.sort((a, b) => b.sum - a.sum).map((p, i) => (
+                  <div key={i} className="flex justify-between text-xs text-white/60">
+                    <span className="truncate mr-2">{p.pro_nome} <span className="text-white/30">×{p.count}</span></span>
+                    <span className="text-white/80 font-medium flex-shrink-0">R$ {p.sum.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1244,6 +1309,8 @@ function AbaDiario({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                      mostrarEmpresa={verGeral}
                      isUltimo={total > 3 && i >= total - 3}
                      animIndex={i}
+                     servicosFiltrados={(p as any).servicosFiltrados ?? []}
+                     produtosFiltrados={(p as any).produtosFiltrados ?? []}
                    />
                   {isPodio3 && (
                     <div key={`sep-podio-${i}`} className="flex items-center gap-2 py-1">
@@ -1786,6 +1853,8 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
                      mostrarEmpresa={verGeral}
                      isUltimo={total > 3 && i >= total - 3}
                      animIndex={i}
+                     servicosFiltrados={(p as any).servicosFiltrados ?? []}
+                     produtosFiltrados={(p as any).produtosFiltrados ?? []}
                    />
                   {isPodio3 && (
                     <div key={`sep-podio-sem-${i}`} className="flex items-center gap-2 py-1">
@@ -2269,6 +2338,8 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
                     mostrarEmpresa={verGeral}
                     isUltimo={total > 3 && i >= total - 3}
                     animIndex={i}
+                    servicosFiltrados={(p as any).servicosFiltrados ?? []}
+                    produtosFiltrados={(p as any).produtosFiltrados ?? []}
                   />
                   {isPodio3 && (
                     <div key={`sep-podio-mes-${i}`} className="flex items-center gap-2 py-1">

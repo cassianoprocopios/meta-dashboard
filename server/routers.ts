@@ -1156,6 +1156,13 @@ const profissionaisRouter = router({
         })
         .map((p) => {
           const fat = faturamentoMap.get(p.id);
+          // Filtrar serviços e produtos excluídos do ranking
+          const EXCL_SERV_RANK = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
+          const EXCL_PROD_RANK = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+          const rawServicos: Array<{ser_nome: string; sum: number; count: number}> = fat?.detalhesServicos ? JSON.parse(fat.detalhesServicos) : [];
+          const rawProdutos: Array<{pro_nome: string; sum: number; count: number}> = fat?.detalhesProdutos ? JSON.parse(fat.detalhesProdutos) : [];
+          const servicosFiltrados = rawServicos.filter(s => !EXCL_SERV_RANK.test(s.ser_nome ?? ''));
+          const produtosFiltrados = rawProdutos.filter(p => !EXCL_PROD_RANK.test(p.pro_nome ?? ''));
           return {
             id: p.id,
             nome: p.nome,
@@ -1168,6 +1175,8 @@ const profissionaisRouter = router({
             qtdProdutos: fat?.detalhesProdutos?.length ?? 0,
             metaMensal: p.metaMensal ? parseFloat(String(p.metaMensal)) : null,
             posicaoAnterior: null,
+            servicosFiltrados,
+            produtosFiltrados,
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
