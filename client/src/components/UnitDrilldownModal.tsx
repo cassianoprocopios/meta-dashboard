@@ -64,11 +64,17 @@ export default function UnitDrilldownModal({
 
   const unitStats = useMemo(() => {
     if (!rankingData) return null;
+    const totalRealizado = rankingData.totalRealizado ?? 0;
+    const metaMensal = rankingData.metaMensal ?? 0;
+    const faltaMeta = Math.max(0, metaMensal - totalRealizado);
+    const pctAtingimento = metaMensal > 0 ? Math.round((totalRealizado / metaMensal) * 100) : 0;
     return {
-      totalRealizado: rankingData.totalRealizado ?? 0,
-      metaMensal: rankingData.metaMensal ?? 0,
+      totalRealizado,
+      metaMensal,
       metaDiaria: rankingData.metaDiaria ?? 0,
       diasRestantes: rankingData.diasRestantes ?? 0,
+      faltaMeta,
+      pctAtingimento,
     };
   }, [rankingData]);
 
@@ -135,22 +141,65 @@ export default function UnitDrilldownModal({
           <div className="space-y-4">
             {/* Resumo da unidade */}
             {unitStats && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Realizado</p>
-                  <p className="text-lg font-bold text-white">{formatarMoeda(unitStats.totalRealizado)}</p>
+              <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-3">
+                {/* Linha 1: Realizado + Meta + Percentual */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Realizado</p>
+                    <p className="text-lg font-bold text-white">{formatarMoeda(unitStats.totalRealizado)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Meta</p>
+                    <p className="text-lg font-bold text-white">{formatarMoeda(unitStats.metaMensal)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Atingimento</p>
+                    <p className={`text-lg font-bold ${
+                      unitStats.pctAtingimento >= 100
+                        ? 'text-emerald-400'
+                        : unitStats.pctAtingimento >= 75
+                        ? 'text-blue-400'
+                        : unitStats.pctAtingimento >= 50
+                        ? 'text-amber-400'
+                        : 'text-red-400'
+                    }`}>{unitStats.pctAtingimento}%</p>
+                  </div>
                 </div>
+                {/* Barra de progresso da meta da unidade */}
                 <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Meta</p>
-                  <p className="text-lg font-bold text-white">{formatarMoeda(unitStats.metaMensal)}</p>
+                  <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        unitStats.pctAtingimento >= 100
+                          ? 'bg-emerald-400'
+                          : unitStats.pctAtingimento >= 75
+                          ? 'bg-blue-400'
+                          : unitStats.pctAtingimento >= 50
+                          ? 'bg-amber-400'
+                          : 'bg-red-400'
+                      }`}
+                      style={{ width: `${Math.min(unitStats.pctAtingimento, 100)}%` }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Meta/dia</p>
-                  <p className="text-lg font-bold text-white">{formatarMoeda(unitStats.metaDiaria)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wide">Dias restantes</p>
-                  <p className="text-lg font-bold text-white">{unitStats.diasRestantes}d</p>
+                {/* Linha 2: Falta para meta + Meta/dia + Dias restantes */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Falta para meta</p>
+                    <p className={`text-base font-semibold ${
+                      unitStats.faltaMeta === 0 ? 'text-emerald-400' : 'text-amber-300'
+                    }`}>
+                      {unitStats.faltaMeta === 0 ? '✓ Meta atingida!' : formatarMoeda(unitStats.faltaMeta)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Meta/dia</p>
+                    <p className="text-base font-semibold text-white">{formatarMoeda(unitStats.metaDiaria)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">Dias restantes</p>
+                    <p className="text-base font-semibold text-white">{unitStats.diasRestantes}d</p>
+                  </div>
                 </div>
               </div>
             )}

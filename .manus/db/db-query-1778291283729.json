@@ -1,0 +1,20 @@
+{
+  "query": "\n-- Buscar o ID do Renan\nSELECT id, nome, tenantId FROM colaboradores WHERE nome LIKE '%Renan%' OR apelido LIKE '%Renan%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Buscar o ID do Renan\nSELECT id, nome, tenantId FROM colaboradores WHERE nome LIKE '%Renan%' OR apelido LIKE '%Renan%';\n",
+  "rows": [
+    {
+      "id": "19",
+      "nome": "Renan",
+      "tenantId": "1"
+    },
+    {
+      "id": "90001",
+      "nome": "Renan",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\ttenantId\n19\tRenan\t1\n90001\tRenan\t1\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

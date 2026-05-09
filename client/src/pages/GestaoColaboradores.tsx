@@ -30,6 +30,8 @@ import {
   Building2,
   Loader2,
   AlertTriangle,
+  X,
+  Tag,
 } from "lucide-react";
 
 type Colaborador = {
@@ -94,9 +96,33 @@ export default function GestaoColaboradores() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [novaExclusao, setNovaExclusao] = useState("");
 
   const { data: colaboradores = [], isLoading, refetch } = trpc.profissionais.listar.useQuery();
   const { data: empresas = [] } = trpc.empresa.listar.useQuery();
+
+  // Exclusões de categorias do colaborador em edição
+  const { data: exclusoes = [], refetch: refetchExclusoes } = trpc.profissionais.listarExclusoes.useQuery(
+    { colaboradorId: form.id! },
+    { enabled: !!form.id }
+  );
+
+  const adicionarExclusao = trpc.profissionais.adicionarExclusao.useMutation({
+    onSuccess: () => {
+      setNovaExclusao("");
+      refetchExclusoes();
+      toast.success("Categoria excluída do ranking");
+    },
+    onError: (e) => toast.error(`Erro: ${e.message}`),
+  });
+
+  const removerExclusao = trpc.profissionais.removerExclusao.useMutation({
+    onSuccess: () => {
+      refetchExclusoes();
+      toast.success("Regra removida");
+    },
+    onError: (e) => toast.error(`Erro: ${e.message}`),
+  });
 
   const salvar = trpc.profissionais.salvar.useMutation({
     onSuccess: () => {
@@ -563,6 +589,64 @@ export default function GestaoColaboradores() {
                 <Label className="text-white/60 text-xs text-center">Gerência</Label>
               </div>
             </div>
+
+            {/* Exclusões de categorias do ranking (apenas ao editar) */}
+            {form.id && (
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-3.5 h-3.5 text-amber-400" />
+                  <Label className="text-white/70 text-xs">Categorias excluídas do ranking</Label>
+                </div>
+                <p className="text-white/40 text-xs">Serviços com esses nomes não serão somados no faturamento deste profissional.</p>
+                {/* Lista de exclusões existentes */}
+                {exclusoes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {exclusoes.map((exc: any) => (
+                      <span
+                        key={exc.id}
+                        className="inline-flex items-center gap-1 bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs px-2 py-0.5 rounded-full"
+                      >
+                        {exc.nomeCategoria}
+                        <button
+                          type="button"
+                          onClick={() => removerExclusao.mutate({ id: exc.id })}
+                          className="text-amber-400 hover:text-red-400 transition-colors ml-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Adicionar nova exclusão */}
+                <div className="flex gap-2">
+                  <Input
+                    value={novaExclusao}
+                    onChange={(e) => setNovaExclusao(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && novaExclusao.trim() && form.id) {
+                        adicionarExclusao.mutate({ colaboradorId: form.id, nomeCategoria: novaExclusao.trim() });
+                      }
+                    }}
+                    placeholder="Ex: Corte Cabelo, Barba..."
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-xs h-8"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      if (novaExclusao.trim() && form.id) {
+                        adicionarExclusao.mutate({ colaboradorId: form.id, nomeCategoria: novaExclusao.trim() });
+                      }
+                    }}
+                    disabled={!novaExclusao.trim() || adicionarExclusao.isPending}
+                    className="bg-amber-600 hover:bg-amber-700 text-white h-8 px-3 text-xs flex-shrink-0"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2">

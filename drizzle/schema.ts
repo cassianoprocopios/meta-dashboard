@@ -525,3 +525,20 @@ export const avecRetry = mysqlTable("avecRetry", {
 });
 export type AvecRetry = typeof avecRetry.$inferSelect;
 export type InsertAvecRetry = typeof avecRetry.$inferInsert;
+
+// ─── EXCLUSÃO DE CATEGORIAS POR COLABORADOR ──────────────────────────────────
+// Define quais categorias/serviços do CashBarber devem ser IGNORADOS
+// ao calcular o totalServicos de um profissional específico no ranking.
+// Exemplo: Renan não conta Cabelo, Barba e Corte Kids.
+export const colaboradorExclusaoCategoria = mysqlTable("colaboradorExclusaoCategoria", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  colaboradorId: int("colaboradorId").notNull(),
+  /** Nome exato da categoria/serviço no CashBarber a ser ignorado (ex: 'Cabelo', 'Barba') */
+  nomeCategoria: varchar("nomeCategoria", { length: 128 }).notNull(),
+  /** Observação opcional sobre o motivo da exclusão */
+  observacao: varchar("observacao", { length: 256 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ColaboradorExclusaoCategoria = typeof colaboradorExclusaoCategoria.$inferSelect;
+export type InsertColaboradorExclusaoCategoria = typeof colaboradorExclusaoCategoria.$inferInsert;

@@ -31,6 +31,7 @@ import {
   tenants,
   userEmpresas,
   users,
+  colaboradorExclusaoCategoria,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1872,4 +1873,64 @@ export async function getUltimoSyncPorEmpresa(tenantId: number): Promise<
     diasSincronizados: l.diasSincronizados,
     erros: l.erros ?? null,
   }));
+}
+
+// ─── EXCLUSÃO DE CATEGORIAS POR COLABORADOR ──────────────────────────────────
+
+/** Retorna todas as regras de exclusão de um colaborador */
+export async function getExclusoesByColaborador(tenantId: number, colaboradorId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(colaboradorExclusaoCategoria)
+    .where(
+      and(
+        eq(colaboradorExclusaoCategoria.tenantId, tenantId),
+        eq(colaboradorExclusaoCategoria.colaboradorId, colaboradorId)
+      )
+    )
+    .orderBy(asc(colaboradorExclusaoCategoria.nomeCategoria));
+}
+
+/** Retorna todas as regras de exclusão de um tenant (mapa colaboradorId → nomes excluídos) */
+export async function getAllExclusoesByTenant(tenantId: number): Promise<Map<number, Set<string>>> {
+  const db = await getDb();
+  if (!db) return new Map();
+  const rows = await db
+    .select()
+    .from(colaboradorExclusaoCategoria)
+    .where(eq(colaboradorExclusaoCategoria.tenantId, tenantId));
+  const mapa = new Map<number, Set<string>>();
+  for (const row of rows) {
+    if (!mapa.has(row.colaboradorId)) mapa.set(row.colaboradorId, new Set());
+    mapa.get(row.colaboradorId)!.add(row.nomeCategoria.toLowerCase().trim());
+  }
+  return mapa;
+}
+
+/** Adiciona uma regra de exclusão para um colaborador */
+export async function addExclusaoCategoria(tenantId: number, colaboradorId: number, nomeCategoria: string, observacao?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(colaboradorExclusaoCategoria).values({
+    tenantId,
+    colaboradorId,
+    nomeCategoria: nomeCategoria.trim(),
+    observacao: observacao ?? null,
+  });
+}
+
+/** Remove uma regra de exclusão pelo ID */
+export async function removeExclusaoCategoria(tenantId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(colaboradorExclusaoCategoria)
+    .where(
+      and(
+        eq(colaboradorExclusaoCategoria.tenantId, tenantId),
+        eq(colaboradorExclusaoCategoria.id, id)
+      )
+    );
 }

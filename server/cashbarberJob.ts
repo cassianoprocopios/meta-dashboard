@@ -470,7 +470,7 @@ cron.schedule("0 5 10 * * *", async () => {
 // endpoint /api/internal/cron-sync, garantindo que o ranking seja sempre
 // atualizado junto com o faturamento.
 export async function executarRecalculoRanking(tenantId: number): Promise<{ sincronizados: number; erros: number }> {
-  const { listarColaboradores, upsertFaturamentoColaborador } = await import("./db");
+  const { listarColaboradores, upsertFaturamentoColaborador, getAllExclusoesByTenant } = await import("./db");
   const { cashbarberLogin, cashbarberRelatorio15, cashbarberRelatorio13 } = await import("./cashbarber");
   const agora = new Date();
   const mes = agora.getMonth() + 1;
@@ -499,14 +499,26 @@ export async function executarRecalculoRanking(tenantId: number): Promise<{ sinc
   } catch (e) {
     console.warn("[Ranking Job] Não foi possível buscar relatório 13:", e);
   }
-  const EXCLUIDOS_RANKING = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*máquina|barba\s*(completa|simples|na\s*tesoura|na\s*máquina)?$|pezinho)/i;
+  // Regras globais de exclusão (aplicadas a TODOS os profissionais)
+  const EXCLUIDOS_RANKING_GLOBAL = /^(raspar\s*na\s*máquina|pezinho)/i;
   const EXCLUIDOS_PRODUTOS = /^(caixinha|água|agua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie)/i;
+  // Buscar regras de exclusão personalizadas por colaborador
+  const mapaExclusoes = await getAllExclusoesByTenant(tenantId);
   let sincronizados = 0;
   let erros = 0;
   for (const col of comId) {
     try {
       const relatorio = await cashbarberRelatorio15(token, dataInicial, dataFinal, null, col.cashbarberProfissionalId);
-      const servicosRanking = (relatorio.servicos ?? []).filter((s: any) => !EXCLUIDOS_RANKING.test(s.ser_nome ?? ""));
+      // Exclusões personalizadas para este colaborador (nomes em minúsculo)
+      const exclusoesPersonalizadas = mapaExclusoes.get(col.id) ?? new Set<string>();
+      const servicosRanking = (relatorio.servicos ?? []).filter((s: any) => {
+        const nome = (s.ser_nome ?? "").trim();
+        // Excluir por regra global
+        if (EXCLUIDOS_RANKING_GLOBAL.test(nome)) return false;
+        // Excluir por regra personalizada do colaborador
+        if (exclusoesPersonalizadas.has(nome.toLowerCase())) return false;
+        return true;
+      });
       const produtosRanking = (relatorio.produtos ?? []).filter((p: any) => !EXCLUIDOS_PRODUTOS.test(p.pro_nome ?? ""));
       const totalServicos = servicosRanking.reduce((acc: number, s: any) => acc + (s.sum ?? 0), 0);
       const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);

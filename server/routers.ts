@@ -89,6 +89,9 @@ import {
   saveRecorrenciaFonte,
   getRecorrenciaFonte,
   listarHistoricoUnidades,
+  getExclusoesByColaborador,
+  addExclusaoCategoria,
+  removeExclusaoCategoria,
 } from "./db";
 import {
   cashbarberLogin,
@@ -1217,6 +1220,34 @@ const profissionaisRouter = router({
 
   dispararPushRankingParaTodos: protectedProcedure
     .mutation(async () => ({ enviados: 0, erros: 0 })),
+
+  // ─── EXCLUSÃO DE CATEGORIAS POR COLABORADOR ────────────────────────────────
+  listarExclusoes: protectedProcedure
+    .input(z.object({ colaboradorId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      return getExclusoesByColaborador(tenantId, input.colaboradorId);
+    }),
+
+  adicionarExclusao: protectedProcedure
+    .input(z.object({
+      colaboradorId: z.number().int().positive(),
+      nomeCategoria: z.string().min(1).max(100),
+      observacao: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      await addExclusaoCategoria(tenantId, input.colaboradorId, input.nomeCategoria, input.observacao);
+      return { ok: true };
+    }),
+
+  removerExclusao: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      await removeExclusaoCategoria(tenantId, input.id);
+      return { ok: true };
+    }),
 });
 // ─── FATURAMENTO CHECK ────────────────────────────────────────────────────────
 const faturamentoCheckRouter = router({

@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT fc.colaboradorId, c.nome, c.empresaSlug, fc.totalServicos, fc.totalGeral\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes = 5 AND fc.ano = 2026 AND (c.nome LIKE '%Renan%' OR c.apelido LIKE '%Renan%');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT fc.colaboradorId, c.nome, c.empresaSlug, fc.totalServicos, fc.totalGeral\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes = 5 AND fc.ano = 2026 AND (c.nome LIKE '%Renan%' OR c.apelido LIKE '%Renan%');\n",
+  "rows": [
+    {
+      "colaboradorId": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "214.40",
+      "totalGeral": "475.12"
+    },
+    {
+      "colaboradorId": "90001",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "totalServicos": "214.40",
+      "totalGeral": "475.12"
+    }
+  ],
+  "messages": [],
+  "stdout": "colaboradorId\tnome\tempresaSlug\ttotalServicos\ttotalGeral\n19\tRenan\tbarbiero-mascote\t214.40\t475.12\n90001\tRenan\tbarbiero-mascote\t214.40\t475.12\n",
+  "stderr": "",
+  "execution_time_ms": 281
+}
