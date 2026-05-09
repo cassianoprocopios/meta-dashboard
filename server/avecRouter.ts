@@ -394,6 +394,36 @@ export const avecRouter = router({
     return { ok: true, message: "Tabelas Avec criadas e dados iniciais inseridos com sucesso!" };
   }),
 
+  // Sincronização rápida do dia atual (todas as empresas do tenant)
+  syncHoje: protectedProcedure.mutation(async ({ ctx }) => {
+    const tenantId = await getTenantIdFromCtx(ctx);
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB não disponível" });
+    const { avecConfig } = await import("../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    const configs = await db.select().from(avecConfig).where(eq(avecConfig.tenantId, tenantId));
+    if (configs.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com Avec configurado" });
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const dataHoje = `${ano}-${mes}-${dia}`;
+    const { sincronizarFaturamentoAvecPorData } = await import("./avecSincronizador");
+    const resultados: Record<string, { ok: boolean; total?: number; mensagem?: string; erro?: string }> = {};
+    for (const config of configs) {
+      try {
+        const r = await sincronizarFaturamentoAvecPorData(tenantId, config.empresaSlug, dataHoje, dataHoje);
+        const totalDia = r.detalhes?.[0]?.total ?? 0;
+        const mensagem = r.detalhes?.[0]?.mensagem ?? (r.diasSincronizados > 0 ? "Sincronizado" : "Sem dados");
+        resultados[config.empresaSlug] = { ok: true, total: totalDia, mensagem };
+      } catch (err) {
+        resultados[config.empresaSlug] = { ok: false, erro: err instanceof Error ? err.message : String(err) };
+      }
+    }
+    const algumErro = Object.values(resultados).some(r => !r.ok);
+    return { ok: !algumErro, data: dataHoje, resultados };
+  }),
+
   // Alias para logs (compatibilidade com o componente AvecIntegracao)
   listarLogs: protectedProcedure
     .input(z.object({ empresaSlug: z.string(), limit: z.number().int().min(1).max(50).default(10) }))

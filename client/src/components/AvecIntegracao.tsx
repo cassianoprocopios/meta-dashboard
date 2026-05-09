@@ -580,19 +580,119 @@ export default function AvecIntegracao({ empresas }: AvecIntegracaoProps) {
     { enabled: !!primeiraEmpresa }
   );
 
+  // Sincronização rápida do dia atual
+  const [resultadoSyncHoje, setResultadoSyncHoje] = useState<{
+    ok: boolean;
+    data?: string;
+    resultados?: Record<string, { ok: boolean; total?: number; mensagem?: string; erro?: string }>;
+  } | null>(null);
+
+  const syncHojeMutation = trpc.avec.syncHoje.useMutation({
+    onSuccess: (data) => {
+      setResultadoSyncHoje(data);
+      if (data.ok) {
+        const totais = Object.entries(data.resultados ?? {})
+          .map(([slug, r]) => `${slug}: R$ ${(r.total ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)
+          .join(" | ");
+        toast.success(`Sincronização do dia ${data.data} concluída! ${totais}`);
+      } else {
+        toast.error("Sincronização concluída com erros. Verifique os detalhes abaixo.");
+      }
+    },
+    onError: (e) => {
+      toast.error(`Erro na sincronização: ${e.message}`);
+    },
+  });
+
+  const hoje = new Date();
+  const dataHojeFormatada = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
-          <Zap className="w-4 h-4 text-pink-400" />
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-pink-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-white">Integração Avec</h3>
+            <p className="text-xs text-zinc-400">
+              Configure a sincronização automática com o sistema Avec para importar faturamento por categoria.
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-base font-semibold text-white">Integração Avec</h3>
-          <p className="text-xs text-zinc-400">
-            Configure a sincronização automática com o sistema Avec para importar faturamento por categoria.
-          </p>
-        </div>
+        {/* Botão de sincronização rápida do dia atual */}
+        <button
+          onClick={() => { setResultadoSyncHoje(null); syncHojeMutation.mutate(); }}
+          disabled={syncHojeMutation.isPending}
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0 shadow-sm"
+          title={`Forçar sincronização do dia ${dataHojeFormatada}`}
+        >
+          {syncHojeMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4" />
+          )}
+          <span className="hidden sm:inline">
+            {syncHojeMutation.isPending ? "Sincronizando..." : `Sincronizar Hoje (${dataHojeFormatada})`}
+          </span>
+          <span className="sm:hidden">
+            {syncHojeMutation.isPending ? "..." : "Hoje"}
+          </span>
+        </button>
       </div>
+
+      {/* Resultado da sincronização rápida */}
+      {resultadoSyncHoje && (
+        <div className={`rounded-lg p-4 mb-2 ${
+          resultadoSyncHoje.ok
+            ? "bg-green-500/10 border border-green-500/20"
+            : "bg-red-500/10 border border-red-500/20"
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            {resultadoSyncHoje.ok ? (
+              <CheckCircle className="w-4 h-4 text-green-400" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-400" />
+            )}
+            <span className={`text-sm font-medium ${
+              resultadoSyncHoje.ok ? "text-green-400" : "text-red-400"
+            }`}>
+              {resultadoSyncHoje.ok ? `Sincronização de ${resultadoSyncHoje.data} concluída` : "Sincronização com erros"}
+            </span>
+            <button
+              onClick={() => setResultadoSyncHoje(null)}
+              className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              <XCircle className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(resultadoSyncHoje.resultados ?? {}).map(([slug, r]) => (
+              <div key={slug} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  {r.ok ? (
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  ) : (
+                    <XCircle className="w-3.5 h-3.5 text-red-400" />
+                  )}
+                  <span className="text-zinc-300 font-medium">{slug}</span>
+                </div>
+                <div className="text-right">
+                  {r.ok ? (
+                    <span className="text-green-300">
+                      R$ {(r.total ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      {r.mensagem && <span className="text-zinc-400 ml-2">— {r.mensagem}</span>}
+                    </span>
+                  ) : (
+                    <span className="text-red-300">{r.erro}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-3 mb-4">
         <div className="flex items-start gap-2">
