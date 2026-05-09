@@ -5676,6 +5676,20 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         ? Math.max(0, Math.round((acimaDele.totalGeral - mesAtualData.totalGeral + 0.01) * 100) / 100)
         : null;
       const nomeProximo = acimaDele?.nome ?? null;
+      // Itens do mês atual com filtro de categorias básicas
+      const EXCL_SERV_DES = /^(corte\s*(de\s*)?cabelo|corte\s*kids|raspar\s*na\s*m[aá]quina|barba(\s*(completa|simples|na\s*te[sc]oura|na\s*m[aá]quina))?$|pezinho)/i;
+      const EXCL_PROD_DES = /^(caixinha|[aá]gua|heineken|refrigerante|corona|pod\s*v?400|red\s*bull|brownie|guaran[aá]|skol|salgado)/i;
+      const meuFatAtual = rankingMesAtual.itens.find((i) => i.colaboradorId === input.profissionalId);
+      const rawServMes: Array<{ser_nome: string; sum: number; count: number}> = meuFatAtual?.detalhesServicos ? JSON.parse(meuFatAtual.detalhesServicos) : [];
+      const rawProdMes: Array<{pro_nome: string; sum: number; count: number}> = meuFatAtual?.detalhesProdutos ? JSON.parse(meuFatAtual.detalhesProdutos) : [];
+      const servicosMes = rawServMes.filter(s => !EXCL_SERV_DES.test(s.ser_nome ?? '')).sort((a, b) => b.sum - a.sum);
+      const produtosMes = rawProdMes.filter(p => !EXCL_PROD_DES.test(p.pro_nome ?? '')).sort((a, b) => b.sum - a.sum);
+      // Item mais vendido (maior valor)
+      const todosItens = [
+        ...servicosMes.map(s => ({ nome: s.ser_nome, sum: s.sum, count: s.count, tipo: 'servico' as const })),
+        ...produtosMes.map(p => ({ nome: p.pro_nome, sum: p.sum, count: p.count, tipo: 'produto' as const })),
+      ].sort((a, b) => b.sum - a.sum);
+      const itemMaisVendido = todosItens.length > 0 ? todosItens[0] : null;
       return {
         historico,
         metaMensal: col?.metaMensal ? parseFloat(String(col.metaMensal)) : null,
@@ -5686,6 +5700,9 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         mediaDiaria: Math.round(mediaDiaria * 100) / 100,
         faltaParaSubir,
         nomeProximo,
+        servicosMes,
+        produtosMes,
+        itemMaisVendido,
       };
     }),
   performance: performanceRouter,

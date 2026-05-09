@@ -366,6 +366,22 @@ function RankingCard({
             )}
           </div>
         )}
+        {/* Alerta do item mais vendido */}
+        {servicosFiltrados && produtosFiltrados && (() => {
+          const todos = [
+            ...(servicosFiltrados ?? []).map(s => ({ nome: s.ser_nome, sum: s.sum, count: s.count })),
+            ...(produtosFiltrados ?? []).map(p => ({ nome: p.pro_nome, sum: p.sum, count: p.count })),
+          ].sort((a, b) => b.sum - a.sum);
+          const top = todos[0];
+          if (!top || top.sum <= 0) return null;
+          return (
+            <div className="flex items-center gap-1 text-xs text-amber-300/80 mt-0.5">
+              <span>🏆</span>
+              <span className="truncate font-medium">{top.nome}</span>
+              <span className="text-amber-300/50 flex-shrink-0">·{formatarMoeda(top.sum)}</span>
+            </div>
+          );
+        })()}
         {/* Linha 2: valores monetários */}
         <div className="text-xs text-white/40 flex gap-2 flex-wrap">
           {totalServicos > 0 && <span>{formatarMoeda(totalServicos)}</span>}
@@ -3414,6 +3430,72 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
         </div>
       )}
 
+      {/* ── Itens Vendidos no Mês ── */}
+      {((data as any).servicosMes?.length > 0 || (data as any).produtosMes?.length > 0) && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Itens Vendidos · Mês Atual</h2>
+          {/* Alerta do item mais vendido */}
+          {(data as any).itemMaisVendido && (
+            <div className="mb-3 flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
+              <span className="text-lg">🏆</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-amber-300 text-xs font-semibold truncate">Seu carro-chefe do mês</p>
+                <p className="text-white text-sm font-bold truncate">{(data as any).itemMaisVendido.nome}</p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-amber-300 text-sm font-bold">{formatarMoeda((data as any).itemMaisVendido.sum)}</p>
+                <p className="text-white/40 text-xs">×{(data as any).itemMaisVendido.count}</p>
+              </div>
+            </div>
+          )}
+          {/* Serviços extras */}
+          {(data as any).servicosMes?.length > 0 && (
+            <div className="mb-3">
+              <p className="text-purple-300/70 text-xs font-semibold mb-2">✂️ Serviços Extras</p>
+              <div className="space-y-1.5">
+                {(data as any).servicosMes.map((s: {ser_nome: string; sum: number; count: number}, i: number) => {
+                  const maxSum = (data as any).servicosMes[0]?.sum ?? 1;
+                  const pct = Math.round((s.sum / maxSum) * 100);
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-xs mb-0.5">
+                        <span className="text-white/70 truncate mr-2">{s.ser_nome} <span className="text-white/30">×{s.count}</span></span>
+                        <span className="text-white font-semibold flex-shrink-0">{formatarMoeda(s.sum)}</span>
+                      </div>
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-400/60 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {/* Produtos */}
+          {(data as any).produtosMes?.length > 0 && (
+            <div>
+              <p className="text-emerald-300/70 text-xs font-semibold mb-2">🛍️ Produtos</p>
+              <div className="space-y-1.5">
+                {(data as any).produtosMes.map((p: {pro_nome: string; sum: number; count: number}, i: number) => {
+                  const maxSum = (data as any).produtosMes[0]?.sum ?? 1;
+                  const pct = Math.round((p.sum / maxSum) * 100);
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-xs mb-0.5">
+                        <span className="text-white/70 truncate mr-2">{p.pro_nome} <span className="text-white/30">×{p.count}</span></span>
+                        <span className="text-white font-semibold flex-shrink-0">{formatarMoeda(p.sum)}</span>
+                      </div>
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-400/60 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {/* ── Gráfico de Faturamento (últimos 6 meses) ── */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
         <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Faturamento · Últimos 6 Meses</h2>
