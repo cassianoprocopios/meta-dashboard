@@ -1,0 +1,101 @@
+{
+  "query": "SELECT empresaSlug, tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi' ORDER BY tipo, cbNome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi' ORDER BY tipo, cbNome;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Barbiero",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat6"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Barbiero",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat6"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Keune",
+      "cbNome": "Keune",
+      "metaCategoria": "cat7"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "Keune",
+      "cbNome": "Keune",
+      "metaCategoria": "cat7"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttipo\tcbId\tcbNome\tmetaCategoria\nbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\nbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\nbarbiero-morumbi\tservico_categoria\tAVULSO\tAVULSO\tcat1\nbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\nbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\nbarbiero-morumbi\tservico_categoria\tCLUBE\tCLUBE\tcat2\nbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\nbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\nbarbiero-morumbi\tservico_categoria\tOUTROS\tOUTROS\tcat4\nbarbiero-morumbi\tproduto_categoria\tBarbiero\tBarbiero\tcat6\nbarbiero-morumbi\tproduto_categoria\tBarbiero\tBarbiero\tcat6\nbarbiero-morumbi\tproduto_categoria\tKeune\tKeune\tcat7\nbarbiero-morumbi\tproduto_categoria\tKeune\tKeune\tcat7\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

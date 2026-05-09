@@ -1,0 +1,34 @@
+{
+  "query": "SELECT slug, nome, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome FROM empresas WHERE slug IN ('barbiero-mascote', 'barbiero-morumbi') ORDER BY slug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT slug, nome, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome FROM empresas WHERE slug IN ('barbiero-mascote', 'barbiero-morumbi') ORDER BY slug;",
+  "rows": [
+    {
+      "slug": "barbiero-mascote",
+      "nome": "Mascote",
+      "cat1Nome": "Avulso/Clube",
+      "cat2Nome": "Serv. Extra",
+      "cat3Nome": "Auxiliar",
+      "cat4Nome": "Keune",
+      "cat5Nome": "Don Alcides",
+      "cat6Nome": "Caixinha",
+      "cat7Nome": "Barbiero",
+      "cat8Nome": "Bar"
+    },
+    {
+      "slug": "barbiero-morumbi",
+      "nome": "Morumbi",
+      "cat1Nome": "Avulso/Clube",
+      "cat2Nome": "Serv. Extra",
+      "cat3Nome": "Auxiliar",
+      "cat4Nome": "Keune",
+      "cat5Nome": "Don Alcides",
+      "cat6Nome": "Caixinha",
+      "cat7Nome": "Barbiero",
+      "cat8Nome": "Bar"
+    }
+  ],
+  "messages": [],
+  "stdout": "slug\tnome\tcat1Nome\tcat2Nome\tcat3Nome\tcat4Nome\tcat5Nome\tcat6Nome\tcat7Nome\tcat8Nome\nbarbiero-mascote\tMascote\tAvulso/Clube\tServ. Extra\tAuxiliar\tKeune\tDon Alcides\tCaixinha\tBarbiero\tBar\nbarbiero-morumbi\tMorumbi\tAvulso/Clube\tServ. Extra\tAuxiliar\tKeune\tDon Alcides\tCaixinha\tBarbiero\tBar\n",
+  "stderr": "",
+  "execution_time_ms": 277
+}

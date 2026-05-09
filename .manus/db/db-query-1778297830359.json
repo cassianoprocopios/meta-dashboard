@@ -1,0 +1,40 @@
+{
+  "query": "SELECT DISTINCT tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-mascote' ORDER BY tipo, cbNome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT tipo, cbId, cbNome, metaCategoria FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-mascote' ORDER BY tipo, cbNome;",
+  "rows": [
+    {
+      "tipo": "servico_categoria",
+      "cbId": "AVULSO",
+      "cbNome": "AVULSO",
+      "metaCategoria": "cat1"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "CLUBE",
+      "cbNome": "CLUBE",
+      "metaCategoria": "cat2"
+    },
+    {
+      "tipo": "servico_categoria",
+      "cbId": "OUTROS",
+      "cbNome": "OUTROS",
+      "metaCategoria": "cat4"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "Barbiero",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat6"
+    },
+    {
+      "tipo": "produto_categoria",
+      "cbId": "Keune",
+      "cbNome": "Keune",
+      "metaCategoria": "cat7"
+    }
+  ],
+  "messages": [],
+  "stdout": "tipo\tcbId\tcbNome\tmetaCategoria\nservico_categoria\tAVULSO\tAVULSO\tcat1\nservico_categoria\tCLUBE\tCLUBE\tcat2\nservico_categoria\tOUTROS\tOUTROS\tcat4\nproduto_categoria\tBarbiero\tBarbiero\tcat6\nproduto_categoria\tKeune\tKeune\tcat7\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}
