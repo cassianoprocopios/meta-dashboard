@@ -1,0 +1,64 @@
+{
+  "query": "\nSELECT \n  fc.empresaSlug as unidade,\n  c.categoriaRanking as categoria,\n  COUNT(DISTINCT fc.colaboradorId) as profissionais_com_faturamento,\n  ROUND(AVG(fc.totalGeral), 2) as media_faturamento,\n  ROUND(MIN(fc.totalGeral), 2) as menor,\n  ROUND(MAX(fc.totalGeral), 2) as maior,\n  ROUND(AVG(c.metaMensal), 2) as meta_media\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes = 5 AND fc.ano = 2026 AND fc.tenantId = 1\nGROUP BY fc.empresaSlug, c.categoriaRanking\nORDER BY fc.empresaSlug, c.categoriaRanking;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  fc.empresaSlug as unidade,\n  c.categoriaRanking as categoria,\n  COUNT(DISTINCT fc.colaboradorId) as profissionais_com_faturamento,\n  ROUND(AVG(fc.totalGeral), 2) as media_faturamento,\n  ROUND(MIN(fc.totalGeral), 2) as menor,\n  ROUND(MAX(fc.totalGeral), 2) as maior,\n  ROUND(AVG(c.metaMensal), 2) as meta_media\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.mes = 5 AND fc.ano = 2026 AND fc.tenantId = 1\nGROUP BY fc.empresaSlug, c.categoriaRanking\nORDER BY fc.empresaSlug, c.categoriaRanking;\n",
+  "rows": [
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "barbeiro",
+      "profissionais_com_faturamento": "7",
+      "media_faturamento": "1071.93",
+      "menor": "475.12",
+      "maior": "2013.55",
+      "meta_media": "2928.57"
+    },
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "auxiliar",
+      "profissionais_com_faturamento": "3",
+      "media_faturamento": "575.11",
+      "menor": "255.00",
+      "maior": "1212.41",
+      "meta_media": "3666.67"
+    },
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "recepcao",
+      "profissionais_com_faturamento": "1",
+      "media_faturamento": "179.82",
+      "menor": "179.82",
+      "maior": "179.82",
+      "meta_media": "6000.00"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "barbeiro",
+      "profissionais_com_faturamento": "11",
+      "media_faturamento": "2145.97",
+      "menor": "0.00",
+      "maior": "3577.20",
+      "meta_media": "3410.00"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "auxiliar",
+      "profissionais_com_faturamento": "2",
+      "media_faturamento": "630.00",
+      "menor": "611.00",
+      "maior": "649.00",
+      "meta_media": "2400.00"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "recepcao",
+      "profissionais_com_faturamento": "1",
+      "media_faturamento": "290.80",
+      "menor": "290.80",
+      "maior": "290.80",
+      "meta_media": "4200.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "unidade\tcategoria\tprofissionais_com_faturamento\tmedia_faturamento\tmenor\tmaior\tmeta_media\nbarbiero-mascote\tbarbeiro\t7\t1071.93\t475.12\t2013.55\t2928.57\nbarbiero-mascote\tauxiliar\t3\t575.11\t255.00\t1212.41\t3666.67\nbarbiero-mascote\trecepcao\t1\t179.82\t179.82\t179.82\t6000.00\nbarbiero-morumbi\tbarbeiro\t11\t2145.97\t0.00\t3577.20\t3410.00\nbarbiero-morumbi\tauxiliar\t2\t630.00\t611.00\t649.00\t2400.00\nbarbiero-morumbi\trecepcao\t1\t290.80\t290.80\t290.80\t4200.00\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

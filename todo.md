@@ -1568,3 +1568,11 @@
 - [x] Validar totais no dashboard
   - Testes passando (18/18)
   - Lançamentos visíveis no banco de dados
+
+## Ferramentas de Performance da Equipe
+
+- [x] Ferramenta 1: Meta diária dinâmica no painel do profissional (aba "Meu" - meta diária restante, dias úteis, projeção)
+- [x] Ferramenta 2: Painel de alertas semáforo para gerentes (verde/amarelo/vermelho por profissional com projeção)
+- [x] Ferramenta 3: Notificação WhatsApp às 12h com ranking personalizado por profissional
+- [x] Ferramenta 4: Ranking semanal automático (recorte semanal + envio automático)
+- [x] Ferramenta 5: Análise de padrão por dia da semana por profissional

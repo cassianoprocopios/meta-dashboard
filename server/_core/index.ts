@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { inicializarJobsCashbarber } from "../cashbarberJob";
 import { iniciarJobAvec } from "../avecJob";
+import { iniciarPerformanceNotifJob } from "../performanceNotifJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import { setupWebSocket } from "../websocket";
 import { iniciarSincronizacaoHoraria } from "../cashbarberHourlySync";
@@ -141,6 +142,13 @@ async function startServer() {
       console.log("[CashBarber Hourly Sync] Job de sincronização horária iniciado com sucesso");
     } catch (err) {
       console.error("[CashBarber Hourly Sync] Falha na inicialização:", err);
+    }
+
+    // Inicializar jobs de notificação de performance (12h diário + semanal segunda 09h)
+    try {
+      iniciarPerformanceNotifJob();
+    } catch (err) {
+      console.error("[Performance Notif] Falha na inicialização:", err);
     }
 
   });

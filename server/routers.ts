@@ -1,3 +1,4 @@
+import { performanceRouter } from "./performanceRouter";
 import { avecRouter } from "./avecRouter";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -5678,6 +5679,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         nomeProximo,
       };
     }),
+  performance: performanceRouter,
   avec: avecRouter,
 
   /** Painel de status unificado: CashBarber + Avec + D-Pote */

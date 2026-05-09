@@ -1,0 +1,66 @@
+{
+  "query": "\nSELECT \n  c.empresaSlug as unidade,\n  c.categoriaRanking as categoria,\n  COUNT(*) as total,\n  COUNT(CASE WHEN c.metaMensal IS NOT NULL THEN 1 END) as com_meta,\n  COUNT(CASE WHEN c.telefone IS NOT NULL THEN 1 END) as com_telefone,\n  COUNT(CASE WHEN c.pinAcesso IS NOT NULL THEN 1 END) as com_pin\nFROM colaboradores c\nWHERE c.ativo = 1 AND c.tenantId = 1\nGROUP BY c.empresaSlug, c.categoriaRanking\nORDER BY c.empresaSlug, c.categoriaRanking;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  c.empresaSlug as unidade,\n  c.categoriaRanking as categoria,\n  COUNT(*) as total,\n  COUNT(CASE WHEN c.metaMensal IS NOT NULL THEN 1 END) as com_meta,\n  COUNT(CASE WHEN c.telefone IS NOT NULL THEN 1 END) as com_telefone,\n  COUNT(CASE WHEN c.pinAcesso IS NOT NULL THEN 1 END) as com_pin\nFROM colaboradores c\nWHERE c.ativo = 1 AND c.tenantId = 1\nGROUP BY c.empresaSlug, c.categoriaRanking\nORDER BY c.empresaSlug, c.categoriaRanking;\n",
+  "rows": [
+    {
+      "unidade": "barbiero-grupo",
+      "categoria": "barbeiro",
+      "total": "2",
+      "com_meta": "0",
+      "com_telefone": "2",
+      "com_pin": "2"
+    },
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "barbeiro",
+      "total": "8",
+      "com_meta": "7",
+      "com_telefone": "7",
+      "com_pin": "7"
+    },
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "auxiliar",
+      "total": "3",
+      "com_meta": "3",
+      "com_telefone": "3",
+      "com_pin": "3"
+    },
+    {
+      "unidade": "barbiero-mascote",
+      "categoria": "recepcao",
+      "total": "1",
+      "com_meta": "1",
+      "com_telefone": "1",
+      "com_pin": "1"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "barbeiro",
+      "total": "11",
+      "com_meta": "10",
+      "com_telefone": "11",
+      "com_pin": "11"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "auxiliar",
+      "total": "2",
+      "com_meta": "2",
+      "com_telefone": "2",
+      "com_pin": "2"
+    },
+    {
+      "unidade": "barbiero-morumbi",
+      "categoria": "recepcao",
+      "total": "1",
+      "com_meta": "1",
+      "com_telefone": "1",
+      "com_pin": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "unidade\tcategoria\ttotal\tcom_meta\tcom_telefone\tcom_pin\nbarbiero-grupo\tbarbeiro\t2\t0\t2\t2\nbarbiero-mascote\tbarbeiro\t8\t7\t7\t7\nbarbiero-mascote\tauxiliar\t3\t3\t3\t3\nbarbiero-mascote\trecepcao\t1\t1\t1\t1\nbarbiero-morumbi\tbarbeiro\t11\t10\t11\t11\nbarbiero-morumbi\tauxiliar\t2\t2\t2\t2\nbarbiero-morumbi\trecepcao\t1\t1\t1\t1\n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

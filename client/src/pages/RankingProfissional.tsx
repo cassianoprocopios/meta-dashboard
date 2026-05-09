@@ -2824,6 +2824,14 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
     { empresaSlug: empresaSlugUnidade!, tipo: 'mensal', mes: mesAtualQ, ano: anoAtualQ },
     { staleTime: 5 * 60_000, enabled: !!empresaSlugUnidade && empresaSlugUnidade !== 'barbiero-grupo' }
   );
+  const { data: metaDiaria } = trpc.performance.metaDiariaDinamica.useQuery(
+    { profissionalId },
+    { staleTime: 5 * 60_000, refetchInterval: 15 * 60_000 }
+  );
+  const { data: padraoSem } = trpc.performance.padraoSemanal.useQuery(
+    { profissionalId },
+    { staleTime: 30 * 60_000 }
+  );
 
   if (isLoading) {
     return (
@@ -3233,6 +3241,108 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
         </div>
       </div>
 
+      {/* ── Card Meta Diária Dinâmica ── */}
+      {metaDiaria && metaDiaria.metaMensal && metaDiaria.diasRestantes > 0 && (
+        <div className="bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-amber-400 text-base">⚡</span>
+            <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider">Meta Diária Necessária</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/5 rounded-xl p-3">
+              <p className="text-white/40 text-xs mb-1">Precisa por dia</p>
+              <p className={`font-bold text-xl ${
+                metaDiaria.metaDiariaNecessaria != null && metaDiaria.mediaDiariaAtual >= metaDiaria.metaDiariaNecessaria
+                  ? 'text-emerald-300' : 'text-amber-300'
+              }`}>
+                {metaDiaria.metaDiariaNecessaria != null ? formatarMoeda(metaDiaria.metaDiariaNecessaria) : '—'}
+              </p>
+              <p className="text-white/25 text-xs mt-0.5">{metaDiaria.diasRestantes}d restantes</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3">
+              <p className="text-white/40 text-xs mb-1">Média atual/dia</p>
+              <p className="text-blue-300 font-bold text-xl">{formatarMoeda(metaDiaria.mediaDiariaAtual)}</p>
+              <p className="text-white/25 text-xs mt-0.5">dia {metaDiaria.diaAtual} de {metaDiaria.diasNoMes}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3">
+              <p className="text-white/40 text-xs mb-1">Projeção final</p>
+              <p className={`font-bold text-lg ${
+                metaDiaria.pctProjecao != null && metaDiaria.pctProjecao >= 100
+                  ? 'text-emerald-300' : metaDiaria.pctProjecao != null && metaDiaria.pctProjecao >= 80
+                  ? 'text-yellow-300' : 'text-red-300'
+              }`}>
+                {formatarMoeda(metaDiaria.projecaoFinal)}
+              </p>
+              {metaDiaria.pctProjecao != null && (
+                <p className="text-white/25 text-xs mt-0.5">{metaDiaria.pctProjecao}% da meta</p>
+              )}
+            </div>
+            <div className="bg-white/5 rounded-xl p-3">
+              <p className="text-white/40 text-xs mb-1">Ticket médio</p>
+              <p className="text-purple-300 font-bold text-lg">{formatarMoeda(metaDiaria.ticketMedio)}</p>
+              <p className="text-white/25 text-xs mt-0.5">{metaDiaria.qtdServicos} atend. no mês</p>
+            </div>
+          </div>
+          {metaDiaria.pctProjecao != null && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-white/40 mb-1">
+                <span>Tendência do mês</span>
+                <span>{metaDiaria.pctProjecao}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    metaDiaria.pctProjecao >= 100 ? 'bg-emerald-400'
+                    : metaDiaria.pctProjecao >= 80 ? 'bg-yellow-400'
+                    : 'bg-red-400'
+                  }`}
+                  style={{ width: `${Math.min(100, metaDiaria.pctProjecao)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Card Padrão por Dia da Semana ── */}
+      {padraoSem && padraoSem.resultado && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-blue-400 text-base">📅</span>
+            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider">Padrão por Dia da Semana</h2>
+          </div>
+          <div className="space-y-2">
+            {padraoSem.resultado.filter(d => d.ocorrencias > 0).map(d => {
+              const pct = padraoSem.mediaGeral > 0 ? Math.round((d.media / padraoSem.mediaGeral) * 100) : 0;
+              const isMelhor = padraoSem.melhorDia?.diaSemana === d.diaSemana;
+              const isPior = padraoSem.piorDia?.diaSemana === d.diaSemana;
+              return (
+                <div key={d.diaSemana} className="flex items-center gap-2">
+                  <span className={`text-xs w-14 ${isMelhor ? 'text-emerald-300 font-bold' : isPior ? 'text-red-300' : 'text-white/50'}`}>
+                    {d.nome.slice(0, 3)}
+                    {isMelhor && ' 🔥'}
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${isMelhor ? 'bg-emerald-400' : isPior ? 'bg-red-400' : 'bg-blue-400'}`}
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
+                  </div>
+                  <span className={`text-xs w-16 text-right ${isMelhor ? 'text-emerald-300 font-semibold' : 'text-white/50'}`}>
+                    {formatarMoeda(d.media)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {padraoSem.melhorDia && (
+            <p className="text-white/30 text-xs mt-3">
+              Seu melhor dia é <span className="text-emerald-300 font-semibold">{padraoSem.melhorDia.nome}</span> com média de {formatarMoeda(padraoSem.melhorDia.media)}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ── Gráfico de Faturamento (últimos 6 meses) ── */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
         <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Faturamento · Últimos 6 Meses</h2>
@@ -3537,6 +3647,22 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
   const [unidadeAnalise, setUnidadeAnalise] = useState<string | null>(null);
 
   // Dados do ranking mensal (todos os profissionais)
+  const empresaParaAlertas = minhaEmpresa === 'barbiero-grupo' ? 'barbiero-morumbi' : minhaEmpresa;
+  const [unidadeAlertas, setUnidadeAlertas] = React.useState<string>(empresaParaAlertas);
+  const [abaGerencia, setAbaGerencia] = React.useState<'analise' | 'whatsapp' | 'semanal'>('analise');
+  const [appUrlBase] = React.useState(() => typeof window !== 'undefined' ? window.location.origin : 'https://barbiero.manus.space');
+  const { data: mensagensWpp, isLoading: loadWpp, refetch: refetchWpp } = trpc.performance.mensagensRankingWhatsApp.useQuery(
+    { appUrl: `${appUrlBase}/pro` },
+    { staleTime: 10 * 60_000, enabled: abaGerencia === 'whatsapp' }
+  );
+  const { data: rankingSem, isLoading: loadSem } = trpc.performance.rankingSemanal.useQuery(
+    {},
+    { staleTime: 30 * 60_000, enabled: abaGerencia === 'semanal' }
+  );
+  const { data: alertas } = trpc.performance.alertasPerformance.useQuery(
+    { empresaSlug: unidadeAlertas, mes, ano },
+    { staleTime: 5 * 60_000 }
+  );
   const { data: rankingMes, isLoading: loadMes } = trpc.rankingMensal.useQuery(
     { mes, ano },
     { staleTime: 5 * 60_000 }
@@ -3598,6 +3724,116 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
         <h2 className="text-white font-bold text-lg">Análise da Equipe</h2>
         <p className="text-white/40 text-xs">{nomeMes(mes)} {ano}</p>
       </div>
+      {/* Abas de navegação da gerência */}
+      <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+        {([
+          { id: 'analise', label: '📊 Análise', icon: null },
+          { id: 'whatsapp', label: '💬 WhatsApp', icon: null },
+          { id: 'semanal', label: '🏆 Semanal', icon: null },
+        ] as const).map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => setAbaGerencia(id)}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
+              abaGerencia === id
+                ? 'bg-blue-500 text-white'
+                : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {/* Conteúdo condicional por aba */}
+      {abaGerencia !== 'analise' && abaGerencia !== 'whatsapp' && abaGerencia !== 'semanal' ? null : abaGerencia === 'whatsapp' ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-white/40 text-xs">Mensagens personalizadas para envio via WhatsApp</p>
+            <button
+              onClick={() => refetchWpp()}
+              className="text-xs text-blue-400 underline"
+            >
+              Atualizar
+            </button>
+          </div>
+          {loadWpp ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+            </div>
+          ) : mensagensWpp && mensagensWpp.mensagens.length > 0 ? (
+            <div className="space-y-2">
+              {mensagensWpp.mensagens.map((m: any) => (
+                <div key={m.colaboradorId} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="text-white text-sm font-semibold">{m.apelido || m.nome.split(' ')[0]}</span>
+                      <span className="text-white/30 text-xs ml-2">{m.posicao}º · {m.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}</span>
+                    </div>
+                    {m.linkWhatsApp && (
+                      <a
+                        href={m.linkWhatsApp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-semibold px-3 py-1.5 rounded-lg active:scale-95 transition-transform"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        Enviar
+                      </a>
+                    )}
+                  </div>
+                  <details className="cursor-pointer">
+                    <summary className="text-white/30 text-xs">Ver mensagem</summary>
+                    <pre className="text-white/60 text-xs mt-2 whitespace-pre-wrap font-sans leading-relaxed bg-white/5 rounded-lg p-2">{m.mensagem}</pre>
+                  </details>
+                </div>
+              ))}
+              <p className="text-white/20 text-xs text-center mt-2">
+                {mensagensWpp.totalComTelefone} profissional(is) com telefone cadastrado
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-white/30 text-sm">
+              Nenhum profissional com telefone cadastrado
+            </div>
+          )}
+        </div>
+      ) : abaGerencia === 'semanal' ? (
+        <div className="space-y-3">
+          <p className="text-white/40 text-xs">Ranking acumulado do mês atual — atualizado em tempo real</p>
+          {loadSem ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+            </div>
+          ) : rankingSem && rankingSem.ranking.length > 0 ? (
+            <div className="space-y-2">
+              {rankingSem.ranking.map((p: any, i: number) => (
+                <div key={p.colaboradorId} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${
+                  i === 0 ? 'bg-yellow-500/10 border-yellow-500/20'
+                  : i === 1 ? 'bg-slate-400/10 border-slate-400/20'
+                  : i === 2 ? 'bg-amber-600/10 border-amber-600/20'
+                  : 'bg-white/5 border-white/10'
+                }`}>
+                  <span className="text-base w-7 text-center">
+                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : <span className="text-white/40 text-xs font-bold">{i+1}º</span>}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-sm font-semibold truncate">{p.apelido || p.nome.split(' ')[0]}</div>
+                    <div className="text-white/30 text-xs">{p.qtdServicos} atend.</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-sm font-bold ${i === 0 ? 'text-yellow-300' : 'text-white'}`}>
+                      {p.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-white/30 text-sm">Sem dados disponíveis</div>
+          )}
+        </div>
+      ) : null}
+      {abaGerencia !== 'analise' ? null : <div className="space-y-4">
 
       {/* Filtro de unidade — apenas para gerentes do grupo */}
       {isGrupo && (
@@ -3847,6 +4083,91 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
         </div>
       )}
 
+      {/* ── Painel Semáforo Detalhado (Ferramenta 2) ── */}
+      {alertas && alertas.profissionais && alertas.profissionais.length > 0 && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🚦</span>
+              <span className="text-white font-semibold text-sm">Semáforo de Performance</span>
+            </div>
+            {/* Seletor de unidade para gerentes do grupo */}
+            {minhaEmpresa === 'barbiero-grupo' && (
+              <div className="flex gap-1">
+                {['barbiero-morumbi', 'barbiero-mascote'].map(slug => (
+                  <button
+                    key={slug}
+                    onClick={() => setUnidadeAlertas(slug)}
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-colors ${
+                      unidadeAlertas === slug ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50'
+                    }`}
+                  >
+                    {slug === 'barbiero-morumbi' ? 'Morumbi' : 'Mascote'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="text-xs text-white/30 mb-3">
+            {alertas.diasRestantes}d restantes · Projeção baseada na média diária atual
+          </div>
+          <div className="space-y-2">
+            {alertas.profissionais.map(p => {
+              const cor = p.semaforo === 'verde'
+                ? { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400', text: 'text-emerald-300' }
+                : p.semaforo === 'amarelo'
+                ? { bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', dot: 'bg-yellow-400', text: 'text-yellow-300' }
+                : { bg: 'bg-red-500/10', border: 'border-red-500/20', dot: 'bg-red-400', text: 'text-red-300' };
+              return (
+                <div key={p.id} className={`${cor.bg} border ${cor.border} rounded-xl p-3`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-2 h-2 rounded-full ${cor.dot} flex-shrink-0`} />
+                    <span className="text-white text-sm font-semibold flex-1 truncate">
+                      {p.apelido || p.nome.split(' ')[0]}
+                    </span>
+                    <span className={`text-xs font-bold ${cor.text}`}>
+                      {p.pctProjecao != null ? `${p.pctProjecao}% proj.` : '—'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <p className="text-white/30">Acumulado</p>
+                      <p className="text-white font-semibold">{p.totalAcumulado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/30">Média/dia</p>
+                      <p className="text-white font-semibold">{p.mediaDiaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/30">Precisa/dia</p>
+                      <p className={`font-semibold ${cor.text}`}>
+                        {p.metaDiariaNecessaria != null
+                          ? p.metaDiariaNecessaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })
+                          : p.metaMensal ? '✓ Meta ok' : '—'}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Mini barra de projeção */}
+                  {p.pctProjecao != null && (
+                    <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${cor.dot}`}
+                        style={{ width: `${Math.min(100, p.pctProjecao)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-3 mt-3 text-xs text-white/30">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> ≥90% projeção</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 70–89%</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt;70%</span>
+          </div>
+        </div>
+      )}
+
       {/* Distribuição por unidade (apenas para grupo no modo Geral) */}
       {isGrupo && !unidadeAnalise && mascote.length > 0 && morumbi.length > 0 && (
         <div className="bg-white/5 rounded-xl p-4">
@@ -3945,6 +4266,7 @@ function AbaAnaliseGerencia({ minhaEmpresa }: { minhaEmpresa: string }) {
           )}
         </div>
       </div>
+    </div>}
     </div>
   );
 }
