@@ -51,7 +51,9 @@ async function executarSincronizacaoHoraria(): Promise<void> {
 
   try {
     // Buscar todas as configurações de CashBarber
-    const configs = await listCashbarberConfigs();
+    // Buscar configs de todos os tenants (1, 2, 3)
+    const allConfigs = await Promise.all([1, 2, 3].map(tid => listCashbarberConfigs(tid)));
+    const configs = allConfigs.flat();
 
     if (!configs || configs.length === 0) {
       console.warn("[CashBarber Hourly Sync] Nenhuma configuração de CashBarber encontrada");
@@ -69,10 +71,10 @@ async function executarSincronizacaoHoraria(): Promise<void> {
     }
 
     // Sincronizar para cada tenant
-    for (const [tenantId, configsDoTenant] of configsPorTenant) {
+    for (const [tenantId, configsDoTenant] of Array.from(configsPorTenant.entries())) {
       // Filtrar apenas Mascote e Morumbi
       const unidadesParaSincronizar = configsDoTenant.filter(
-        (c) =>
+        (c: (typeof configs)[0]) =>
           c.empresaSlug &&
           (c.empresaSlug.toLowerCase().includes("mascote") ||
             c.empresaSlug.toLowerCase().includes("morumbi"))

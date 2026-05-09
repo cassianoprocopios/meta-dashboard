@@ -150,7 +150,7 @@ async function verifyAppToken(token: string): Promise<{ userId: number } | null>
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return { userId: payload.userId as number };
-  } catch {
+  } catch (_e) {
     return null;
   }
 }
@@ -954,7 +954,7 @@ const profissionaisRouter = router({
               const totalProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (p.total ?? 0), 0);
               const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
               return { nome: col.nome, apelido: col.apelido, totalGeral: totalServicos + totalProdutos, qtdServicos };
-            } catch {
+            } catch (_e) {
               return { nome: col.nome, apelido: col.apelido, totalGeral: 0, qtdServicos: 0 };
             }
           })
@@ -1289,12 +1289,12 @@ const profissionaisRouter = router({
                 const qtdServicos = servs.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
                 const qtdProdutos = prods.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
                 return { id: col.id, nome: col.nome, apelido: col.apelido ?? null, fotoUrl: col.fotoUrl ?? null, totalGeral: totalServicos + totalProdutos, totalServicos, totalProdutos, qtdServicos, qtdProdutos };
-              } catch { return { id: col.id, nome: col.nome, apelido: col.apelido ?? null, fotoUrl: col.fotoUrl ?? null, totalGeral: 0, totalServicos: 0, totalProdutos: 0, qtdServicos: 0, qtdProdutos: 0 }; }
+              } catch (_e) { return { id: col.id, nome: col.nome, apelido: col.apelido ?? null, fotoUrl: col.fotoUrl ?? null, totalGeral: 0, totalServicos: 0, totalProdutos: 0, qtdServicos: 0, qtdProdutos: 0 }; }
             })
           );
           top3Dia = resultadosDia.filter((r) => r.totalGeral > 0).sort((a, b) => b.totalGeral - a.totalGeral).slice(0, 3);
         }
-      } catch { /* top3Dia fica vazio se falhar */ }
+      } catch (_e) { /* top3Dia fica vazio se falhar */ }
 
       return {
         profissionais: lista,
@@ -3524,7 +3524,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         let idInicial: number;
         try {
           idInicial = await cashbarberCriarHistoricoDpote(token);
-        } catch {
+        } catch (_e) {
           // Se falhar, usar o ID salvo no banco como fallback
           // Buscar o ID mais recente de qualquer empresa configurada
           const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
@@ -3586,7 +3586,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         let idInicial: number;
         try {
           idInicial = await cashbarberCriarHistoricoDpote(token);
-        } catch {
+        } catch (_e) {
           const mesSiglaFallback = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
           let savedId: number | null = null;
           for (const cfg of configs) {
@@ -4567,7 +4567,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               input.ano,
               "manual"
             );
-          } catch {
+          } catch (_e) {
             // Falha na sync não impede salvar a preferência
           }
         }
@@ -4779,7 +4779,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               metaMensal,
               pctMeta,
             };
-          } catch {
+          } catch (_e) {
             return {
               id: col.id,
               nome: col.nome,
@@ -4863,7 +4863,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
               metaMensal,
               pctMeta,
             };
-          } catch {
+          } catch (_e) {
             return {
               id: col.id,
               nome: col.nome,
@@ -4952,7 +4952,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos, totalProdutos, totalGeral: totalServicos + totalProdutos, qtdServicos, qtdProdutos };
-          } catch {
+          } catch (_e) {
             return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
           }
         })
@@ -4993,7 +4993,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             const qtdServicos = servicosRanking.reduce((acc: number, s: any) => acc + (Number(s.count) || 0), 0);
             const qtdProdutos = produtosRanking.reduce((acc: number, p: any) => acc + (Number(p.count) || 0), 0);
             return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos, totalProdutos, totalGeral: totalServicos + totalProdutos, qtdServicos, qtdProdutos };
-          } catch {
+          } catch (_e) {
             return { id: col.id, nome: col.nome, apelido: col.apelido, fotoUrl: col.fotoUrl, cargo: col.cargo, empresaSlug: col.empresaSlug ?? 'barbiero-grupo', totalServicos: 0, totalProdutos: 0, totalGeral: 0, qtdServicos: 0, qtdProdutos: 0 };
           }
         })
@@ -5095,7 +5095,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         tenantId,
         isGerencia: col?.isGerencia === 1,
       };
-    } catch {
+    } catch (_e) {
       return null;
     }
   }),
@@ -5128,7 +5128,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         if (payload.type !== 'profissional') throw new Error();
         profissionalId = payload.profissionalId as number;
         tenantId = payload.tenantId as number;
-      } catch {
+      } catch (_e) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sessão inválida.' });
       }
 
@@ -5502,7 +5502,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             fatSemAtual = calcFat(relSemA);
             fatSemPassada = calcFat(relSemP);
           }
-        } catch { /* silencia erros de API */ }
+        } catch (_e) { /* silencia erros de API */ }
       }
 
       // Variações

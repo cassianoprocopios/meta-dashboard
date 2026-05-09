@@ -132,7 +132,7 @@ async function executarSincronizacaoHoraria(): Promise<void> {
     }
 
     // Sincronizar para cada tenant
-    for (const [tenantId, configsDoTenant] of configsPorTenant) {
+    for (const [tenantId, configsDoTenant] of Array.from(configsPorTenant.entries())) {
       // Filtrar apenas Seraphine
       const unidadesParaSincronizar = configsDoTenant.filter(
         (c) => c.empresaSlug && c.empresaSlug.toLowerCase().includes("seraphine")
