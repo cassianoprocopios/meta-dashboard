@@ -1,0 +1,190 @@
+{
+  "query": "SELECT id, data, empresaSlug, cat1, cat2, cat3, cat4, lancadoPor FROM faturamentos WHERE (empresaSlug = 'seraphine' OR empresaSlug = 'SERAPHINE' OR empresaSlug = 'BARBIERO-SERAPHINE') AND data >= '2026-05-01' ORDER BY data, empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, data, empresaSlug, cat1, cat2, cat3, cat4, lancadoPor FROM faturamentos WHERE (empresaSlug = 'seraphine' OR empresaSlug = 'SERAPHINE' OR empresaSlug = 'BARBIERO-SERAPHINE') AND data >= '2026-05-01' ORDER BY data, empresaSlug;",
+  "rows": [
+    {
+      "id": "1260024",
+      "data": "2026-05-01",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "5862.00",
+      "cat2": "1808.00",
+      "cat3": "34.50",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1260022",
+      "data": "2026-05-01",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "5862.00",
+      "cat2": "1808.00",
+      "cat3": "34.50",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1260025",
+      "data": "2026-05-02",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "6882.00",
+      "cat2": "2437.00",
+      "cat3": "62.00",
+      "cat4": "8.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1260023",
+      "data": "2026-05-02",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "4277.00",
+      "cat2": "1170.00",
+      "cat3": "15.00",
+      "cat4": "8.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1260019",
+      "data": "2026-05-04",
+      "empresaSlug": "seraphine",
+      "cat1": "150.00",
+      "cat2": "0.00",
+      "cat3": "0.00",
+      "cat4": "0.00",
+      "lancadoPor": "test-user"
+    },
+    {
+      "id": "1320008",
+      "data": "2026-05-05",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1290002",
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia5"
+    },
+    {
+      "id": "1290003",
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia5"
+    },
+    {
+      "id": "1290004",
+      "data": "2026-05-05",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "2409.00",
+      "cat2": "554.00",
+      "cat3": "6.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia5"
+    },
+    {
+      "id": "1320009",
+      "data": "2026-05-06",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1320002",
+      "data": "2026-05-06",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "cat4": "0.00",
+      "lancadoPor": "sync-avec-dia6"
+    },
+    {
+      "id": "1320004",
+      "data": "2026-05-06",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia6"
+    },
+    {
+      "id": "1320003",
+      "data": "2026-05-06",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3260.00",
+      "cat2": "636.00",
+      "cat3": "7.50",
+      "cat4": "0.00",
+      "lancadoPor": "sync-avec-dia6"
+    },
+    {
+      "id": "1320010",
+      "data": "2026-05-07",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "3790.00",
+      "cat2": "0.00",
+      "cat3": "53.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "id": "1320005",
+      "data": "2026-05-07",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3790.00",
+      "cat2": "0.00",
+      "cat3": "53.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia7"
+    },
+    {
+      "id": "1320006",
+      "data": "2026-05-07",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3790.00",
+      "cat2": "0.00",
+      "cat3": "53.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia7"
+    },
+    {
+      "id": "1320007",
+      "data": "2026-05-07",
+      "empresaSlug": "SERAPHINE",
+      "cat1": "3790.00",
+      "cat2": "0.00",
+      "cat3": "53.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-rel0184-dia7"
+    },
+    {
+      "id": "1350002",
+      "data": "2026-05-08",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "5895.00",
+      "cat2": "1519.00",
+      "cat3": "45.00",
+      "cat4": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tdata\tempresaSlug\tcat1\tcat2\tcat3\tcat4\tlancadoPor\n1260024\t2026-05-01\tbarbiero-seraphine\t5862.00\t1808.00\t34.50\t0.00\tavec-sync-rel0184\n1260022\t2026-05-01\tSERAPHINE\t5862.00\t1808.00\t34.50\t0.00\tavec-sync-rel0184\n1260025\t2026-05-02\tbarbiero-seraphine\t6882.00\t2437.00\t62.00\t8.00\tavec-sync-rel0184\n1260023\t2026-05-02\tSERAPHINE\t4277.00\t1170.00\t15.00\t8.00\tavec-sync-rel0184\n1260019\t2026-05-04\tseraphine\t150.00\t0.00\t0.00\t0.00\ttest-user\n1320008\t2026-05-05\tbarbiero-seraphine\t2409.00\t554.00\t6.00\t0.00\tavec-sync-rel0184\n1290002\t2026-05-05\tSERAPHINE\t2409.00\t554.00\t6.00\t0.00\tavec-rel0184-dia5\n1290003\t2026-05-05\tSERAPHINE\t2409.00\t554.00\t6.00\t0.00\tavec-rel0184-dia5\n1290004\t2026-05-05\tSERAPHINE\t2409.00\t554.00\t6.00\t0.00\tavec-rel0184-dia5\n1320009\t2026-05-06\tbarbiero-seraphine\t3260.00\t636.00\t7.50\t0.00\tavec-sync-rel0184\n1320002\t2026-05-06\tSERAPHINE\t3260.00\t636.00\t7.50\t0.00\tsync-avec-dia6\n1320004\t2026-05-06\tSERAPHINE\t3260.00\t636.00\t7.50\t0.00\tavec-rel0184-dia6\n1320003\t2026-05-06\tSERAPHINE\t3260.00\t636.00\t7.50\t0.00\tsync-avec-dia6\n1320010\t2026-05-07\tbarbiero-seraphine\t3790.00\t0.00\t53.00\t0.00\tavec-sync-rel0184\n1320005\t2026-05-07\tSERAPHINE\t3790.00\t0.00\t53.00\t0.00\tavec-rel0184-dia7\n1320006\t2026-05-07\tSERAPHINE\t3790.00\t0.00\t53.00\t0.00\tavec-rel0184-dia7\n1320007\t2026-05-07\tSERAPHINE\t3790.00\t0.00\t53.00\t0.00\tavec-rel0184-dia7\n1350002\t2026-05-08\tbarbiero-seraphine\t5895.00\t1519.00\t45.00\t0.00\tavec-sync-rel0184\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}
