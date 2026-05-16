@@ -41,6 +41,7 @@ import { Tooltip as UITooltip, TooltipContent as UITooltipContent, TooltipTrigge
 import { useWebSocket } from "@/hooks/useWebSocket";
 import AvecSyncModal from "@/components/AvecSyncModal";
 import UnitDrilldownModal from "@/components/UnitDrilldownModal";
+import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/QuinzenalCelebration";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -1758,7 +1759,13 @@ export default function Home() {
                               </div>
                             )}
                             {!quinzenaEncerradaGeral && atingiuQ && (
-                              <p className="text-xs font-semibold text-emerald-400 mt-1">✓ Quinzenal atingida!</p>
+                              <div className="mt-1.5">
+                                <QuinzenalCelebrationCompact
+                                  atingiu={atingiuQ}
+                                  percentual={pctQ}
+                                  superou={superouQ}
+                                />
+                              </div>
                             )}
                             <div className="mt-1.5 h-1 rounded-full bg-white/10 overflow-hidden">
                               <div className={`h-full rounded-full ${
@@ -2586,23 +2593,34 @@ export default function Home() {
                             </div>
                             {/* Indicador pós-quinzena: resultado final destacado */}
                             {quinzenaEncerrada ? (
-                              <div className={`rounded-lg p-2 mb-1 border ${atingiuQ ? 'border-emerald-500/40 bg-emerald-500/10' : pctQ >= 80 ? 'border-yellow-500/40 bg-yellow-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
+                              atingiuQ ? (
+                                <div className="mb-1">
+                                  <QuinzenalCelebration
+                                    atingiu={atingiuQ}
+                                    percentual={pctQ}
+                                    superou={superouQ}
+                                    nomeUnidade={s.emp.nome}
+                                    cor={s.emp.cor}
+                                    compact={true}
+                                  />
+                                  <p className="text-[10px] mt-1" style={{ color: 'var(--meta-card-label)' }}>
+                                    {fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}
+                                  </p>
+                                </div>
+                              ) : (
+                              <div className={`rounded-lg p-2 mb-1 border ${pctQ >= 80 ? 'border-yellow-500/40 bg-yellow-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                  <span className="text-sm">{atingiuQ ? '✅' : pctQ >= 80 ? '⚠️' : '❌'}</span>
-                                  <span className={`text-[11px] font-bold ${atingiuQ ? 'text-emerald-400' : pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                    {atingiuQ ? 'META ATINGIDA' : 'META NÃO ATINGIDA'}
+                                  <span className="text-sm">{pctQ >= 80 ? '⚠️' : '❌'}</span>
+                                  <span className={`text-[11px] font-bold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    META NÃO ATINGIDA
                                   </span>
                                 </div>
                                 <p className="text-[10px]" style={{ color: 'var(--meta-card-label)' }}>
                                   {fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}
                                 </p>
-                                {atingiuQ && superouQ > 0 && (
-                                  <p className="text-[10px] font-semibold text-emerald-400">+{fmt(superouQ)} acima da meta</p>
-                                )}
-                                {!atingiuQ && (
-                                  <p className={`text-[10px] font-semibold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>Faltou {fmt(faltaQ)}</p>
-                                )}
+                                <p className={`text-[10px] font-semibold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>Faltou {fmt(faltaQ)}</p>
                               </div>
+                              )
                             ) : (
                               <>
                                 {ritmoQ && (
@@ -2630,7 +2648,15 @@ export default function Home() {
                                   </p>
                                 )}
                                 {atingiuQ && (
-                                  <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">✓ Quinzenal atingida!</p>
+                                  <div className="mt-1.5">
+                                    <QuinzenalCelebration
+                                      atingiu={atingiuQ}
+                                      percentual={pctQ}
+                                      superou={superouQ}
+                                      nomeUnidade={s.emp.nome}
+                                      cor={s.emp.cor}
+                                    />
+                                  </div>
                                 )}
                               </>
                             )}
