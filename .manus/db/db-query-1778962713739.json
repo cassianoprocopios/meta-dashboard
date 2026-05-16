@@ -1,0 +1,37 @@
+{
+  "query": "\n-- Corrigir empresaSlug no faturamento\nUPDATE faturamentoColaboradores\nSET empresaSlug = 'barbiero-morumbi'\nWHERE colaboradorId = 120001;\n\n-- Verificar as outras auxiliares do Morumbi para comparar\nSELECT c.id, c.nome, c.categoriaRanking, c.empresaSlug, c.exibirNoRanking, fc.totalServicos, fc.totalGeral\nFROM colaboradores c\nLEFT JOIN faturamentoColaboradores fc ON fc.colaboradorId = c.id AND fc.mes = 5 AND fc.ano = 2026\nWHERE c.empresaSlug = 'barbiero-morumbi' AND c.categoriaRanking = 'auxiliar' AND c.ativo = 1\nORDER BY c.nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Corrigir empresaSlug no faturamento\nUPDATE faturamentoColaboradores\nSET empresaSlug = 'barbiero-morumbi'\nWHERE colaboradorId = 120001;\n\n-- Verificar as outras auxiliares do Morumbi para comparar\nSELECT c.id, c.nome, c.categoriaRanking, c.empresaSlug, c.exibirNoRanking, fc.totalServicos, fc.totalGeral\nFROM colaboradores c\nLEFT JOIN faturamentoColaboradores fc ON fc.colaboradorId = c.id AND fc.mes = 5 AND fc.ano = 2026\nWHERE c.empresaSlug = 'barbiero-morumbi' AND c.categoriaRanking = 'auxiliar' AND c.ativo = 1\nORDER BY c.nome;\n",
+  "rows": [
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "exibirNoRanking": "1",
+      "totalServicos": "913.00",
+      "totalGeral": "913.00"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "exibirNoRanking": "1",
+      "totalServicos": "1115.40",
+      "totalGeral": "1115.40"
+    },
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "exibirNoRanking": "1",
+      "totalServicos": "1690.00",
+      "totalGeral": "1690.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tempresaSlug\texibirNoRanking\ttotalServicos\ttotalGeral\n23\tEduarda\tauxiliar\tbarbiero-morumbi\t1\t913.00\t913.00\n20\tMirela\tauxiliar\tbarbiero-morumbi\t1\t1115.40\t1115.40\n120001\tTaissa\tauxiliar\tbarbiero-morumbi\t1\t1690.00\t1690.00\n",
+  "stderr": "",
+  "execution_time_ms": 299
+}

@@ -1,0 +1,19 @@
+{
+  "query": "\nSELECT colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral, qtdServicos\nFROM faturamentoColaboradores\nWHERE colaboradorId = 120001;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral, qtdServicos\nFROM faturamentoColaboradores\nWHERE colaboradorId = 120001;\n",
+  "rows": [
+    {
+      "colaboradorId": "120001",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "1690.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "1690.00",
+      "qtdServicos": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "colaboradorId\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\tqtdServicos\n120001\t5\t2026\t1690.00\t0.00\t1690.00\t0\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}

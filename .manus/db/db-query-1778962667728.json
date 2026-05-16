@@ -1,0 +1,21 @@
+{
+  "query": "\nUPDATE colaboradores\nSET \n  empresaSlug = 'barbiero-morumbi',\n  categoriaRanking = 'auxiliar',\n  cashbarberProfissionalId = 39507,\n  pinAcesso = '2808',\n  cargo = 'Auxiliar'\nWHERE id = 120001;\n\n-- Confirmar\nSELECT id, nome, empresaSlug, categoriaRanking, ativo, exibirNoRanking, cashbarberProfissionalId, pinAcesso, cargo\nFROM colaboradores\nWHERE id = 120001;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE colaboradores\nSET \n  empresaSlug = 'barbiero-morumbi',\n  categoriaRanking = 'auxiliar',\n  cashbarberProfissionalId = 39507,\n  pinAcesso = '2808',\n  cargo = 'Auxiliar'\nWHERE id = 120001;\n\n-- Confirmar\nSELECT id, nome, empresaSlug, categoriaRanking, ativo, exibirNoRanking, cashbarberProfissionalId, pinAcesso, cargo\nFROM colaboradores\nWHERE id = 120001;\n",
+  "rows": [
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "empresaSlug": "barbiero-morumbi",
+      "categoriaRanking": "auxiliar",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "39507",
+      "pinAcesso": "2808",
+      "cargo": "Auxiliar"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcategoriaRanking\tativo\texibirNoRanking\tcashbarberProfissionalId\tpinAcesso\tcargo\n120001\tTaissa\tbarbiero-morumbi\tauxiliar\t1\t1\t39507\t2808\tAuxiliar\n",
+  "stderr": "",
+  "execution_time_ms": 276
+}
