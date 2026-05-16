@@ -1,0 +1,24 @@
+{
+  "query": "\nSELECT \n  SUM(cat1) as totalCat1_Avulso,\n  SUM(cat2) as totalCat2_ServExtra,\n  SUM(cat3) as totalCat3_Auxiliar,\n  SUM(cat4) as totalCat4_Keune,\n  SUM(cat5) as totalCat5_DonAlcides,\n  SUM(cat6) as totalCat6_Caixinha,\n  SUM(cat7) as totalCat7_Barbiero,\n  SUM(cat8) as totalCat8_Bar,\n  SUM(cat9) as totalCat9_Recorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as grandTotal,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalSemRecorrencia,\n  SUM(cat9) as totalRecorrencia\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  SUM(cat1) as totalCat1_Avulso,\n  SUM(cat2) as totalCat2_ServExtra,\n  SUM(cat3) as totalCat3_Auxiliar,\n  SUM(cat4) as totalCat4_Keune,\n  SUM(cat5) as totalCat5_DonAlcides,\n  SUM(cat6) as totalCat6_Caixinha,\n  SUM(cat7) as totalCat7_Barbiero,\n  SUM(cat8) as totalCat8_Bar,\n  SUM(cat9) as totalCat9_Recorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as grandTotal,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalSemRecorrencia,\n  SUM(cat9) as totalRecorrencia\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "rows": [
+    {
+      "totalCat1_Avulso": "27958.00",
+      "totalCat2_ServExtra": "11514.45",
+      "totalCat3_Auxiliar": "2081.40",
+      "totalCat4_Keune": "0.00",
+      "totalCat5_DonAlcides": "0.00",
+      "totalCat6_Caixinha": "165.00",
+      "totalCat7_Barbiero": "3242.44",
+      "totalCat8_Bar": "2364.00",
+      "totalCat9_Recorrencia": "65350.35",
+      "grandTotal": "112675.64",
+      "totalSemRecorrencia": "47325.29",
+      "totalRecorrencia": "65350.35"
+    }
+  ],
+  "messages": [],
+  "stdout": "totalCat1_Avulso\ttotalCat2_ServExtra\ttotalCat3_Auxiliar\ttotalCat4_Keune\ttotalCat5_DonAlcides\ttotalCat6_Caixinha\ttotalCat7_Barbiero\ttotalCat8_Bar\ttotalCat9_Recorrencia\tgrandTotal\ttotalSemRecorrencia\ttotalRecorrencia\n27958.00\t11514.45\t2081.40\t0.00\t0.00\t165.00\t3242.44\t2364.00\t65350.35\t112675.64\t47325.29\t65350.35\n",
+  "stderr": "",
+  "execution_time_ms": 258
+}

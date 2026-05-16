@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT empresaSlug, cat9Nome, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome\nFROM empresas \nWHERE empresaSlug = 'barbiero-morumbi';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, cat9Nome, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome\nFROM empresas \nWHERE empresaSlug = 'barbiero-morumbi';\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'empresaslug' in 'where clause'"
+  ]
+}

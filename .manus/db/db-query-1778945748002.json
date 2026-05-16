@@ -1,0 +1,22 @@
+{
+  "query": "\nSELECT \n  SUM(cat1) as Avulso,\n  SUM(cat2) as ServExtra,\n  SUM(cat3) as Auxiliar,\n  SUM(cat6) as Caixinha,\n  SUM(cat7) as Barbiero,\n  SUM(cat8) as Bar,\n  SUM(cat9) as Recorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalSemRecorrencia,\n  SUM(cat9) as totalRecorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as grandTotal\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  SUM(cat1) as Avulso,\n  SUM(cat2) as ServExtra,\n  SUM(cat3) as Auxiliar,\n  SUM(cat6) as Caixinha,\n  SUM(cat7) as Barbiero,\n  SUM(cat8) as Bar,\n  SUM(cat9) as Recorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8) as totalSemRecorrencia,\n  SUM(cat9) as totalRecorrencia,\n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as grandTotal\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "rows": [
+    {
+      "Avulso": "27958.00",
+      "ServExtra": "11514.45",
+      "Auxiliar": "2081.40",
+      "Caixinha": "165.00",
+      "Barbiero": "3242.44",
+      "Bar": "2364.00",
+      "Recorrencia": "69706.95",
+      "totalSemRecorrencia": "47325.29",
+      "totalRecorrencia": "69706.95",
+      "grandTotal": "117032.24"
+    }
+  ],
+  "messages": [],
+  "stdout": "Avulso\tServExtra\tAuxiliar\tCaixinha\tBarbiero\tBar\tRecorrencia\ttotalSemRecorrencia\ttotalRecorrencia\tgrandTotal\n27958.00\t11514.45\t2081.40\t165.00\t3242.44\t2364.00\t69706.95\t47325.29\t69706.95\t117032.24\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}

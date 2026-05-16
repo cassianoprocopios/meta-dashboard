@@ -1,0 +1,14 @@
+{
+  "query": "\nSELECT COUNT(*) as diasComRecorrencia, SUM(cat9) as totalRecorrencia\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\n  AND cat9 = 4647.13;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT COUNT(*) as diasComRecorrencia, SUM(cat9) as totalRecorrencia\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\n  AND cat9 = 4647.13;\n",
+  "rows": [
+    {
+      "diasComRecorrencia": "16",
+      "totalRecorrencia": "74354.08"
+    }
+  ],
+  "messages": [],
+  "stdout": "diasComRecorrencia\ttotalRecorrencia\n16\t74354.08\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}

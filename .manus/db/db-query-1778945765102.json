@@ -1,0 +1,18 @@
+{
+  "query": "\nSELECT empresaSlug, totalRealizado, metaQuinzenal, atingiu, percentual, congeladoEm\nFROM snapshotQuinzenal \nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, totalRealizado, metaQuinzenal, atingiu, percentual, congeladoEm\nFROM snapshotQuinzenal \nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "totalRealizado": "117032.24",
+      "metaQuinzenal": "110000.00",
+      "atingiu": "1",
+      "percentual": "106.39",
+      "congeladoEm": "2026-05-15 23:50:00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotalRealizado\tmetaQuinzenal\tatingiu\tpercentual\tcongeladoEm\nbarbiero-morumbi\t117032.24\t110000.00\t1\t106.39\t2026-05-15 23:50:00\n",
+  "stderr": "",
+  "execution_time_ms": 355
+}

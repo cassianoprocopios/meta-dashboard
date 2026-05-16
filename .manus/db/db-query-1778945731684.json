@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE faturamentos \nSET cat9 = 4647.13\nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\n  AND cat9 = 4356.69;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE faturamentos \nSET cat9 = 4647.13\nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\n  AND cat9 = 4356.69;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 272
+}
