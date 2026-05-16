@@ -1,0 +1,31 @@
+{
+  "query": "\n-- Morumbi: atingiu (pctQuinzenalComMeta = 0.30)\nUPDATE snapshotQuinzenal \nSET percentual = 0.30\nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n\n-- Mascote: não atingiu (pctQuinzenalSemMeta = 0.20)\nUPDATE snapshotQuinzenal \nSET percentual = 0.20\nWHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n\n-- Seraphine: não atingiu (pctQuinzenalSemMeta = 0.20)\nUPDATE snapshotQuinzenal \nSET percentual = 0.20\nWHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026;\n\n-- Confirmar\nSELECT empresaSlug, totalRealizado, metaQuinzenal, atingiu, percentual FROM snapshotQuinzenal WHERE mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Morumbi: atingiu (pctQuinzenalComMeta = 0.30)\nUPDATE snapshotQuinzenal \nSET percentual = 0.30\nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n\n-- Mascote: não atingiu (pctQuinzenalSemMeta = 0.20)\nUPDATE snapshotQuinzenal \nSET percentual = 0.20\nWHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n\n-- Seraphine: não atingiu (pctQuinzenalSemMeta = 0.20)\nUPDATE snapshotQuinzenal \nSET percentual = 0.20\nWHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026;\n\n-- Confirmar\nSELECT empresaSlug, totalRealizado, metaQuinzenal, atingiu, percentual FROM snapshotQuinzenal WHERE mes = 5 AND ano = 2026;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "totalRealizado": "47137.38",
+      "metaQuinzenal": "55000.00",
+      "atingiu": "0",
+      "percentual": "0.20"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "totalRealizado": "117032.24",
+      "metaQuinzenal": "110000.00",
+      "atingiu": "1",
+      "percentual": "0.30"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "totalRealizado": "62449.20",
+      "metaQuinzenal": "65000.00",
+      "atingiu": "0",
+      "percentual": "0.20"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotalRealizado\tmetaQuinzenal\tatingiu\tpercentual\nbarbiero-mascote\t47137.38\t55000.00\t0\t0.20\nbarbiero-morumbi\t117032.24\t110000.00\t1\t0.30\nbarbiero-seraphine\t62449.20\t65000.00\t0\t0.20\n",
+  "stderr": "",
+  "execution_time_ms": 290
+}

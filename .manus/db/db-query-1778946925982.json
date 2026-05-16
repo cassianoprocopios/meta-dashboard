@@ -1,0 +1,66 @@
+{
+  "query": "\nSELECT empresaSlug, pctQuinzenalSemMeta, pctQuinzenalComMeta, pctMensalSemMeta, pctMensalComMeta, pctSuperMeta\nFROM bonificacoes\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, pctQuinzenalSemMeta, pctQuinzenalComMeta, pctMensalSemMeta, pctMensalComMeta, pctSuperMeta\nFROM bonificacoes\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    },
+    {
+      "empresaSlug": "DOM_",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.00"
+    },
+    {
+      "empresaSlug": "MASCOTE",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    },
+    {
+      "empresaSlug": "MORUMBI",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    },
+    {
+      "empresaSlug": "SERAPHINE",
+      "pctQuinzenalSemMeta": "0.20",
+      "pctQuinzenalComMeta": "0.30",
+      "pctMensalSemMeta": "0.20",
+      "pctMensalComMeta": "0.30",
+      "pctSuperMeta": "0.40"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tpctQuinzenalSemMeta\tpctQuinzenalComMeta\tpctMensalSemMeta\tpctMensalComMeta\tpctSuperMeta\nbarbiero-mascote\t0.20\t0.30\t0.20\t0.30\t0.40\nbarbiero-morumbi\t0.20\t0.30\t0.20\t0.30\t0.40\nbarbiero-seraphine\t0.20\t0.30\t0.20\t0.30\t0.40\nDOM_\t0.20\t0.30\t0.20\t0.30\t0.00\nMASCOTE\t0.20\t0.30\t0.20\t0.30\t0.40\nMORUMBI\t0.20\t0.30\t0.20\t0.30\t0.40\nSERAPHINE\t0.20\t0.30\t0.20\t0.30\t0.40\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}
