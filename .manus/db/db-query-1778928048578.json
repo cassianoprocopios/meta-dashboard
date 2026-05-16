@@ -1,0 +1,54 @@
+{
+  "query": "\nSELECT data, (cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as total\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-seraphine' AND data BETWEEN '2026-05-01' AND '2026-05-15'\nORDER BY data;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT data, (cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as total\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-seraphine' AND data BETWEEN '2026-05-01' AND '2026-05-15'\nORDER BY data;\n",
+  "rows": [
+    {
+      "data": "2026-05-01",
+      "total": "7714.50"
+    },
+    {
+      "data": "2026-05-02",
+      "total": "9389.00"
+    },
+    {
+      "data": "2026-05-05",
+      "total": "2969.00"
+    },
+    {
+      "data": "2026-05-06",
+      "total": "3903.50"
+    },
+    {
+      "data": "2026-05-07",
+      "total": "3750.00"
+    },
+    {
+      "data": "2026-05-08",
+      "total": "7672.00"
+    },
+    {
+      "data": "2026-05-09",
+      "total": "7997.00"
+    },
+    {
+      "data": "2026-05-12",
+      "total": "2674.70"
+    },
+    {
+      "data": "2026-05-13",
+      "total": "3664.50"
+    },
+    {
+      "data": "2026-05-14",
+      "total": "5533.00"
+    },
+    {
+      "data": "2026-05-15",
+      "total": "7182.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\ttotal\n2026-05-01\t7714.50\n2026-05-02\t9389.00\n2026-05-05\t2969.00\n2026-05-06\t3903.50\n2026-05-07\t3750.00\n2026-05-08\t7672.00\n2026-05-09\t7997.00\n2026-05-12\t2674.70\n2026-05-13\t3664.50\n2026-05-14\t5533.00\n2026-05-15\t7182.00\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

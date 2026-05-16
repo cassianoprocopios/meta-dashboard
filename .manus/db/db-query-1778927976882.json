@@ -1,0 +1,17 @@
+{
+  "query": "\n-- Buscar a meta mensal do Morumbi para maio/2026\nSELECT empresaSlug, mes, ano, metaMensal, metaQuinzenal \nFROM metas \nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Buscar a meta mensal do Morumbi para maio/2026\nSELECT empresaSlug, mes, ano, metaMensal, metaQuinzenal \nFROM metas \nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "metaMensal": "220000.00",
+      "metaQuinzenal": "110000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmes\tano\tmetaMensal\tmetaQuinzenal\nbarbiero-morumbi\t5\t2026\t220000.00\t110000.00\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

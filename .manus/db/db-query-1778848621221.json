@@ -1,0 +1,74 @@
+{
+  "query": "SELECT colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE colaboradorId IN (19, 90001) ORDER BY ano DESC, mes DESC, colaboradorId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE colaboradorId IN (19, 90001) ORDER BY ano DESC, mes DESC, colaboradorId;",
+  "rows": [
+    {
+      "colaboradorId": "19",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "344.90",
+      "totalProdutos": "260.72",
+      "totalGeral": "605.62"
+    },
+    {
+      "colaboradorId": "90001",
+      "mes": "5",
+      "ano": "2026",
+      "totalServicos": "344.90",
+      "totalProdutos": "260.72",
+      "totalGeral": "605.62"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "4",
+      "ano": "2026",
+      "totalServicos": "1382.20",
+      "totalProdutos": "620.62",
+      "totalGeral": "2002.82"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "3",
+      "ano": "2026",
+      "totalServicos": "818.30",
+      "totalProdutos": "940.26",
+      "totalGeral": "1745.56"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "2",
+      "ano": "2026",
+      "totalServicos": "1676.80",
+      "totalProdutos": "350.64",
+      "totalGeral": "2027.44"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "1",
+      "ano": "2026",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "12",
+      "ano": "2025",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00"
+    },
+    {
+      "colaboradorId": "19",
+      "mes": "11",
+      "ano": "2025",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "colaboradorId\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\n19\t5\t2026\t344.90\t260.72\t605.62\n90001\t5\t2026\t344.90\t260.72\t605.62\n19\t4\t2026\t1382.20\t620.62\t2002.82\n19\t3\t2026\t818.30\t940.26\t1745.56\n19\t2\t2026\t1676.80\t350.64\t2027.44\n19\t1\t2026\t0.00\t0.00\t0.00\n19\t12\t2025\t0.00\t0.00\t0.00\n19\t11\t2025\t0.00\t0.00\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 307
+}

@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 112463.69,\n  atingiu = 1,\n  percentual = ROUND((112463.69 / 110000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 112463.69,\n  atingiu = 1,\n  percentual = ROUND((112463.69 / 110000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-morumbi' AND mes = 5 AND ano = 2026;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 268
+}

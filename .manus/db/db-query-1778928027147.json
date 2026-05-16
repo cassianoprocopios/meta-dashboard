@@ -1,0 +1,40 @@
+{
+  "query": "\nSELECT empresaSlug, mes, ano, totalRealizado, metaQuinzenal, atingiu, percentual, congeladoEm\nFROM snapshotQuinzenal \nWHERE mes = 5 AND ano = 2026\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, mes, ano, totalRealizado, metaQuinzenal, atingiu, percentual, congeladoEm\nFROM snapshotQuinzenal \nWHERE mes = 5 AND ano = 2026\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalRealizado": "27477.15",
+      "metaQuinzenal": "55000.00",
+      "atingiu": "0",
+      "percentual": "0.20",
+      "congeladoEm": "2026-05-02 17:26:43"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "mes": "5",
+      "ano": "2026",
+      "totalRealizado": "112463.69",
+      "metaQuinzenal": "110000.00",
+      "atingiu": "1",
+      "percentual": "102.24",
+      "congeladoEm": "2026-05-15 23:50:00"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "mes": "5",
+      "ano": "2026",
+      "totalRealizado": "0.00",
+      "metaQuinzenal": "65000.00",
+      "atingiu": "0",
+      "percentual": "0.20",
+      "congeladoEm": "2026-05-02 17:26:43"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmes\tano\ttotalRealizado\tmetaQuinzenal\tatingiu\tpercentual\tcongeladoEm\nbarbiero-mascote\t5\t2026\t27477.15\t55000.00\t0\t0.20\t2026-05-02 17:26:43\nbarbiero-morumbi\t5\t2026\t112463.69\t110000.00\t1\t102.24\t2026-05-15 23:50:00\nbarbiero-seraphine\t5\t2026\t0.00\t65000.00\t0\t0.20\t2026-05-02 17:26:43\n",
+  "stderr": "",
+  "execution_time_ms": 260
+}

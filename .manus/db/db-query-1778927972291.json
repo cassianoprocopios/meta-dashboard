@@ -1,0 +1,14 @@
+{
+  "query": "\n-- Faturamento acumulado Morumbi dias 1-15 de maio/2026\nSELECT \n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as totalRealizado,\n  COUNT(*) as diasLancados\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Faturamento acumulado Morumbi dias 1-15 de maio/2026\nSELECT \n  SUM(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as totalRealizado,\n  COUNT(*) as diasLancados\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-morumbi' \n  AND data BETWEEN '2026-05-01' AND '2026-05-15';\n",
+  "rows": [
+    {
+      "totalRealizado": "112463.69",
+      "diasLancados": "15"
+    }
+  ],
+  "messages": [],
+  "stdout": "totalRealizado\tdiasLancados\n112463.69\t15\n",
+  "stderr": "",
+  "execution_time_ms": 275
+}

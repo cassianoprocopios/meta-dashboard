@@ -1,0 +1,9 @@
+{
+  "query": "\n-- Mascote: R$ 47.137,38 / meta R$ 55.000 = 85,70% (não bateu)\nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 47137.38,\n  atingiu = 0,\n  percentual = ROUND((47137.38 / 55000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n\n-- Seraphine: R$ 62.449,20 / meta R$ 65.000 = 96,07% (não bateu)\nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 62449.20,\n  atingiu = 0,\n  percentual = ROUND((62449.20 / 65000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Mascote: R$ 47.137,38 / meta R$ 55.000 = 85,70% (não bateu)\nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 47137.38,\n  atingiu = 0,\n  percentual = ROUND((47137.38 / 55000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;\n\n-- Seraphine: R$ 62.449,20 / meta R$ 65.000 = 96,07% (não bateu)\nUPDATE snapshotQuinzenal \nSET \n  totalRealizado = 62449.20,\n  atingiu = 0,\n  percentual = ROUND((62449.20 / 65000.00) * 100, 2),\n  origem = 'manual',\n  congeladoEm = '2026-05-15 23:50:00'\nWHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 277
+}

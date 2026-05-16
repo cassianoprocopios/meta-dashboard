@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, nome, categoriaRanking, empresaSlug, pinAcesso, cashbarberProfissionalId FROM colaboradores WHERE id = 120001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, categoriaRanking, empresaSlug, pinAcesso, cashbarberProfissionalId FROM colaboradores WHERE id = 120001;",
+  "rows": [
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "categoriaRanking": "auxiliar",
+      "empresaSlug": "barbiero-morumbi",
+      "pinAcesso": "2808",
+      "cashbarberProfissionalId": "39507"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcategoriaRanking\tempresaSlug\tpinAcesso\tcashbarberProfissionalId\n120001\tTaissa\tauxiliar\tbarbiero-morumbi\t2808\t39507\n",
+  "stderr": "",
+  "execution_time_ms": 362
+}

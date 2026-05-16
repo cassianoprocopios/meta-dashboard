@@ -1,0 +1,100 @@
+{
+  "query": "SELECT mes, ano, status, diasSincronizados, diasIgnorados, erros, executadoEm FROM avecSyncLog WHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026 ORDER BY executadoEm DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT mes, ano, status, diasSincronizados, diasIgnorados, erros, executadoEm FROM avecSyncLog WHERE empresaSlug = 'barbiero-seraphine' AND mes = 5 AND ano = 2026 ORDER BY executadoEm DESC LIMIT 10;",
+  "rows": [
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 08:00:19"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 07:00:11"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 06:00:12"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 05:00:15"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 04:00:14"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 03:00:15"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 02:00:14"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 01:00:13"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-16 00:00:19"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "status": "erro",
+      "diasSincronizados": "0",
+      "diasIgnorados": "0",
+      "erros": "Browser was not found at the configured executablePath (/usr/bin/chromium)",
+      "executadoEm": "2026-05-15 21:16:27"
+    }
+  ],
+  "messages": [],
+  "stdout": "mes\tano\tstatus\tdiasSincronizados\tdiasIgnorados\terros\texecutadoEm\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 08:00:19\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 07:00:11\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 06:00:12\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 05:00:15\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 04:00:14\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 03:00:15\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 02:00:14\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 01:00:13\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-16 00:00:19\n5\t2026\terro\t0\t0\tBrowser was not found at the configured executablePath (/usr/bin/chromium)\t2026-05-15 21:16:27\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}
