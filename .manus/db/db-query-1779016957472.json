@@ -1,0 +1,17 @@
+{
+  "query": "\nSELECT empresaSlug, avecEmail, avecSenha, avecSalaoId, avecSalaoNome\nFROM avecConfig\nWHERE empresaSlug = 'barbiero-seraphine'\nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, avecEmail, avecSenha, avecSalaoId, avecSalaoNome\nFROM avecConfig\nWHERE empresaSlug = 'barbiero-seraphine'\nLIMIT 1;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "avecEmail": "seraphinebeauty24@gmail.com",
+      "avecSenha": "Dxj4oue@",
+      "avecSalaoId": "seraphine-beauty-ltda",
+      "avecSalaoNome": "Seraphine Beauty Ltda"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tavecEmail\tavecSenha\tavecSalaoId\tavecSalaoNome\nbarbiero-seraphine\tseraphinebeauty24@gmail.com\tDxj4oue@\tseraphine-beauty-ltda\tSeraphine Beauty Ltda\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

@@ -1,0 +1,18 @@
+{
+  "query": "\nUPDATE faturamentos\nSET \n  cat1 = 9975.00,\n  cat2 = 1788.00,\n  cat3 = 42.00,\n  lancadoPor = 'avec-sync-rel0184-manual'\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16';\n\n-- Confirmar\nSELECT empresaSlug, data, cat1, cat2, cat3, (cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as totalGeral\nFROM faturamentos\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nUPDATE faturamentos\nSET \n  cat1 = 9975.00,\n  cat2 = 1788.00,\n  cat3 = 42.00,\n  lancadoPor = 'avec-sync-rel0184-manual'\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16';\n\n-- Confirmar\nSELECT empresaSlug, data, cat1, cat2, cat3, (cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8+cat9) as totalGeral\nFROM faturamentos\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16';\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-05-16",
+      "cat1": "9975.00",
+      "cat2": "1788.00",
+      "cat3": "42.00",
+      "totalGeral": "11805.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\tcat1\tcat2\tcat3\ttotalGeral\nbarbiero-seraphine\t2026-05-16\t9975.00\t1788.00\t42.00\t11805.00\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}
