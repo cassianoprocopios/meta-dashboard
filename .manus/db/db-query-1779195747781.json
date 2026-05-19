@@ -1,0 +1,34 @@
+{
+  "query": "\n-- Dados de faturamento de maio/2026 por unidade\nSELECT \n  f.empresaSlug,\n  COUNT(*) as diasLancados,\n  SUM(CAST(f.cat1 AS DECIMAL) + CAST(f.cat2 AS DECIMAL) + CAST(f.cat3 AS DECIMAL) + \n      CAST(f.cat4 AS DECIMAL) + CAST(f.cat5 AS DECIMAL) + CAST(f.cat6 AS DECIMAL) + \n      CAST(f.cat7 AS DECIMAL) + CAST(f.cat8 AS DECIMAL) + CAST(f.cat9 AS DECIMAL)) as totalRealizado,\n  AVG(CAST(f.cat1 AS DECIMAL) + CAST(f.cat2 AS DECIMAL) + CAST(f.cat3 AS DECIMAL) + \n      CAST(f.cat4 AS DECIMAL) + CAST(f.cat5 AS DECIMAL) + CAST(f.cat6 AS DECIMAL) + \n      CAST(f.cat7 AS DECIMAL) + CAST(f.cat8 AS DECIMAL) + CAST(f.cat9 AS DECIMAL)) as mediaDiaria,\n  m.metaMensal,\n  m.diasUteis\nFROM faturamentos f\nJOIN metas m ON m.empresaSlug = f.empresaSlug AND m.mes = 5 AND m.ano = 2026\nWHERE f.empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote', 'barbiero-seraphine')\n  AND f.data BETWEEN '2026-05-01' AND '2026-05-17'\nGROUP BY f.empresaSlug, m.metaMensal, m.diasUteis\nORDER BY f.empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Dados de faturamento de maio/2026 por unidade\nSELECT \n  f.empresaSlug,\n  COUNT(*) as diasLancados,\n  SUM(CAST(f.cat1 AS DECIMAL) + CAST(f.cat2 AS DECIMAL) + CAST(f.cat3 AS DECIMAL) + \n      CAST(f.cat4 AS DECIMAL) + CAST(f.cat5 AS DECIMAL) + CAST(f.cat6 AS DECIMAL) + \n      CAST(f.cat7 AS DECIMAL) + CAST(f.cat8 AS DECIMAL) + CAST(f.cat9 AS DECIMAL)) as totalRealizado,\n  AVG(CAST(f.cat1 AS DECIMAL) + CAST(f.cat2 AS DECIMAL) + CAST(f.cat3 AS DECIMAL) + \n      CAST(f.cat4 AS DECIMAL) + CAST(f.cat5 AS DECIMAL) + CAST(f.cat6 AS DECIMAL) + \n      CAST(f.cat7 AS DECIMAL) + CAST(f.cat8 AS DECIMAL) + CAST(f.cat9 AS DECIMAL)) as mediaDiaria,\n  m.metaMensal,\n  m.diasUteis\nFROM faturamentos f\nJOIN metas m ON m.empresaSlug = f.empresaSlug AND m.mes = 5 AND m.ano = 2026\nWHERE f.empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote', 'barbiero-seraphine')\n  AND f.data BETWEEN '2026-05-01' AND '2026-05-17'\nGROUP BY f.empresaSlug, m.metaMensal, m.diasUteis\nORDER BY f.empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "diasLancados": "17",
+      "totalRealizado": "52434",
+      "mediaDiaria": "3084.3529",
+      "metaMensal": "105000.00",
+      "diasUteis": "26"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "diasLancados": "17",
+      "totalRealizado": "128428",
+      "mediaDiaria": "7554.5882",
+      "metaMensal": "220000.00",
+      "diasUteis": "26"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "diasLancados": "12",
+      "totalRealizado": "74256",
+      "mediaDiaria": "6188.0000",
+      "metaMensal": "130000.00",
+      "diasUteis": "22"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdiasLancados\ttotalRealizado\tmediaDiaria\tmetaMensal\tdiasUteis\nbarbiero-mascote\t17\t52434\t3084.3529\t105000.00\t26\nbarbiero-morumbi\t17\t128428\t7554.5882\t220000.00\t26\nbarbiero-seraphine\t12\t74256\t6188.0000\t130000.00\t22\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

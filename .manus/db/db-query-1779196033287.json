@@ -1,0 +1,25 @@
+{
+  "query": "\n-- Dias lançados por unidade em maio/2026\nSELECT \n  empresaSlug,\n  GROUP_CONCAT(data ORDER BY data) as diasLancados,\n  COUNT(*) as totalDias\nFROM faturamentos\nWHERE empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote', 'barbiero-seraphine')\n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Dias lançados por unidade em maio/2026\nSELECT \n  empresaSlug,\n  GROUP_CONCAT(data ORDER BY data) as diasLancados,\n  COUNT(*) as totalDias\nFROM faturamentos\nWHERE empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote', 'barbiero-seraphine')\n  AND data BETWEEN '2026-05-01' AND '2026-05-31'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "diasLancados": "2026-05-01,2026-05-02,2026-05-03,2026-05-04,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-10,2026-05-11,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16,2026-05-17,2026-05-18,2026-05-19,2026-05-20,2026-05-21,2026-05-22,2026-05-23,2026-05-24,2026-05-25,2026-05-26,2026-05-27,2026-05-28,2026-05-29,2026-05-30,2026-05-31",
+      "totalDias": "31"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "diasLancados": "2026-05-01,2026-05-02,2026-05-03,2026-05-04,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-10,2026-05-11,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16,2026-05-17,2026-05-18,2026-05-19,2026-05-20,2026-05-21,2026-05-22,2026-05-23,2026-05-24,2026-05-25,2026-05-26,2026-05-27,2026-05-28,2026-05-29,2026-05-30,2026-05-31",
+      "totalDias": "31"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "diasLancados": "2026-05-01,2026-05-02,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16",
+      "totalDias": "12"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdiasLancados\ttotalDias\nbarbiero-mascote\t2026-05-01,2026-05-02,2026-05-03,2026-05-04,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-10,2026-05-11,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16,2026-05-17,2026-05-18,2026-05-19,2026-05-20,2026-05-21,2026-05-22,2026-05-23,2026-05-24,2026-05-25,2026-05-26,2026-05-27,2026-05-28,2026-05-29,2026-05-30,2026-05-31\t31\nbarbiero-morumbi\t2026-05-01,2026-05-02,2026-05-03,2026-05-04,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-10,2026-05-11,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16,2026-05-17,2026-05-18,2026-05-19,2026-05-20,2026-05-21,2026-05-22,2026-05-23,2026-05-24,2026-05-25,2026-05-26,2026-05-27,2026-05-28,2026-05-29,2026-05-30,2026-05-31\t31\nbarbiero-seraphine\t2026-05-01,2026-05-02,2026-05-05,2026-05-06,2026-05-07,2026-05-08,2026-05-09,2026-05-12,2026-05-13,2026-05-14,2026-05-15,2026-05-16\t12\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

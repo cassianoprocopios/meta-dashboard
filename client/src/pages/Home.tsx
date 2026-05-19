@@ -563,15 +563,18 @@ export default function Home() {
         .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
       // diasLancados: quantidade total de lançamentos (pode ter múltiplos por dia)
-      // diasRealizados: quantidade de DIAS ÚNICOS com lançamento (cada dia conta uma vez)
+      // diasRealizados: quantidade de DIAS ÚNICOS com faturamento operacional REAL (cat1..cat8 > 0)
+      // IMPORTANTE: dias com apenas cat9 (recorrência pré-lançada) NÃO contam como realizados
+      // para não distorcer a média diária e o cálculo de dias restantes para projeção
       const diasLancados = rows.length;
-      const diasRealizadosSet = new Set(rowsRealizados.map((r: any) => r.data.split("-")[2]));
+      const rowsComFatReal = rowsRealizados.filter((r: any) => sumCatsSemCat9(r) > 0);
+      const diasRealizadosSet = new Set(rowsComFatReal.map((r: any) => r.data.split("-")[2]));
       const diasRealizados = diasRealizadosSet.size;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária = total do dia (cat1..cat9) realizados / dias realizados
-      // Usa o total completo do dia para refletir o faturamento real
-      const totaisDiariosRealizados = rowsRealizados.map((r: any) => sumCats(r));
+      // Média diária = total do dia (cat1..cat9) dos dias com faturamento real / dias realizados
+      // Usa apenas dias com faturamento operacional para refletir o ritmo real
+      const totaisDiariosRealizados = rowsComFatReal.map((r: any) => sumCats(r));
       const totalRealizadoComCat9 = totaisDiariosRealizados.reduce((s: number, v: number) => s + v, 0);
       const mediaDiaria = diasRealizados > 0 ? totalRealizadoComCat9 / diasRealizados : 0;
 

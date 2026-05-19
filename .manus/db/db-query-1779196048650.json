@@ -1,0 +1,612 @@
+{
+  "query": "\n-- Verificar dias futuros do Morumbi e Mascote (a partir de hoje dia 19)\nSELECT \n  empresaSlug,\n  data,\n  ROUND(CAST(cat1 AS DECIMAL) + CAST(cat2 AS DECIMAL) + CAST(cat3 AS DECIMAL) + \n        CAST(cat4 AS DECIMAL) + CAST(cat5 AS DECIMAL) + CAST(cat6 AS DECIMAL) + \n        CAST(cat7 AS DECIMAL) + CAST(cat8 AS DECIMAL) + CAST(cat9 AS DECIMAL), 2) as total,\n  cat9,\n  lancadoPor\nFROM faturamentos\nWHERE empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote')\n  AND data >= '2026-05-19'\nORDER BY empresaSlug, data;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \n-- Verificar dias futuros do Morumbi e Mascote (a partir de hoje dia 19)\nSELECT \n  empresaSlug,\n  data,\n  ROUND(CAST(cat1 AS DECIMAL) + CAST(cat2 AS DECIMAL) + CAST(cat3 AS DECIMAL) + \n        CAST(cat4 AS DECIMAL) + CAST(cat5 AS DECIMAL) + CAST(cat6 AS DECIMAL) + \n        CAST(cat7 AS DECIMAL) + CAST(cat8 AS DECIMAL) + CAST(cat9 AS DECIMAL), 2) as total,\n  cat9,\n  lancadoPor\nFROM faturamentos\nWHERE empresaSlug IN ('barbiero-morumbi', 'barbiero-mascote')\n  AND data >= '2026-05-19'\nORDER BY empresaSlug, data;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-19",
+      "total": "1800.00",
+      "cat9": "1799.53",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-20",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-21",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-22",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-23",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-24",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-25",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-26",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-27",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-28",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-29",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-30",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-31",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-01",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-02",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-03",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-04",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-05",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-06",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-07",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-08",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-09",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-10",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-11",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-12",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-13",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-14",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-15",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-16",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-17",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-18",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-19",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-20",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-21",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-22",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-23",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-24",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-25",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-26",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-27",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-28",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-29",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-06-30",
+      "total": "1140.00",
+      "cat9": "1140.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-19",
+      "total": "4336.00",
+      "cat9": "4336.05",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-20",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-21",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-22",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-23",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-24",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-25",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-26",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-27",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-28",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-29",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-30",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-31",
+      "total": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-01",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-02",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-03",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-04",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-05",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-06",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-07",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-08",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-09",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-10",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-11",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-12",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-13",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-14",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-15",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-16",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-17",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-18",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-19",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-20",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-21",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-22",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-23",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-24",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-25",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-26",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-27",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-28",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-29",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-06-30",
+      "total": "2745.00",
+      "cat9": "2745.43",
+      "lancadoPor": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\ttotal\tcat9\tlancadoPor\nbarbiero-mascote\t2026-05-19\t1800.00\t1799.53\tNULL\nbarbiero-mascote\t2026-05-20\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-21\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-22\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-23\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-24\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-25\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-26\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-27\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-28\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-29\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-30\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-05-31\t0.00\t0.00\tNULL\nbarbiero-mascote\t2026-06-01\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-02\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-03\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-04\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-05\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-06\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-07\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-08\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-09\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-10\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-11\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-12\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-13\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-14\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-15\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-16\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-17\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-18\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-19\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-20\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-21\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-22\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-23\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-24\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-25\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-26\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-27\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-28\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-29\t1140.00\t1140.43\tNULL\nbarbiero-mascote\t2026-06-30\t1140.00\t1140.43\tNULL\nbarbiero-morumbi\t2026-05-19\t4336.00\t4336.05\tNULL\nbarbiero-morumbi\t2026-05-20\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-21\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-22\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-23\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-24\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-25\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-26\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-27\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-28\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-29\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-30\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-05-31\t0.00\t0.00\tNULL\nbarbiero-morumbi\t2026-06-01\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-02\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-03\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-04\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-05\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-06\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-07\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-08\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-09\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-10\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-11\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-12\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-13\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-14\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-15\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-16\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-17\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-18\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-19\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-20\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-21\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-22\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-23\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-24\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-25\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-26\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-27\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-28\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-29\t2745.00\t2745.43\tNULL\nbarbiero-morumbi\t2026-06-30\t2745.00\t2745.43\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}
