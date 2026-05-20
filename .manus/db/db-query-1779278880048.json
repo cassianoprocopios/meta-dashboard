@@ -1,0 +1,31 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(DISTINCT data) as total_dias,\n  COUNT(DISTINCT CASE WHEN (CAST(cat1 AS DECIMAL)+CAST(cat2 AS DECIMAL)+CAST(cat3 AS DECIMAL)+CAST(cat4 AS DECIMAL)+CAST(cat5 AS DECIMAL)+CAST(cat6 AS DECIMAL)+CAST(cat7 AS DECIMAL)+CAST(cat8 AS DECIMAL)) > 0 THEN data END) as dias_com_fat_real,\n  MIN(data) as primeiro_dia,\n  MAX(data) as ultimo_dia\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(DISTINCT data) as total_dias,\n  COUNT(DISTINCT CASE WHEN (CAST(cat1 AS DECIMAL)+CAST(cat2 AS DECIMAL)+CAST(cat3 AS DECIMAL)+CAST(cat4 AS DECIMAL)+CAST(cat5 AS DECIMAL)+CAST(cat6 AS DECIMAL)+CAST(cat7 AS DECIMAL)+CAST(cat8 AS DECIMAL)) > 0 THEN data END) as dias_com_fat_real,\n  MIN(data) as primeiro_dia,\n  MAX(data) as ultimo_dia\nFROM faturamentos\nWHERE data LIKE '2026-05-%'\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "total_dias": "31",
+      "dias_com_fat_real": "16",
+      "primeiro_dia": "2026-05-01",
+      "ultimo_dia": "2026-05-31"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "total_dias": "31",
+      "dias_com_fat_real": "17",
+      "primeiro_dia": "2026-05-01",
+      "ultimo_dia": "2026-05-31"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "total_dias": "13",
+      "dias_com_fat_real": "13",
+      "primeiro_dia": "2026-05-01",
+      "ultimo_dia": "2026-05-19"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_dias\tdias_com_fat_real\tprimeiro_dia\tultimo_dia\nbarbiero-mascote\t31\t16\t2026-05-01\t2026-05-31\nbarbiero-morumbi\t31\t17\t2026-05-01\t2026-05-31\nbarbiero-seraphine\t13\t13\t2026-05-01\t2026-05-19\n",
+  "stderr": "",
+  "execution_time_ms": 392
+}

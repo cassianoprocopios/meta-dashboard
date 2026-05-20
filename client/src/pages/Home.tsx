@@ -628,9 +628,10 @@ export default function Home() {
         : totalQuinzenalCalculado;
 
       // diasUteisRestantes: dias úteis que ainda faltam no mês
-      // = dias úteis configurados (diasUteis) - dias que já têm lançamento real (diasRealizados)
-      // Isso reflete a realidade: cada dia com lançamento é um dia útil consumido
-      const diasUteisRestantes = Math.max(0, diasUteis - diasRealizados);
+      // = dias úteis configurados (diasUteis) - dias úteis já decorridos (proporcional ao calendário)
+      // Usa diasUteisDecorridos (baseado no dia atual do mês) para garantir consistência entre
+      // unidades com o mesmo diasUteis, independente de quantos dias foram lançados no banco
+      const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
       // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
       // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
       const diasUteisRestantesQuinzenal = ehMesFuturo

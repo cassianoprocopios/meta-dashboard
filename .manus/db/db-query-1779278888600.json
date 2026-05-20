@@ -1,0 +1,28 @@
+{
+  "query": "\nSELECT empresaSlug, metaMensal, diasUteis, diasUteisQuinzenal FROM metas WHERE mes = 5 AND ano = 2026;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT empresaSlug, metaMensal, diasUteis, diasUteisQuinzenal FROM metas WHERE mes = 5 AND ano = 2026;\n",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "metaMensal": "105000.00",
+      "diasUteis": "26",
+      "diasUteisQuinzenal": "13"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "metaMensal": "220000.00",
+      "diasUteis": "26",
+      "diasUteisQuinzenal": "13"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "metaMensal": "130000.00",
+      "diasUteis": "22",
+      "diasUteisQuinzenal": "11"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmetaMensal\tdiasUteis\tdiasUteisQuinzenal\nbarbiero-mascote\t105000.00\t26\t13\nbarbiero-morumbi\t220000.00\t26\t13\nbarbiero-seraphine\t130000.00\t22\t11\n",
+  "stderr": "",
+  "execution_time_ms": 278
+}
