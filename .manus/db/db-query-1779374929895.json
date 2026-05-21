@@ -1,0 +1,13 @@
+{
+  "query": "\nSELECT cat9 FROM faturamentos \nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16'\nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT cat9 FROM faturamentos \nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-16'\nLIMIT 1;\n",
+  "rows": [
+    {
+      "cat9": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "cat9\n0.00\n",
+  "stderr": "",
+  "execution_time_ms": 260
+}

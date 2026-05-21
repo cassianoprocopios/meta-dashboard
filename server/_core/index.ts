@@ -14,6 +14,7 @@ import { iniciarJobRecordeNotif } from "../recordeNotifJob";
 import { aplicarDpoteParaTenant } from "../cashbarberSincronizador";
 import { setupWebSocket } from "../websocket";
 import { iniciarSincronizacaoHoraria } from "../cashbarberHourlySync";
+import { iniciarAlertasJob } from "../alertasJob";
 import * as cron from "node-cron";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -151,6 +152,13 @@ async function startServer() {
       iniciarJobRecordeNotif();
     } catch (err) {
       console.error("[Performance Notif] Falha na inicialização:", err);
+    }
+
+    // Inicializar jobs de alertas proativos (ritmo 08h + sem lançamento 20h)
+    try {
+      iniciarAlertasJob();
+    } catch (err) {
+      console.error("[Alertas Job] Falha na inicialização:", err);
     }
 
   });

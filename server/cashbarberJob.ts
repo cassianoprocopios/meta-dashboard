@@ -7,6 +7,7 @@
 
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
+import { verificarQuedaBrusca } from "./alertasJob";
 
 // ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
@@ -81,6 +82,13 @@ async function executarSincronizacaoEmpresa(
   try {
     const resultado = await sincronizarFaturamentoCashbarber(tenantId, empresaSlug, mes, ano, origem);
     console.log(`[CashBarber Job] Sync concluído para ${empresaSlug}: ${resultado.diasSincronizados} dias`);
+
+    // Verificar queda brusca no dia atual após sync bem-sucedido
+    const dataHoje = `${ano}-${String(mes).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    verificarQuedaBrusca(tenantId, empresaSlug, dataHoje).catch((err) =>
+      console.warn(`[CashBarber Job] Falha ao verificar queda brusca para ${empresaSlug}:`, err)
+    );
+
     return resultado;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

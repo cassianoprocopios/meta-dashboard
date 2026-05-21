@@ -1,0 +1,18 @@
+{
+  "query": "\nSELECT data, cat1, cat2, cat3, cat9, ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8, 2) as operacional\nFROM faturamentos\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-20';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT data, cat1, cat2, cat3, cat9, ROUND(cat1+cat2+cat3+cat4+cat5+cat6+cat7+cat8, 2) as operacional\nFROM faturamentos\nWHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-20';\n",
+  "rows": [
+    {
+      "data": "2026-05-20",
+      "cat1": "1544.00",
+      "cat2": "439.00",
+      "cat3": "18.00",
+      "cat9": "0.00",
+      "operacional": "2001.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\tcat9\toperacional\n2026-05-20\t1544.00\t439.00\t18.00\t0.00\t2001.00\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}
