@@ -42,6 +42,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import AvecSyncModal from "@/components/AvecSyncModal";
 import UnitDrilldownModal from "@/components/UnitDrilldownModal";
 import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/QuinzenalCelebration";
+import { MensalCelebration, MensalCelebrationCompact } from "@/components/MensalCelebration";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -1643,6 +1644,13 @@ export default function Home() {
                     <>
                       <p className="font-display text-xl sm:text-3xl text-emerald-400 leading-none">Meta!</p>
                       <p className="text-emerald-400/70 text-xs mt-1">parabéns pela conquista</p>
+                      <div className="mt-2">
+                        <MensalCelebrationCompact
+                          atingiu={true}
+                          percentual={metaTotalGeral > 0 ? (totalGeralRealizado / metaTotalGeral) * 100 : 100}
+                          superou={Math.max(0, totalGeralRealizado - metaTotalGeral)}
+                        />
+                      </div>
                     </>
                   ) : (
                     <>
@@ -2339,6 +2347,8 @@ export default function Home() {
                 const menorQueMeta = s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && s.mediaDiaria < metaDiaAtualMensal;
                 const atingiuMeta = s.totalRealizado >= s.metaMensal && s.metaMensal > 0;
                 const pctMensal = s.metaMensal > 0 ? Math.min(Math.round((s.totalRealizado / s.metaMensal) * 100), 100) : 0;
+                const superouMensal = atingiuMeta ? Math.max(0, s.totalRealizado - s.metaMensal) : 0;
+                const percentualMensalReal = s.metaMensal > 0 ? (s.totalRealizado / s.metaMensal) * 100 : 0;
                 const comp = comparativoMesAnterior.porEmpresa[s.emp.slug];
                 const variacaoMes = comp && comp.totalAnterior > 0
                   ? ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100
@@ -2482,6 +2492,18 @@ export default function Home() {
                               </span>
                             )}
                           </div>
+                          {/* Badge de celebração mensal */}
+                          {atingiuMeta && (
+                            <div className="mt-2">
+                              <MensalCelebration
+                                atingiu={atingiuMeta}
+                                percentual={percentualMensalReal}
+                                superou={superouMensal}
+                                nomeUnidade={s.emp.nome}
+                                cor={s.emp.cor}
+                              />
+                            </div>
+                          )}
                           {/* Meta esperada hoje */}
                           {s.metaMensal > 0 && (() => {
                             const diasUteisTotal = s.diasUteis ?? 26;

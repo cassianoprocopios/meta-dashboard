@@ -1,0 +1,52 @@
+{
+  "query": "SELECT data, empresaSlug, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, lancadoPor FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data >= '2026-05-18' ORDER BY data DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, empresaSlug, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, lancadoPor FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data >= '2026-05-18' ORDER BY data DESC LIMIT 10;",
+  "rows": [
+    {
+      "data": "2026-05-21",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "1086.20",
+      "cat2": "368.00",
+      "cat3": "0.00",
+      "cat4": "0.00",
+      "cat5": "0.00",
+      "cat6": "0.00",
+      "cat7": "0.00",
+      "cat8": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "data": "2026-05-20",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "1544.00",
+      "cat2": "439.00",
+      "cat3": "18.00",
+      "cat4": "0.00",
+      "cat5": "0.00",
+      "cat6": "0.00",
+      "cat7": "0.00",
+      "cat8": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    },
+    {
+      "data": "2026-05-19",
+      "empresaSlug": "barbiero-seraphine",
+      "cat1": "1280.20",
+      "cat2": "256.00",
+      "cat3": "15.00",
+      "cat4": "10.00",
+      "cat5": "0.00",
+      "cat6": "0.00",
+      "cat7": "0.00",
+      "cat8": "0.00",
+      "cat9": "0.00",
+      "lancadoPor": "avec-sync-rel0184"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tempresaSlug\tcat1\tcat2\tcat3\tcat4\tcat5\tcat6\tcat7\tcat8\tcat9\tlancadoPor\n2026-05-21\tbarbiero-seraphine\t1086.20\t368.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\tavec-sync-rel0184\n2026-05-20\tbarbiero-seraphine\t1544.00\t439.00\t18.00\t0.00\t0.00\t0.00\t0.00\t0.00\t0.00\tavec-sync-rel0184\n2026-05-19\tbarbiero-seraphine\t1280.20\t256.00\t15.00\t10.00\t0.00\t0.00\t0.00\t0.00\t0.00\tavec-sync-rel0184\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

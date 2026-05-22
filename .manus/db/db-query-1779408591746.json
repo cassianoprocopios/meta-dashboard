@@ -1,0 +1,21 @@
+{
+  "query": "SELECT id, tenantId, empresaSlug, avecEmail, avecSalaoId, avecSalaoNome, ativo, sincAutoAtiva, ultimaSincronizacao FROM avecConfig LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, tenantId, empresaSlug, avecEmail, avecSalaoId, avecSalaoNome, ativo, sincAutoAtiva, ultimaSincronizacao FROM avecConfig LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-seraphine",
+      "avecEmail": "seraphinebeauty24@gmail.com",
+      "avecSalaoId": "seraphine-beauty-ltda",
+      "avecSalaoNome": "Seraphine Beauty Ltda",
+      "ativo": "1",
+      "sincAutoAtiva": "1",
+      "ultimaSincronizacao": "2026-05-21 17:04:22"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\tavecEmail\tavecSalaoId\tavecSalaoNome\tativo\tsincAutoAtiva\tultimaSincronizacao\n1\t1\tbarbiero-seraphine\tseraphinebeauty24@gmail.com\tseraphine-beauty-ltda\tSeraphine Beauty Ltda\t1\t1\t2026-05-21 17:04:22\n",
+  "stderr": "",
+  "execution_time_ms": 338
+}
