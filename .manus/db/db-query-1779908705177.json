@@ -1,0 +1,31 @@
+{
+  "query": "SELECT DISTINCT\n  m.empresaSlug,\n  m.metaMensal,\n  SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_realizado,\n  COUNT(DISTINCT f.data) as dias_lancados,\n  MAX(f.data) as ultimo_dia_lancado\nFROM metas m\nLEFT JOIN faturamentos f ON m.empresaSlug = f.empresaSlug \n  AND MONTH(f.data) = m.mes \n  AND YEAR(f.data) = m.ano\nWHERE m.mes = 5 AND m.ano = 2026\nGROUP BY m.empresaSlug, m.metaMensal\nORDER BY m.empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT\n  m.empresaSlug,\n  m.metaMensal,\n  SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_realizado,\n  COUNT(DISTINCT f.data) as dias_lancados,\n  MAX(f.data) as ultimo_dia_lancado\nFROM metas m\nLEFT JOIN faturamentos f ON m.empresaSlug = f.empresaSlug \n  AND MONTH(f.data) = m.mes \n  AND YEAR(f.data) = m.ano\nWHERE m.mes = 5 AND m.ano = 2026\nGROUP BY m.empresaSlug, m.metaMensal\nORDER BY m.empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "metaMensal": "105000.00",
+      "faturamento_realizado": "34035.65",
+      "dias_lancados": "31",
+      "ultimo_dia_lancado": "2026-05-31"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "metaMensal": "220000.00",
+      "faturamento_realizado": "85532.86",
+      "dias_lancados": "31",
+      "ultimo_dia_lancado": "2026-05-31"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "metaMensal": "130000.00",
+      "faturamento_realizado": "97756.10",
+      "dias_lancados": "18",
+      "ultimo_dia_lancado": "2026-05-26"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmetaMensal\tfaturamento_realizado\tdias_lancados\tultimo_dia_lancado\nbarbiero-mascote\t105000.00\t34035.65\t31\t2026-05-31\nbarbiero-morumbi\t220000.00\t85532.86\t31\t2026-05-31\nbarbiero-seraphine\t130000.00\t97756.10\t18\t2026-05-26\n",
+  "stderr": "",
+  "execution_time_ms": 286
+}

@@ -665,11 +665,14 @@ export default function Home() {
 
       // Projeção final:
       // = totalRealizadoComCat9 (soma real dia a dia, cat1..cat9)
-      //   + mediaDiaria (cat1..cat9) × diasUteisRestantes (dias trabalhados que ainda faltam)
-      // Fórmula: total já realizado (por dia) + média diária × dias restantes
+      //   + mediaDiaria (cat1..cat9) × diasDeCalendarioRestantes (dias de calendário que ainda faltam)
+      // Fórmula: total já realizado (por dia) + média diária × dias de calendário restantes
       // Isso representa: "se mantiver o ritmo atual, vai fechar em X"
+      // IMPORTANTE: usa dias de calendário (não dias úteis) para refletir corretamente
+      // quantos dias ainda restam no mês para o faturamento
+      const diasDeCalendarioRestantes = Math.max(0, totalDiasMes - diaHoje);
       const projecaoFinal = diasRealizados > 0
-        ? totalRealizadoComCat9 + (mediaDiaria * diasUteisRestantes)
+        ? totalRealizadoComCat9 + (mediaDiaria * diasDeCalendarioRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)

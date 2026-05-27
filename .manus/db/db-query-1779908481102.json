@@ -1,0 +1,100 @@
+{
+  "query": "SELECT \n  f.data,\n  (f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_dia,\n  f.updatedAt\nFROM faturamentos f\nWHERE f.empresaSlug = 'barbiero-seraphine' \n  AND MONTH(f.data) = 5 \n  AND YEAR(f.data) = 2026\nORDER BY f.data ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  f.data,\n  (f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_dia,\n  f.updatedAt\nFROM faturamentos f\nWHERE f.empresaSlug = 'barbiero-seraphine' \n  AND MONTH(f.data) = 5 \n  AND YEAR(f.data) = 2026\nORDER BY f.data ASC;",
+  "rows": [
+    {
+      "data": "2026-05-01",
+      "faturamento_dia": "7714.50",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-02",
+      "faturamento_dia": "9389.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-05",
+      "faturamento_dia": "2969.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-06",
+      "faturamento_dia": "3903.50",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-07",
+      "faturamento_dia": "3750.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-08",
+      "faturamento_dia": "7672.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-09",
+      "faturamento_dia": "7997.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-12",
+      "faturamento_dia": "2674.70",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-13",
+      "faturamento_dia": "3664.50",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-14",
+      "faturamento_dia": "5533.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-15",
+      "faturamento_dia": "7182.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-16",
+      "faturamento_dia": "11865.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-19",
+      "faturamento_dia": "1561.20",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-20",
+      "faturamento_dia": "2001.00",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-21",
+      "faturamento_dia": "3443.20",
+      "updatedAt": "2026-05-22 01:05:15"
+    },
+    {
+      "data": "2026-05-22",
+      "faturamento_dia": "6056.00",
+      "updatedAt": "2026-05-23 02:47:25"
+    },
+    {
+      "data": "2026-05-23",
+      "faturamento_dia": "7550.00",
+      "updatedAt": "2026-05-24 01:48:25"
+    },
+    {
+      "data": "2026-05-26",
+      "faturamento_dia": "2830.50",
+      "updatedAt": "2026-05-27 18:37:21"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tfaturamento_dia\tupdatedAt\n2026-05-01\t7714.50\t2026-05-22 01:05:15\n2026-05-02\t9389.00\t2026-05-22 01:05:15\n2026-05-05\t2969.00\t2026-05-22 01:05:15\n2026-05-06\t3903.50\t2026-05-22 01:05:15\n2026-05-07\t3750.00\t2026-05-22 01:05:15\n2026-05-08\t7672.00\t2026-05-22 01:05:15\n2026-05-09\t7997.00\t2026-05-22 01:05:15\n2026-05-12\t2674.70\t2026-05-22 01:05:15\n2026-05-13\t3664.50\t2026-05-22 01:05:15\n2026-05-14\t5533.00\t2026-05-22 01:05:15\n2026-05-15\t7182.00\t2026-05-22 01:05:15\n2026-05-16\t11865.00\t2026-05-22 01:05:15\n2026-05-19\t1561.20\t2026-05-22 01:05:15\n2026-05-20\t2001.00\t2026-05-22 01:05:15\n2026-05-21\t3443.20\t2026-05-22 01:05:15\n2026-05-22\t6056.00\t2026-05-23 02:47:25\n2026-05-23\t7550.00\t2026-05-24 01:48:25\n2026-05-26\t2830.50\t2026-05-27 18:37:21\n",
+  "stderr": "",
+  "execution_time_ms": 305
+}

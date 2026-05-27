@@ -1,0 +1,40 @@
+{
+  "query": "SELECT \n  m.empresaSlug,\n  m.metaMensal,\n  SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_total,\n  COUNT(DISTINCT f.data) as dias_com_faturamento,\n  ROUND(SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) / m.metaMensal * 100, 2) as percentual_meta,\n  ROUND((m.metaMensal - SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8)), 2) as falta_para_meta,\n  MAX(f.data) as ultimo_dia_lancado,\n  MIN(f.data) as primeiro_dia_lancado\nFROM metas m\nLEFT JOIN faturamentos f ON m.empresaSlug = f.empresaSlug \n  AND MONTH(f.data) = m.mes \n  AND YEAR(f.data) = m.ano\nWHERE m.mes = 5 AND m.ano = 2026\nGROUP BY m.empresaSlug, m.metaMensal\nORDER BY m.empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  m.empresaSlug,\n  m.metaMensal,\n  SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) as faturamento_total,\n  COUNT(DISTINCT f.data) as dias_com_faturamento,\n  ROUND(SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8) / m.metaMensal * 100, 2) as percentual_meta,\n  ROUND((m.metaMensal - SUM(f.cat1 + f.cat2 + f.cat3 + f.cat4 + f.cat5 + f.cat6 + f.cat7 + f.cat8)), 2) as falta_para_meta,\n  MAX(f.data) as ultimo_dia_lancado,\n  MIN(f.data) as primeiro_dia_lancado\nFROM metas m\nLEFT JOIN faturamentos f ON m.empresaSlug = f.empresaSlug \n  AND MONTH(f.data) = m.mes \n  AND YEAR(f.data) = m.ano\nWHERE m.mes = 5 AND m.ano = 2026\nGROUP BY m.empresaSlug, m.metaMensal\nORDER BY m.empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "metaMensal": "105000.00",
+      "faturamento_total": "34035.65",
+      "dias_com_faturamento": "31",
+      "percentual_meta": "32.41",
+      "falta_para_meta": "70964.35",
+      "ultimo_dia_lancado": "2026-05-31",
+      "primeiro_dia_lancado": "2026-05-01"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "metaMensal": "220000.00",
+      "faturamento_total": "85532.86",
+      "dias_com_faturamento": "31",
+      "percentual_meta": "38.88",
+      "falta_para_meta": "134467.14",
+      "ultimo_dia_lancado": "2026-05-31",
+      "primeiro_dia_lancado": "2026-05-01"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "metaMensal": "130000.00",
+      "faturamento_total": "97756.10",
+      "dias_com_faturamento": "18",
+      "percentual_meta": "75.20",
+      "falta_para_meta": "32243.90",
+      "ultimo_dia_lancado": "2026-05-26",
+      "primeiro_dia_lancado": "2026-05-01"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tmetaMensal\tfaturamento_total\tdias_com_faturamento\tpercentual_meta\tfalta_para_meta\tultimo_dia_lancado\tprimeiro_dia_lancado\nbarbiero-mascote\t105000.00\t34035.65\t31\t32.41\t70964.35\t2026-05-31\t2026-05-01\nbarbiero-morumbi\t220000.00\t85532.86\t31\t38.88\t134467.14\t2026-05-31\t2026-05-01\nbarbiero-seraphine\t130000.00\t97756.10\t18\t75.20\t32243.90\t2026-05-26\t2026-05-01\n",
+  "stderr": "",
+  "execution_time_ms": 266
+}
