@@ -1,0 +1,40 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_sem_cat9,\n  SUM(cat9) as total_cat9,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3, 2) as projecao_3_dias_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3), 2) as projecao_final_corrigida\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_sem_cat9,\n  SUM(cat9) as total_cat9,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3, 2) as projecao_3_dias_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3), 2) as projecao_final_corrigida\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dias_com_faturamento_real": "24",
+      "total_sem_cat9": "31106.56",
+      "total_cat9": "45883.88",
+      "total_com_cat9": "76990.44",
+      "media_diaria_sem_cat9": "1296.11",
+      "projecao_3_dias_sem_cat9": "3888.32",
+      "projecao_final_corrigida": "34994.88"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dias_com_faturamento_real": "25",
+      "total_sem_cat9": "88288.66",
+      "total_cat9": "123709.04",
+      "total_com_cat9": "211997.70",
+      "media_diaria_sem_cat9": "3531.55",
+      "projecao_3_dias_sem_cat9": "10594.64",
+      "projecao_final_corrigida": "98883.30"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "dias_com_faturamento_real": "19",
+      "total_sem_cat9": "101715.10",
+      "total_cat9": "0.00",
+      "total_com_cat9": "101715.10",
+      "media_diaria_sem_cat9": "5353.43",
+      "projecao_3_dias_sem_cat9": "16060.28",
+      "projecao_final_corrigida": "117775.38"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias_com_faturamento_real\ttotal_sem_cat9\ttotal_cat9\ttotal_com_cat9\tmedia_diaria_sem_cat9\tprojecao_3_dias_sem_cat9\tprojecao_final_corrigida\nbarbiero-mascote\t24\t31106.56\t45883.88\t76990.44\t1296.11\t3888.32\t34994.88\nbarbiero-morumbi\t25\t88288.66\t123709.04\t211997.70\t3531.55\t10594.64\t98883.30\nbarbiero-seraphine\t19\t101715.10\t0.00\t101715.10\t5353.43\t16060.28\t117775.38\n",
+  "stderr": "",
+  "execution_time_ms": 340
+}

@@ -1,0 +1,31 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_realizado_sem_cat9,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3), 2) as projecao_com_3_dias_faltantes\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_realizado_sem_cat9,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_sem_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) * 3), 2) as projecao_com_3_dias_faltantes\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "total_realizado_sem_cat9": "31106.56",
+      "dias_com_faturamento_real": "24",
+      "media_diaria_sem_cat9": "1296.11",
+      "projecao_com_3_dias_faltantes": "34994.88"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "total_realizado_sem_cat9": "88288.66",
+      "dias_com_faturamento_real": "25",
+      "media_diaria_sem_cat9": "3531.55",
+      "projecao_com_3_dias_faltantes": "98883.30"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "total_realizado_sem_cat9": "101715.10",
+      "dias_com_faturamento_real": "19",
+      "media_diaria_sem_cat9": "5353.43",
+      "projecao_com_3_dias_faltantes": "117775.38"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_realizado_sem_cat9\tdias_com_faturamento_real\tmedia_diaria_sem_cat9\tprojecao_com_3_dias_faltantes\nbarbiero-mascote\t31106.56\t24\t1296.11\t34994.88\nbarbiero-morumbi\t88288.66\t25\t3531.55\t98883.30\nbarbiero-seraphine\t101715.10\t19\t5353.43\t117775.38\n",
+  "stderr": "",
+  "execution_time_ms": 276
+}

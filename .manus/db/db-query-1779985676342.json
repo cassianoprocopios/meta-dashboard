@@ -1,0 +1,31 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  COUNT(*) as total_dias,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_realizado_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) / COUNT(*), 2) as media_diaria_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) / COUNT(*) * 3), 2) as projecao_final_com_cat9\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  COUNT(*) as total_dias,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_realizado_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) / COUNT(*), 2) as media_diaria_com_cat9,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) + (SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) / COUNT(*) * 3), 2) as projecao_final_com_cat9\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "total_dias": "28",
+      "total_realizado_com_cat9": "85831.36",
+      "media_diaria_com_cat9": "3065.41",
+      "projecao_final_com_cat9": "95027.58"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "total_dias": "28",
+      "total_realizado_com_cat9": "206439.70",
+      "media_diaria_com_cat9": "7372.85",
+      "projecao_final_com_cat9": "228558.24"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "total_dias": "19",
+      "total_realizado_com_cat9": "101715.10",
+      "media_diaria_com_cat9": "5353.43",
+      "projecao_final_com_cat9": "117775.38"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_dias\ttotal_realizado_com_cat9\tmedia_diaria_com_cat9\tprojecao_final_com_cat9\nbarbiero-mascote\t28\t85831.36\t3065.41\t95027.58\nbarbiero-morumbi\t28\t206439.70\t7372.85\t228558.24\nbarbiero-seraphine\t19\t101715.10\t5353.43\t117775.38\n",
+  "stderr": "",
+  "execution_time_ms": 296
+}
