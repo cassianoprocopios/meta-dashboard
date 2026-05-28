@@ -1,0 +1,15 @@
+{
+  "query": "SELECT empresaSlug, avecEmail, avecSenha FROM avecConfig WHERE tenantId = 1 ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, avecEmail, avecSenha FROM avecConfig WHERE tenantId = 1 ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "avecEmail": "seraphinebeauty24@gmail.com",
+      "avecSenha": "Dxj4oue@"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tavecEmail\tavecSenha\nbarbiero-seraphine\tseraphinebeauty24@gmail.com\tDxj4oue@\n",
+  "stderr": "",
+  "execution_time_ms": 8725
+}

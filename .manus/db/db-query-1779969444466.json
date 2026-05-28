@@ -1,0 +1,22 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  data,\n  (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total,\n  updatedAt\nFROM faturamentos \nWHERE data = '2026-05-28'\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  data,\n  (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total,\n  updatedAt\nFROM faturamentos \nWHERE data = '2026-05-28'\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-05-28",
+      "total": "0.00",
+      "updatedAt": "2026-05-28 11:51:52"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-05-28",
+      "total": "0.00",
+      "updatedAt": "2026-05-28 11:51:53"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\ttotal\tupdatedAt\nbarbiero-mascote\t2026-05-28\t0.00\t2026-05-28 11:51:52\nbarbiero-morumbi\t2026-05-28\t0.00\t2026-05-28 11:51:53\n",
+  "stderr": "",
+  "execution_time_ms": 321
+}

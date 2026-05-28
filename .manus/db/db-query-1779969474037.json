@@ -1,0 +1,25 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  SUM(cat9) as total_cat9,\n  COUNT(DISTINCT CASE WHEN cat9 > 0 THEN data END) as dias_com_cat9\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  SUM(cat9) as total_cat9,\n  COUNT(DISTINCT CASE WHEN cat9 > 0 THEN data END) as dias_com_cat9\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "total_cat9": "49913.92",
+      "dias_com_cat9": "28"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "total_cat9": "117045.04",
+      "dias_com_cat9": "28"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "total_cat9": "0.00",
+      "dias_com_cat9": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_cat9\tdias_com_cat9\nbarbiero-mascote\t49913.92\t28\nbarbiero-morumbi\t117045.04\t28\nbarbiero-seraphine\t0.00\t0\n",
+  "stderr": "",
+  "execution_time_ms": 276
+}

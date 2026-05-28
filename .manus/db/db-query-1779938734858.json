@@ -1,0 +1,34 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  COUNT(DISTINCT data) as dias_lancados,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_realizado,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data), 2) as media_diaria,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data) * 4, 2) as projecao_4_dias,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data) * 5, 2) as projecao_5_dias\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-31'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  COUNT(DISTINCT data) as dias_lancados,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as total_realizado,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data), 2) as media_diaria,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data) * 4, 2) as projecao_4_dias,\n  ROUND(SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) / COUNT(DISTINCT data) * 5, 2) as projecao_5_dias\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-31'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dias_lancados": "31",
+      "total_realizado": "34683.36",
+      "media_diaria": "1118.82",
+      "projecao_4_dias": "4475.27",
+      "projecao_5_dias": "5594.09"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dias_lancados": "31",
+      "total_realizado": "87788.66",
+      "media_diaria": "2831.89",
+      "projecao_4_dias": "11327.57",
+      "projecao_5_dias": "14159.46"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "dias_lancados": "19",
+      "total_realizado": "101715.10",
+      "media_diaria": "5353.43",
+      "projecao_4_dias": "21413.71",
+      "projecao_5_dias": "26767.13"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias_lancados\ttotal_realizado\tmedia_diaria\tprojecao_4_dias\tprojecao_5_dias\nbarbiero-mascote\t31\t34683.36\t1118.82\t4475.27\t5594.09\nbarbiero-morumbi\t31\t87788.66\t2831.89\t11327.57\t14159.46\nbarbiero-seraphine\t19\t101715.10\t5353.43\t21413.71\t26767.13\n",
+  "stderr": "",
+  "execution_time_ms": 1215
+}

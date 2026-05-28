@@ -663,16 +663,25 @@ export default function Home() {
         : pctMetaDiaria! >= 70 ? 'amarelo'
         : 'vermelho';
 
-      // Projeção final:
-      // = totalRealizadoComCat9 (soma real dia a dia, cat1..cat9)
-      //   + mediaDiaria (cat1..cat9) × diasDeCalendarioRestantes (dias de calendário que ainda faltam)
-      // Fórmula: total já realizado (por dia) + média diária × dias de calendário restantes
-      // Isso representa: "se mantiver o ritmo atual, vai fechar em X"
-      // IMPORTANTE: usa dias de calendário (não dias úteis) para refletir corretamente
-      // quantos dias ainda restam no mês para o faturamento
+      // Projeção final (SIMPLIFICADA):
+      // Fórmula: totalRealizado + (mediaDiaria × diasDeCalendarioRestantes)
+      // Onde:
+      //   - totalRealizado = cat1..cat8 dos dias realizados + recorrência real (sem previsão)
+      //   - mediaDiaria = média de cat1..cat8 (sem cat9) dos dias com faturamento real
+      //   - diasDeCalendarioRestantes = dias de calendário que ainda faltam no mês
+      // Isso representa: "se mantiver o ritmo atual de faturamento operacional, vai fechar em X"
+      // IMPORTANTE: usa apenas cat1..cat8 para calcular a média (exclui cat9/recorrência)
+      // para não distorcer a projeção com valores de recorrência que já estão contabilizados
       const diasDeCalendarioRestantes = Math.max(0, totalDiasMes - diaHoje);
+      
+      // Recalcular mediaDiaria usando APENAS cat1..cat8 (sem cat9)
+      const totaisDiariosRealizadosSemCat9 = rowsComFatReal.map((r: any) => sumCatsSemCat9(r));
+      const totalRealizadoSemCat9Calc = totaisDiariosRealizadosSemCat9.reduce((s: number, v: number) => s + v, 0);
+      const mediaDiariaSemCat9 = diasRealizados > 0 ? totalRealizadoSemCat9Calc / diasRealizados : 0;
+      
+      // Projeção = realizado (sem recorrência previsão) + média dos dias restantes
       const projecaoFinal = diasRealizados > 0
-        ? totalRealizadoComCat9 + (mediaDiaria * diasDeCalendarioRestantes)
+        ? totalRealizadoSemRec + (mediaDiariaSemCat9 * diasDeCalendarioRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)

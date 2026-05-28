@@ -1,0 +1,28 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) ELSE 0 END) as total_com_faturamento_real,\n  ROUND(SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) ELSE 0 END) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_real\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END) as dias_com_faturamento_real,\n  SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) ELSE 0 END) as total_com_faturamento_real,\n  ROUND(SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) ELSE 0 END) / COUNT(DISTINCT CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) > 0 THEN data END), 2) as media_diaria_real\nFROM faturamentos \nWHERE data >= '2026-05-01' AND data <= '2026-05-28'\nGROUP BY empresaSlug\nORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dias_com_faturamento_real": "23",
+      "total_com_faturamento_real": "34683.36",
+      "media_diaria_real": "1507.97"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dias_com_faturamento_real": "24",
+      "total_com_faturamento_real": "87788.66",
+      "media_diaria_real": "3657.86"
+    },
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "dias_com_faturamento_real": "19",
+      "total_com_faturamento_real": "101715.10",
+      "media_diaria_real": "5353.43"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdias_com_faturamento_real\ttotal_com_faturamento_real\tmedia_diaria_real\nbarbiero-mascote\t23\t34683.36\t1507.97\nbarbiero-morumbi\t24\t87788.66\t3657.86\nbarbiero-seraphine\t19\t101715.10\t5353.43\n",
+  "stderr": "",
+  "execution_time_ms": 385
+}
