@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -43,6 +43,8 @@ import AvecSyncModal from "@/components/AvecSyncModal";
 import UnitDrilldownModal from "@/components/UnitDrilldownModal";
 import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/QuinzenalCelebration";
 import { MensalCelebration, MensalCelebrationCompact } from "@/components/MensalCelebration";
+import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
+import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -330,6 +332,23 @@ export default function Home() {
     { enabled: !!user }
   );
 
+  // Query para evolução de clientes
+  const { data: evolucaoClientesData = [] } = trpc.clientesAtendidos.evolucaoUltimos3Meses.useQuery(
+    { empresaSlug: undefined },
+    { enabled: activeTab === "dashboard" }
+  );
+
+  // Query para clientes por profissional (será inicializado depois de empresasVisiveis)
+  const [empresaSelecionadaClientes, setEmpresaSelecionadaClientes] = useState<string>("");
+  const { data: clientesPorProfissionalData = [] } = trpc.clientesAtendidos.porProfissional.useQuery(
+    {
+      empresaSlug: empresaSelecionadaClientes,
+      mes,
+      ano,
+    },
+    { enabled: activeTab === "dashboard" && !!empresaSelecionadaClientes }
+  );
+
   const { data: faturamentosAnteriorData = [] } = trpc.faturamento.listar.useQuery(
     { mes: mesAnterior, ano: anoAnterior },
     { enabled: activeTab === "dashboard" }
@@ -422,6 +441,13 @@ export default function Home() {
     if (empresaVinculada) return empresasData.filter((e) => e.slug === empresaVinculada);
     return empresasData;
   }, [empresasData, empresaVinculada, userEmpresasSlugs, isAdmin]);
+
+  // Inicializar empresa selecionada para clientes por profissional
+  useEffect(() => {
+    if (empresasVisiveis.length > 0 && !empresaSelecionadaClientes) {
+      setEmpresaSelecionadaClientes(empresasVisiveis[0].slug);
+    }
+  }, [empresasVisiveis, empresaSelecionadaClientes]);
 
   // Calcular semanas do mês selecionado
   const semanasMes = useMemo(() => {
@@ -2300,6 +2326,21 @@ export default function Home() {
                   )}
                 </div>
               </Card>
+            )}
+
+            {/* Gráfico de Evolução de Clientes */}
+            {evolucaoClientesData.length > 0 && (
+              <ClientesEvolucaoChart data={evolucaoClientesData} />
+            )}
+
+            {/* Clientes por Profissional */}
+            {clientesPorProfissionalData.length > 0 && (
+              <ClientesPorProfissionalCard
+                dados={clientesPorProfissionalData}
+                empresas={empresasVisiveis}
+                empresaSelecionada={empresaSelecionadaClientes}
+                onEmpresaChange={setEmpresaSelecionadaClientes}
+              />
             )}
 
             {/* Ranking de Desempenho */}
