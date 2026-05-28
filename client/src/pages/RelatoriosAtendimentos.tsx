@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 
 export default function RelatoriosAtendimentos() {
   const [empresaSlug, setEmpresaSlug] = useState("barbiero-morumbi");
+  const [profissionalId, setProfissionalId] = useState<string | null>(null);
   const [dataInicio, setDataInicio] = useState(new Date(new Date().setDate(1)).toISOString().split("T")[0]);
   const [dataFim, setDataFim] = useState(new Date().toISOString().split("T")[0]);
 
@@ -65,6 +66,17 @@ export default function RelatoriosAtendimentos() {
                 type="date"
                 value={dataFim}
                 onChange={(e) => setDataFim(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Profissional (Opcional)</label>
+              <Input
+                type="text"
+                placeholder="Filtrar por profissional..."
+                value={profissionalId || ""}
+                onChange={(e) => setProfissionalId(e.target.value || null)}
                 className="w-full"
               />
             </div>
