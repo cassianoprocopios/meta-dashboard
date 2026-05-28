@@ -1,5 +1,6 @@
 import { performanceRouter } from "./performanceRouter";
 import { avecRouter } from "./avecRouter";
+import { relatoriosExportRouter } from "./relatoriosProcedures";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
@@ -5869,7 +5870,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         );
         return relatorio;
       }),
+    export: relatoriosExportRouter,
   }),
 });
-
 export type AppRouter = typeof appRouter;

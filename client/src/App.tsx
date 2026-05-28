@@ -20,6 +20,7 @@ import RecuperarSenha from "./pages/RecuperarSenha";
 import GestaoColaboradores from "./pages/GestaoColaboradores";
 import HistoricoBonificacoes from "./pages/HistoricoBonificacoes";
 import RelatoriosAtendimentos from "./pages/RelatoriosAtendimentos";
+import PerformanceProfissionais from "./pages/PerformanceProfissionais";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -74,6 +75,7 @@ function Router() {
       <Route path={"/colaboradores"} component={GestaoColaboradores} />
       <Route path={"/historico-bonificacoes"} component={HistoricoBonificacoes} />
       <Route path={"/relatorios-atendimentos"} component={RelatoriosAtendimentos} />
+      <Route path={"/performance-profissionais"} component={PerformanceProfissionais} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
