@@ -324,6 +324,12 @@ export default function Home() {
   // Mês anterior para comparativo
   const mesAnterior = mes === 1 ? 12 : mes - 1;
   const anoAnterior = mes === 1 ? ano - 1 : ano;
+  // Query para clientes atendidos
+  const { data: clientesAtendidosData = { totalClientesUnicos: 0, porUnidade: {}, variacao: 0 } } = trpc.clientesAtendidos.consolidado.useQuery(
+    { mes, ano },
+    { enabled: !!user }
+  );
+
   const { data: faturamentosAnteriorData = [] } = trpc.faturamento.listar.useQuery(
     { mes: mesAnterior, ano: anoAnterior },
     { enabled: activeTab === "dashboard" }
@@ -1809,6 +1815,44 @@ export default function Home() {
 
             </div>
 
+            {/* KPI 4: Clientes Atendidos */}
+            {clientesAtendidosData.totalClientesUnicos > 0 && (() => {
+              const clientesAnterior = clientesAtendidosData.porUnidade ? 
+                Object.values(clientesAtendidosData.porUnidade).reduce((sum: number, u: any) => sum + (u.anterior || 0), 0) : 0;
+              const variacao = clientesAtendidosData.variacao || 0;
+              const cresceu = variacao > 0;
+              return (
+                <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">CLIENTES ATENDIDOS</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      cresceu ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
+                    }`}>
+                      {cresceu ? '+' : ''}{variacao.toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="font-display text-xl sm:text-3xl text-foreground leading-none">{clientesAtendidosData.totalClientesUnicos}</p>
+                  <p className="text-muted-foreground text-xs mt-1">clientes únicos este mês</p>
+                  {clientesAnterior > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Mês anterior:</span>
+                        <span className="text-xs font-medium text-foreground">{clientesAnterior} clientes</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-muted-foreground">Diferença:</span>
+                        <span className={`text-xs font-bold ${
+                          cresceu ? 'text-emerald-400' : 'text-amber-400'
+                        }`}>
+                          {cresceu ? '+' : ''}{clientesAtendidosData.totalClientesUnicos - clientesAnterior} clientes
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Card Resumo de Previstos — aparece apenas quando há lançamentos futuros */}
             {totalGeralPrevisto > 0 && (
               <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
@@ -2137,7 +2181,15 @@ export default function Home() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 text-right">
-                            <span className="text-xs text-muted-foreground">{fmt(s.totalRealizado)} / {fmt(s.metaMensal)}</span>
+                            <div className="flex flex-col items-end">
+                              <span className="text-xs text-muted-foreground">{fmt(s.totalRealizado)} / {fmt(s.metaMensal)}</span>
+                              {clientesAtendidosData.porUnidade[s.emp.slug] && (
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {clientesAtendidosData.porUnidade[s.emp.slug].atual} clientes
+                                </span>
+                              )}
+                            </div>
                             <span className={`text-sm font-bold ${
                               atingiu ? "text-emerald-500"
                               : pctReal >= 70 ? "text-primary"

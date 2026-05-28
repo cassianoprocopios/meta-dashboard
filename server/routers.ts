@@ -1,6 +1,7 @@
 import { performanceRouter } from "./performanceRouter";
 import { avecRouter } from "./avecRouter";
 import { relatoriosExportRouter } from "./relatoriosProcedures";
+import { clientesAtendidosRouter } from "./clientesAtendidosProcedures";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
@@ -1456,6 +1457,7 @@ const faturamentoCheckRouter = router({
 export const appRouter = router({
   system: systemRouter,
   profissionais: profissionaisRouter,
+  clientesAtendidos: clientesAtendidosRouter,
   faturamentoCheck: faturamentoCheckRouter,
 
   // ─── AUTH ─────────────────────────────────────────────────────────────────
