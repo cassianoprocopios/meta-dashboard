@@ -5855,6 +5855,21 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         return { ok: true, resultado };
       }),
   }),
+  relatorios: router({
+    clientesAtendidos: protectedProcedure
+      .input(z.object({ empresaSlug: z.string(), dataInicio: z.string(), dataFim: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { gerarRelatorioClientesAtendidos } = await import("./cashbarberAtendimentosSync");
+        const relatorio = await gerarRelatorioClientesAtendidos(
+          tenantId,
+          input.empresaSlug,
+          input.dataInicio,
+          input.dataFim
+        );
+        return relatorio;
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS cashbarberAtendimentos (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  tenantId INT NOT NULL,\n  empresaSlug VARCHAR(64) NOT NULL,\n  clienteId VARCHAR(128) NOT NULL,\n  clienteNome VARCHAR(256) NOT NULL,\n  profissionalId VARCHAR(128),\n  profissionalNome VARCHAR(256),\n  servicoTipo VARCHAR(256),\n  valor DECIMAL(10, 2) NOT NULL,\n  dataAtendimento DATE NOT NULL,\n  horaAtendimento VARCHAR(8),\n  status VARCHAR(64) DEFAULT 'concluido',\n  mes INT NOT NULL,\n  ano INT NOT NULL,\n  sincronizadoEm TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX idx_empresa_data (empresaSlug, dataAtendimento),\n  INDEX idx_mes_ano (mes, ano),\n  INDEX idx_cliente (clienteId)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute CREATE TABLE IF NOT EXISTS cashbarberAtendimentos (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  tenantId INT NOT NULL,\n  empresaSlug VARCHAR(64) NOT NULL,\n  clienteId VARCHAR(128) NOT NULL,\n  clienteNome VARCHAR(256) NOT NULL,\n  profissionalId VARCHAR(128),\n  profissionalNome VARCHAR(256),\n  servicoTipo VARCHAR(256),\n  valor DECIMAL(10, 2) NOT NULL,\n  dataAtendimento DATE NOT NULL,\n  horaAtendimento VARCHAR(8),\n  status VARCHAR(64) DEFAULT 'concluido',\n  mes INT NOT NULL,\n  ano INT NOT NULL,\n  sincronizadoEm TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  INDEX idx_empresa_data (empresaSlug, dataAtendimento),\n  INDEX idx_mes_ano (mes, ano),\n  INDEX idx_cliente (clienteId)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 351
+}

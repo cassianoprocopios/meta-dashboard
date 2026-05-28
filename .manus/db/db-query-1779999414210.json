@@ -1,0 +1,195 @@
+{
+  "query": "SELECT \n  TABLE_NAME,\n  COLUMN_NAME,\n  DATA_TYPE\nFROM INFORMATION_SCHEMA.COLUMNS\nWHERE TABLE_NAME IN ('cashbarberSyncLog', 'cashbarberMapeamento', 'faturamentoColaboradores')\nORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  TABLE_NAME,\n  COLUMN_NAME,\n  DATA_TYPE\nFROM INFORMATION_SCHEMA.COLUMNS\nWHERE TABLE_NAME IN ('cashbarberSyncLog', 'cashbarberMapeamento', 'faturamentoColaboradores')\nORDER BY TABLE_NAME, ORDINAL_POSITION;",
+  "rows": [
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "id",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "tenantId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "empresaSlug",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "tipo",
+      "DATA_TYPE": "enum"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "cbId",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "cbNome",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "metaCategoria",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "createdAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "cashbarberMapeamento",
+      "COLUMN_NAME": "updatedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "id",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "tenantId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "empresaSlug",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "origem",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "status",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "mes",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "ano",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "diasSincronizados",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "diasIgnorados",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "erros",
+      "DATA_TYPE": "text"
+    },
+    {
+      "TABLE_NAME": "cashbarberSyncLog",
+      "COLUMN_NAME": "executadoEm",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "id",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "tenantId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "colaboradorId",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "empresaSlug",
+      "DATA_TYPE": "varchar"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "mes",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "ano",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "totalProdutos",
+      "DATA_TYPE": "decimal"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "totalComissaoProdutos",
+      "DATA_TYPE": "decimal"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "detalhesProdutos",
+      "DATA_TYPE": "text"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "ultimaSyncEm",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "createdAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "updatedAt",
+      "DATA_TYPE": "timestamp"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "totalServicos",
+      "DATA_TYPE": "decimal"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "qtdServicos",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "qtdProdutos",
+      "DATA_TYPE": "int"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "totalGeral",
+      "DATA_TYPE": "decimal"
+    },
+    {
+      "TABLE_NAME": "faturamentoColaboradores",
+      "COLUMN_NAME": "detalhesServicos",
+      "DATA_TYPE": "text"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\tDATA_TYPE\ncashbarberMapeamento\tid\tint\ncashbarberMapeamento\ttenantId\tint\ncashbarberMapeamento\tempresaSlug\tvarchar\ncashbarberMapeamento\ttipo\tenum\ncashbarberMapeamento\tcbId\tvarchar\ncashbarberMapeamento\tcbNome\tvarchar\ncashbarberMapeamento\tmetaCategoria\tvarchar\ncashbarberMapeamento\tcreatedAt\ttimestamp\ncashbarberMapeamento\tupdatedAt\ttimestamp\ncashbarberSyncLog\tid\tint\ncashbarberSyncLog\ttenantId\tint\ncashbarberSyncLog\tempresaSlug\tvarchar\ncashbarberSyncLog\torigem\tvarchar\ncashbarberSyncLog\tstatus\tvarchar\ncashbarberSyncLog\tmes\tint\ncashbarberSyncLog\tano\tint\ncashbarberSyncLog\tdiasSincronizados\tint\ncashbarberSyncLog\tdiasIgnorados\tint\ncashbarberSyncLog\terros\ttext\ncashbarberSyncLog\texecutadoEm\ttimestamp\nfaturamentoColaboradores\tid\tint\nfaturamentoColaboradores\ttenantId\tint\nfaturamentoColaboradores\tcolaboradorId\tint\nfaturamentoColaboradores\tempresaSlug\tvarchar\nfaturamentoColaboradores\tmes\tint\nfaturamentoColaboradores\tano\tint\nfaturamentoColaboradores\ttotalProdutos\tdecimal\nfaturamentoColaboradores\ttotalComissaoProdutos\tdecimal\nfaturamentoColaboradores\tdetalhesProdutos\ttext\nfaturamentoColaboradores\tultimaSyncEm\ttimestamp\nfaturamentoColaboradores\tcreatedAt\ttimestamp\nfaturamentoColaboradores\tupdatedAt\ttimestamp\nfaturamentoColaboradores\ttotalServicos\tdecimal\nfaturamentoColaboradores\tqtdServicos\tint\nfaturamentoColaboradores\tqtdProdutos\tint\nfaturamentoColaboradores\ttotalGeral\tdecimal\nfaturamentoColaboradores\tdetalhesServicos\ttext\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, tinyint, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { date, decimal, int, mysqlEnum, mysqlTable, text, timestamp, tinyint, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 // ─── TENANTS (Empresas Clientes do SaaS) ─────────────────────────────────────
 // Cada tenant é uma empresa cliente que comprou acesso ao sistema
@@ -542,3 +542,40 @@ export const colaboradorExclusaoCategoria = mysqlTable("colaboradorExclusaoCateg
 });
 export type ColaboradorExclusaoCategoria = typeof colaboradorExclusaoCategoria.$inferSelect;
 export type InsertColaboradorExclusaoCategoria = typeof colaboradorExclusaoCategoria.$inferInsert;
+
+
+// ─── ATENDIMENTOS CASHBARBER ──────────────────────────────────────────────────
+// Sincronização de dados de atendimentos/clientes do CashBarber
+export const cashbarberAtendimentos = mysqlTable("cashbarberAtendimentos", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  /** ID do cliente no CashBarber */
+  clienteId: varchar("clienteId", { length: 128 }).notNull(),
+  /** Nome do cliente */
+  clienteNome: varchar("clienteNome", { length: 256 }).notNull(),
+  /** ID do profissional/colaborador no CashBarber */
+  profissionalId: varchar("profissionalId", { length: 128 }),
+  /** Nome do profissional */
+  profissionalNome: varchar("profissionalNome", { length: 256 }),
+  /** Tipo de serviço/categoria */
+  servicoTipo: varchar("servicoTipo", { length: 256 }),
+  /** Valor do atendimento */
+  valor: decimal("valor", { precision: 10, scale: 2 }).notNull(),
+  /** Data do atendimento */
+  dataAtendimento: date("dataAtendimento").notNull(),
+  /** Hora do atendimento (HH:MM:SS) */
+  horaAtendimento: varchar("horaAtendimento", { length: 8 }),
+  /** Status do atendimento (concluído, cancelado, etc) */
+  status: varchar("status", { length: 64 }).default("concluido"),
+  /** Mês e ano do atendimento para facilitar queries */
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  /** Timestamp de sincronização */
+  sincronizadoEm: timestamp("sincronizadoEm").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CashbarberAtendimento = typeof cashbarberAtendimentos.$inferSelect;
+export type InsertCashbarberAtendimento = typeof cashbarberAtendimentos.$inferInsert;
