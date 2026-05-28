@@ -45,6 +45,7 @@ import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/
 import { MensalCelebration, MensalCelebrationCompact } from "@/components/MensalCelebration";
 import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
 import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
+import SincronizarClientesCashBarber from "@/components/SincronizarClientesCashBarber";
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -2326,6 +2327,11 @@ export default function Home() {
                   )}
                 </div>
               </Card>
+            )}
+
+            {/* Sincronizar Clientes do CashBarber */}
+            {isAdmin && (
+              <SincronizarClientesCashBarber mes={mes} ano={ano} />
             )}
 
             {/* Gráfico de Evolução de Clientes */}
