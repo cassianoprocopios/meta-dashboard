@@ -39,57 +39,33 @@ async function inicializarBrowser(): Promise<Browser> {
 async function fazerLoginCashBarber(page: Page): Promise<void> {
   console.log("[CashBarber Clientes] Acessando painel de login...");
 
-  await page.goto(`${CASHBARBER_URL}/auth/login`, { waitUntil: "networkidle2" });
+  await page.goto(`${CASHBARBER_URL}/auth/login`, { waitUntil: "networkidle2", timeout: 30000 });
+
+  // Aguardar campo de email
+  await page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 10000 });
 
   // Preencher email
-  await page.type('input[type="email"]', CASHBARBER_EMAIL);
+  const emailInputs = await page.$$('input[type="email"], input[name="email"]');
+  if (emailInputs.length > 0) {
+    await emailInputs[0].type(CASHBARBER_EMAIL);
+  }
 
   // Preencher senha
-  await page.type('input[type="password"]', CASHBARBER_SENHA);
+  const senhaInputs = await page.$$('input[type="password"], input[name="password"]');
+  if (senhaInputs.length > 0) {
+    await senhaInputs[0].type(CASHBARBER_SENHA);
+  }
 
   // Clicar em login
-  await page.click('button[type="submit"]');
+  const botoes = await page.$$('button[type="submit"], button');
+  if (botoes.length > 0) {
+    await botoes[0].click();
+  }
 
   // Aguardar redirecionamento
-  await page.waitForNavigation({ waitUntil: "networkidle2" });
+  await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
 
   console.log("[CashBarber Clientes] Login realizado com sucesso");
-}
-
-/**
- * Navega até a seção de relatório de clientes por período
- */
-async function navegarParaRelatorioClientes(page: Page): Promise<void> {
-  console.log("[CashBarber Clientes] Navegando para relatório de clientes...");
-
-  // Tentar acessar diretamente a URL de relatório
-  try {
-    await page.goto(`${CASHBARBER_URL}/relatorios/clientes-periodo`, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
-  } catch (erro) {
-    console.log("[CashBarber Clientes] URL direta não funcionou, tentando navegação pelo menu");
-
-    // Fallback: navegar pelo menu
-    await page.goto(`${CASHBARBER_URL}/relatorios`, { waitUntil: "networkidle2" });
-
-    // Procurar pelo link de "Cliente por Período e Serviço"
-    await page.waitForSelector("a, button", { timeout: 5000 });
-    await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll("a, button"));
-      const clienteLink = links.find(
-        (l) =>
-          l.textContent?.toLowerCase().includes("cliente") &&
-          l.textContent?.toLowerCase().includes("período")
-      );
-      if (clienteLink) {
-        (clienteLink as HTMLElement).click();
-      }
-    });
-
-    await page.waitForNavigation({ waitUntil: "networkidle2" });
-  }
 }
 
 /**
@@ -103,79 +79,76 @@ async function extrairClientesPeriodo(
   console.log(`[CashBarber Clientes] Extraindo clientes para ${mes}/${ano}`);
 
   try {
-    // Selecionar mês e ano nos filtros
-    const mesStr = String(mes).padStart(2, "0");
-    const anoStr = String(ano);
+    // Navegar para relatório
+    await page.goto(`${CASHBARBER_URL}/relatorios`, { waitUntil: "networkidle2", timeout: 30000 });
 
-    // Procurar pelos campos de filtro
-    const filtros = await page.evaluate(() => {
-      const inputs = document.querySelectorAll("input, select");
-      const result: any = {};
+    // Procurar por links/botões de relatório de clientes
+    await page.waitForSelector("a, button", { timeout: 5000 }).catch(() => {});
 
-      inputs.forEach((input: any) => {
-        const label = (input as any).placeholder || (input as any).name || "";
-        if (label.toLowerCase().includes("mês") || label.toLowerCase().includes("month")) {
-          result.mesInput = input;
-        }
-        if (label.toLowerCase().includes("ano") || label.toLowerCase().includes("year")) {
-          result.anoInput = input;
-        }
-      });
+    // Tentar clicar em link de "Cliente por Período"
+    const links = await page.$$("a");
+    let encontrou = false;
 
-      return result;
-    });
-
-    // Preencher filtros se encontrados
-    const mesInputs = await page.$$('input[placeholder*="ês"], input[name*="mes"], select');
-    if (mesInputs.length > 0) {
-      await mesInputs[0].type(mesStr);
+    for (const link of links) {
+      const texto = await page.evaluate((el) => el.textContent, link);
+      if (
+        texto?.toLowerCase().includes("cliente") &&
+        texto?.toLowerCase().includes("período")
+      ) {
+        await link.click();
+        encontrou = true;
+        await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {});
+        break;
+      }
     }
 
-    const anoInputs = await page.$$('input[placeholder*="no"], input[name*="ano"], select');
-    if (anoInputs.length > 0) {
-      await anoInputs[0].type(anoStr);
+    if (!encontrou) {
+      console.log("[CashBarber Clientes] Link de cliente por período não encontrado, tentando URL direta");
+      await page.goto(`${CASHBARBER_URL}/relatorios/clientes-periodo`, {
+        waitUntil: "networkidle2",
+        timeout: 30000,
+      }).catch(() => {});
     }
 
-    // Clicar em buscar/filtrar
-    const botaoBuscar = await page.$('button:contains("Buscar"), button:contains("Filtrar")');
-    if (botaoBuscar) {
-      await botaoBuscar.click();
-      await page.waitForNavigation({ waitUntil: "networkidle2" });
-    }
-
-    // Extrair dados da tabela
+    // Extrair dados da página
     const dados = await page.evaluate(() => {
-      const rows = document.querySelectorAll("table tbody tr");
-      const clientes: any = {
+      const resultado: any = {
         totalClientesDistintos: 0,
         clientesPorServico: {},
       };
 
-      // Procurar pelo total de clientes distintos
-      const totalText = document.body.innerText;
-      const totalMatch = totalText.match(/(\d+)\s*(?:clientes|cliente)/i);
-      if (totalMatch) {
-        clientes.totalClientesDistintos = parseInt(totalMatch[1]);
+      // Procurar por números na página
+      const textoCompleto = document.body.innerText;
+
+      // Tentar extrair total de clientes
+      const regexTotal = /(\d+)\s*(?:clientes?|cliente)/i;
+      const matchTotal = textoCompleto.match(regexTotal);
+      if (matchTotal) {
+        resultado.totalClientesDistintos = parseInt(matchTotal[1]);
       }
 
-      // Extrair dados por serviço
-      rows.forEach((row) => {
-        const cells = row.querySelectorAll("td");
-        if (cells.length >= 2) {
-          const servico = cells[0]?.textContent?.trim() || "Sem serviço";
-          const quantidade = parseInt(cells[1]?.textContent?.trim() || "0");
+      // Procurar por tabelas
+      const tabelas = document.querySelectorAll("table");
+      if (tabelas.length > 0) {
+        const linhas = tabelas[0].querySelectorAll("tbody tr");
+        linhas.forEach((linha) => {
+          const colunas = linha.querySelectorAll("td");
+          if (colunas.length >= 2) {
+            const servico = colunas[0]?.textContent?.trim() || "Sem serviço";
+            const quantidade = parseInt(colunas[1]?.textContent?.trim() || "0");
 
-          if (quantidade > 0) {
-            clientes.clientesPorServico[servico] = quantidade;
+            if (quantidade > 0 && servico !== "Sem serviço") {
+              resultado.clientesPorServico[servico] = quantidade;
+            }
           }
-        }
-      });
+        });
+      }
 
-      return clientes;
+      return resultado;
     });
 
     return {
-      empresaSlug: "consolidado", // Será atualizado conforme necessário
+      empresaSlug: "consolidado",
       mes,
       ano,
       totalClientesDistintos: dados.totalClientesDistintos,
@@ -188,7 +161,7 @@ async function extrairClientesPeriodo(
 }
 
 /**
- * Extrai clientes por período para uma unidade específica
+ * Extrai clientes de uma unidade específica
  */
 export async function extrairClientesPorPeriodoUnidade(
   empresaSlug: string,
@@ -203,29 +176,6 @@ export async function extrairClientesPorPeriodoUnidade(
 
     // Fazer login
     await fazerLoginCashBarber(page);
-
-    // Navegar para relatório
-    await navegarParaRelatorioClientes(page);
-
-    // Selecionar unidade (se necessário)
-    const unidadeSelects = await page.$$("select");
-    for (const select of unidadeSelects) {
-      const options = await select.$$eval("option", (opts: any[]) =>
-        opts.map((o) => ({ value: o.value, text: o.textContent }))
-      );
-
-      const empresaOption = options.find(
-        (opt) =>
-          opt.text?.toLowerCase().includes(empresaSlug.toLowerCase()) ||
-          opt.value?.toLowerCase().includes(empresaSlug.toLowerCase())
-      );
-
-      if (empresaOption) {
-        await select.select(empresaOption.value);
-        await page.waitForNavigation({ waitUntil: "networkidle2" }).catch(() => {});
-        break;
-      }
-    }
 
     // Extrair dados
     const resultado = await extrairClientesPeriodo(page, mes, ano);
