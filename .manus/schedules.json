@@ -1,0 +1,26 @@
+{
+  "schedules": [
+    {
+      "id": "sync-clientes-cashbarber-mensal",
+      "name": "Sincronizar Clientes CashBarber - Mensal",
+      "description": "Sincroniza dados de clientes do CashBarber no primeiro dia de cada mês",
+      "enabled": true,
+      "cron": "0 0 1 * *",
+      "timezone": "America/Sao_Paulo",
+      "endpoint": "/api/sync/clientes-mensal",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "sincronizar-clientes-mensal"
+      },
+      "timeout": 600,
+      "retries": 2,
+      "notifications": {
+        "onSuccess": true,
+        "onFailure": true
+      }
+    }
+  ]
+}

@@ -45,6 +45,12 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
+  // ─── Endpoint para sincronizar clientes do CashBarber ───────────────────────
+  app.post("/api/sync/clientes-mensal", async (req, res) => {
+    const { syncClientesMensalEndpoint } = await import("../syncClientesEndpoint");
+    await syncClientesMensalEndpoint(req, res);
+  });
+
   // ─── Endpoint interno para sync agendado externo ─────────────────────────────
   // Protegido por token secreto para evitar uso indevido
   // Usado pelo cron job externo para garantir sync mesmo após hibernação do sandbox
