@@ -46,6 +46,7 @@ import { MensalCelebration, MensalCelebrationCompact } from "@/components/Mensal
 import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
 import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
 import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
+import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
 import SincronizarClientesCashBarber from "@/components/SincronizarClientesCashBarber";
 
 const MESES = [
@@ -334,12 +335,16 @@ export default function Home() {
     { enabled: !!user }
   );
 
-  // Query para evolução de clientes
+   // Query para evolução de clientes
   const { data: evolucaoClientesData = [] } = trpc.clientesAtendidos.evolucaoUltimos3Meses.useQuery(
     { empresaSlug: undefined },
     { enabled: activeTab === "dashboard" }
   );
-
+  // Query para evolução mensal de clientes por unidade
+  const { data: evolucaoMensalData = [] } = trpc.clientesAtendidos.evolucaoMensalPorUnidade.useQuery(
+    { meses: 12 },
+    { enabled: activeTab === "dashboard" }
+  );
   // Query para clientes por profissional (será inicializado depois de empresasVisiveis)
   const [empresaSelecionadaClientes, setEmpresaSelecionadaClientes] = useState<string>("");
   const { data: clientesPorProfissionalData = [] } = trpc.clientesAtendidos.porProfissional.useQuery(
@@ -2366,6 +2371,10 @@ export default function Home() {
                   { mes: 5, ano: 2026, label: "Maio 2026" },
                 ]}
               />
+            )}
+            {/* Gráfico de Evolução Mensal de Clientes */}
+            {evolucaoMensalData && evolucaoMensalData.length > 0 && (
+              <ClientesEvolucaoMensalChart dados={evolucaoMensalData} />
             )}
             {/* Clientes por Profissional */}
             {clientesPorProfissionalData.length > 0 && (
