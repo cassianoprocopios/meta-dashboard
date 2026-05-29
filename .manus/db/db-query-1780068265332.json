@@ -1,0 +1,52 @@
+{
+  "query": "\nSELECT \n  mes,\n  ano,\n  empresaSlug,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_registros\nFROM cashbarberAtendimentos\nWHERE mes IN (3, 4, 5) AND ano = 2026\nGROUP BY mes, ano, empresaSlug\nORDER BY mes, empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  mes,\n  ano,\n  empresaSlug,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_registros\nFROM cashbarberAtendimentos\nWHERE mes IN (3, 4, 5) AND ano = 2026\nGROUP BY mes, ano, empresaSlug\nORDER BY mes, empresaSlug;\n",
+  "rows": [
+    {
+      "mes": "3",
+      "ano": "2026",
+      "empresaSlug": "MASCOTE",
+      "clientes_unicos": "770",
+      "total_registros": "770"
+    },
+    {
+      "mes": "3",
+      "ano": "2026",
+      "empresaSlug": "MORUMBI",
+      "clientes_unicos": "1768",
+      "total_registros": "1768"
+    },
+    {
+      "mes": "4",
+      "ano": "2026",
+      "empresaSlug": "MASCOTE",
+      "clientes_unicos": "803",
+      "total_registros": "803"
+    },
+    {
+      "mes": "4",
+      "ano": "2026",
+      "empresaSlug": "MORUMBI",
+      "clientes_unicos": "1804",
+      "total_registros": "1804"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "empresaSlug": "mascote",
+      "clientes_unicos": "380",
+      "total_registros": "380"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "empresaSlug": "morumbi",
+      "clientes_unicos": "877",
+      "total_registros": "877"
+    }
+  ],
+  "messages": [],
+  "stdout": "mes\tano\tempresaSlug\tclientes_unicos\ttotal_registros\n3\t2026\tMASCOTE\t770\t770\n3\t2026\tMORUMBI\t1768\t1768\n4\t2026\tMASCOTE\t803\t803\n4\t2026\tMORUMBI\t1804\t1804\n5\t2026\tmascote\t380\t380\n5\t2026\tmorumbi\t877\t877\n",
+  "stderr": "",
+  "execution_time_ms": 435
+}
