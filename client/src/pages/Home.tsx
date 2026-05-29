@@ -632,6 +632,10 @@ export default function Home() {
       const totalDiasMes = new Date(ano, mes, 0).getDate();
       const diasUteisDecorridos = Math.round(diasUteis * (diaHoje / totalDiasMes));
       const diasUteisDecrridosQuinzenal = Math.round(diasUteisQuinzenal * (diaHojeQuinzenal / 15));
+      
+      // Dias de calendário restantes (não dias úteis)
+      // Calcula quantos dias ainda faltam até o final do mês
+      const diasCalendarioRestantes = Math.max(0, totalDiasMes - diaHoje);
 
       // Meta acumulada esperada até hoje (apenas dias passados)
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
@@ -665,13 +669,15 @@ export default function Home() {
       // = dias úteis configurados (diasUteis) - dias úteis já decorridos (proporcional ao calendário)
       // Usa diasUteisDecorridos (baseado no dia atual do mês) para garantir consistência entre
       // unidades com o mesmo diasUteis, independente de quantos dias foram lançados no banco
-      const diasUteisRestantes = Math.max(0, diasUteis - diasUteisDecorridos);
+      // CORRIGIDO: Usar dias de calendário restantes para exibição correta
+      const diasUteisRestantes = diasCalendarioRestantes;
       // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
       // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
+      // CORRIGIDO: Usar dias de calendário reais (sem +1 para não contar o dia atual duas vezes)
       const diasUteisRestantesQuinzenal = ehMesFuturo
         ? 15
         : (ehMesVigente && diaHoje <= 15)
-          ? Math.max(0, 15 - diaHoje + 1)
+          ? Math.max(0, 15 - diaHoje)
           : 0;
 
       // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
