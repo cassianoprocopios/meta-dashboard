@@ -3,6 +3,7 @@ import { avecRouter } from "./avecRouter";
 import { relatoriosExportRouter } from "./relatoriosProcedures";
 import { clientesAtendidosRouter } from "./clientesAtendidosProcedures";
 import { clientesCashBarberSyncRouter } from "./clientesCashBarberSync";
+import { lancamentoClientesManualRouter } from "./lancamentoClientesManualProcedure";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
@@ -1459,6 +1460,7 @@ export const appRouter = router({
   system: systemRouter,
   profissionais: profissionaisRouter,
   clientesAtendidos: clientesAtendidosRouter,
+  lancamentoClientesManual: lancamentoClientesManualRouter,
   clientesCashBarberSync: clientesCashBarberSyncRouter,
   faturamentoCheck: faturamentoCheckRouter,
 
