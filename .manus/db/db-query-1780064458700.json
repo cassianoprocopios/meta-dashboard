@@ -1,0 +1,18 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(*) as total\nFROM cashbarberAtendimentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(*) as total\nFROM cashbarberAtendimentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "mascote",
+      "total": "3"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "total": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal\nmascote\t3\nmorumbi\t3\n",
+  "stderr": "",
+  "execution_time_ms": 278
+}

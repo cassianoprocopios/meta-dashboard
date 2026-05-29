@@ -1,0 +1,20 @@
+{
+  "query": "\nSELECT \n  empresaSlug,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_registros\nFROM cashbarberAtendimentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  empresaSlug,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_registros\nFROM cashbarberAtendimentos\nWHERE mes = 5 AND ano = 2026\nGROUP BY empresaSlug\nORDER BY empresaSlug;\n",
+  "rows": [
+    {
+      "empresaSlug": "mascote",
+      "clientes_unicos": "380",
+      "total_registros": "380"
+    },
+    {
+      "empresaSlug": "morumbi",
+      "clientes_unicos": "877",
+      "total_registros": "877"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tclientes_unicos\ttotal_registros\nmascote\t380\t380\nmorumbi\t877\t877\n",
+  "stderr": "",
+  "execution_time_ms": 281
+}
