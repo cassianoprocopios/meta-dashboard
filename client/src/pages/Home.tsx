@@ -45,6 +45,7 @@ import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/
 import { MensalCelebration, MensalCelebrationCompact } from "@/components/MensalCelebration";
 import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
 import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
+import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import SincronizarClientesCashBarber from "@/components/SincronizarClientesCashBarber";
 
 const MESES = [
@@ -2345,6 +2346,18 @@ export default function Home() {
               <ClientesEvolucaoChart data={evolucaoClientesData} />
             )}
 
+            {/* Clientes por Unidade */}
+            {Object.keys(clientesAtendidosData.porUnidade || {}).length > 0 && (
+              <ClientesPorUnidadeCard
+                dados={Object.entries(clientesAtendidosData.porUnidade || {}).map(([unidade, dados]: [string, any]) => ({
+                  unidade,
+                  totalClientes: dados.totalClientes || 0,
+                  variacaoPercentual: dados.variacaoPercentual || 0,
+                }))}
+                mes={mes}
+                ano={ano}
+              />
+            )}
             {/* Clientes por Profissional */}
             {clientesPorProfissionalData.length > 0 && (
               <ClientesPorProfissionalCard
