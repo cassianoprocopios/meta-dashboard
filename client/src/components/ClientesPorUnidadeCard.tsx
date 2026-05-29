@@ -1,5 +1,13 @@
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, Calendar } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ClientesUnidade {
   unidade: string;
@@ -12,6 +20,8 @@ interface ClientesPorUnidadeCardProps {
   isLoading?: boolean;
   mes?: number;
   ano?: number;
+  onMesChange?: (mes: number, ano: number) => void;
+  mesesDisponiveis?: Array<{ mes: number; ano: number; label: string }>;
 }
 
 export default function ClientesPorUnidadeCard({
@@ -19,7 +29,12 @@ export default function ClientesPorUnidadeCard({
   isLoading,
   mes,
   ano,
+  onMesChange,
+  mesesDisponiveis = [],
 }: ClientesPorUnidadeCardProps) {
+  const [mesSelecionado, setMesSelecionado] = React.useState<string>(
+    mes && ano ? `${ano}-${String(mes).padStart(2, "0")}` : ""
+  );
   if (isLoading) {
     return (
       <Card className="p-6 bg-slate-900/50 border-slate-700">
@@ -40,20 +55,47 @@ export default function ClientesPorUnidadeCard({
   return (
     <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        {/* Header com Filtro */}
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-400" />
             <h3 className="text-lg font-semibold text-white">Clientes por Unidade</h3>
           </div>
-          {mes && ano && (
+          {mesesDisponiveis.length > 0 ? (
+            <Select
+              value={mesSelecionado}
+              onValueChange={(value) => {
+                setMesSelecionado(value);
+                const [ano, mes] = value.split("-");
+                if (onMesChange) {
+                  onMesChange(parseInt(mes), parseInt(ano));
+                }
+              }}
+            >
+              <SelectTrigger className="w-40 h-8 text-xs bg-slate-800 border-slate-700">
+                <Calendar className="w-3 h-3 mr-2" />
+                <SelectValue placeholder="Selecione mês" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {mesesDisponiveis.map((item) => (
+                  <SelectItem
+                    key={`${item.ano}-${item.mes}`}
+                    value={`${item.ano}-${String(item.mes).padStart(2, "0")}`}
+                    className="text-slate-100"
+                  >
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : mes && ano ? (
             <span className="text-xs text-slate-400">
               {new Date(ano, mes - 1).toLocaleDateString("pt-BR", {
                 month: "long",
                 year: "numeric",
               })}
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Total Geral */}

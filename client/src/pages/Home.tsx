@@ -88,7 +88,7 @@ export default function Home() {
   const [, navigate] = useLocation();
   const hoje = new Date();
   const [mes, setMes] = useState(hoje.getMonth() + 1);
-  const [ano] = useState(hoje.getFullYear());
+  const [ano, setAno] = useState(hoje.getFullYear());
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   // Filtro de período: mensal ou semanal
   const [periodoFiltro, setPeriodoFiltro] = useState<"mensal" | "semanal">("mensal");
@@ -2356,6 +2356,15 @@ export default function Home() {
                 }))}
                 mes={mes}
                 ano={ano}
+                onMesChange={(novoMes, novoAno) => {
+                  setMes(novoMes);
+                  setAno(novoAno);
+                }}
+                mesesDisponiveis={[
+                  { mes: 3, ano: 2026, label: "Marco 2026" },
+                  { mes: 4, ano: 2026, label: "Abril 2026" },
+                  { mes: 5, ano: 2026, label: "Maio 2026" },
+                ]}
               />
             )}
             {/* Clientes por Profissional */}
