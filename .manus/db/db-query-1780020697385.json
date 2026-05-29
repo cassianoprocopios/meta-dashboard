@@ -1,0 +1,9 @@
+{
+  "query": "-- Lançar faturamento do dia 28 de maio para Seraphine\nINSERT INTO faturamentos (\n  tenantId, empresaSlug, data, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9,\n  observacao, lancadoPor, sincronizadoCB, createdAt, updatedAt\n) VALUES (\n  1, 'SERAPHINE', '2026-05-28', \n  1458.00,  -- cat1: Pacotes\n  12.00,    -- cat2: Produtos\n  2221.00,  -- cat3: Serviços\n  0.00,     -- cat4\n  0.00,     -- cat5\n  0.00,     -- cat6\n  0.00,     -- cat7\n  0.00,     -- cat8\n  0.00,     -- cat9\n  'Lançamento manual do dia 28/05/2026 - Pacotes: 5 (R$39,50), Produtos: 1 (R$0,33), Serviços: 65 (R$60,17)',\n  'admin',\n  0,\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute -- Lançar faturamento do dia 28 de maio para Seraphine\nINSERT INTO faturamentos (\n  tenantId, empresaSlug, data, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9,\n  observacao, lancadoPor, sincronizadoCB, createdAt, updatedAt\n) VALUES (\n  1, 'SERAPHINE', '2026-05-28', \n  1458.00,  -- cat1: Pacotes\n  12.00,    -- cat2: Produtos\n  2221.00,  -- cat3: Serviços\n  0.00,     -- cat4\n  0.00,     -- cat5\n  0.00,     -- cat6\n  0.00,     -- cat7\n  0.00,     -- cat8\n  0.00,     -- cat9\n  'Lançamento manual do dia 28/05/2026 - Pacotes: 5 (R$39,50), Produtos: 1 (R$0,33), Serviços: 65 (R$60,17)',\n  'admin',\n  0,\n  NOW(),\n  NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 387
+}
