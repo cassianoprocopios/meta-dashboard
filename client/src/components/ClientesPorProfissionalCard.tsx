@@ -37,11 +37,12 @@ export default function ClientesPorProfissionalCard({
   empresaSelecionada,
   onEmpresaChange,
 }: ClientesPorProfissionalProps) {
-  const [filtroSelecionado, setFiltroSelecionado] = useState<string | null>(null);
+  const ALL_PROFISSIONAIS = "__all__";
+  const [filtroSelecionado, setFiltroSelecionado] = useState<string>(ALL_PROFISSIONAIS);
 
-  const dadosFiltrados = filtroSelecionado
-    ? dados.filter((d) => d.profissional === filtroSelecionado)
-    : dados;
+  const dadosFiltrados = filtroSelecionado === ALL_PROFISSIONAIS
+    ? dados
+    : dados.filter((d) => d.profissional === filtroSelecionado);
 
   const totalClientesUnicos = dados.reduce((sum, d) => sum + d.totalClientes, 0);
   const totalAtendimentos = dados.reduce((sum, d) => sum + d.totalAtendimentos, 0);
@@ -112,12 +113,12 @@ export default function ClientesPorProfissionalCard({
           </Select>
         )}
 
-        <Select value={filtroSelecionado || ""} onValueChange={(v) => setFiltroSelecionado(v || null)}>
+        <Select value={filtroSelecionado} onValueChange={setFiltroSelecionado}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Todos os profissionais" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os profissionais</SelectItem>
+            <SelectItem value={ALL_PROFISSIONAIS}>Todos os profissionais</SelectItem>
             {dados.map((d) => (
               <SelectItem key={d.profissional} value={d.profissional}>
                 {d.profissional}
