@@ -1,0 +1,45 @@
+{
+  "query": "\nSELECT \n  clienteId,\n  profissionalNome,\n  dataAtendimento,\n  mes,\n  ano\nFROM cashbarberAtendimentos\nWHERE empresaSlug = 'mascote' AND profissionalNome = 'JÔ'\nLIMIT 5;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  clienteId,\n  profissionalNome,\n  dataAtendimento,\n  mes,\n  ano\nFROM cashbarberAtendimentos\nWHERE empresaSlug = 'mascote' AND profissionalNome = 'JÔ'\nLIMIT 5;\n",
+  "rows": [
+    {
+      "clienteId": "CLI_MA_JO_001",
+      "profissionalNome": "JÔ",
+      "dataAtendimento": "2026-05-01",
+      "mes": "5",
+      "ano": "2026"
+    },
+    {
+      "clienteId": "CLI_MA_JO_002",
+      "profissionalNome": "JÔ",
+      "dataAtendimento": "2026-05-01",
+      "mes": "5",
+      "ano": "2026"
+    },
+    {
+      "clienteId": "CLI_MA_JO_003",
+      "profissionalNome": "JÔ",
+      "dataAtendimento": "2026-05-02",
+      "mes": "5",
+      "ano": "2026"
+    },
+    {
+      "clienteId": "CLI_MA_JO_004",
+      "profissionalNome": "JÔ",
+      "dataAtendimento": "2026-05-02",
+      "mes": "5",
+      "ano": "2026"
+    },
+    {
+      "clienteId": "CLI_MA_JO_005",
+      "profissionalNome": "JÔ",
+      "dataAtendimento": "2026-05-03",
+      "mes": "5",
+      "ano": "2026"
+    }
+  ],
+  "messages": [],
+  "stdout": "clienteId\tprofissionalNome\tdataAtendimento\tmes\tano\nCLI_MA_JO_001\tJÔ\t2026-05-01\t5\t2026\nCLI_MA_JO_002\tJÔ\t2026-05-01\t5\t2026\nCLI_MA_JO_003\tJÔ\t2026-05-02\t5\t2026\nCLI_MA_JO_004\tJÔ\t2026-05-02\t5\t2026\nCLI_MA_JO_005\tJÔ\t2026-05-03\t5\t2026\n",
+  "stderr": "",
+  "execution_time_ms": 273
+}

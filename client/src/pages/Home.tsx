@@ -346,7 +346,7 @@ export default function Home() {
     { enabled: activeTab === "dashboard" }
   );
   // Query para clientes por profissional (será inicializado depois de empresasVisiveis)
-  const [empresaSelecionadaClientes, setEmpresaSelecionadaClientes] = useState<string>("");
+  const [empresaSelecionadaClientes, setEmpresaSelecionadaClientes] = useState<string>("mascote");
   const { data: clientesPorProfissionalData = [] } = trpc.clientesAtendidos.porProfissional.useQuery(
     {
       empresaSlug: empresaSelecionadaClientes,

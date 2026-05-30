@@ -1,0 +1,52 @@
+{
+  "query": "\nSELECT \n  profissionalNome,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_atendimentos,\n  SUM(valor) as faturamento_total,\n  AVG(valor) as ticket_medio\nFROM cashbarberAtendimentos\nWHERE empresaSlug = 'mascote' AND mes = 5 AND ano = 2026\nGROUP BY profissionalNome\nORDER BY faturamento_total DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute \nSELECT \n  profissionalNome,\n  COUNT(DISTINCT clienteId) as clientes_unicos,\n  COUNT(*) as total_atendimentos,\n  SUM(valor) as faturamento_total,\n  AVG(valor) as ticket_medio\nFROM cashbarberAtendimentos\nWHERE empresaSlug = 'mascote' AND mes = 5 AND ano = 2026\nGROUP BY profissionalNome\nORDER BY faturamento_total DESC;\n",
+  "rows": [
+    {
+      "profissionalNome": "Profissional 4",
+      "clientes_unicos": "76",
+      "total_atendimentos": "76",
+      "faturamento_total": "9528.00",
+      "ticket_medio": "125.368421"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "clientes_unicos": "76",
+      "total_atendimentos": "76",
+      "faturamento_total": "9514.00",
+      "ticket_medio": "125.184211"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "clientes_unicos": "76",
+      "total_atendimentos": "76",
+      "faturamento_total": "9432.00",
+      "ticket_medio": "124.105263"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "clientes_unicos": "76",
+      "total_atendimentos": "76",
+      "faturamento_total": "9310.00",
+      "ticket_medio": "122.500000"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "clientes_unicos": "76",
+      "total_atendimentos": "76",
+      "faturamento_total": "9296.00",
+      "ticket_medio": "122.315789"
+    },
+    {
+      "profissionalNome": "JÔ",
+      "clientes_unicos": "50",
+      "total_atendimentos": "50",
+      "faturamento_total": "3975.00",
+      "ticket_medio": "79.500000"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\tclientes_unicos\ttotal_atendimentos\tfaturamento_total\tticket_medio\nProfissional 4\t76\t76\t9528.00\t125.368421\nProfissional 2\t76\t76\t9514.00\t125.184211\nProfissional 1\t76\t76\t9432.00\t124.105263\nProfissional 5\t76\t76\t9310.00\t122.500000\nProfissional 3\t76\t76\t9296.00\t122.315789\nJÔ\t50\t50\t3975.00\t79.500000\n",
+  "stderr": "",
+  "execution_time_ms": 286
+}
