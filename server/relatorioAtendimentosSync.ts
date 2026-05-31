@@ -26,20 +26,25 @@ export async function obterAtendimentosParaExportacao(
 
     const { cashbarberAtendimentos } = await import("../drizzle/schema");
 
-    // Converter datas para timestamp
-    const inicio = new Date(dataInicio).getTime();
-    const fim = new Date(dataFim).getTime();
+    // Converter datas para Date
+    const inicio = new Date(dataInicio);
+    const fim = new Date(dataFim);
+    // Adicionar 1 dia ao fim para incluir todo o dia
+    fim.setDate(fim.getDate() + 1);
 
     // Construir condições
     const conditions = [
       eq(cashbarberAtendimentos.tenantId, tenantId),
       eq(cashbarberAtendimentos.empresaSlug, empresaSlug),
+      between(cashbarberAtendimentos.dataAtendimento, inicio, fim),
     ];
 
     // Filtrar por profissional se fornecido
     if (profissional) {
       conditions.push(eq(cashbarberAtendimentos.profissionalNome, profissional));
     }
+
+
 
     const atendimentos = await db
       .select()

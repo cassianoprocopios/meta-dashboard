@@ -5876,6 +5876,19 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         );
         return relatorio;
       }),
+    consolidadoPorProfissional: protectedProcedure
+      .input(z.object({ empresaSlug: z.string(), dataInicio: z.string(), dataFim: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const tenantId = await getTenantIdFromCtx(ctx);
+        const { obterConsolidadoPorProfissional } = await import("./relatorioAtendimentosSync");
+        const consolidado = await obterConsolidadoPorProfissional(
+          tenantId,
+          input.empresaSlug,
+          input.dataInicio,
+          input.dataFim
+        );
+        return consolidado;
+      }),
     export: relatoriosExportRouter,
   }),
 });

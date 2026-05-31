@@ -44,9 +44,10 @@ import UnitDrilldownModal from "@/components/UnitDrilldownModal";
 import { QuinzenalCelebration, QuinzenalCelebrationCompact } from "@/components/QuinzenalCelebration";
 import { MensalCelebration, MensalCelebrationCompact } from "@/components/MensalCelebration";
 import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
-import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
+
 import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
+import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
 
 
 const MESES = [
@@ -345,16 +346,7 @@ export default function Home() {
     { meses: 12 },
     { enabled: activeTab === "dashboard" }
   );
-  // Query para clientes por profissional (será inicializado depois de empresasVisiveis)
-  const [empresaSelecionadaClientes, setEmpresaSelecionadaClientes] = useState<string>("mascote");
-  const { data: clientesPorProfissionalData = [] } = trpc.clientesAtendidos.porProfissional.useQuery(
-    {
-      empresaSlug: empresaSelecionadaClientes,
-      mes,
-      ano,
-    },
-    { enabled: activeTab === "dashboard" && !!empresaSelecionadaClientes }
-  );
+
 
   const { data: faturamentosAnteriorData = [] } = trpc.faturamento.listar.useQuery(
     { mes: mesAnterior, ano: anoAnterior },
@@ -367,6 +359,7 @@ export default function Home() {
   );
   const rankingProfissionais = rankingData?.lista ?? [];
   const rankingUltimaAtualizacao: Date | null = rankingData?.ultimaAtualizacao ?? null;
+
   // Empresas do utilizador (múltiplas unidades)
   const { data: userEmpresasSlugs = [] } = trpc.admin.listarEmpresasUsuario.useQuery(
     { userId: user?.id ?? 0 },
@@ -449,12 +442,25 @@ export default function Home() {
     return empresasData;
   }, [empresasData, empresaVinculada, userEmpresasSlugs, isAdmin]);
 
-  // Inicializar empresa selecionada para clientes por profissional
+  // Query para ranking de profissionais por clientes atendidos
+  const [empresaSelecionadaRanking, setEmpresaSelecionadaRanking] = useState<string>("");
   useEffect(() => {
-    if (empresasVisiveis.length > 0 && !empresaSelecionadaClientes) {
-      setEmpresaSelecionadaClientes(empresasVisiveis[0].slug);
+    if (empresasVisiveis.length > 0 && !empresaSelecionadaRanking) {
+      setEmpresaSelecionadaRanking(empresasVisiveis[0].slug);
     }
-  }, [empresasVisiveis, empresaSelecionadaClientes]);
+  }, [empresasVisiveis]);
+
+  const dataInicio = new Date(ano, mes - 1, 1).toISOString().split('T')[0];
+  const dataFim = new Date(ano, mes, 0).toISOString().split('T')[0];
+
+  const { data: rankingClientesData = [], isLoading: loadingRankingClientes } = trpc.relatorios.consolidadoPorProfissional.useQuery(
+    {
+      empresaSlug: empresaSelecionadaRanking,
+      dataInicio,
+      dataFim,
+    },
+    { enabled: activeTab === "dashboard" && !!empresaSelecionadaRanking }
+  );
 
   // Calcular semanas do mês selecionado
   const semanasMes = useMemo(() => {
@@ -2372,13 +2378,12 @@ export default function Home() {
             {evolucaoMensalData && evolucaoMensalData.length > 0 && (
               <ClientesEvolucaoMensalChart dados={evolucaoMensalData} />
             )}
-            {/* Clientes por Profissional */}
-            {clientesPorProfissionalData.length > 0 && (
-              <ClientesPorProfissionalCard
-                dados={clientesPorProfissionalData}
-                empresas={empresasVisiveis}
-                empresaSelecionada={empresaSelecionadaClientes}
-                onEmpresaChange={setEmpresaSelecionadaClientes}
+            
+            {/* Ranking de Profissionais por Clientes Atendidos */}
+            {rankingClientesData.length > 0 && (
+              <RankingProfissionaisPorClientes
+                dados={rankingClientesData}
+                isLoading={loadingRankingClientes}
               />
             )}
 
