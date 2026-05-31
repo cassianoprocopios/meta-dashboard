@@ -1,0 +1,34 @@
+{
+  "query": "SELECT data, cat1, cat2, cat3 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data BETWEEN '2026-05-22' AND '2026-05-27' ORDER BY data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat1, cat2, cat3 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data BETWEEN '2026-05-22' AND '2026-05-27' ORDER BY data;",
+  "rows": [
+    {
+      "data": "2026-05-22",
+      "cat1": "464.00",
+      "cat2": "63.00",
+      "cat3": "5529.00"
+    },
+    {
+      "data": "2026-05-23",
+      "cat1": "1990.00",
+      "cat2": "37.00",
+      "cat3": "5523.00"
+    },
+    {
+      "data": "2026-05-26",
+      "cat1": "197.00",
+      "cat2": "7.50",
+      "cat3": "2626.00"
+    },
+    {
+      "data": "2026-05-27",
+      "cat1": "256.00",
+      "cat2": "18.00",
+      "cat3": "3685.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\n2026-05-22\t464.00\t63.00\t5529.00\n2026-05-23\t1990.00\t37.00\t5523.00\n2026-05-26\t197.00\t7.50\t2626.00\n2026-05-27\t256.00\t18.00\t3685.00\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

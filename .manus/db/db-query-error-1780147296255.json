@@ -1,0 +1,8 @@
+{
+  "query": "UPDATE faturamentos \nSET cat1 = cat3, cat2 = (SELECT cat1 FROM (SELECT cat1 FROM faturamentos WHERE id = faturamentos.id) AS temp), cat3 = (SELECT cat2 FROM (SELECT cat2 FROM faturamentos WHERE id = faturamentos.id) AS temp)\nWHERE empresaSlug = 'barbiero-seraphine' \nAND data BETWEEN '2026-05-22' AND '2026-05-28';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE faturamentos \nSET cat1 = cat3, cat2 = (SELECT cat1 FROM (SELECT cat1 FROM faturamentos WHERE id = faturamentos.id) AS temp), cat3 = (SELECT cat2 FROM (SELECT cat2 FROM faturamentos WHERE id = faturamentos.id) AS temp)\nWHERE empresaSlug = 'barbiero-seraphine' \nAND data BETWEEN '2026-05-22' AND '2026-05-28';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1242 (21000) at line 1: Subquery returns more than 1 row"
+  ]
+}

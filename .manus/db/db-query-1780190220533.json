@@ -1,0 +1,40 @@
+{
+  "query": "SELECT data, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as sem_cat9, cat9, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 ORDER BY data DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as sem_cat9, cat9, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 ORDER BY data DESC LIMIT 5;",
+  "rows": [
+    {
+      "data": "2026-05-31",
+      "sem_cat9": "0.00",
+      "cat9": "1734.16",
+      "total": "1734.16"
+    },
+    {
+      "data": "2026-05-30",
+      "sem_cat9": "2580.40",
+      "cat9": "1734.16",
+      "total": "4314.56"
+    },
+    {
+      "data": "2026-05-29",
+      "sem_cat9": "1788.60",
+      "cat9": "1734.16",
+      "total": "3522.76"
+    },
+    {
+      "data": "2026-05-28",
+      "sem_cat9": "2037.81",
+      "cat9": "1734.16",
+      "total": "3771.97"
+    },
+    {
+      "data": "2026-05-27",
+      "sem_cat9": "1146.53",
+      "cat9": "1734.16",
+      "total": "2880.69"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tsem_cat9\tcat9\ttotal\n2026-05-31\t0.00\t1734.16\t1734.16\n2026-05-30\t2580.40\t1734.16\t4314.56\n2026-05-29\t1788.60\t1734.16\t3522.76\n2026-05-28\t2037.81\t1734.16\t3771.97\n2026-05-27\t1146.53\t1734.16\t2880.69\n",
+  "stderr": "",
+  "execution_time_ms": 276
+}

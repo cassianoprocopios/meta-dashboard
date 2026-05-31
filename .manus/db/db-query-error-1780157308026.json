@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO metas (colaboradorId, mes, ano, metaMensal, createdAt, updatedAt)\nVALUES (150002, 5, 2026, 2500, NOW(), NOW())\nON DUPLICATE KEY UPDATE metaMensal = 2500, updatedAt = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO metas (colaboradorId, mes, ano, metaMensal, createdAt, updatedAt)\nVALUES (150002, 5, 2026, 2500, NOW(), NOW())\nON DUPLICATE KEY UPDATE metaMensal = 2500, updatedAt = NOW();",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'colaboradorId' in 'field list'"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "query": "SELECT empresaSlug, SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as sem_cat9, SUM(cat9) as cat9_dpote, SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_com_cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8) as sem_cat9, SUM(cat9) as cat9_dpote, SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total_com_cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "sem_cat9": "41090.17",
+      "cat9_dpote": "52024.80",
+      "total_com_cat9": "93114.97"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tsem_cat9\tcat9_dpote\ttotal_com_cat9\nbarbiero-mascote\t41090.17\t52024.80\t93114.97\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, tenantId, empresaSlug, mes, ano, metaMensal FROM metas WHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, tenantId, empresaSlug, mes, ano, metaMensal FROM metas WHERE empresaSlug = 'barbiero-mascote' AND mes = 5 AND ano = 2026;",
+  "rows": [
+    {
+      "id": "150001",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "metaMensal": "95500.00"
+    },
+    {
+      "id": "180001",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "metaMensal": "2500.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\tmes\tano\tmetaMensal\n150001\t1\tbarbiero-mascote\t5\t2026\t95500.00\n180001\t1\tbarbiero-mascote\t5\t2026\t2500.00\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

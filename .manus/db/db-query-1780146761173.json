@@ -1,0 +1,15 @@
+{
+  "query": "SELECT empresaSlug, COUNT(*) as qtd, SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total FROM faturamentos WHERE MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND empresaSlug LIKE '%seraphine%' GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, COUNT(*) as qtd, SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total FROM faturamentos WHERE MONTH(STR_TO_DATE(data, '%Y-%m-%d')) = 5 AND YEAR(STR_TO_DATE(data, '%Y-%m-%d')) = 2026 AND empresaSlug LIKE '%seraphine%' GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-seraphine",
+      "qtd": "20",
+      "total": "105406.10"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tqtd\ttotal\nbarbiero-seraphine\t20\t105406.10\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

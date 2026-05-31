@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO faturamentos (\n  data,\n  empresa,\n  pacotes_quantidade,\n  pacotes_valor,\n  pacotes_ticket,\n  produtos_quantidade,\n  produtos_valor,\n  produtos_ticket,\n  servicos_quantidade,\n  servicos_valor,\n  servicos_ticket,\n  faturamento_total,\n  sincronizado_cashbarber,\n  created_at,\n  updated_at\n) VALUES (\n  '2026-05-28',\n  'SERAPHINE',\n  5,\n  1458.00,\n  39.50,\n  1,\n  12.00,\n  0.33,\n  65,\n  2221.00,\n  60.17,\n  3691.00,\n  0,\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO faturamentos (\n  data,\n  empresa,\n  pacotes_quantidade,\n  pacotes_valor,\n  pacotes_ticket,\n  produtos_quantidade,\n  produtos_valor,\n  produtos_ticket,\n  servicos_quantidade,\n  servicos_valor,\n  servicos_ticket,\n  faturamento_total,\n  sincronizado_cashbarber,\n  created_at,\n  updated_at\n) VALUES (\n  '2026-05-28',\n  'SERAPHINE',\n  5,\n  1458.00,\n  39.50,\n  1,\n  12.00,\n  0.33,\n  65,\n  2221.00,\n  60.17,\n  3691.00,\n  0,\n  NOW(),\n  NOW()\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'empresa' in 'field list'"
+  ]
+}

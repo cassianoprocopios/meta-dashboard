@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE faturamentos SET cat1 = 5710.00, cat2 = 1088.00, cat3 = 33.00 WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-30';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE faturamentos SET cat1 = 5710.00, cat2 = 1088.00, cat3 = 33.00 WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-30';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 278
+}

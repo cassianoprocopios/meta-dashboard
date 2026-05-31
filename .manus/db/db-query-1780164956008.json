@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, nome, empresaSlug, cashbarberProfissionalId, ativo, exibirNoRanking, pinAcesso, metaMensal\nFROM colaboradores \nWHERE (nome LIKE '%Taissa%' OR nome LIKE '%taissa%') AND empresaSlug = 'barbiero-morumbi';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, cashbarberProfissionalId, ativo, exibirNoRanking, pinAcesso, metaMensal\nFROM colaboradores \nWHERE (nome LIKE '%Taissa%' OR nome LIKE '%taissa%') AND empresaSlug = 'barbiero-morumbi';",
+  "rows": [
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "empresaSlug": "barbiero-morumbi",
+      "cashbarberProfissionalId": "39507",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "pinAcesso": "2808",
+      "metaMensal": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tcashbarberProfissionalId\tativo\texibirNoRanking\tpinAcesso\tmetaMensal\n120001\tTaissa\tbarbiero-morumbi\t39507\t1\t1\t2808\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

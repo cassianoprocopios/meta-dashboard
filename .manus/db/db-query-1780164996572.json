@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, nome, empresaSlug, metaMensal FROM colaboradores WHERE id = 120001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, metaMensal FROM colaboradores WHERE id = 120001;",
+  "rows": [
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "empresaSlug": "barbiero-morumbi",
+      "metaMensal": "5000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tmetaMensal\n120001\tTaissa\tbarbiero-morumbi\t5000.00\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

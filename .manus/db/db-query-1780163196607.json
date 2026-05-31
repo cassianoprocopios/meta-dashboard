@@ -1,0 +1,29 @@
+{
+  "query": "SELECT * FROM faturamentoColaboradores WHERE colaboradorId = 150002 AND mes = 5 AND ano = 2026;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT * FROM faturamentoColaboradores WHERE colaboradorId = 150002 AND mes = 5 AND ano = 2026;",
+  "rows": [
+    {
+      "id": "270002",
+      "tenantId": "1",
+      "colaboradorId": "150002",
+      "empresaSlug": "barbiero-mascote",
+      "mes": "5",
+      "ano": "2026",
+      "totalProdutos": "0.00",
+      "totalComissaoProdutos": "0.00",
+      "detalhesProdutos": "[]",
+      "ultimaSyncEm": "2026-05-30 14:01:57",
+      "createdAt": "2026-05-30 14:01:57",
+      "updatedAt": "2026-05-30 17:20:28",
+      "totalServicos": "77.00",
+      "qtdServicos": "0",
+      "qtdProdutos": "0",
+      "totalGeral": "77.00",
+      "detalhesServicos": "[{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":77,\"count\":1}]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tcolaboradorId\tempresaSlug\tmes\tano\ttotalProdutos\ttotalComissaoProdutos\tdetalhesProdutos\tultimaSyncEm\tcreatedAt\tupdatedAt\ttotalServicos\tqtdServicos\tqtdProdutos\ttotalGeral\tdetalhesServicos\n270002\t1\t150002\tbarbiero-mascote\t5\t2026\t0.00\t0.00\t[]\t2026-05-30 14:01:57\t2026-05-30 14:01:57\t2026-05-30 17:20:28\t77.00\t0\t0\t77.00\t[{\"ser_nome\":\"Combo Nariz, Orelha e Sobrancelha\",\"sum\":77,\"count\":1}]\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

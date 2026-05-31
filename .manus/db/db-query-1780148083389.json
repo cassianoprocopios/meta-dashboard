@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO colaboradores (\n  tenantId,\n  nome,\n  apelido,\n  empresaSlug,\n  fotoUrl,\n  cashbarberProfissionalId,\n  ativo,\n  exibirNoRanking,\n  categoriaRanking,\n  createdAt,\n  updatedAt\n) VALUES (\n  1,\n  'João',\n  'Jô',\n  'barbiero-mascote',\n  'https://cdn.cashbarber.com.br/1744222655-2469.jpeg',\n  587,\n  1,\n  1,\n  'barbeiro',\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO colaboradores (\n  tenantId,\n  nome,\n  apelido,\n  empresaSlug,\n  fotoUrl,\n  cashbarberProfissionalId,\n  ativo,\n  exibirNoRanking,\n  categoriaRanking,\n  createdAt,\n  updatedAt\n) VALUES (\n  1,\n  'João',\n  'Jô',\n  'barbiero-mascote',\n  'https://cdn.cashbarber.com.br/1744222655-2469.jpeg',\n  587,\n  1,\n  1,\n  'barbeiro',\n  NOW(),\n  NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 270
+}

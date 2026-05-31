@@ -1,0 +1,114 @@
+{
+  "query": "SELECT id, nome, apelido, empresaSlug, cashbarberProfissionalId, fotoUrl FROM colaboradores WHERE empresaSlug = 'barbiero-mascote' ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, apelido, empresaSlug, cashbarberProfissionalId, fotoUrl FROM colaboradores WHERE empresaSlug = 'barbiero-mascote' ORDER BY nome;",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "27520",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "60003",
+      "nome": "Cintia",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "NULL",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22436",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "34288",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23224",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "150002",
+      "nome": "Jô",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "40943",
+      "fotoUrl": "https://cdn.cashbarber.com.br/1744222655-2469.jpeg"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "29459",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "25571",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "22435",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "23105",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "32423",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "90001",
+      "nome": "Renan",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "32423",
+      "fotoUrl": "NULL"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "24720",
+      "fotoUrl": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\tempresaSlug\tcashbarberProfissionalId\tfotoUrl\n5\tCaio\tNULL\tbarbiero-mascote\t27520\tNULL\n60003\tCintia\tNULL\tbarbiero-mascote\tNULL\tNULL\n6\tEdinho\tNULL\tbarbiero-mascote\t22436\tNULL\n22\tFelipe\tNULL\tbarbiero-mascote\t34288\tNULL\n8\tIsabella\tNULL\tbarbiero-mascote\t23224\tNULL\n150002\tJô\tNULL\tbarbiero-mascote\t40943\thttps://cdn.cashbarber.com.br/1744222655-2469.jpeg\n10\tKaren\tNULL\tbarbiero-mascote\t29459\tNULL\n11\tMell\tNULL\tbarbiero-mascote\t25571\tNULL\n13\tNeudo\tNULL\tbarbiero-mascote\t22435\tNULL\n16\tRecepção Mascote\tNULL\tbarbiero-mascote\t23105\tNULL\n19\tRenan\tNULL\tbarbiero-mascote\t32423\tNULL\n90001\tRenan\tNULL\tbarbiero-mascote\t32423\tNULL\n17\tVinicius\tNULL\tbarbiero-mascote\t24720\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 257
+}

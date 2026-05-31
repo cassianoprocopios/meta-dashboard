@@ -47,7 +47,7 @@ import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
 import ClientesPorProfissionalCard from "@/components/ClientesPorProfissionalCard";
 import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
-import SincronizarClientesCashBarber from "@/components/SincronizarClientesCashBarber";
+
 
 const MESES = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -709,25 +709,24 @@ export default function Home() {
         : 'vermelho';
 
       // Projeção final (CORRIGIDA):
-      // Fórmula: totalRealizado + (mediaDiaria × diasDeCalendarioRestantes)
+      // Fórmula: totalRealizado + (mediaDiaria × diasUteisRestantes)
       // Onde:
-      //   - totalRealizado = cat1..cat9 (todos os 28 dias de maio)
-      //   - mediaDiaria = média de cat1..cat9 ÷ total de dias no mês
-      //   - diasDeCalendarioRestantes = dias de calendário que ainda faltam no mês
+      //   - totalRealizado = cat1..cat9 (todos os dias com lançamento)
+      //   - mediaDiaria = média de cat1..cat9 ÷ total de dias úteis no mês
+      //   - diasUteisRestantes = dias úteis (seg-sex) que ainda faltam no mês
       // Isso representa: "se mantiver o ritmo atual de faturamento (incluindo recorrência), vai fechar em X"
-      // IMPORTANTE: usa TODOS os dias (incluindo dias com R$ 0) para calcular a média
+      // IMPORTANTE: usa TODOS os dias úteis (incluindo dias com R$ 0) para calcular a média
       // e inclui cat9 (recorrência) no cálculo
-      const diasDeCalendarioRestantes = Math.max(0, totalDiasMes - diaHoje);
       
-      // Média diária usando TODOS os dias do mês (não apenas dias com faturamento real)
+      // Média diária usando TODOS os dias úteis do mês (não apenas dias com faturamento real)
       // e incluindo cat1..cat9 (recorrência)
       const totalRealizadoComCat9Todos = rows.reduce((sum: number, r: any) => sum + sumCats(r), 0);
-      const totalDiasNoMes = rows.length; // todos os dias de maio até hoje
+      const totalDiasNoMes = rows.length; // todos os dias úteis de maio até hoje
       const mediaDiariaComCat9Todos = totalDiasNoMes > 0 ? totalRealizadoComCat9Todos / totalDiasNoMes : 0;
       
-      // Projeção = realizado total (com cat9) + média dos dias restantes
+      // Projeção = realizado total (com cat9) + média dos dias úteis restantes
       const projecaoFinal = totalDiasNoMes > 0
-        ? totalRealizadoComCat9Todos + (mediaDiariaComCat9Todos * diasDeCalendarioRestantes)
+        ? totalRealizadoComCat9Todos + (mediaDiariaComCat9Todos * diasUteisRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)
@@ -2341,10 +2340,7 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Sincronizar Clientes do CashBarber */}
-            {isAdmin && (
-              <SincronizarClientesCashBarber mes={mes} ano={ano} />
-            )}
+
 
             {/* Gráfico de Evolução de Clientes */}
             {evolucaoClientesData.length > 0 && (

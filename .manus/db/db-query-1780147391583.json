@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO faturamentos (\n  tenantId,\n  empresaSlug,\n  data,\n  cat1,\n  cat2,\n  cat3,\n  cat4,\n  cat5,\n  cat6,\n  cat7,\n  cat8,\n  cat9,\n  observacao,\n  lancadoPor,\n  sincronizadoCB,\n  createdAt,\n  updatedAt\n) VALUES (\n  1,\n  'barbiero-seraphine',\n  '2026-05-29',\n  '6391.00',\n  '2222.00',\n  '73.50',\n  '45.00',\n  '0',\n  '0',\n  '0',\n  '0',\n  '0',\n  'Lançamento manual do dia 29/05/2026 - Serviços: 122 (R$73,19), Pacotes: 9 (R$25,45), Produtos: 7 (R$0,84), Caixinha: 4 (R$0,52)',\n  'admin',\n  0,\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO faturamentos (\n  tenantId,\n  empresaSlug,\n  data,\n  cat1,\n  cat2,\n  cat3,\n  cat4,\n  cat5,\n  cat6,\n  cat7,\n  cat8,\n  cat9,\n  observacao,\n  lancadoPor,\n  sincronizadoCB,\n  createdAt,\n  updatedAt\n) VALUES (\n  1,\n  'barbiero-seraphine',\n  '2026-05-29',\n  '6391.00',\n  '2222.00',\n  '73.50',\n  '45.00',\n  '0',\n  '0',\n  '0',\n  '0',\n  '0',\n  'Lançamento manual do dia 29/05/2026 - Serviços: 122 (R$73,19), Pacotes: 9 (R$25,45), Produtos: 7 (R$0,84), Caixinha: 4 (R$0,52)',\n  'admin',\n  0,\n  NOW(),\n  NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 274
+}

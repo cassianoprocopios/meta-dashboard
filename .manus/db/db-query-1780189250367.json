@@ -1,0 +1,34 @@
+{
+  "query": "SELECT mes, ano, empresaSlug, metaMensal, metaQuinzenal, superMeta FROM metas WHERE mes = 5 AND ano = 2026 ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT mes, ano, empresaSlug, metaMensal, metaQuinzenal, superMeta FROM metas WHERE mes = 5 AND ano = 2026 ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "mes": "5",
+      "ano": "2026",
+      "empresaSlug": "barbiero-mascote",
+      "metaMensal": "95500.00",
+      "metaQuinzenal": "55000.00",
+      "superMeta": "110000.00"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "empresaSlug": "barbiero-morumbi",
+      "metaMensal": "220000.00",
+      "metaQuinzenal": "110000.00",
+      "superMeta": "225000.00"
+    },
+    {
+      "mes": "5",
+      "ano": "2026",
+      "empresaSlug": "barbiero-seraphine",
+      "metaMensal": "122000.00",
+      "metaQuinzenal": "65000.00",
+      "superMeta": "135000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "mes\tano\tempresaSlug\tmetaMensal\tmetaQuinzenal\tsuperMeta\n5\t2026\tbarbiero-mascote\t95500.00\t55000.00\t110000.00\n5\t2026\tbarbiero-morumbi\t220000.00\t110000.00\t225000.00\n5\t2026\tbarbiero-seraphine\t122000.00\t65000.00\t135000.00\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

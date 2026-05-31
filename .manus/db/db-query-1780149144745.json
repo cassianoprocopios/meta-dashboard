@@ -1,0 +1,19 @@
+{
+  "query": "SELECT id, nome, apelido, empresaSlug, cashbarberProfissionalId, ativo, exibirNoRanking FROM colaboradores WHERE cashbarberProfissionalId = 40943;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, apelido, empresaSlug, cashbarberProfissionalId, ativo, exibirNoRanking FROM colaboradores WHERE cashbarberProfissionalId = 40943;",
+  "rows": [
+    {
+      "id": "150002",
+      "nome": "Jô",
+      "apelido": "NULL",
+      "empresaSlug": "barbiero-mascote",
+      "cashbarberProfissionalId": "40943",
+      "ativo": "1",
+      "exibirNoRanking": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\tempresaSlug\tcashbarberProfissionalId\tativo\texibirNoRanking\n150002\tJô\tNULL\tbarbiero-mascote\t40943\t1\t1\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}

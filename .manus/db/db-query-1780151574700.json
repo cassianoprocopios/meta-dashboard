@@ -1,0 +1,106 @@
+{
+  "query": "SELECT c.id, c.nome, c.empresaSlug, c.ativo, c.exibirNoRanking, c.cashbarberProfissionalId\nFROM colaboradores c\nWHERE c.empresaSlug = 'barbiero-mascote' AND c.ativo = 1\nORDER BY c.nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT c.id, c.nome, c.empresaSlug, c.ativo, c.exibirNoRanking, c.cashbarberProfissionalId\nFROM colaboradores c\nWHERE c.empresaSlug = 'barbiero-mascote' AND c.ativo = 1\nORDER BY c.nome;",
+  "rows": [
+    {
+      "id": "5",
+      "nome": "Caio",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "27520"
+    },
+    {
+      "id": "60003",
+      "nome": "Cintia",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "22436"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "34288"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "23224"
+    },
+    {
+      "id": "150002",
+      "nome": "Jô",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "29459"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "25571"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "22435"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "23105"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "32423"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "empresaSlug": "barbiero-mascote",
+      "ativo": "1",
+      "exibirNoRanking": "1",
+      "cashbarberProfissionalId": "24720"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tativo\texibirNoRanking\tcashbarberProfissionalId\n5\tCaio\tbarbiero-mascote\t1\t1\t27520\n60003\tCintia\tbarbiero-mascote\t1\t1\tNULL\n6\tEdinho\tbarbiero-mascote\t1\t1\t22436\n22\tFelipe\tbarbiero-mascote\t1\t1\t34288\n8\tIsabella\tbarbiero-mascote\t1\t1\t23224\n150002\tJô\tbarbiero-mascote\t1\t1\tNULL\n10\tKaren\tbarbiero-mascote\t1\t1\t29459\n11\tMell\tbarbiero-mascote\t1\t1\t25571\n13\tNeudo\tbarbiero-mascote\t1\t1\t22435\n16\tRecepção Mascote\tbarbiero-mascote\t1\t1\t23105\n19\tRenan\tbarbiero-mascote\t1\t1\t32423\n17\tVinicius\tbarbiero-mascote\t1\t1\t24720\n",
+  "stderr": "",
+  "execution_time_ms": 290
+}

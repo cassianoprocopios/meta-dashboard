@@ -1,0 +1,18 @@
+{
+  "query": "SELECT data, cat1, cat2, cat3, cat4, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-29';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat1, cat2, cat3, cat4, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-05-29';",
+  "rows": [
+    {
+      "data": "2026-05-29",
+      "cat1": "6391.00",
+      "cat2": "2222.00",
+      "cat3": "73.50",
+      "cat4": "45.00",
+      "total": "8731.50"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\tcat4\ttotal\n2026-05-29\t6391.00\t2222.00\t73.50\t45.00\t8731.50\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}
