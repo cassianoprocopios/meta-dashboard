@@ -1,0 +1,16 @@
+{
+  "query": "SELECT COUNT(*) as total, COUNT(DISTINCT profissionalNome) as profissionais, MIN(dataAtendimento) as primeira_data, MAX(dataAtendimento) as ultima_data FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT COUNT(*) as total, COUNT(DISTINCT profissionalNome) as profissionais, MIN(dataAtendimento) as primeira_data, MAX(dataAtendimento) as ultima_data FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026;",
+  "rows": [
+    {
+      "total": "1307",
+      "profissionais": "6",
+      "primeira_data": "2026-05-01",
+      "ultima_data": "2026-05-28"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tprofissionais\tprimeira_data\tultima_data\n1307\t6\t2026-05-01\t2026-05-28\n",
+  "stderr": "",
+  "execution_time_ms": 277
+}

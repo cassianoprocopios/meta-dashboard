@@ -1,0 +1,46 @@
+{
+  "query": "SELECT profissionalNome, COUNT(*) as atendimentos, COUNT(DISTINCT clienteId) as clientes, SUM(CAST(valor AS DECIMAL(10,2))) as faturamento FROM cashbarberAtendimentos WHERE tenantId = 1 AND empresaSlug = 'mascote' AND dataAtendimento >= '2026-05-01' AND dataAtendimento <= '2026-05-31' GROUP BY profissionalNome ORDER BY faturamento DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT profissionalNome, COUNT(*) as atendimentos, COUNT(DISTINCT clienteId) as clientes, SUM(CAST(valor AS DECIMAL(10,2))) as faturamento FROM cashbarberAtendimentos WHERE tenantId = 1 AND empresaSlug = 'mascote' AND dataAtendimento >= '2026-05-01' AND dataAtendimento <= '2026-05-31' GROUP BY profissionalNome ORDER BY faturamento DESC;",
+  "rows": [
+    {
+      "profissionalNome": "Profissional 4",
+      "atendimentos": "76",
+      "clientes": "76",
+      "faturamento": "9528.00"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "atendimentos": "76",
+      "clientes": "76",
+      "faturamento": "9514.00"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "atendimentos": "76",
+      "clientes": "76",
+      "faturamento": "9432.00"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "atendimentos": "76",
+      "clientes": "76",
+      "faturamento": "9310.00"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "atendimentos": "76",
+      "clientes": "76",
+      "faturamento": "9296.00"
+    },
+    {
+      "profissionalNome": "JÔ",
+      "atendimentos": "50",
+      "clientes": "50",
+      "faturamento": "3975.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\tatendimentos\tclientes\tfaturamento\nProfissional 4\t76\t76\t9528.00\nProfissional 2\t76\t76\t9514.00\nProfissional 1\t76\t76\t9432.00\nProfissional 5\t76\t76\t9310.00\nProfissional 3\t76\t76\t9296.00\nJÔ\t50\t50\t3975.00\n",
+  "stderr": "",
+  "execution_time_ms": 266
+}

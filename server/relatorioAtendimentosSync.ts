@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import { and, between, eq } from "drizzle-orm";
+import { and, between, eq, gte, lte } from "drizzle-orm";
 
 export interface AtendimentoExportacao {
   data: string;
@@ -36,7 +36,8 @@ export async function obterAtendimentosParaExportacao(
     const conditions = [
       eq(cashbarberAtendimentos.tenantId, tenantId),
       eq(cashbarberAtendimentos.empresaSlug, empresaSlug),
-      between(cashbarberAtendimentos.dataAtendimento, inicio, fim),
+      gte(cashbarberAtendimentos.dataAtendimento, inicio),
+      lte(cashbarberAtendimentos.dataAtendimento, fim),
     ];
 
     // Filtrar por profissional se fornecido

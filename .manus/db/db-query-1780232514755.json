@@ -1,0 +1,65 @@
+{
+  "query": "SELECT DISTINCT profissionalNome, empresaSlug, COUNT(*) as atendimentos FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026 GROUP BY profissionalNome, empresaSlug ORDER BY empresaSlug, atendimentos DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT profissionalNome, empresaSlug, COUNT(*) as atendimentos FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026 GROUP BY profissionalNome, empresaSlug ORDER BY empresaSlug, atendimentos DESC;",
+  "rows": [
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "mascote",
+      "atendimentos": "76"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "mascote",
+      "atendimentos": "76"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "mascote",
+      "atendimentos": "76"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "mascote",
+      "atendimentos": "76"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "mascote",
+      "atendimentos": "76"
+    },
+    {
+      "profissionalNome": "JÔ",
+      "empresaSlug": "mascote",
+      "atendimentos": "50"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "morumbi",
+      "atendimentos": "176"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "morumbi",
+      "atendimentos": "176"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "morumbi",
+      "atendimentos": "175"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "morumbi",
+      "atendimentos": "175"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "morumbi",
+      "atendimentos": "175"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\tempresaSlug\tatendimentos\nProfissional 1\tmascote\t76\nProfissional 2\tmascote\t76\nProfissional 5\tmascote\t76\nProfissional 4\tmascote\t76\nProfissional 3\tmascote\t76\nJÔ\tmascote\t50\nProfissional 2\tmorumbi\t176\nProfissional 1\tmorumbi\t176\nProfissional 3\tmorumbi\t175\nProfissional 5\tmorumbi\t175\nProfissional 4\tmorumbi\t175\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}

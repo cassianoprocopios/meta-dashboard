@@ -1,0 +1,20 @@
+{
+  "query": "SELECT empresaSlug, COUNT(*) as total, COUNT(DISTINCT profissionalNome) as profissionais FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026 GROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, COUNT(*) as total, COUNT(DISTINCT profissionalNome) as profissionais FROM cashbarberAtendimentos WHERE mes = 5 AND ano = 2026 GROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "morumbi",
+      "total": "877",
+      "profissionais": "5"
+    },
+    {
+      "empresaSlug": "mascote",
+      "total": "430",
+      "profissionais": "6"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal\tprofissionais\nmorumbi\t877\t5\nmascote\t430\t6\n",
+  "stderr": "",
+  "execution_time_ms": 267
+}
