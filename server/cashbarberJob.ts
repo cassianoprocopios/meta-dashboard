@@ -456,6 +456,20 @@ cron.schedule("0 5 10 * * *", async () => {
       const detalhes = Object.entries(errosPorEmpresa).map(([emp, err]) => `${emp}: ${err}`).join(" | ");
       console.error(`[CashBarber Job] Falha no sync para ${totalErros} empresa(s): ${detalhes}`);
     }
+    // Sincronizar nomes reais dos profissionais
+    try {
+      const { sincronizarNomesProfissionaisTodosTenant } = await import("./cashbarberProfissionaisSyncJob");
+      const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));
+      for (const tenantId of tenantIds) {
+        const agora = new Date();
+        const mes = agora.getMonth() + 1;
+        const ano = agora.getFullYear();
+        const resultado = await sincronizarNomesProfissionaisTodosTenant(tenantId, mes, ano);
+        console.log(`[CashBarber Job] Nomes de profissionais sincronizados para tenant ${tenantId}: ${resultado.totalAtualizados} atualizados`);
+      }
+    } catch (nomeErr) {
+      console.warn("[CashBarber Job] Falha ao sincronizar nomes de profissionais:", nomeErr);
+    }
     // Recalcular ranking dos profissionais após o sync do faturamento
     try {
       const tenantIds = Array.from(new Set(configs.map((c) => c.tenantId)));

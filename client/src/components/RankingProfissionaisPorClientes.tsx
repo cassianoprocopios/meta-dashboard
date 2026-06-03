@@ -1,16 +1,18 @@
 import { Card } from "@/components/ui/card";
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, BarChart3, DollarSign, Calendar } from "lucide-react";
 
-interface ProfissionalClientes {
+interface ProfissionalComMeta {
   profissional: string;
   totalAtendimentos: number;
   clientesUnicos: number;
   faturamentoTotal: number;
   ticketMedio: number;
+  metaMensal?: number;
+  fotoUrl?: string;
 }
 
 interface RankingProfissionaisPorClientesProps {
-  dados: ProfissionalClientes[];
+  dados: ProfissionalComMeta[];
   isLoading?: boolean;
 }
 
@@ -29,6 +31,32 @@ function fmtFull(v: number) {
   }).format(v);
 }
 
+function getMedalColor(posicao: number) {
+  switch (posicao) {
+    case 0:
+      return "text-yellow-500"; // Ouro
+    case 1:
+      return "text-gray-400"; // Prata
+    case 2:
+      return "text-orange-600"; // Bronze
+    default:
+      return "text-blue-500";
+  }
+}
+
+function getMedalBg(posicao: number) {
+  switch (posicao) {
+    case 0:
+      return "bg-yellow-500/20"; // Ouro
+    case 1:
+      return "bg-gray-500/20"; // Prata
+    case 2:
+      return "bg-orange-500/20"; // Bronze
+    default:
+      return "bg-blue-500/20";
+  }
+}
+
 export default function RankingProfissionaisPorClientes({
   dados,
   isLoading,
@@ -43,8 +71,8 @@ export default function RankingProfissionaisPorClientes({
           <h3 className="font-semibold text-foreground">Ranking de Profissionais</h3>
         </div>
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-24 bg-muted rounded-lg animate-pulse" />
           ))}
         </div>
       </Card>
@@ -73,8 +101,8 @@ export default function RankingProfissionaisPorClientes({
   const totalFaturamento = dados.reduce((sum, d) => sum + d.faturamentoTotal, 0);
   const ticketMedioGeral = totalAtendimentos > 0 ? totalFaturamento / totalAtendimentos : 0;
 
-  // Encontrar máximo de clientes para a barra de progresso
-  const maxClientes = Math.max(...dados.map(d => d.clientesUnicos), 1);
+  // Calcular dias úteis do mês (aproximadamente 22 dias)
+  const diasUteis = 22;
 
   return (
     <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
@@ -112,39 +140,167 @@ export default function RankingProfissionaisPorClientes({
 
       {/* Ranking */}
       <div className="space-y-3">
-        {dados.map((prof, idx) => (
-          <div
-            key={prof.profissional}
-            className="p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-muted-foreground w-6 text-center">
-                  #{idx + 1}
-                </span>
-                <span className="text-sm font-medium text-foreground">{prof.profissional}</span>
+        {dados.map((prof, idx) => {
+          const metaMensal = prof.metaMensal || 0;
+          const percentualMeta = metaMensal > 0 ? (prof.faturamentoTotal / metaMensal) * 100 : 0;
+          const mediaPerDia = prof.faturamentoTotal / diasUteis;
+          const projecao = mediaPerDia * diasUteis;
+          const falta = Math.max(0, metaMensal - prof.faturamentoTotal);
+          const precisaPerDia = falta > 0 ? falta / diasUteis : 0;
+
+          return (
+            <div
+              key={prof.profissional}
+              className="p-4 rounded-xl bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-slate-700/50 hover:border-slate-600/50 transition-all"
+            >
+              {/* Header com posição e nome */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* Posição com medalha */}
+                  <div
+                    className={`w-10 h-10 rounded-full ${getMedalBg(idx)} flex items-center justify-center flex-shrink-0`}
+                  >
+                    <span className={`text-sm font-bold ${getMedalColor(idx)}`}>
+                      #{idx + 1}
+                    </span>
+                  </div>
+
+                  {/* Foto do profissional */}
+                  {prof.fotoUrl ? (
+                    <img
+                      src={prof.fotoUrl}
+                      alt={prof.profissional}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-white">
+                        {prof.profissional.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Nome e info rápida */}
+                  <div>
+                    <h4 className="font-semibold text-foreground">{prof.profissional}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {prof.totalAtendimentos} atend. • {prof.clientesUnicos} clientes
+                    </p>
+                  </div>
+                </div>
+
+                {/* Faturamento total */}
+                <div className="text-right">
+                  <p className="text-lg font-bold text-primary">{fmt(prof.faturamentoTotal)}</p>
+                  <p className="text-xs text-muted-foreground">Faturamento</p>
+                </div>
               </div>
-              <span className="text-sm font-bold text-primary">{prof.clientesUnicos} clientes</span>
-            </div>
 
-            <div className="grid grid-cols-4 gap-2 mb-2 text-xs text-muted-foreground">
-              <span>{prof.totalAtendimentos} atendimentos</span>
-              <span>{fmtFull(prof.faturamentoTotal)}</span>
-              <span className="font-semibold text-foreground">Ticket: {fmtFull(prof.ticketMedio)}</span>
-              <span className="text-right">{((prof.clientesUnicos / totalClientesUnicos) * 100).toFixed(1)}%</span>
-            </div>
+              {/* Detalhes de serviços e produtos */}
+              <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-slate-700/30">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Serviços</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {prof.totalAtendimentos} serv
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Faturamento/serv</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {fmtFull(prof.faturamentoTotal / Math.max(prof.totalAtendimentos, 1))}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {fmtFull(prof.ticketMedio)}
+                  </p>
+                </div>
+              </div>
 
-            {/* Barra de progresso */}
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
-                style={{
-                  width: `${Math.min((prof.clientesUnicos / maxClientes) * 100, 100)}%`,
-                }}
-              />
+              {/* Meta e progresso */}
+              {metaMensal > 0 && (
+                <>
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Meta: {fmt(metaMensal)}
+                      </p>
+                      <p
+                        className={`text-sm font-bold ${
+                          percentualMeta >= 100 ? "text-green-500" : "text-orange-500"
+                        }`}
+                      >
+                        {percentualMeta.toFixed(0)}%
+                      </p>
+                    </div>
+
+                    {/* Barra de progresso */}
+                    <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          percentualMeta >= 100
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                            : "bg-gradient-to-r from-orange-500 to-red-500"
+                        }`}
+                        style={{
+                          width: `${Math.min(percentualMeta, 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Indicadores de meta */}
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div className="bg-slate-800/50 p-2 rounded">
+                      <p className="text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Média/dia
+                      </p>
+                      <p className="font-semibold text-foreground">{fmtFull(mediaPerDia)}</p>
+                    </div>
+
+                    <div className="bg-slate-800/50 p-2 rounded">
+                      <p className="text-muted-foreground flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" />
+                        Projeção
+                      </p>
+                      <p className="font-semibold text-foreground">{fmt(projecao)}</p>
+                    </div>
+
+                    <div className="bg-slate-800/50 p-2 rounded">
+                      <p className="text-muted-foreground flex items-center gap-1">
+                        <BarChart3 className="w-3 h-3" />
+                        Falta
+                      </p>
+                      <p
+                        className={`font-semibold ${
+                          falta > 0 ? "text-orange-500" : "text-green-500"
+                        }`}
+                      >
+                        {fmt(falta)}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-800/50 p-2 rounded">
+                      <p className="text-muted-foreground flex items-center gap-1">
+                        <DollarSign className="w-3 h-3" />
+                        Precisa/dia
+                      </p>
+                      <p
+                        className={`font-semibold ${
+                          precisaPerDia > 0 ? "text-orange-500" : "text-green-500"
+                        }`}
+                      >
+                        {fmtFull(precisaPerDia)}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Card>
   );

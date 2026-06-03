@@ -1,0 +1,160 @@
+{
+  "query": "SELECT id, nome, apelido FROM colaboradores WHERE tenantId = 1 ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, apelido FROM colaboradores WHERE tenantId = 1 ORDER BY nome;",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "apelido": "NULL"
+    },
+    {
+      "id": "5",
+      "nome": "Caio",
+      "apelido": "NULL"
+    },
+    {
+      "id": "60002",
+      "nome": "Camila Nascimento",
+      "apelido": "Camila"
+    },
+    {
+      "id": "60001",
+      "nome": "Cassiano",
+      "apelido": "NULL"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "apelido": "NULL"
+    },
+    {
+      "id": "60003",
+      "nome": "Cintia",
+      "apelido": "NULL"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "apelido": "NULL"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "apelido": "NULL"
+    },
+    {
+      "id": "30001",
+      "nome": "Daniela",
+      "apelido": "Daniela"
+    },
+    {
+      "id": "6",
+      "nome": "Edinho",
+      "apelido": "NULL"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "apelido": "NULL"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "apelido": "NULL"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "apelido": "NULL"
+    },
+    {
+      "id": "22",
+      "nome": "Felipe",
+      "apelido": "NULL"
+    },
+    {
+      "id": "8",
+      "nome": "Isabella",
+      "apelido": "NULL"
+    },
+    {
+      "id": "150002",
+      "nome": "Jô",
+      "apelido": "NULL"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "apelido": "NULL"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "apelido": "NULL"
+    },
+    {
+      "id": "10",
+      "nome": "Karen",
+      "apelido": "NULL"
+    },
+    {
+      "id": "11",
+      "nome": "Mell",
+      "apelido": "NULL"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "apelido": "NULL"
+    },
+    {
+      "id": "13",
+      "nome": "Neudo",
+      "apelido": "NULL"
+    },
+    {
+      "id": "16",
+      "nome": "Recepção Mascote",
+      "apelido": "NULL"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "apelido": "NULL"
+    },
+    {
+      "id": "19",
+      "nome": "Renan",
+      "apelido": "NULL"
+    },
+    {
+      "id": "90001",
+      "nome": "Renan",
+      "apelido": "NULL"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "apelido": "NULL"
+    },
+    {
+      "id": "120001",
+      "nome": "Taissa",
+      "apelido": "NULL"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "apelido": "NULL"
+    },
+    {
+      "id": "17",
+      "nome": "Vinicius",
+      "apelido": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tapelido\n1\tAdailton\tNULL\n5\tCaio\tNULL\n60002\tCamila Nascimento\tCamila\n60001\tCassiano\tNULL\n7\tChristian\tNULL\n60003\tCintia\tNULL\n12\tCleison\tNULL\n2\tDan\tNULL\n30001\tDaniela\tDaniela\n6\tEdinho\tNULL\n23\tEduarda\tNULL\n3\tEmerson\tNULL\n18\tFábio\tNULL\n22\tFelipe\tNULL\n8\tIsabella\tNULL\n150002\tJô\tNULL\n14\tJoão\tNULL\n21\tKaleb\tNULL\n10\tKaren\tNULL\n11\tMell\tNULL\n20\tMirela\tNULL\n13\tNeudo\tNULL\n16\tRecepção Mascote\tNULL\n4\tRecepção Morumbi\tNULL\n19\tRenan\tNULL\n90001\tRenan\tNULL\n9\tSamuel\tNULL\n120001\tTaissa\tNULL\n15\tVanilson\tNULL\n17\tVinicius\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 281
+}

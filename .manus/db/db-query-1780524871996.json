@@ -1,0 +1,30 @@
+{
+  "query": "SELECT DISTINCT profissionalNome, COUNT(*) as total_atendimentos \nFROM cashbarberAtendimentos \nWHERE empresaSlug = 'MORUMBI' \nGROUP BY profissionalNome \nORDER BY total_atendimentos DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT profissionalNome, COUNT(*) as total_atendimentos \nFROM cashbarberAtendimentos \nWHERE empresaSlug = 'MORUMBI' \nGROUP BY profissionalNome \nORDER BY total_atendimentos DESC;",
+  "rows": [
+    {
+      "profissionalNome": "Profissional 2",
+      "total_atendimentos": "543"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "total_atendimentos": "543"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "total_atendimentos": "542"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "total_atendimentos": "541"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "total_atendimentos": "540"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\ttotal_atendimentos\nProfissional 2\t543\nProfissional 1\t543\nProfissional 3\t542\nProfissional 4\t541\nProfissional 5\t540\n",
+  "stderr": "",
+  "execution_time_ms": 301
+}

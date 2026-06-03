@@ -85,6 +85,7 @@ export async function obterConsolidadoPorProfissional(
     faturamentoTotal: number;
     duracaoTotal: number;
     ticketMedio: number;
+    metaMensal?: number;
   }>
 > {
   const atendimentos = await obterAtendimentosParaExportacao(
@@ -123,6 +124,35 @@ export async function obterConsolidadoPorProfissional(
     prof.duracao += att.duracao;
   });
 
+  // Buscar metas dos profissionais
+  const db = await getDb();
+  const mes = new Date(dataInicio).getMonth() + 1;
+  const ano = new Date(dataInicio).getFullYear();
+  const metasMap = new Map<string, number>();
+
+  if (db) {
+    try {
+      const { metas: metasTable } = await import("../drizzle/schema");
+      const metas = await db
+        .select()
+        .from(metasTable)
+        .where(
+          and(
+            eq(metasTable.tenantId, tenantId),
+            eq(metasTable.empresaSlug, empresaSlug),
+            eq(metasTable.mes, mes),
+            eq(metasTable.ano, ano)
+          )
+        );
+
+      metas.forEach((meta: any) => {
+        metasMap.set(meta.profissionalNome, meta.metaMensal);
+      });
+    } catch (err) {
+      console.warn("[obterConsolidadoPorProfissional] Erro ao buscar metas:", err);
+    }
+  }
+
   // Converter para array ordenado
   return Array.from(porProfissional.entries())
     .map(([nome, dados]) => ({
@@ -132,6 +162,7 @@ export async function obterConsolidadoPorProfissional(
       faturamentoTotal: parseFloat(dados.faturamento.toString()),
       duracaoTotal: dados.duracao,
       ticketMedio: parseFloat((dados.faturamento / dados.atendimentos).toString()),
+      metaMensal: metasMap.get(nome) || 0,
     }))
     .sort((a, b) => b.faturamentoTotal - a.faturamentoTotal);
 }
