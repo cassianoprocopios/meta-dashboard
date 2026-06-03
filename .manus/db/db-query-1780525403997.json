@@ -1,0 +1,18 @@
+{
+  "query": "SELECT DISTINCT empresaSlug, COUNT(DISTINCT profissionalId) as total_profissionais\nFROM cashbarberAtendimentos \nGROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT empresaSlug, COUNT(DISTINCT profissionalId) as total_profissionais\nFROM cashbarberAtendimentos \nGROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "morumbi",
+      "total_profissionais": "5"
+    },
+    {
+      "empresaSlug": "mascote",
+      "total_profissionais": "6"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_profissionais\nmorumbi\t5\nmascote\t6\n",
+  "stderr": "",
+  "execution_time_ms": 972
+}

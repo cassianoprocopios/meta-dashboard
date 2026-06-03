@@ -1,7 +1,9 @@
 import { protectedProcedure, router } from "./_core/trpc";
+import { listCashbarberConfigs } from "./db";
 import { z } from "zod";
 import { gerarPDFRelatorio, gerarExcelRelatorio, gerarRelatorioConsolidadoProfissional } from "./relatorioExport";
 import { obterAtendimentosParaExportacao, obterConsolidadoPorProfissional } from "./relatorioAtendimentosSync";
+import { obterConsolidadoCompletoTodosProfissionais } from "./relatorioConsolidadoCompleto";
 
 // Função auxiliar para obter tenantId do contexto
 async function getTenantIdFromCtx(ctx: any): Promise<number> {
@@ -180,7 +182,7 @@ export const relatoriosExportRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const consolidado = await obterConsolidadoPorProfissional(
+      const consolidado = await obterConsolidadoCompletoTodosProfissionais(
         tenantId,
         input.empresaSlug,
         input.dataInicio,
