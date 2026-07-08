@@ -1,0 +1,22 @@
+{
+  "query": "SELECT empresaSlug, \n  COUNT(*) as total_registros,\n  SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) > 0 THEN 1 ELSE 0 END) as dias_com_faturamento,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as faturamento_total\nFROM faturamentos \nWHERE tenantId = 1 \nAND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \nAND data >= '2026-07-01' AND data <= '2026-07-31'\nGROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, \n  COUNT(*) as total_registros,\n  SUM(CASE WHEN (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) > 0 THEN 1 ELSE 0 END) as dias_com_faturamento,\n  SUM(cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as faturamento_total\nFROM faturamentos \nWHERE tenantId = 1 \nAND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \nAND data >= '2026-07-01' AND data <= '2026-07-31'\nGROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "total_registros": "31",
+      "dias_com_faturamento": "8",
+      "faturamento_total": "30416.59"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "total_registros": "31",
+      "dias_com_faturamento": "8",
+      "faturamento_total": "63528.88"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\ttotal_registros\tdias_com_faturamento\tfaturamento_total\nbarbiero-mascote\t31\t8\t30416.59\nbarbiero-morumbi\t31\t8\t63528.88\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

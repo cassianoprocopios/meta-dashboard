@@ -1,0 +1,16 @@
+{
+  "query": "SELECT DISTINCT empresaSlug FROM cashbarberAtendimentos ORDER BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT empresaSlug FROM cashbarberAtendimentos ORDER BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "mascote"
+    },
+    {
+      "empresaSlug": "morumbi"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\nmascote\nmorumbi\n",
+  "stderr": "",
+  "execution_time_ms": 284
+}

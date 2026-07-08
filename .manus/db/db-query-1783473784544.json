@@ -1,0 +1,320 @@
+{
+  "query": "SELECT empresaSlug, data, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total \nFROM faturamentos \nWHERE tenantId = 1 \nAND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \nAND data >= '2026-07-01' AND data <= '2026-07-31'\nORDER BY empresaSlug, data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, data, (cat1 + cat2 + cat3 + cat4 + cat5 + cat6 + cat7 + cat8 + cat9) as total \nFROM faturamentos \nWHERE tenantId = 1 \nAND empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \nAND data >= '2026-07-01' AND data <= '2026-07-31'\nORDER BY empresaSlug, data;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-01",
+      "total": "4604.76"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-02",
+      "total": "3993.38"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-03",
+      "total": "4725.64"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-04",
+      "total": "5110.06"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-05",
+      "total": "2182.14"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-06",
+      "total": "3444.86"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-07",
+      "total": "4446.37"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-08",
+      "total": "1909.38"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-09",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-10",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-11",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-12",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-13",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-14",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-15",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-16",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-17",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-18",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-19",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-20",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-21",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-22",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-23",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-24",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-25",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-26",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-27",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-28",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-29",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-30",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "data": "2026-07-31",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-01",
+      "total": "7190.11"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-02",
+      "total": "7725.96"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-03",
+      "total": "12521.71"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-04",
+      "total": "11354.72"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-05",
+      "total": "4644.71"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-06",
+      "total": "7772.83"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-07",
+      "total": "8254.71"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-08",
+      "total": "4064.13"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-09",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-10",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-11",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-12",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-13",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-14",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-15",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-16",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-17",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-18",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-19",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-20",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-21",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-22",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-23",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-24",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-25",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-26",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-27",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-28",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-29",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-30",
+      "total": "0.00"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "data": "2026-07-31",
+      "total": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdata\ttotal\nbarbiero-mascote\t2026-07-01\t4604.76\nbarbiero-mascote\t2026-07-02\t3993.38\nbarbiero-mascote\t2026-07-03\t4725.64\nbarbiero-mascote\t2026-07-04\t5110.06\nbarbiero-mascote\t2026-07-05\t2182.14\nbarbiero-mascote\t2026-07-06\t3444.86\nbarbiero-mascote\t2026-07-07\t4446.37\nbarbiero-mascote\t2026-07-08\t1909.38\nbarbiero-mascote\t2026-07-09\t0.00\nbarbiero-mascote\t2026-07-10\t0.00\nbarbiero-mascote\t2026-07-11\t0.00\nbarbiero-mascote\t2026-07-12\t0.00\nbarbiero-mascote\t2026-07-13\t0.00\nbarbiero-mascote\t2026-07-14\t0.00\nbarbiero-mascote\t2026-07-15\t0.00\nbarbiero-mascote\t2026-07-16\t0.00\nbarbiero-mascote\t2026-07-17\t0.00\nbarbiero-mascote\t2026-07-18\t0.00\nbarbiero-mascote\t2026-07-19\t0.00\nbarbiero-mascote\t2026-07-20\t0.00\nbarbiero-mascote\t2026-07-21\t0.00\nbarbiero-mascote\t2026-07-22\t0.00\nbarbiero-mascote\t2026-07-23\t0.00\nbarbiero-mascote\t2026-07-24\t0.00\nbarbiero-mascote\t2026-07-25\t0.00\nbarbiero-mascote\t2026-07-26\t0.00\nbarbiero-mascote\t2026-07-27\t0.00\nbarbiero-mascote\t2026-07-28\t0.00\nbarbiero-mascote\t2026-07-29\t0.00\nbarbiero-mascote\t2026-07-30\t0.00\nbarbiero-mascote\t2026-07-31\t0.00\nbarbiero-morumbi\t2026-07-01\t7190.11\nbarbiero-morumbi\t2026-07-02\t7725.96\nbarbiero-morumbi\t2026-07-03\t12521.71\nbarbiero-morumbi\t2026-07-04\t11354.72\nbarbiero-morumbi\t2026-07-05\t4644.71\nbarbiero-morumbi\t2026-07-06\t7772.83\nbarbiero-morumbi\t2026-07-07\t8254.71\nbarbiero-morumbi\t2026-07-08\t4064.13\nbarbiero-morumbi\t2026-07-09\t0.00\nbarbiero-morumbi\t2026-07-10\t0.00\nbarbiero-morumbi\t2026-07-11\t0.00\nbarbiero-morumbi\t2026-07-12\t0.00\nbarbiero-morumbi\t2026-07-13\t0.00\nbarbiero-morumbi\t2026-07-14\t0.00\nbarbiero-morumbi\t2026-07-15\t0.00\nbarbiero-morumbi\t2026-07-16\t0.00\nbarbiero-morumbi\t2026-07-17\t0.00\nbarbiero-morumbi\t2026-07-18\t0.00\nbarbiero-morumbi\t2026-07-19\t0.00\nbarbiero-morumbi\t2026-07-20\t0.00\nbarbiero-morumbi\t2026-07-21\t0.00\nbarbiero-morumbi\t2026-07-22\t0.00\nbarbiero-morumbi\t2026-07-23\t0.00\nbarbiero-morumbi\t2026-07-24\t0.00\nbarbiero-morumbi\t2026-07-25\t0.00\nbarbiero-morumbi\t2026-07-26\t0.00\nbarbiero-morumbi\t2026-07-27\t0.00\nbarbiero-morumbi\t2026-07-28\t0.00\nbarbiero-morumbi\t2026-07-29\t0.00\nbarbiero-morumbi\t2026-07-30\t0.00\nbarbiero-morumbi\t2026-07-31\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 273
+}

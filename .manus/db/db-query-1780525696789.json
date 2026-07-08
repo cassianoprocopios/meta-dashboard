@@ -1,0 +1,54 @@
+{
+  "query": "SELECT DISTINCT profissionalNome, empresaSlug \nFROM cashbarberAtendimentos \nORDER BY empresaSlug, profissionalNome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT profissionalNome, empresaSlug \nFROM cashbarberAtendimentos \nORDER BY empresaSlug, profissionalNome;",
+  "rows": [
+    {
+      "profissionalNome": "JÔ",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "mascote"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "morumbi"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "morumbi"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "morumbi"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "morumbi"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "morumbi"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\tempresaSlug\nJÔ\tmascote\nProfissional 1\tmascote\nProfissional 2\tmascote\nProfissional 3\tmascote\nProfissional 4\tmascote\nProfissional 5\tmascote\nProfissional 1\tmorumbi\nProfissional 2\tmorumbi\nProfissional 3\tmorumbi\nProfissional 4\tmorumbi\nProfissional 5\tmorumbi\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}

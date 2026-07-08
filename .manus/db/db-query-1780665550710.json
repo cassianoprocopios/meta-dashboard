@@ -1,0 +1,24 @@
+{
+  "query": "SELECT slug, nome, tipoCategorias, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome, cat9Nome FROM empresas WHERE slug = 'barbiero-seraphine';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT slug, nome, tipoCategorias, cat1Nome, cat2Nome, cat3Nome, cat4Nome, cat5Nome, cat6Nome, cat7Nome, cat8Nome, cat9Nome FROM empresas WHERE slug = 'barbiero-seraphine';",
+  "rows": [
+    {
+      "slug": "barbiero-seraphine",
+      "nome": "Seraphine",
+      "tipoCategorias": "seraphine",
+      "cat1Nome": "Serviços",
+      "cat2Nome": "Pacotes",
+      "cat3Nome": "Produtos",
+      "cat4Nome": "Caixinha",
+      "cat5Nome": "",
+      "cat6Nome": "",
+      "cat7Nome": "",
+      "cat8Nome": "",
+      "cat9Nome": "Recorrência"
+    }
+  ],
+  "messages": [],
+  "stdout": "slug\tnome\ttipoCategorias\tcat1Nome\tcat2Nome\tcat3Nome\tcat4Nome\tcat5Nome\tcat6Nome\tcat7Nome\tcat8Nome\tcat9Nome\nbarbiero-seraphine\tSeraphine\tseraphine\tServiços\tPacotes\tProdutos\tCaixinha\t\t\t\t\tRecorrência\n",
+  "stderr": "",
+  "execution_time_ms": 259
+}

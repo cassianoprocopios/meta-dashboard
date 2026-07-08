@@ -1,0 +1,60 @@
+{
+  "query": "SELECT DISTINCT profissionalNome, empresaSlug, COUNT(*) as total\nFROM cashbarberAtendimentos \nWHERE profissionalNome LIKE 'Profissional%'\nGROUP BY profissionalNome, empresaSlug\nORDER BY empresaSlug, profissionalNome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT profissionalNome, empresaSlug, COUNT(*) as total\nFROM cashbarberAtendimentos \nWHERE profissionalNome LIKE 'Profissional%'\nGROUP BY profissionalNome, empresaSlug\nORDER BY empresaSlug, profissionalNome;",
+  "rows": [
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "mascote",
+      "total": "235"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "mascote",
+      "total": "235"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "mascote",
+      "total": "235"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "mascote",
+      "total": "235"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "mascote",
+      "total": "235"
+    },
+    {
+      "profissionalNome": "Profissional 1",
+      "empresaSlug": "morumbi",
+      "total": "543"
+    },
+    {
+      "profissionalNome": "Profissional 2",
+      "empresaSlug": "morumbi",
+      "total": "543"
+    },
+    {
+      "profissionalNome": "Profissional 3",
+      "empresaSlug": "morumbi",
+      "total": "542"
+    },
+    {
+      "profissionalNome": "Profissional 4",
+      "empresaSlug": "morumbi",
+      "total": "541"
+    },
+    {
+      "profissionalNome": "Profissional 5",
+      "empresaSlug": "morumbi",
+      "total": "540"
+    }
+  ],
+  "messages": [],
+  "stdout": "profissionalNome\tempresaSlug\ttotal\nProfissional 1\tmascote\t235\nProfissional 2\tmascote\t235\nProfissional 3\tmascote\t235\nProfissional 4\tmascote\t235\nProfissional 5\tmascote\t235\nProfissional 1\tmorumbi\t543\nProfissional 2\tmorumbi\t543\nProfissional 3\tmorumbi\t542\nProfissional 4\tmorumbi\t541\nProfissional 5\tmorumbi\t540\n",
+  "stderr": "",
+  "execution_time_ms": 289
+}

@@ -714,25 +714,23 @@ export default function Home() {
         : pctMetaDiaria! >= 70 ? 'amarelo'
         : 'vermelho';
 
-      // Projeção final (CORRIGIDA):
-      // Fórmula: totalRealizado + (mediaDiaria × diasUteisRestantes)
+      // Projeção final:
+      // Fórmula: mediaDiária × diasÚteis (total do mês)
       // Onde:
-      //   - totalRealizado = cat1..cat9 (todos os dias com lançamento)
-      //   - mediaDiaria = média de cat1..cat9 ÷ total de dias úteis no mês
-      //   - diasUteisRestantes = dias úteis (seg-sex) que ainda faltam no mês
-      // Isso representa: "se mantiver o ritmo atual de faturamento (incluindo recorrência), vai fechar em X"
-      // IMPORTANTE: usa TODOS os dias úteis (incluindo dias com R$ 0) para calcular a média
-      // e inclui cat9 (recorrência) no cálculo
+      //   - mediaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
+      //   - diasÚteis = total de dias úteis configurados para o mês
+      // Isso representa: "se mantiver o ritmo médio atual durante todo o mês, vai fechar em X"
+      // IMPORTANTE: usa APENAS dias com dados reais (cat1..cat9 > 0) para não diluir a média
       
-      // Média diária usando TODOS os dias úteis do mês (não apenas dias com faturamento real)
-      // e incluindo cat1..cat9 (recorrência)
-      const totalRealizadoComCat9Todos = rows.reduce((sum: number, r: any) => sum + sumCats(r), 0);
-      const totalDiasNoMes = rows.length; // todos os dias úteis de maio até hoje
-      const mediaDiariaComCat9Todos = totalDiasNoMes > 0 ? totalRealizadoComCat9Todos / totalDiasNoMes : 0;
+      // Filtra apenas dias que têm algum faturamento (cat1..cat9 > 0)
+      const rowsComDados = rows.filter((r: any) => sumCats(r) > 0);
+      const totalRealizadoComCat9Todos = rowsComDados.reduce((sum: number, r: any) => sum + sumCats(r), 0);
+      const totalDiasComDados = rowsComDados.length;
+      const mediaDiariaComCat9Todos = totalDiasComDados > 0 ? totalRealizadoComCat9Todos / totalDiasComDados : 0;
       
-      // Projeção = realizado total (com cat9) + média dos dias úteis restantes
-      const projecaoFinal = totalDiasNoMes > 0
-        ? totalRealizadoComCat9Todos + (mediaDiariaComCat9Todos * diasUteisRestantes)
+      // Projeção = média diária × dias úteis do mês (total)
+      const projecaoFinal = totalDiasComDados > 0
+        ? mediaDiariaComCat9Todos * diasUteis
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)

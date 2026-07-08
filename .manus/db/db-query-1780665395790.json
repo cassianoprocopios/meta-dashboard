@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, tenantId, slug, nome, ativo FROM empresas WHERE slug = 'seraphine' OR nome LIKE '%seraphine%' OR nome LIKE '%Seraphine%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, tenantId, slug, nome, ativo FROM empresas WHERE slug = 'seraphine' OR nome LIKE '%seraphine%' OR nome LIKE '%Seraphine%';",
+  "rows": [
+    {
+      "id": "3",
+      "tenantId": "1",
+      "slug": "barbiero-seraphine",
+      "nome": "Seraphine",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tslug\tnome\tativo\n3\t1\tbarbiero-seraphine\tSeraphine\t1\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}
