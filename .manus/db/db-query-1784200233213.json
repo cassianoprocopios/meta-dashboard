@@ -1,0 +1,15 @@
+{
+  "query": "SELECT \n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as total_cat1_8,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as total_cat9,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_completo\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) <= 15;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as total_cat1_8,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as total_cat9,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2)) + CAST(cat9 AS DECIMAL(12,2))) as total_completo\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) <= 15;",
+  "rows": [
+    {
+      "total_cat1_8": "25211.48",
+      "total_cat9": "27966.60",
+      "total_completo": "53178.08"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_cat1_8\ttotal_cat9\ttotal_completo\n25211.48\t27966.60\t53178.08\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}

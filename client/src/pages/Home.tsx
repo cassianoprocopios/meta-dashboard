@@ -657,13 +657,16 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: soma completa (cat1..cat9) dos dias 1-15 do mês
-      // IMPORTANTE: usa faturamentosData (dados completos do mês, sem filtro de semana)
-      // para garantir que o totalQuinzenal seja sempre correto independente do filtro de período
+      // Quinzenal: cat1..cat8 dos dias 1-15 + recorrência TOTAL do mês (cat9)
+      // IMPORTANTE: O Dpote (cat9) é um valor MENSAL distribuído uniformemente por todos os dias.
+      // Para a meta quinzenal, deve-se usar o valor TOTAL de recorrência (não apenas a parcela dos dias 1-15),
+      // pois a recorrência é um faturamento real que já entrou e não pertence a dias específicos.
+      // Usa faturamentosData (dados completos do mês, sem filtro de semana).
       const rowsQuinzenal = (faturamentosData as any[])
         .filter((r: any) => r.empresaSlug === emp.slug && parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenalCalculado = rowsQuinzenal.reduce((s: number, r: any) => s + sumCats(r), 0);
+      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
+      const totalQuinzenalCalculado = totalQuinzenalSemRec + recorrenciaNoFaturamento;
 
       // Se existe snapshot congelado para esta empresa/mês/ano, usar o valor definitivo
       // O snapshot é gerado automaticamente no dia 15 às 23h BRT e garante o valor correto para bonificações
@@ -1081,13 +1084,10 @@ export default function Home() {
         const faltaDia = s.metaDiariaDinamicaMensal;
         list.push({ tipo: "warning", msg: `${s.emp.nome}: projeção ${fmt(s.projecaoFinal)} — precisa de ${fmt(faltaDia)}/dia nos ${s.diasUteisRestantes} dias restantes.` });
       }
-      // Quinzenal
+      // Quinzenal (usa s.totalQuinzenal que já inclui recorrência total)
       if (s.metaQuinzenal > 0 && mes === hoje.getMonth() + 1 && hoje.getDate() <= 15) {
-        const totalQuinzenal = s.rows.filter((r: any) => parseInt(r.data.split("-")[2]) <= 15)
-          .reduce((acc: number, r: any) => acc + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
-            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
-        if (totalQuinzenal < s.metaQuinzenal * 0.8 && s.diasUteisRestantesQuinzenal === 0) {
-          list.push({ tipo: "warning", msg: `${s.emp.nome}: Meta quinzenal não atingida (${fmt(totalQuinzenal)} de ${fmt(s.metaQuinzenal)}).` });
+        if (s.totalQuinzenal < s.metaQuinzenal * 0.8 && s.diasUteisRestantesQuinzenal === 0) {
+          list.push({ tipo: "warning", msg: `${s.emp.nome}: Meta quinzenal não atingida (${fmt(s.totalQuinzenal)} de ${fmt(s.metaQuinzenal)}).` });
         }
       }
     });

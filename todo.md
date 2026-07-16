@@ -1589,3 +1589,8 @@
 - [x] Backend: Corrigido timezone em aplicarDpoteParaTenant - usa horário de Brasília (BRT) para determinar diaVigente
 - [x] Backend: Corrigido timezone em sincronizarFaturamentoCashbarber - usa hojeBRT para determinar ultimoDia e diaFuturo
 - [x] Testes atualizados para refletir nova lógica (divide por diaHoje em vez de totalDias)
+
+## Correção Quinzenal - Julho 2026
+
+- [x] Corrigir valor quinzenal da Mascote: dashboard mostra R$53.078, correto é R$55.043
+- [x] Corrigir valor quinzenal do Morumbi: valores também estão diferentes
