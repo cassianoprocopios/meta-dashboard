@@ -334,8 +334,17 @@ export async function sincronizarFaturamentoCashbarber(
       //   - Dias futuros (após hoje): SEMPRE "0" no banco.
       //     A previsão baseada no mês passado é calculada dinamicamente no frontend.
       //   - Meses passados: valor diário calculado pelo Dpote do mês
+      //   - PROTEÇÃO QUINZENAL: após dia 15, não alterar cat9 dos dias 1-15
+      //     para preservar o valor definitivo da quinzena.
       let cat9: string;
-      if (recorrenciaAtualizada && recorrenciaValor > 0) {
+
+      // Proteção quinzenal: se já passamos do dia 15 no mês atual,
+      // não alterar cat9 dos dias 1-15 (valor da quinzena é definitivo)
+      const quinzenaProtegidaSync = ehMesAtual && hojeBRT.getDate() > 15 && dia <= 15;
+      if (quinzenaProtegidaSync) {
+        // Preservar o cat9 existente sem alteração
+        cat9 = existente?.cat9 ?? "0";
+      } else if (recorrenciaAtualizada && recorrenciaValor > 0) {
         // Usar hojeBRT (já calculado acima) para determinar dia futuro
         const diaFuturo = ehMesAtual && dia > hojeBRT.getDate();
         if (diaFuturo) {
@@ -640,8 +649,12 @@ export async function aplicarDpoteParaTenant(
       // Regra: dias passados e o dia vigente recebem valor diário; dias futuros recebem "0"
       const diaFuturoAplic = ehMesAtualAplic && dia > diaVigenteAplic;
 
-      // Proteção: se a quinzena já foi fechada (snapshot existe), não alterar cat9 dos dias 1-15
-      if (quinzenaFechada && dia <= 15) {
+      // Proteção: não alterar cat9 dos dias 1-15 quando:
+      // 1. A quinzena já foi fechada (snapshot existe), OU
+      // 2. Estamos no mês atual e já passamos do dia 15 (quinzena encerrada naturalmente)
+      // Isso garante que o valor da quinzena não é retroativamente alterado pelo sync.
+      const quinzenaProtegida = quinzenaFechada || (ehMesAtualAplic && diaVigenteAplic > 15);
+      if (quinzenaProtegida && dia <= 15) {
         // Manter o cat9 existente sem alteração
         continue;
       }

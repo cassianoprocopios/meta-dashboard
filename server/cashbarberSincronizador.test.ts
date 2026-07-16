@@ -372,7 +372,7 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
     }
   });
 
-  it("mês atual: dias passados e hoje recebem valor diário do Dpote; dias futuros recebem '0' no banco", async () => {
+  it("mês atual: dias passados e hoje recebem valor diário do Dpote; dias futuros não são sincronizados; quinzena protegida após dia 15", async () => {
     // Usar horário de Brasília (BRT) para consistência com o código corrigido
     const hoje = new Date();
     const hojeBRT = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -386,25 +386,41 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
     // O código agora divide pelo diaHoje (BRT), não pelo totalDias
     const valorDiarioDpote = String(Math.round((5000 / diaHoje) * 100) / 100);
-    // Dias 1 até hoje: devem ter cat9 = valor diário do Dpote do mês vigente
-    for (let dia = 1; dia <= diaHoje; dia++) {
-      const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-      const chamada = calls.find((c) => c[0].data === dataStr);
-      expect(chamada).toBeDefined();
-      expect(chamada![0].cat9).toBe(valorDiarioDpote);
+
+    if (diaHoje > 15) {
+      // Proteção quinzenal: dias 1-15 preservam cat9 existente ("0" no mock)
+      for (let dia = 1; dia <= 15; dia++) {
+        const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        const chamada = calls.find((c) => c[0].data === dataStr);
+        expect(chamada).toBeDefined();
+        expect(chamada![0].cat9).toBe("0"); // preservado do existente
+      }
+      // Dias 16 até hoje: recebem valor diário do Dpote
+      for (let dia = 16; dia <= diaHoje; dia++) {
+        const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        const chamada = calls.find((c) => c[0].data === dataStr);
+        expect(chamada).toBeDefined();
+        expect(chamada![0].cat9).toBe(valorDiarioDpote);
+      }
+    } else {
+      // Antes do dia 16: todos os dias 1-diaHoje recebem valor normalmente
+      for (let dia = 1; dia <= diaHoje; dia++) {
+        const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        const chamada = calls.find((c) => c[0].data === dataStr);
+        expect(chamada).toBeDefined();
+        expect(chamada![0].cat9).toBe(valorDiarioDpote);
+      }
     }
 
     // Dias após hoje: não devem ser sincronizados (loop vai só até ultimoDia = diaHoje)
-    // Portanto não haverá chamadas para dias futuros
     for (let dia = diaHoje + 1; dia <= totalDias; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const chamada = calls.find((c) => c[0].data === dataStr);
-      // Não deve haver chamada para dias futuros (loop só vai até ultimoDia)
       expect(chamada).toBeUndefined();
     }
   });
 
-  it("mês atual: total de cat9 acumulado até hoje ≈ valor total do Dpote", async () => {
+  it("mês atual: cat9 dos dias 16+ recebe valor correto (dias 1-15 protegidos após quinzena)", async () => {
     // Usar horário de Brasília (BRT) para consistência com o código corrigido
     const hoje = new Date();
     const hojeBRT = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -416,20 +432,42 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
 
-    // Somar todos os dias sincronizados (1 até diaHoje)
-    const totalAcumulado = calls
-      .filter((c) => {
+    if (diaHoje > 15) {
+      // Proteção quinzenal ativa: dias 1-15 NÃO são alterados pelo sync
+      // Apenas dias 16-diaHoje recebem o valor diário
+      const diasComValor = calls.filter((c) => {
         const dia = parseInt(c[0].data.split("-")[2]);
-        return dia <= diaHoje;
-      })
-      .reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
+        return dia > 15 && dia <= diaHoje;
+      });
 
-    // O valor diário agora é 5000/diaHoje, e há diaHoje dias
-    // Portanto totalAcumulado deve ser ≈ 5000
-    const esperado = 5000;
+      const valorDiarioEsperado = Math.round((5000 / diaHoje) * 100) / 100;
+      for (const call of diasComValor) {
+        expect(parseFloat(call[0].cat9 ?? "0")).toBeCloseTo(valorDiarioEsperado, 1);
+      }
 
-    // Tolerância de R$ 2 por arredondamento
-    expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 2);
-    expect(totalAcumulado).toBeLessThanOrEqual(esperado + 2);
+      // Verificar que dias 1-15 não foram chamados com upsert (foram pulados pelo continue)
+      // OU se foram chamados, o cat9 preserva o valor existente ("0" no mock)
+      const dias1a15 = calls.filter((c) => {
+        const dia = parseInt(c[0].data.split("-")[2]);
+        return dia <= 15;
+      });
+      // Os dias 1-15 ainda são chamados (para cat1-8) mas cat9 é preservado como existente
+      for (const call of dias1a15) {
+        // cat9 deve ser "0" (valor existente preservado do mock)
+        expect(call[0].cat9).toBe("0");
+      }
+    } else {
+      // Antes do dia 16: todos os dias 1-diaHoje recebem valor normalmente
+      const totalAcumulado = calls
+        .filter((c) => {
+          const dia = parseInt(c[0].data.split("-")[2]);
+          return dia <= diaHoje;
+        })
+        .reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
+
+      const esperado = 5000;
+      expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 2);
+      expect(totalAcumulado).toBeLessThanOrEqual(esperado + 2);
+    }
   });
 });

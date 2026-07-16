@@ -1,0 +1,20 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as dpote_total,\n  COUNT(*) as dias_total\nFROM faturamentos \nWHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \n  AND data LIKE '2026-07%'\nGROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as dpote_total,\n  COUNT(*) as dias_total\nFROM faturamentos \nWHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \n  AND data LIKE '2026-07%'\nGROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "dpote_total": "69096.96",
+      "dias_total": "31"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "dpote_total": "30692.96",
+      "dias_total": "31"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tdpote_total\tdias_total\nbarbiero-morumbi\t69096.96\t31\nbarbiero-mascote\t30692.96\t31\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

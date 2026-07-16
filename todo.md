@@ -1594,3 +1594,11 @@
 
 - [x] Corrigir valor quinzenal da Mascote: dashboard mostra R$53.078, correto é R$55.043
 - [x] Corrigir valor quinzenal do Morumbi: valores também estão diferentes
+
+## Correção Dpote Quinzenal - Dados e Proteção (Julho 2026)
+
+- [x] Corrigir dados cat9 dias 1-15 Mascote: atualizado para R$1.979,97/dia (total R$29.699,56)
+- [x] Corrigir dados cat9 dias 1-15 Morumbi: atualizado para R$4.493,70/dia (total R$67.405,44)
+- [x] Backend: Proteção quinzenal em aplicarDpoteParaTenant - não altera cat9 dos dias 1-15 quando diaVigente > 15
+- [x] Backend: Proteção quinzenal em sincronizarFaturamentoCashbarber - não altera cat9 dos dias 1-15 quando diaHoje > 15
+- [x] Testes atualizados para refletir proteção quinzenal (13 testes passando)

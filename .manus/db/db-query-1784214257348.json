@@ -1,0 +1,20 @@
+{
+  "query": "SELECT \n  empresaSlug,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as lancamentos,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as dpote\nFROM faturamentos \nWHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \n  AND data LIKE '2026-07%' \n  AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) <= 15\nGROUP BY empresaSlug;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  empresaSlug,\n  SUM(CAST(cat1 AS DECIMAL(12,2)) + CAST(cat2 AS DECIMAL(12,2)) + CAST(cat3 AS DECIMAL(12,2)) + CAST(cat4 AS DECIMAL(12,2)) + CAST(cat5 AS DECIMAL(12,2)) + CAST(cat6 AS DECIMAL(12,2)) + CAST(cat7 AS DECIMAL(12,2)) + CAST(cat8 AS DECIMAL(12,2))) as lancamentos,\n  SUM(CAST(cat9 AS DECIMAL(12,2))) as dpote\nFROM faturamentos \nWHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') \n  AND data LIKE '2026-07%' \n  AND CAST(SUBSTRING(data, 9, 2) AS UNSIGNED) <= 15\nGROUP BY empresaSlug;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "lancamentos": "55568.12",
+      "dpote": "67405.50"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "lancamentos": "25111.48",
+      "dpote": "29699.55"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tlancamentos\tdpote\nbarbiero-morumbi\t55568.12\t67405.50\nbarbiero-mascote\t25111.48\t29699.55\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

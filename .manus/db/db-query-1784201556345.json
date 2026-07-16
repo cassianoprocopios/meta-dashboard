@@ -1,0 +1,19 @@
+{
+  "query": "SELECT slug, nome FROM empresas WHERE slug LIKE '%seraphine%'; SELECT empresaSlug, data, cat1, cat2, cat3 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data LIKE '2026-07%' LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT slug, nome FROM empresas WHERE slug LIKE '%seraphine%'; SELECT empresaSlug, data, cat1, cat2, cat3 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data LIKE '2026-07%' LIMIT 3;",
+  "rows": [
+    {
+      "slug": "barbiero-seraphine",
+      "nome": "Seraphine"
+    }
+  ],
+  "messages": [
+    "empresaSlug\tdata\tcat1\tcat2\tcat3",
+    "barbiero-seraphine\t2026-07-01\t2017.20\t1561.00\t29.75",
+    "barbiero-seraphine\t2026-07-02\t4383.00\t650.00\t15.00",
+    "barbiero-seraphine\t2026-07-03\t4736.10\t1980.00\t30.00"
+  ],
+  "stdout": "slug\tnome\nbarbiero-seraphine\tSeraphine\nempresaSlug\tdata\tcat1\tcat2\tcat3\nbarbiero-seraphine\t2026-07-01\t2017.20\t1561.00\t29.75\nbarbiero-seraphine\t2026-07-02\t4383.00\t650.00\t15.00\nbarbiero-seraphine\t2026-07-03\t4736.10\t1980.00\t30.00\n",
+  "stderr": "",
+  "execution_time_ms": 288
+}

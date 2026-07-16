@@ -1,0 +1,15 @@
+{
+  "query": "SELECT tenantId, empresaSlug, data FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data LIKE '2026-07%' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT tenantId, empresaSlug, data FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data LIKE '2026-07%' LIMIT 1;",
+  "rows": [
+    {
+      "tenantId": "1",
+      "empresaSlug": "barbiero-seraphine",
+      "data": "2026-07-01"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tempresaSlug\tdata\n1\tbarbiero-seraphine\t2026-07-01\n",
+  "stderr": "",
+  "execution_time_ms": 264
+}

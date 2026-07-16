@@ -1,0 +1,46 @@
+{
+  "query": "SELECT empresaSlug, valorNovo, diasAtualizados, executadoEm FROM dpoteSyncLog WHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') ORDER BY executadoEm DESC LIMIT 6;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT empresaSlug, valorNovo, diasAtualizados, executadoEm FROM dpoteSyncLog WHERE empresaSlug IN ('barbiero-mascote', 'barbiero-morumbi') ORDER BY executadoEm DESC LIMIT 6;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "valorNovo": "69097.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 15:00:25"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "valorNovo": "30693.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 15:00:09"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "valorNovo": "68482.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 13:01:44"
+    },
+    {
+      "empresaSlug": "barbiero-mascote",
+      "valorNovo": "30558.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 13:01:05"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "valorNovo": "68582.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 12:01:40"
+    },
+    {
+      "empresaSlug": "barbiero-morumbi",
+      "valorNovo": "68582.00",
+      "diasAtualizados": "16",
+      "executadoEm": "2026-07-16 12:01:27"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\tvalorNovo\tdiasAtualizados\texecutadoEm\nbarbiero-morumbi\t69097.00\t16\t2026-07-16 15:00:25\nbarbiero-mascote\t30693.00\t16\t2026-07-16 15:00:09\nbarbiero-morumbi\t68482.00\t16\t2026-07-16 13:01:44\nbarbiero-mascote\t30558.00\t16\t2026-07-16 13:01:05\nbarbiero-morumbi\t68582.00\t16\t2026-07-16 12:01:40\nbarbiero-morumbi\t68582.00\t16\t2026-07-16 12:01:27\n",
+  "stderr": "",
+  "execution_time_ms": 284
+}
