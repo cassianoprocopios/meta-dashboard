@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  SUM(cat9) as cat9_total,\n  SUM(CASE WHEN cat9 > 0 THEN cat9 ELSE 0 END) as cat9_com_valor,\n  COUNT(*) as total_dias,\n  COUNT(CASE WHEN cat9 > 0 THEN 1 END) as dias_com_dpote,\n  data\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND cat9 > 0\nORDER BY data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT \n  SUM(cat9) as cat9_total,\n  SUM(CASE WHEN cat9 > 0 THEN cat9 ELSE 0 END) as cat9_com_valor,\n  COUNT(*) as total_dias,\n  COUNT(CASE WHEN cat9 > 0 THEN 1 END) as dias_com_dpote,\n  data\nFROM faturamentos \nWHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND cat9 > 0\nORDER BY data;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8123 (HY000) at line 1: In aggregated query without GROUP BY, expression #5 of SELECT list contains nonaggregated column 'data'; this is incompatible with sql_mode=only_full_group_by"
+  ]
+}

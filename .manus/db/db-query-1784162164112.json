@@ -1,0 +1,18 @@
+{
+  "query": "SELECT data, cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data IN ('2026-07-15', '2026-07-16');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data IN ('2026-07-15', '2026-07-16');",
+  "rows": [
+    {
+      "data": "2026-07-15",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-16",
+      "cat9": "1854.25"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat9\n2026-07-15\t1854.25\n2026-07-16\t1854.25\n",
+  "stderr": "",
+  "execution_time_ms": 277
+}

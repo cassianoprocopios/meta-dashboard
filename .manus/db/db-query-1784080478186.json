@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE '%faturamento%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW TABLES LIKE '%faturamento%';",
+  "rows": [
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%faturamento%)": "faturamentoColaboradores"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%faturamento%)": "faturamentos"
+    },
+    {
+      "Tables_in_MANH2fxvkecBuwjELBL3u8 (%faturamento%)": "faturamentos_old"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_MANH2fxvkecBuwjELBL3u8 (%faturamento%)\nfaturamentoColaboradores\nfaturamentos\nfaturamentos_old\n",
+  "stderr": "",
+  "execution_time_ms": 266
+}

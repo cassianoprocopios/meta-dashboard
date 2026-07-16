@@ -1,0 +1,145 @@
+{
+  "query": "SELECT c.nome, c.cargo, fc.totalServicos, fc.totalProdutos, fc.totalGeral, c.metaMensal, fc.ultimaSyncEm\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.empresaSlug = 'barbiero-morumbi' AND fc.mes = 7 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC\nLIMIT 15;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT c.nome, c.cargo, fc.totalServicos, fc.totalProdutos, fc.totalGeral, c.metaMensal, fc.ultimaSyncEm\nFROM faturamentoColaboradores fc\nJOIN colaboradores c ON c.id = fc.colaboradorId\nWHERE fc.empresaSlug = 'barbiero-morumbi' AND fc.mes = 7 AND fc.ano = 2026\nORDER BY fc.totalGeral DESC\nLIMIT 15;",
+  "rows": [
+    {
+      "nome": "Recepção Morumbi",
+      "cargo": "Barbeiro",
+      "totalServicos": "5314.00",
+      "totalProdutos": "492.02",
+      "totalGeral": "5806.02",
+      "metaMensal": "6000.00",
+      "ultimaSyncEm": "2026-07-01 10:03:18"
+    },
+    {
+      "nome": "Samuel",
+      "cargo": "Barbeiro",
+      "totalServicos": "2060.70",
+      "totalProdutos": "460.51",
+      "totalGeral": "2521.21",
+      "metaMensal": "3100.00",
+      "ultimaSyncEm": "2026-07-01 10:03:23"
+    },
+    {
+      "nome": "Fábio",
+      "cargo": "Barbeiro",
+      "totalServicos": "1896.70",
+      "totalProdutos": "80.00",
+      "totalGeral": "1976.70",
+      "metaMensal": "3400.00",
+      "ultimaSyncEm": "2026-07-01 10:02:49"
+    },
+    {
+      "nome": "Adailton",
+      "cargo": "Barbeiro",
+      "totalServicos": "1511.70",
+      "totalProdutos": "360.61",
+      "totalGeral": "1872.31",
+      "metaMensal": "3000.00",
+      "ultimaSyncEm": "2026-07-01 10:02:34"
+    },
+    {
+      "nome": "Kaleb",
+      "cargo": "Barbeiro",
+      "totalServicos": "1376.50",
+      "totalProdutos": "161.80",
+      "totalGeral": "1538.30",
+      "metaMensal": "2500.00",
+      "ultimaSyncEm": "2026-07-01 10:03:00"
+    },
+    {
+      "nome": "Vanilson",
+      "cargo": "Barbeiro",
+      "totalServicos": "1313.50",
+      "totalProdutos": "224.80",
+      "totalGeral": "1538.30",
+      "metaMensal": "3500.00",
+      "ultimaSyncEm": "2026-07-01 10:03:24"
+    },
+    {
+      "nome": "Mirela",
+      "cargo": "Barbeiro",
+      "totalServicos": "1434.40",
+      "totalProdutos": "0.00",
+      "totalGeral": "1434.40",
+      "metaMensal": "2500.00",
+      "ultimaSyncEm": "2026-07-01 10:03:06"
+    },
+    {
+      "nome": "Emerson",
+      "cargo": "Barbeiro",
+      "totalServicos": "1059.50",
+      "totalProdutos": "163.90",
+      "totalGeral": "1223.40",
+      "metaMensal": "3000.00",
+      "ultimaSyncEm": "2026-07-01 10:02:47"
+    },
+    {
+      "nome": "Dan",
+      "cargo": "Barbeiro",
+      "totalServicos": "821.50",
+      "totalProdutos": "160.81",
+      "totalGeral": "982.31",
+      "metaMensal": "1800.00",
+      "ultimaSyncEm": "2026-07-01 10:02:41"
+    },
+    {
+      "nome": "João",
+      "cargo": "Barbeiro",
+      "totalServicos": "708.50",
+      "totalProdutos": "0.00",
+      "totalGeral": "708.50",
+      "metaMensal": "2000.00",
+      "ultimaSyncEm": "2026-07-01 10:02:57"
+    },
+    {
+      "nome": "Eduarda",
+      "cargo": "Barbeiro",
+      "totalServicos": "674.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "674.00",
+      "metaMensal": "2300.00",
+      "ultimaSyncEm": "2026-07-01 10:02:46"
+    },
+    {
+      "nome": "Cleison",
+      "cargo": "Barbeiro",
+      "totalServicos": "596.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "596.00",
+      "metaMensal": "2500.00",
+      "ultimaSyncEm": "2026-07-01 10:02:40"
+    },
+    {
+      "nome": "Christian",
+      "cargo": "Barbeiro",
+      "totalServicos": "493.20",
+      "totalProdutos": "89.90",
+      "totalGeral": "583.10",
+      "metaMensal": "3500.00",
+      "ultimaSyncEm": "2026-07-01 10:02:38"
+    },
+    {
+      "nome": "Wal",
+      "cargo": "Assistente",
+      "totalServicos": "526.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "526.00",
+      "metaMensal": "5000.00",
+      "ultimaSyncEm": "2026-07-13 23:38:20"
+    },
+    {
+      "nome": "Camila Nascimento",
+      "cargo": "Gerente",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00",
+      "metaMensal": "NULL",
+      "ultimaSyncEm": "2026-07-01 10:02:36"
+    }
+  ],
+  "messages": [],
+  "stdout": "nome\tcargo\ttotalServicos\ttotalProdutos\ttotalGeral\tmetaMensal\tultimaSyncEm\nRecepção Morumbi\tBarbeiro\t5314.00\t492.02\t5806.02\t6000.00\t2026-07-01 10:03:18\nSamuel\tBarbeiro\t2060.70\t460.51\t2521.21\t3100.00\t2026-07-01 10:03:23\nFábio\tBarbeiro\t1896.70\t80.00\t1976.70\t3400.00\t2026-07-01 10:02:49\nAdailton\tBarbeiro\t1511.70\t360.61\t1872.31\t3000.00\t2026-07-01 10:02:34\nKaleb\tBarbeiro\t1376.50\t161.80\t1538.30\t2500.00\t2026-07-01 10:03:00\nVanilson\tBarbeiro\t1313.50\t224.80\t1538.30\t3500.00\t2026-07-01 10:03:24\nMirela\tBarbeiro\t1434.40\t0.00\t1434.40\t2500.00\t2026-07-01 10:03:06\nEmerson\tBarbeiro\t1059.50\t163.90\t1223.40\t3000.00\t2026-07-01 10:02:47\nDan\tBarbeiro\t821.50\t160.81\t982.31\t1800.00\t2026-07-01 10:02:41\nJoão\tBarbeiro\t708.50\t0.00\t708.50\t2000.00\t2026-07-01 10:02:57\nEduarda\tBarbeiro\t674.00\t0.00\t674.00\t2300.00\t2026-07-01 10:02:46\nCleison\tBarbeiro\t596.00\t0.00\t596.00\t2500.00\t2026-07-01 10:02:40\nChristian\tBarbeiro\t493.20\t89.90\t583.10\t3500.00\t2026-07-01 10:02:38\nWal\tAssistente\t526.00\t0.00\t526.00\t5000.00\t2026-07-13 23:38:20\nCamila Nascimento\tGerente\t0.00\t0.00\t0.00\tNULL\t2026-07-01 10:02:36\n",
+  "stderr": "",
+  "execution_time_ms": 952
+}

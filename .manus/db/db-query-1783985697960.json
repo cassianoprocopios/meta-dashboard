@@ -1,0 +1,36 @@
+{
+  "query": "SELECT * FROM cashbarberConfig WHERE empresaSlug = 'barbiero-morumbi';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT * FROM cashbarberConfig WHERE empresaSlug = 'barbiero-morumbi';",
+  "rows": [
+    {
+      "id": "1",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "cbEmail": "barbierobarbearia@gmail.com",
+      "cbSenha": "2@Barbiero",
+      "cbFilialId": "144",
+      "cbFilialNome": "Morumbi",
+      "ultimaSincronizacao": "2026-07-13 23:01:53",
+      "statusUltimaSinc": "ok",
+      "ativo": "1",
+      "createdAt": "2026-03-24 11:46:31",
+      "updatedAt": "2026-07-13 23:01:52",
+      "sincAutoAtiva": "1",
+      "horarioSinc": "00:00",
+      "dpoteFilialId": "NULL",
+      "dpoteFilialNome": "Morumbi",
+      "dpoteHistoricoId": "92584",
+      "dpoteHistoricoMes": "2026-07",
+      "dpoteValorAssinaturas": "83887.93",
+      "dpotePorcentagemBarbearia": "65.00",
+      "recorrenciaFonte": "cashbarber",
+      "recorrenciaValorManual": "48387.76",
+      "recorrenciaManualAtualizadoEm": "2026-04-10 13:51:55",
+      "recorrenciaValorCashbarber": "107024.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\tcbEmail\tcbSenha\tcbFilialId\tcbFilialNome\tultimaSincronizacao\tstatusUltimaSinc\tativo\tcreatedAt\tupdatedAt\tsincAutoAtiva\thorarioSinc\tdpoteFilialId\tdpoteFilialNome\tdpoteHistoricoId\tdpoteHistoricoMes\tdpoteValorAssinaturas\tdpotePorcentagemBarbearia\trecorrenciaFonte\trecorrenciaValorManual\trecorrenciaManualAtualizadoEm\trecorrenciaValorCashbarber\n1\t1\tbarbiero-morumbi\tbarbierobarbearia@gmail.com\t2@Barbiero\t144\tMorumbi\t2026-07-13 23:01:53\tok\t1\t2026-03-24 11:46:31\t2026-07-13 23:01:52\t1\t00:00\tNULL\tMorumbi\t92584\t2026-07\t83887.93\t65.00\tcashbarber\t48387.76\t2026-04-10 13:51:55\t107024.00\n",
+  "stderr": "",
+  "execution_time_ms": 1028
+}

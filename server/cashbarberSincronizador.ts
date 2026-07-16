@@ -259,10 +259,12 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 6. Determinar o período: do dia 1 ao último dia do mês
   //    Se for o mês atual, vai até hoje; se for mês passado, vai até o último dia
+  //    IMPORTANTE: Usar horário de Brasília (BRT) para determinar o dia vigente
   const hoje = new Date();
-  const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
+  const hojeBRT = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const ehMesAtual = mes === hojeBRT.getMonth() + 1 && ano === hojeBRT.getFullYear();
   const ultimoDia = ehMesAtual
-    ? hoje.getDate()
+    ? hojeBRT.getDate()
     : new Date(ano, mes, 0).getDate();
   const totalDiasMesAtual = new Date(ano, mes, 0).getDate();
 
@@ -334,25 +336,22 @@ export async function sincronizarFaturamentoCashbarber(
       //   - Meses passados: valor diário calculado pelo Dpote do mês
       let cat9: string;
       if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        const hoje2 = new Date();
-        const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
-        const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
+        // Usar hojeBRT (já calculado acima) para determinar dia futuro
+        const diaFuturo = ehMesAtual && dia > hojeBRT.getDate();
         if (diaFuturo) {
           // Dia futuro: gravar "0" no banco. Previsão é calculada no frontend.
           cat9 = "0";
         } else {
           // Dia realizado: dividir pelo número de dias JA REALIZADOS (ultimoDia)
           // para que a soma total bata com recorrenciaValor
-          const diasRealizadosSync = ultimoDia; // = hoje.getDate() para mês atual
+          const diasRealizadosSync = ultimoDia; // = hojeBRT.getDate() para mês atual
           const valorDiario = Math.round((recorrenciaValor / diasRealizadosSync) * 100) / 100;
           cat9 = String(valorDiario);
         }
       } else {
         // Dpote falhou ou não configurado: preservar valor existente (ou "0")
-        // Dias futuros sempre recebem "0" no banco
-        const hoje2 = new Date();
-        const ehMesAtualSync = mes === hoje2.getMonth() + 1 && ano === hoje2.getFullYear();
-        const diaFuturo = ehMesAtualSync && dia > hoje2.getDate();
+        // Dias futuros sempre recebem "0" no banco (usando horário BRT)
+        const diaFuturo = ehMesAtual && dia > hojeBRT.getDate();
         if (diaFuturo) {
           cat9 = "0";
         } else {
@@ -410,9 +409,8 @@ export async function sincronizarFaturamentoCashbarber(
     // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
     // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
     // Calcular valor diário real: dividido pelos dias realizados (não pelos 31 do mês)
-    const hoje3 = new Date();
-    const ehMesAtualLog = mes === hoje3.getMonth() + 1 && ano === hoje3.getFullYear();
-    const diasRealizadosLog = ehMesAtualLog ? hoje3.getDate() : new Date(ano, mes, 0).getDate();
+    // Usar horário de Brasília para consistência com o cálculo acima
+    const diasRealizadosLog = ehMesAtual ? hojeBRT.getDate() : new Date(ano, mes, 0).getDate();
     const valorDiarioNovo = recorrenciaValor / diasRealizadosLog;
     // Registrar o log de sincronização do Dpote
     try {
@@ -551,7 +549,8 @@ export async function aplicarDpoteParaTenant(
 
   // Calcular período
   const hoje = new Date();
-  const ehMesAtual = mes === hoje.getMonth() + 1 && ano === hoje.getFullYear();
+  const hojeBRTInicial = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const ehMesAtual = mes === hojeBRTInicial.getMonth() + 1 && ano === hojeBRTInicial.getFullYear();
 
   // Usar cashbarberCalcularDpoteViaHistorico — mesma lógica do botão 'Aplicar no Faturamento'
   // Isso garante que o job automático produza exatamente o mesmo resultado que o botão manual.
@@ -576,10 +575,13 @@ export async function aplicarDpoteParaTenant(
   const aplicados: ResultadoAplicacaoDpote["aplicados"] = [];
   const naoEncontrados: string[] = [];
   // Determinar dia vigente para aplicar a regra: passados/hoje = valor diário; futuros = 0
+  // IMPORTANTE: Usar horário de Brasília (BRT) para determinar o dia vigente,
+  // pois o deploy pode estar em UTC e new Date().getDate() retornaria o dia seguinte após 21h BRT.
   const hojeAplic = new Date();
-  const ehMesAtualAplic = mes === hojeAplic.getMonth() + 1 && ano === hojeAplic.getFullYear();
-  const diaVigenteAplic = hojeAplic.getDate();
-  // Dias realizados: para mês atual = dias até hoje; para meses passados = total do mês
+  const hojeBRT = new Date(hojeAplic.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const ehMesAtualAplic = mes === hojeBRT.getMonth() + 1 && ano === hojeBRT.getFullYear();
+  const diaVigenteAplic = hojeBRT.getDate();
+  // Dias realizados: para mês atual = dias até hoje (BRT); para meses passados = total do mês
   const diasRealizadosAplic = ehMesAtualAplic ? diaVigenteAplic : totalDiasMes;
   for (const config of configs) {
     if (!config.dpoteFilialNome) continue;

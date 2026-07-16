@@ -1,0 +1,14 @@
+{
+  "query": "SELECT SUM(cat9) as cat9_total, COUNT(CASE WHEN cat9 > 0 THEN 1 END) as dias_com_dpote FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT SUM(cat9) as cat9_total, COUNT(CASE WHEN cat9 > 0 THEN 1 END) as dias_com_dpote FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%';",
+  "rows": [
+    {
+      "cat9_total": "29668.00",
+      "dias_com_dpote": "16"
+    }
+  ],
+  "messages": [],
+  "stdout": "cat9_total\tdias_com_dpote\n29668.00\t16\n",
+  "stderr": "",
+  "execution_time_ms": 273
+}

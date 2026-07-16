@@ -1,0 +1,38 @@
+{
+  "query": "SELECT valorNovo, diasAtualizados, tipoExecucao, fonte, executadoEm FROM dpoteSyncLog WHERE empresaSlug = 'barbiero-mascote' AND mes = 7 AND ano = 2026 AND diasAtualizados = 16 ORDER BY id DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT valorNovo, diasAtualizados, tipoExecucao, fonte, executadoEm FROM dpoteSyncLog WHERE empresaSlug = 'barbiero-mascote' AND mes = 7 AND ano = 2026 AND diasAtualizados = 16 ORDER BY id DESC;",
+  "rows": [
+    {
+      "valorNovo": "29831.00",
+      "diasAtualizados": "16",
+      "tipoExecucao": "manual",
+      "fonte": "api",
+      "executadoEm": "2026-07-16 00:31:20"
+    },
+    {
+      "valorNovo": "29831.00",
+      "diasAtualizados": "16",
+      "tipoExecucao": "manual",
+      "fonte": "api",
+      "executadoEm": "2026-07-16 00:30:38"
+    },
+    {
+      "valorNovo": "29831.00",
+      "diasAtualizados": "16",
+      "tipoExecucao": "manual",
+      "fonte": "api",
+      "executadoEm": "2026-07-16 00:30:27"
+    },
+    {
+      "valorNovo": "29461.00",
+      "diasAtualizados": "16",
+      "tipoExecucao": "automatico",
+      "fonte": "api",
+      "executadoEm": "2026-07-16 00:01:02"
+    }
+  ],
+  "messages": [],
+  "stdout": "valorNovo\tdiasAtualizados\ttipoExecucao\tfonte\texecutadoEm\n29831.00\t16\tmanual\tapi\t2026-07-16 00:31:20\n29831.00\t16\tmanual\tapi\t2026-07-16 00:30:38\n29831.00\t16\tmanual\tapi\t2026-07-16 00:30:27\n29461.00\t16\tautomatico\tapi\t2026-07-16 00:01:02\n",
+  "stderr": "",
+  "execution_time_ms": 271
+}

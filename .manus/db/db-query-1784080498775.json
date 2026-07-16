@@ -1,0 +1,13 @@
+{
+  "query": "SELECT DISTINCT empresaSlug FROM faturamentos WHERE empresaSlug LIKE '%seraph%' OR empresaSlug LIKE '%sera%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT DISTINCT empresaSlug FROM faturamentos WHERE empresaSlug LIKE '%seraph%' OR empresaSlug LIKE '%sera%' LIMIT 5;",
+  "rows": [
+    {
+      "empresaSlug": "barbiero-seraphine"
+    }
+  ],
+  "messages": [],
+  "stdout": "empresaSlug\nbarbiero-seraphine\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}

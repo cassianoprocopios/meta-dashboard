@@ -1,0 +1,109 @@
+{
+  "query": "SELECT * FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT * FROM cashbarberMapeamento WHERE empresaSlug = 'barbiero-morumbi';",
+  "rows": [
+    {
+      "id": "150010",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "22518",
+      "cbNome": "AVULSO/CLUBE",
+      "metaCategoria": "cat1",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150011",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "605",
+      "cbNome": "SERVIÇO EXTRA",
+      "metaCategoria": "cat2",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150012",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "13295",
+      "cbNome": "Auxiliar",
+      "metaCategoria": "cat3",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150013",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "servico_categoria",
+      "cbId": "28267",
+      "cbNome": "Pacote",
+      "metaCategoria": "cat2",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150014",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "17206",
+      "cbNome": "Keune",
+      "metaCategoria": "cat4",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150015",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "19096",
+      "cbNome": "Don Alcides",
+      "metaCategoria": "cat5",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150016",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "632",
+      "cbNome": "Caixinha",
+      "metaCategoria": "cat6",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150017",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "606",
+      "cbNome": "Barbiero",
+      "metaCategoria": "cat7",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    },
+    {
+      "id": "150018",
+      "tenantId": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "tipo": "produto_categoria",
+      "cbId": "607",
+      "cbNome": "Bar",
+      "metaCategoria": "cat8",
+      "createdAt": "2026-05-09 03:39:39",
+      "updatedAt": "2026-05-09 03:39:39"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttenantId\tempresaSlug\ttipo\tcbId\tcbNome\tmetaCategoria\tcreatedAt\tupdatedAt\n150010\t1\tbarbiero-morumbi\tservico_categoria\t22518\tAVULSO/CLUBE\tcat1\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150011\t1\tbarbiero-morumbi\tservico_categoria\t605\tSERVIÇO EXTRA\tcat2\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150012\t1\tbarbiero-morumbi\tservico_categoria\t13295\tAuxiliar\tcat3\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150013\t1\tbarbiero-morumbi\tservico_categoria\t28267\tPacote\tcat2\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150014\t1\tbarbiero-morumbi\tproduto_categoria\t17206\tKeune\tcat4\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150015\t1\tbarbiero-morumbi\tproduto_categoria\t19096\tDon Alcides\tcat5\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150016\t1\tbarbiero-morumbi\tproduto_categoria\t632\tCaixinha\tcat6\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150017\t1\tbarbiero-morumbi\tproduto_categoria\t606\tBarbiero\tcat7\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n150018\t1\tbarbiero-morumbi\tproduto_categoria\t607\tBar\tcat8\t2026-05-09 03:39:39\t2026-05-09 03:39:39\n",
+  "stderr": "",
+  "execution_time_ms": 275
+}

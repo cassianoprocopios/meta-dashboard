@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO colaboradores (tenantId, empresaSlug, nome, apelido, cargo, cashbarberProfissionalId, categoriaRanking, exibirNoRanking, fotoUrl, isGerencia, metaMensal, pinAcesso, telefone, ativo, createdAt, updatedAt)\nVALUES (1, 'barbiero-morumbi', 'Wal', NULL, 'Assistente', '43980', 'barbeiro', 1, NULL, 0, 5000.00, NULL, '11976961518', 1, NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO colaboradores (tenantId, empresaSlug, nome, apelido, cargo, cashbarberProfissionalId, categoriaRanking, exibirNoRanking, fotoUrl, isGerencia, metaMensal, pinAcesso, telefone, ativo, createdAt, updatedAt)\nVALUES (1, 'barbiero-morumbi', 'Wal', NULL, 'Assistente', '43980', 'barbeiro', 1, NULL, 0, 5000.00, NULL, '11976961518', 1, NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1029
+}

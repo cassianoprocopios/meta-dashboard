@@ -1,0 +1,74 @@
+{
+  "query": "SELECT data, cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND CAST(cat9 AS DECIMAL(10,2)) > 0 ORDER BY data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat9 FROM faturamentos WHERE empresaSlug = 'barbiero-mascote' AND data LIKE '2026-07%' AND CAST(cat9 AS DECIMAL(10,2)) > 0 ORDER BY data;",
+  "rows": [
+    {
+      "data": "2026-07-01",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-02",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-03",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-04",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-05",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-06",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-07",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-08",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-09",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-10",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-11",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-12",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-13",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-14",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-15",
+      "cat9": "1854.25"
+    },
+    {
+      "data": "2026-07-16",
+      "cat9": "1854.25"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat9\n2026-07-01\t1854.25\n2026-07-02\t1854.25\n2026-07-03\t1854.25\n2026-07-04\t1854.25\n2026-07-05\t1854.25\n2026-07-06\t1854.25\n2026-07-07\t1854.25\n2026-07-08\t1854.25\n2026-07-09\t1854.25\n2026-07-10\t1854.25\n2026-07-11\t1854.25\n2026-07-12\t1854.25\n2026-07-13\t1854.25\n2026-07-14\t1854.25\n2026-07-15\t1854.25\n2026-07-16\t1854.25\n",
+  "stderr": "",
+  "execution_time_ms": 282
+}

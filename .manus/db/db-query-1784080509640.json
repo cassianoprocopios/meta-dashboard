@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO faturamentos (empresaSlug, data, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, tenantId, sincronizadoCB)\nVALUES ('barbiero-seraphine', '2026-07-14', 1815.40, 0.00, 19.80, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1, 0);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute INSERT INTO faturamentos (empresaSlug, data, cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, tenantId, sincronizadoCB)\nVALUES ('barbiero-seraphine', '2026-07-14', 1815.40, 0.00, 19.80, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1, 0);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 286
+}

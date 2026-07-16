@@ -1,0 +1,55 @@
+{
+  "query": "SELECT id, colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE empresaSlug = 'barbiero-morumbi' AND mes = 7 AND ano = 2026 LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, colaboradorId, mes, ano, totalServicos, totalProdutos, totalGeral FROM faturamentoColaboradores WHERE empresaSlug = 'barbiero-morumbi' AND mes = 7 AND ano = 2026 LIMIT 5;",
+  "rows": [
+    {
+      "id": "360001",
+      "colaboradorId": "1",
+      "mes": "7",
+      "ano": "2026",
+      "totalServicos": "1511.70",
+      "totalProdutos": "360.61",
+      "totalGeral": "1872.31"
+    },
+    {
+      "id": "360002",
+      "colaboradorId": "60002",
+      "mes": "7",
+      "ano": "2026",
+      "totalServicos": "0.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "0.00"
+    },
+    {
+      "id": "360003",
+      "colaboradorId": "7",
+      "mes": "7",
+      "ano": "2026",
+      "totalServicos": "493.20",
+      "totalProdutos": "89.90",
+      "totalGeral": "583.10"
+    },
+    {
+      "id": "360004",
+      "colaboradorId": "12",
+      "mes": "7",
+      "ano": "2026",
+      "totalServicos": "596.00",
+      "totalProdutos": "0.00",
+      "totalGeral": "596.00"
+    },
+    {
+      "id": "360005",
+      "colaboradorId": "2",
+      "mes": "7",
+      "ano": "2026",
+      "totalServicos": "821.50",
+      "totalProdutos": "160.81",
+      "totalGeral": "982.31"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tcolaboradorId\tmes\tano\ttotalServicos\ttotalProdutos\ttotalGeral\n360001\t1\t7\t2026\t1511.70\t360.61\t1872.31\n360002\t60002\t7\t2026\t0.00\t0.00\t0.00\n360003\t7\t7\t2026\t493.20\t89.90\t583.10\n360004\t12\t7\t2026\t596.00\t0.00\t596.00\n360005\t2\t7\t2026\t821.50\t160.81\t982.31\n",
+  "stderr": "",
+  "execution_time_ms": 275
+}

@@ -373,16 +373,19 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
   });
 
   it("mês atual: dias passados e hoje recebem valor diário do Dpote; dias futuros recebem '0' no banco", async () => {
+    // Usar horário de Brasília (BRT) para consistência com o código corrigido
     const hoje = new Date();
-    const mes = hoje.getMonth() + 1;
-    const ano = hoje.getFullYear();
-    const diaHoje = hoje.getDate();
+    const hojeBRT = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const mes = hojeBRT.getMonth() + 1;
+    const ano = hojeBRT.getFullYear();
+    const diaHoje = hojeBRT.getDate();
     const totalDias = new Date(ano, mes, 0).getDate();
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", mes, ano, "auto");
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
-    const valorDiarioDpote = String(Math.round((5000 / totalDias) * 100) / 100);
+    // O código agora divide pelo diaHoje (BRT), não pelo totalDias
+    const valorDiarioDpote = String(Math.round((5000 / diaHoje) * 100) / 100);
     // Dias 1 até hoje: devem ter cat9 = valor diário do Dpote do mês vigente
     for (let dia = 1; dia <= diaHoje; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -391,28 +394,29 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
       expect(chamada![0].cat9).toBe(valorDiarioDpote);
     }
 
-    // Dias após hoje: devem ter cat9 = "0" no banco (previsão é calculada no frontend)
+    // Dias após hoje: não devem ser sincronizados (loop vai só até ultimoDia = diaHoje)
+    // Portanto não haverá chamadas para dias futuros
     for (let dia = diaHoje + 1; dia <= totalDias; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const chamada = calls.find((c) => c[0].data === dataStr);
-      if (chamada) {
-        expect(chamada![0].cat9).toBe("0");
-      }
+      // Não deve haver chamada para dias futuros (loop só vai até ultimoDia)
+      expect(chamada).toBeUndefined();
     }
   });
 
-  it("mês atual: total de cat9 acumulado até hoje ≈ valor diário × dias passados", async () => {
+  it("mês atual: total de cat9 acumulado até hoje ≈ valor total do Dpote", async () => {
+    // Usar horário de Brasília (BRT) para consistência com o código corrigido
     const hoje = new Date();
-    const mes = hoje.getMonth() + 1;
-    const ano = hoje.getFullYear();
-    const diaHoje = hoje.getDate();
-    const totalDias = new Date(ano, mes, 0).getDate();
+    const hojeBRT = new Date(hoje.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const mes = hojeBRT.getMonth() + 1;
+    const ano = hojeBRT.getFullYear();
+    const diaHoje = hojeBRT.getDate();
 
     await sincronizarFaturamentoCashbarber(1, "MORUMBI", mes, ano, "auto");
 
     const calls = vi.mocked(upsertFaturamento).mock.calls;
 
-    // Somar apenas os dias de 1 até hoje
+    // Somar todos os dias sincronizados (1 até diaHoje)
     const totalAcumulado = calls
       .filter((c) => {
         const dia = parseInt(c[0].data.split("-")[2]);
@@ -420,11 +424,12 @@ describe("sincronizarFaturamentoCashbarber - cat9 proporcional ao dia vigente", 
       })
       .reduce((sum, c) => sum + parseFloat(c[0].cat9 ?? "0"), 0);
 
-    const valorDiario = Math.round((5000 / totalDias) * 100) / 100;
-    const esperado = valorDiario * diaHoje;
+    // O valor diário agora é 5000/diaHoje, e há diaHoje dias
+    // Portanto totalAcumulado deve ser ≈ 5000
+    const esperado = 5000;
 
-    // Tolerância de R$ 1 por arredondamento
-    expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 1);
-    expect(totalAcumulado).toBeLessThanOrEqual(esperado + 1);
+    // Tolerância de R$ 2 por arredondamento
+    expect(totalAcumulado).toBeGreaterThanOrEqual(esperado - 2);
+    expect(totalAcumulado).toBeLessThanOrEqual(esperado + 2);
   });
 });

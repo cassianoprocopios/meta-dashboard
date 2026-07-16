@@ -1581,3 +1581,11 @@
 
 - [x] Comparativo com mês anterior nos itens vendidos (setas ↑↓ por item na aba Meu)
 - [x] Notificação push de novo recorde pessoal de item específico no mês
+
+## Correção Dpote - Julho 2026
+
+- [x] Frontend: cat9Realizados agora soma TODOS os dias do mês (não apenas até diaHoje), pois Dpote distribuído é sempre valor real
+- [x] Frontend: diasComDpote agora usa rows (todos os dias) em vez de rowsRealizados
+- [x] Backend: Corrigido timezone em aplicarDpoteParaTenant - usa horário de Brasília (BRT) para determinar diaVigente
+- [x] Backend: Corrigido timezone em sincronizarFaturamentoCashbarber - usa hojeBRT para determinar ultimoDia e diaFuturo
+- [x] Testes atualizados para refletir nova lógica (divide por diaHoje em vez de totalDias)

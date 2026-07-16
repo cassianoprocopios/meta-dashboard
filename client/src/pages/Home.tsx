@@ -541,8 +541,10 @@ export default function Home() {
       // Helper: soma cat1..cat9 (faturamento completo incluindo recorrência)
       const sumCats = (r: any) => sumCatsSemCat9(r) + parseFloat(r.cat9 || "0");
 
-      // Cat9 acumulado dos dias realizados (Dpote REAL distribuído até hoje)
-      const cat9Realizados = rowsRealizados.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
+      // Cat9 acumulado de TODOS os dias do mês (Dpote REAL distribuído)
+      // O Dpote distribuído pelo sync é sempre valor real (não previsão), portanto
+      // deve ser contabilizado integralmente, independente de ser dia passado ou futuro.
+      const cat9Realizados = rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
       // Cat9 total do mês (todos os dias lançados)
       const cat9Total = rows.reduce((acc: number, r: any) => acc + parseFloat(r.cat9 || "0"), 0);
 
@@ -558,7 +560,7 @@ export default function Home() {
       //   = cat9 do mês anterior × (dias sem Dpote / total de dias do mês)
       //   APENAS INFORMATIVA — não entra no faturamento
       const totalDiasMesCalc = new Date(ano, mes, 0).getDate();;
-      const diasComDpote = rowsRealizados.filter((r: any) => parseFloat(r.cat9 || "0") > 0).length;
+      const diasComDpote = rows.filter((r: any) => parseFloat(r.cat9 || "0") > 0).length;
       const diasSemDpote = Math.max(0, totalDiasMesCalc - diasComDpote);
       const recorrenciaPrevisaoDiasRestantes = ehMesVigente && cat9MesAnterior > 0
         ? cat9MesAnterior * (diasSemDpote / totalDiasMesCalc)
@@ -566,15 +568,17 @@ export default function Home() {
 
       // Recorrência que ENTRA no faturamento:
       //   - Mês passado: cat9 total do mês (já totalmente apurado)
-      //   - Mês vigente: APENAS cat9 real acumulado do Dpote (dias com distribuição real)
+      //   - Mês vigente: cat9 TOTAL distribuído (todos os dias com Dpote real)
       //   - Mês futuro: 0 (não entra)
       // Quando fonte=manual no mês vigente, usa o valor manual confirmado
+      // NOTA: cat9Realizados agora soma TODOS os dias do mês (não apenas até diaHoje),
+      // pois o Dpote distribuído pelo sync é sempre valor real, nunca previsão.
       const recorrenciaNoFaturamento = ehMesFuturo
         ? 0
         : (ehMesVigente && usaRecorrenciaManual)
           ? (dpoteCfgEmp!.recorrenciaValorManual as number)
           : ehMesVigente
-            ? cat9Realizados   // mês vigente: apenas o Dpote real distribuído
+            ? cat9Realizados   // mês vigente: Dpote TOTAL distribuído no mês
             : cat9Total;       // mês passado: cat9 total do mês
 
       // Recorrência INFORMATIVA (previsão) — exibida no card mas NÃO entra no faturamento:
@@ -587,7 +591,7 @@ export default function Home() {
           : 0;
 
       // Valores informativos para exibição no card:
-      //   recorrenciaRealizada: Dpote já distribuído (cat9 real dos dias realizados)
+      //   recorrenciaRealizada: Dpote TOTAL distribuído no mês (todos os dias com cat9 real)
       //   recorrenciaPrevisaoRestante: estimativa dos dias que ainda não têm Dpote (só informativo)
       const recorrenciaRealizada = ehMesVigente ? cat9Realizados : (ehMesFuturo ? 0 : cat9Total);
       const recorrenciaPrevisaoRestante = ehMesVigente ? recorrenciaPrevisaoDiasRestantes : (ehMesFuturo ? cat9MesAnterior : 0);
