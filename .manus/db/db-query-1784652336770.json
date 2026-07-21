@@ -1,0 +1,100 @@
+{
+  "query": "SELECT id, nome, empresaSlug, ativo FROM colaboradores WHERE empresaSlug = 'barbiero-morumbi' ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, empresaSlug, ativo FROM colaboradores WHERE empresaSlug = 'barbiero-morumbi' ORDER BY nome;",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "60002",
+      "nome": "Camila Nascimento",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    },
+    {
+      "id": "270001",
+      "nome": "Wal",
+      "empresaSlug": "barbiero-morumbi",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tempresaSlug\tativo\n1\tAdailton\tbarbiero-morumbi\t1\n60002\tCamila Nascimento\tbarbiero-morumbi\t1\n7\tChristian\tbarbiero-morumbi\t1\n12\tCleison\tbarbiero-morumbi\t1\n2\tDan\tbarbiero-morumbi\t1\n23\tEduarda\tbarbiero-morumbi\t1\n3\tEmerson\tbarbiero-morumbi\t1\n18\tFábio\tbarbiero-morumbi\t1\n14\tJoão\tbarbiero-morumbi\t1\n21\tKaleb\tbarbiero-morumbi\t1\n20\tMirela\tbarbiero-morumbi\t1\n4\tRecepção Morumbi\tbarbiero-morumbi\t1\n9\tSamuel\tbarbiero-morumbi\t1\n15\tVanilson\tbarbiero-morumbi\t1\n270001\tWal\tbarbiero-morumbi\t1\n",
+  "stderr": "",
+  "execution_time_ms": 342
+}

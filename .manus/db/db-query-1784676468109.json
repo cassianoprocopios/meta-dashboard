@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, nome, cargo, categoriaRanking, exibirNoRanking, ativo, metaMensal, cashbarberProfissionalId FROM colaboradores WHERE nome IN ('Alisson', 'Dan') AND empresaSlug = 'barbiero-morumbi';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, cargo, categoriaRanking, exibirNoRanking, ativo, metaMensal, cashbarberProfissionalId FROM colaboradores WHERE nome IN ('Alisson', 'Dan') AND empresaSlug = 'barbiero-morumbi';",
+  "rows": [
+    {
+      "id": "2",
+      "nome": "Dan",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "metaMensal": "1800.00",
+      "cashbarberProfissionalId": "24784"
+    },
+    {
+      "id": "300001",
+      "nome": "Alisson",
+      "cargo": "Barbeiro",
+      "categoriaRanking": "barbeiro",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "metaMensal": "3000.00",
+      "cashbarberProfissionalId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcargo\tcategoriaRanking\texibirNoRanking\tativo\tmetaMensal\tcashbarberProfissionalId\n2\tDan\tBarbeiro\tbarbeiro\t1\t1\t1800.00\t24784\n300001\tAlisson\tBarbeiro\tbarbeiro\t1\t1\t3000.00\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 273
+}

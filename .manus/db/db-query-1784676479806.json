@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, nome, cashbarberProfissionalId, exibirNoRanking, ativo, metaMensal FROM colaboradores WHERE id = '300001';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, cashbarberProfissionalId, exibirNoRanking, ativo, metaMensal FROM colaboradores WHERE id = '300001';",
+  "rows": [
+    {
+      "id": "300001",
+      "nome": "Alisson",
+      "cashbarberProfissionalId": "44505",
+      "exibirNoRanking": "1",
+      "ativo": "1",
+      "metaMensal": "3000.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcashbarberProfissionalId\texibirNoRanking\tativo\tmetaMensal\n300001\tAlisson\t44505\t1\t1\t3000.00\n",
+  "stderr": "",
+  "execution_time_ms": 258
+}

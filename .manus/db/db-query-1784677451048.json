@@ -1,0 +1,73 @@
+{
+  "query": "SELECT data, cat1, cat2, cat3, cat4 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data >= '2026-07-01' AND data <= '2026-07-14' AND (cat2 != '0' OR cat4 != '0') ORDER BY data;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT data, cat1, cat2, cat3, cat4 FROM faturamentos WHERE empresaSlug = 'barbiero-seraphine' AND data >= '2026-07-01' AND data <= '2026-07-14' AND (cat2 != '0' OR cat4 != '0') ORDER BY data;",
+  "rows": [
+    {
+      "data": "2026-07-01",
+      "cat1": "2017.20",
+      "cat2": "1561.00",
+      "cat3": "29.75",
+      "cat4": "0.00"
+    },
+    {
+      "data": "2026-07-02",
+      "cat1": "4383.00",
+      "cat2": "650.00",
+      "cat3": "15.00",
+      "cat4": "10.00"
+    },
+    {
+      "data": "2026-07-03",
+      "cat1": "4736.10",
+      "cat2": "1980.00",
+      "cat3": "30.00",
+      "cat4": "7.00"
+    },
+    {
+      "data": "2026-07-04",
+      "cat1": "8617.00",
+      "cat2": "2134.00",
+      "cat3": "50.50",
+      "cat4": "0.00"
+    },
+    {
+      "data": "2026-07-07",
+      "cat1": "3362.00",
+      "cat2": "160.00",
+      "cat3": "15.00",
+      "cat4": "0.00"
+    },
+    {
+      "data": "2026-07-08",
+      "cat1": "4428.20",
+      "cat2": "624.00",
+      "cat3": "15.00",
+      "cat4": "0.00"
+    },
+    {
+      "data": "2026-07-09",
+      "cat1": "5325.00",
+      "cat2": "464.00",
+      "cat3": "49.00",
+      "cat4": "5.00"
+    },
+    {
+      "data": "2026-07-10",
+      "cat1": "4943.00",
+      "cat2": "1333.00",
+      "cat3": "21.00",
+      "cat4": "15.00"
+    },
+    {
+      "data": "2026-07-11",
+      "cat1": "6761.00",
+      "cat2": "964.00",
+      "cat3": "33.00",
+      "cat4": "0.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "data\tcat1\tcat2\tcat3\tcat4\n2026-07-01\t2017.20\t1561.00\t29.75\t0.00\n2026-07-02\t4383.00\t650.00\t15.00\t10.00\n2026-07-03\t4736.10\t1980.00\t30.00\t7.00\n2026-07-04\t8617.00\t2134.00\t50.50\t0.00\n2026-07-07\t3362.00\t160.00\t15.00\t0.00\n2026-07-08\t4428.20\t624.00\t15.00\t0.00\n2026-07-09\t5325.00\t464.00\t49.00\t5.00\n2026-07-10\t4943.00\t1333.00\t21.00\t15.00\n2026-07-11\t6761.00\t964.00\t33.00\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE faturamentos SET cat2 = '1335.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-15';\nUPDATE faturamentos SET cat2 = '962.00', cat3 = '184.80', cat4 = '10.00' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-16';\nUPDATE faturamentos SET cat2 = '1316.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-17';\nUPDATE faturamentos SET cat2 = '1970.00', cat4 = '30.00' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-18';\nUPDATE faturamentos SET cat2 = '1342.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-21';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute UPDATE faturamentos SET cat2 = '1335.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-15';\nUPDATE faturamentos SET cat2 = '962.00', cat3 = '184.80', cat4 = '10.00' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-16';\nUPDATE faturamentos SET cat2 = '1316.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-17';\nUPDATE faturamentos SET cat2 = '1970.00', cat4 = '30.00' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-18';\nUPDATE faturamentos SET cat2 = '1342.00', cat4 = '0' WHERE empresaSlug = 'barbiero-seraphine' AND data = '2026-07-21';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1302
+}

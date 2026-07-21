@@ -1,0 +1,31 @@
+{
+  "query": "SELECT id, empresaSlug, cbFilialNome, ativo, sincAutoAtiva FROM cashbarberConfig WHERE tenantId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, empresaSlug, cbFilialNome, ativo, sincAutoAtiva FROM cashbarberConfig WHERE tenantId = 1;",
+  "rows": [
+    {
+      "id": "1",
+      "empresaSlug": "barbiero-morumbi",
+      "cbFilialNome": "Morumbi",
+      "ativo": "1",
+      "sincAutoAtiva": "1"
+    },
+    {
+      "id": "2",
+      "empresaSlug": "barbiero-mascote",
+      "cbFilialNome": "Vila Mascote",
+      "ativo": "1",
+      "sincAutoAtiva": "1"
+    },
+    {
+      "id": "30001",
+      "empresaSlug": "barbiero-seraphine",
+      "cbFilialNome": "",
+      "ativo": "1",
+      "sincAutoAtiva": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tempresaSlug\tcbFilialNome\tativo\tsincAutoAtiva\n1\tbarbiero-morumbi\tMorumbi\t1\t1\n2\tbarbiero-mascote\tVila Mascote\t1\t1\n30001\tbarbiero-seraphine\t\t1\t1\n",
+  "stderr": "",
+  "execution_time_ms": 2071
+}

@@ -1,0 +1,85 @@
+{
+  "query": "SELECT id, nome, cashbarberProfissionalId FROM colaboradores WHERE empresaSlug = 'barbiero-morumbi' AND cashbarberProfissionalId IS NOT NULL ORDER BY nome;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SELECT id, nome, cashbarberProfissionalId FROM colaboradores WHERE empresaSlug = 'barbiero-morumbi' AND cashbarberProfissionalId IS NOT NULL ORDER BY nome;",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Adailton",
+      "cashbarberProfissionalId": "24575"
+    },
+    {
+      "id": "60002",
+      "nome": "Camila Nascimento",
+      "cashbarberProfissionalId": "3"
+    },
+    {
+      "id": "7",
+      "nome": "Christian",
+      "cashbarberProfissionalId": "19442"
+    },
+    {
+      "id": "12",
+      "nome": "Cleison",
+      "cashbarberProfissionalId": "585"
+    },
+    {
+      "id": "2",
+      "nome": "Dan",
+      "cashbarberProfissionalId": "24784"
+    },
+    {
+      "id": "23",
+      "nome": "Eduarda",
+      "cashbarberProfissionalId": "34191"
+    },
+    {
+      "id": "3",
+      "nome": "Emerson",
+      "cashbarberProfissionalId": "23173"
+    },
+    {
+      "id": "18",
+      "nome": "Fábio",
+      "cashbarberProfissionalId": "580"
+    },
+    {
+      "id": "14",
+      "nome": "João",
+      "cashbarberProfissionalId": "587"
+    },
+    {
+      "id": "21",
+      "nome": "Kaleb",
+      "cashbarberProfissionalId": "34337"
+    },
+    {
+      "id": "20",
+      "nome": "Mirela",
+      "cashbarberProfissionalId": "35930"
+    },
+    {
+      "id": "4",
+      "nome": "Recepção Morumbi",
+      "cashbarberProfissionalId": "23104"
+    },
+    {
+      "id": "9",
+      "nome": "Samuel",
+      "cashbarberProfissionalId": "12372"
+    },
+    {
+      "id": "15",
+      "nome": "Vanilson",
+      "cashbarberProfissionalId": "2603"
+    },
+    {
+      "id": "270001",
+      "nome": "Wal",
+      "cashbarberProfissionalId": "43980"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tcashbarberProfissionalId\n1\tAdailton\t24575\n60002\tCamila Nascimento\t3\n7\tChristian\t19442\n12\tCleison\t585\n2\tDan\t24784\n23\tEduarda\t34191\n3\tEmerson\t23173\n18\tFábio\t580\n14\tJoão\t587\n21\tKaleb\t34337\n20\tMirela\t35930\n4\tRecepção Morumbi\t23104\n9\tSamuel\t12372\n15\tVanilson\t2603\n270001\tWal\t43980\n",
+  "stderr": "",
+  "execution_time_ms": 419
+}

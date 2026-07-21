@@ -1,0 +1,18 @@
+{
+  "query": "SHOW COLUMNS FROM colaboradores WHERE Field LIKE '%pin%' OR Field LIKE '%senha%' OR Field LIKE '%pass%' OR Field LIKE '%code%' OR Field LIKE '%acesso%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4DoxEjzRewLn8Ja.6743834e1c13 --database MANH2fxvkecBuwjELBL3u8 --execute SHOW COLUMNS FROM colaboradores WHERE Field LIKE '%pin%' OR Field LIKE '%senha%' OR Field LIKE '%pass%' OR Field LIKE '%code%' OR Field LIKE '%acesso%';",
+  "rows": [
+    {
+      "Field": "pinAcesso",
+      "Type": "varchar(20)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\npinAcesso\tvarchar(20)\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 268
+}

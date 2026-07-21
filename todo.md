@@ -1602,3 +1602,6 @@
 - [x] Backend: Proteção quinzenal em aplicarDpoteParaTenant - não altera cat9 dos dias 1-15 quando diaVigente > 15
 - [x] Backend: Proteção quinzenal em sincronizarFaturamentoCashbarber - não altera cat9 dos dias 1-15 quando diaHoje > 15
 - [x] Testes atualizados para refletir proteção quinzenal (13 testes passando)
+
+## Comparativo com Melhor Mês do Ano
+- [x] Adicionar comparação com o melhor mês do ano no dashboard de análise comparativa (além do mês anterior)
