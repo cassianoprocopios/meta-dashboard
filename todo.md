@@ -1606,3 +1606,4 @@
 ## Comparativo com Melhor Mês do Ano
 - [x] Adicionar comparação com o melhor mês do ano no dashboard de análise comparativa (além do mês anterior)
 - [x] Corrigir comparativo melhor mês para calcular POR UNIDADE (cada empresa tem seu próprio melhor mês)
+- [x] Unificar cards comparativo mês anterior + melhor mês em um único card com melhor visualização

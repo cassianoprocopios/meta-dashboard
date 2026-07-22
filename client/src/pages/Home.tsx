@@ -2086,125 +2086,79 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Card Comparativo com Mês Anterior */}
+            {/* Card Comparativo Unificado: Mês Anterior + Melhor Mês do Ano */}
             {comparativoMesAnterior.totalAnteriorMesmosDias > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-zinc-100 dark:bg-zinc-800">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground text-sm">Comparativo com {MESES[mesAnterior - 1]}</h3>
-                      <p className="text-xs text-muted-foreground">{comparativoMesAnterior.periodoLabel} — mesmos dias apurados</p>
-                    </div>
-                  </div>
-                  {comparativoMesAnterior.variacaoTotal !== null && (
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                      comparativoMesAnterior.variacaoTotal >= 0
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
-                      {comparativoMesAnterior.variacaoTotal >= 0 ? "↑" : "↓"}
-                      {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-
-                {/* Total consolidado */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-blue-50 rounded-xl p-3">
-                    <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMesAnterior.periodoLabel})</p>
-                    <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMesAnterior.totalAtualRealizado)}</p>
-                  </div>
-                  <div className="bg-zinc-300 dark:bg-zinc-600 rounded-xl p-3">
-                    <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium uppercase tracking-wide">{MESES[mesAnterior - 1]} ({comparativoMesAnterior.periodoLabel})</p>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">{fmt(comparativoMesAnterior.totalAnteriorMesmosDias)}</p>
-                  </div>
-                </div>
-
-                {/* Por empresa */}
-                <div className="space-y-2">
-                  {empresasVisiveis.map((emp) => {
-                    const comp = comparativoMesAnterior.porEmpresa[emp.slug];
-                    if (!comp) return null;
-                    const variacao = comp.totalAnterior > 0
-                      ? ((comp.totalAtual - comp.totalAnterior) / comp.totalAnterior) * 100
-                      : null;
-                    return (
-                      <div key={emp.slug} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
-                        <span className="text-sm text-foreground flex-1 font-medium">{emp.nome}</span>
-                        <div className="flex items-center gap-3 text-right">
-                          <div>
-                            <p className="text-xs text-muted-foreground">{MESES[mesAnterior - 1]}</p>
-                            <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">{comp.totalAnterior > 0 ? fmt(comp.totalAnterior) : "—"}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">{MESES[mes - 1]}</p>
-                            <p className="text-sm font-semibold text-foreground">{fmt(comp.totalAtual)}</p>
-                          </div>
-                          {variacao !== null ? (
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              variacao >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                            }`}>
-                              {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}%
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground px-2">sem dados</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
-            {/* Card Comparativo com Melhor Mês do Ano (por unidade) */}
-            {comparativoMelhorMes && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
-                    <Trophy className="w-4 h-4 text-amber-600" />
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground text-sm">Comparativo com Melhor Mês (por unidade)</h3>
-                    <p className="text-xs text-muted-foreground">{comparativoMelhorMes.periodoLabel} — mesmos dias apurados</p>
+                    <h3 className="font-semibold text-foreground text-sm">Análise Comparativa</h3>
+                    <p className="text-xs text-muted-foreground">{comparativoMesAnterior.periodoLabel} — mesmos dias apurados</p>
                   </div>
                 </div>
 
-                {/* Por empresa — cada uma com seu próprio melhor mês */}
+                {/* Tabela comparativa por unidade */}
                 <div className="space-y-3">
                   {empresasVisiveis.map((emp) => {
-                    const comp = comparativoMelhorMes.porEmpresa[emp.slug];
-                    if (!comp || comp.totalMelhor === 0) return null;
+                    const compAnterior = comparativoMesAnterior.porEmpresa[emp.slug];
+                    const compMelhor = comparativoMelhorMes?.porEmpresa[emp.slug];
+                    if (!compAnterior) return null;
+                    const varAnterior = compAnterior.totalAnterior > 0
+                      ? ((compAnterior.totalAtual - compAnterior.totalAnterior) / compAnterior.totalAnterior) * 100
+                      : null;
+                    const varMelhor = compMelhor?.variacao ?? null;
                     return (
-                      <div key={emp.slug} className="bg-white dark:bg-zinc-700/50 rounded-xl p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
-                            <span className="text-sm text-foreground font-semibold">{emp.nome}</span>
-                          </div>
-                          {comp.variacao !== null ? (
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              comp.variacao >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                            }`}>
-                              {comp.variacao >= 0 ? "↑" : "↓"}{Math.abs(comp.variacao).toFixed(1)}%
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground px-2">sem dados</span>
-                          )}
+                      <div key={emp.slug} className="rounded-xl border border-border/50 overflow-hidden">
+                        {/* Header da unidade */}
+                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/30">
+                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
+                          <span className="text-sm font-semibold text-foreground">{emp.nome}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{MESES[mes - 1]}: <span className="font-bold text-foreground">{fmt(compAnterior.totalAtual)}</span></span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <p className="text-xs text-blue-500 font-medium">{MESES[mes - 1]} (atual)</p>
-                            <p className="text-base font-bold text-blue-700">{fmt(comp.totalAtual)}</p>
+                        {/* Linhas de comparação */}
+                        <div className="divide-y divide-border/30">
+                          {/* Mês anterior */}
+                          <div className="flex items-center justify-between px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                              <span className="text-xs text-muted-foreground">{MESES[mesAnterior - 1]}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground">{compAnterior.totalAnterior > 0 ? fmt(compAnterior.totalAnterior) : "—"}</span>
+                              {varAnterior !== null ? (
+                                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                                  varAnterior >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                }`}>
+                                  {varAnterior >= 0 ? "+" : ""}{varAnterior.toFixed(1)}%
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-amber-600 font-medium">Melhor: {comp.mesNome}</p>
-                            <p className="text-base font-bold text-amber-700">{fmt(comp.totalMelhor)}</p>
-                          </div>
+                          {/* Melhor mês */}
+                          {compMelhor && compMelhor.totalMelhor > 0 && (
+                            <div className="flex items-center justify-between px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <Trophy className="w-3 h-3 text-amber-500" />
+                                <span className="text-xs text-muted-foreground">{compMelhor.mesNome} <span className="text-amber-600 font-medium">(melhor)</span></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-foreground">{fmt(compMelhor.totalMelhor)}</span>
+                                {varMelhor !== null ? (
+                                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                                    varMelhor >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                  }`}>
+                                    {varMelhor >= 0 ? "+" : ""}{varMelhor.toFixed(1)}%
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
