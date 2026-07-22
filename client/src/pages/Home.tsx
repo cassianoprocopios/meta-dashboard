@@ -887,49 +887,45 @@ export default function Home() {
     const { diaInicio, diaFim } = comparativoMesAnterior;
     if (diaFim === 0) return null;
 
-    // Calcular total de cada mês do ano (excluindo mês atual) nos mesmos dias apurados
-    const mesesDoAno: { mes: number; total: number; porEmpresa: Record<string, number> }[] = [];
-    for (let m = 1; m <= 12; m++) {
-      if (m === mes) continue; // excluir mês atual
-      const fatsMes = historicoAnualData.faturamentos.filter((f: any) => {
-        const [fAno, fMes, fDia] = f.data.split("-").map(Number);
-        return fMes === m && fAno === ano && fDia >= diaInicio && fDia <= diaFim;
-      });
-      if (fatsMes.length === 0) continue;
-      let totalMes = 0;
-      const porEmpresa: Record<string, number> = {};
-      empresasVisiveis.forEach((emp) => {
-        const fatsEmp = fatsMes.filter((f: any) => f.empresaSlug === emp.slug);
-        const totalEmp = fatsEmp.reduce((s: number, r: any) =>
-          s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
-        porEmpresa[emp.slug] = totalEmp;
-        totalMes += totalEmp;
-      });
-      mesesDoAno.push({ mes: m, total: totalMes, porEmpresa });
-    }
-    if (mesesDoAno.length === 0) return null;
+    // Para cada empresa, calcular o total de cada mês do ano (excluindo mês atual) nos mesmos dias apurados
+    // e encontrar o melhor mês INDIVIDUALMENTE para cada unidade
+    const porEmpresaComp: Record<string, { mesNome: string; mesNumero: number; totalAtual: number; totalMelhor: number; variacao: number | null }> = {};
 
-    // Encontrar o melhor mês
-    const melhor = mesesDoAno.reduce((best, curr) => curr.total > best.total ? curr : best, mesesDoAno[0]);
-    const totalAtual = comparativoMesAnterior.totalAtualRealizado;
-    const variacao = melhor.total > 0 ? ((totalAtual - melhor.total) / melhor.total) * 100 : null;
-
-    // Variação por empresa
-    const porEmpresaComp: Record<string, { totalAtual: number; totalMelhor: number }> = {};
     empresasVisiveis.forEach((emp) => {
+      const mesesEmpresa: { mes: number; total: number }[] = [];
+      for (let m = 1; m <= 12; m++) {
+        if (m === mes) continue; // excluir mês atual
+        const fatsMes = historicoAnualData.faturamentos.filter((f: any) => {
+          const [fAno, fMes, fDia] = f.data.split("-").map(Number);
+          return fMes === m && fAno === ano && fDia >= diaInicio && fDia <= diaFim && f.empresaSlug === emp.slug;
+        });
+        if (fatsMes.length === 0) continue;
+        const totalEmp = fatsMes.reduce((s: number, r: any) =>
+          s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        mesesEmpresa.push({ mes: m, total: totalEmp });
+      }
+      if (mesesEmpresa.length === 0) {
+        porEmpresaComp[emp.slug] = { mesNome: "—", mesNumero: 0, totalAtual: 0, totalMelhor: 0, variacao: null };
+        return;
+      }
+      const melhorEmpresa = mesesEmpresa.reduce((best, curr) => curr.total > best.total ? curr : best, mesesEmpresa[0]);
       const compAtual = comparativoMesAnterior.porEmpresa[emp.slug];
+      const totalAtual = compAtual?.totalAtual ?? 0;
+      const variacao = melhorEmpresa.total > 0 ? ((totalAtual - melhorEmpresa.total) / melhorEmpresa.total) * 100 : null;
       porEmpresaComp[emp.slug] = {
-        totalAtual: compAtual?.totalAtual ?? 0,
-        totalMelhor: melhor.porEmpresa[emp.slug] ?? 0,
+        mesNome: MESES[melhorEmpresa.mes - 1],
+        mesNumero: melhorEmpresa.mes,
+        totalAtual,
+        totalMelhor: melhorEmpresa.total,
+        variacao,
       };
     });
 
+    // Verificar se há pelo menos uma empresa com dados
+    const temDados = Object.values(porEmpresaComp).some(v => v.totalMelhor > 0);
+    if (!temDados) return null;
+
     return {
-      mesNumero: melhor.mes,
-      mesNome: MESES[melhor.mes - 1],
-      totalMelhor: melhor.total,
-      totalAtual,
-      variacao,
       porEmpresa: porEmpresaComp,
       periodoLabel: comparativoMesAnterior.periodoLabel,
     };
@@ -2165,73 +2161,50 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Card Comparativo com Melhor Mês do Ano */}
+            {/* Card Comparativo com Melhor Mês do Ano (por unidade) */}
             {comparativoMelhorMes && (
               <Card className="p-5 border-0 shadow-sm rounded-2xl bg-zinc-100 dark:bg-zinc-800">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
-                      <Trophy className="w-4 h-4 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground text-sm">Comparativo com Melhor Mês ({comparativoMelhorMes.mesNome})</h3>
-                      <p className="text-xs text-muted-foreground">{comparativoMelhorMes.periodoLabel} — mesmos dias apurados</p>
-                    </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <Trophy className="w-4 h-4 text-amber-600" />
                   </div>
-                  {comparativoMelhorMes.variacao !== null && (
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                      comparativoMelhorMes.variacao >= 0
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
-                      {comparativoMelhorMes.variacao >= 0 ? "↑" : "↓"}
-                      {Math.abs(comparativoMelhorMes.variacao).toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-
-                {/* Total consolidado */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-blue-50 rounded-xl p-3">
-                    <p className="text-xs text-blue-500 font-medium uppercase tracking-wide">{MESES[mes - 1]} ({comparativoMelhorMes.periodoLabel})</p>
-                    <p className="text-xl font-bold text-blue-700 mt-0.5">{fmt(comparativoMelhorMes.totalAtual)}</p>
-                  </div>
-                  <div className="bg-amber-50 rounded-xl p-3">
-                    <p className="text-xs text-amber-600 font-medium uppercase tracking-wide">{comparativoMelhorMes.mesNome} ({comparativoMelhorMes.periodoLabel})</p>
-                    <p className="text-xl font-bold text-amber-700 mt-0.5">{fmt(comparativoMelhorMes.totalMelhor)}</p>
+                  <div>
+                    <h3 className="font-semibold text-foreground text-sm">Comparativo com Melhor Mês (por unidade)</h3>
+                    <p className="text-xs text-muted-foreground">{comparativoMelhorMes.periodoLabel} — mesmos dias apurados</p>
                   </div>
                 </div>
 
-                {/* Por empresa */}
-                <div className="space-y-2">
+                {/* Por empresa — cada uma com seu próprio melhor mês */}
+                <div className="space-y-3">
                   {empresasVisiveis.map((emp) => {
                     const comp = comparativoMelhorMes.porEmpresa[emp.slug];
-                    if (!comp) return null;
-                    const variacao = comp.totalMelhor > 0
-                      ? ((comp.totalAtual - comp.totalMelhor) / comp.totalMelhor) * 100
-                      : null;
+                    if (!comp || comp.totalMelhor === 0) return null;
                     return (
-                      <div key={emp.slug} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
-                        <span className="text-sm text-foreground flex-1 font-medium">{emp.nome}</span>
-                        <div className="flex items-center gap-3 text-right">
-                          <div>
-                            <p className="text-xs text-muted-foreground">{comparativoMelhorMes.mesNome}</p>
-                            <p className="text-sm font-semibold text-amber-600">{comp.totalMelhor > 0 ? fmt(comp.totalMelhor) : "—"}</p>
+                      <div key={emp.slug} className="bg-white dark:bg-zinc-700/50 rounded-xl p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.cor }} />
+                            <span className="text-sm text-foreground font-semibold">{emp.nome}</span>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">{MESES[mes - 1]}</p>
-                            <p className="text-sm font-semibold text-foreground">{fmt(comp.totalAtual)}</p>
-                          </div>
-                          {variacao !== null ? (
+                          {comp.variacao !== null ? (
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              variacao >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                              comp.variacao >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
                             }`}>
-                              {variacao >= 0 ? "↑" : "↓"}{Math.abs(variacao).toFixed(1)}%
+                              {comp.variacao >= 0 ? "↑" : "↓"}{Math.abs(comp.variacao).toFixed(1)}%
                             </span>
                           ) : (
                             <span className="text-xs text-muted-foreground px-2">sem dados</span>
                           )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-xs text-blue-500 font-medium">{MESES[mes - 1]} (atual)</p>
+                            <p className="text-base font-bold text-blue-700">{fmt(comp.totalAtual)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-amber-600 font-medium">Melhor: {comp.mesNome}</p>
+                            <p className="text-base font-bold text-amber-700">{fmt(comp.totalMelhor)}</p>
+                          </div>
                         </div>
                       </div>
                     );
