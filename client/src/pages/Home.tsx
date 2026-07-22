@@ -727,11 +727,12 @@ export default function Home() {
         : 'vermelho';
 
       // Projeção final:
-      // Fórmula: mediaDiária × diasÚteis (total do mês)
+      // Fórmula: totalRealizado + (médiaDiária × diasRestantes)
       // Onde:
-      //   - mediaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
-      //   - diasÚteis = total de dias úteis configurados para o mês
-      // Isso representa: "se mantiver o ritmo médio atual durante todo o mês, vai fechar em X"
+      //   - totalRealizado = faturamento já realizado até hoje (cat1..cat8 + recorrência real)
+      //   - médiaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
+      //   - diasRestantes = dias de calendário que faltam até o fim do mês
+      // Isso representa: "o que já faturou + quanto vai faturar nos dias restantes mantendo o ritmo"
       // IMPORTANTE: usa APENAS dias com dados reais (cat1..cat9 > 0) para não diluir a média
       
       // Filtra apenas dias que têm algum faturamento (cat1..cat9 > 0)
@@ -740,9 +741,9 @@ export default function Home() {
       const totalDiasComDados = rowsComDados.length;
       const mediaDiariaComCat9Todos = totalDiasComDados > 0 ? totalRealizadoComCat9Todos / totalDiasComDados : 0;
       
-      // Projeção = média diária × dias úteis do mês (total)
+      // Projeção = realizado + (média diária × dias restantes)
       const projecaoFinal = totalDiasComDados > 0
-        ? mediaDiariaComCat9Todos * diasUteis
+        ? totalRealizado + (mediaDiariaComCat9Todos * diasCalendarioRestantes)
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)
@@ -1982,7 +1983,7 @@ export default function Home() {
                         </span>
                       </div>
                       <p className="text-[11px] text-amber-600 dark:text-amber-500 mt-0.5">
-                        Não afeta média, máximo e mínimo diário — apenas a projeção final
+                        Não afeta média, máximo e mínimo diário
                       </p>
                     </div>
                   </div>
