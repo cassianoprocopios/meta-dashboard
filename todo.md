@@ -1621,4 +1621,4 @@
 - [x] Manter criação, exclusão e demais ações administrativas sensíveis restritas na interface gerencial
 - [x] Criar testes de autorização para gerente, administrador e perfis sem permissão (5 testes passando)
 - [x] Validar o fluxo de edição de unidade (procedure, autorização, preservação dos demais campos e carregamento da rota)
-- [ ] Publicar a atualização e confirmar o domínio de produção
+- [x] Publicar a atualização e confirmar o domínio de produção (performancemeta.sbs/colaboradores respondendo HTTP 200)
