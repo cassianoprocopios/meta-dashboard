@@ -1608,3 +1608,8 @@
 - [x] Corrigir comparativo melhor mês para calcular POR UNIDADE (cada empresa tem seu próprio melhor mês)
 - [x] Unificar cards comparativo mês anterior + melhor mês em um único card com melhor visualização
 - [x] Corrigir projeção: fórmula = totalRealizado + (médiaDiária × diasRestantes)
+
+## Incidente de Produção — Domínio em Manutenção
+- [x] Diagnosticar por que performancemeta.sbs exibe página de manutenção (domínio personalizado retorna 503 com origem 404; domínio padrão funciona com HTTP 200)
+- [x] Restaurar a publicação do sistema no domínio de produção (domínios raiz, www e manus.space respondendo com HTTP 200)
+- [x] Validar o carregamento da tela de login pelo domínio performancemeta.sbs (interface carregada com campos de e-mail, senha e botão Entrar)
