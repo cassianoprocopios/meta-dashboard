@@ -15,6 +15,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   listarColaboradores,
   salvarColaborador,
+  atualizarUnidadeColaborador,
   toggleColaboradorAtivo,
   deletarColaborador,
   listarRankingPorPeriodo,
@@ -187,6 +188,12 @@ async function getTenantIdFromCtxPublic(_ctx: any): Promise<number> {
   return 1;
 }
 
+export function podeAtualizarUnidadeColaborador(
+  user: { role?: string | null; perfil?: string | null } | null | undefined
+) {
+  return user?.role === "admin" || user?.perfil === "gerente";
+}
+
 // ─── PROFISSIONAIS ─────────────────────────────────────────────────────────
 const profissionaisRouter = router({
   listar: protectedProcedure.query(async ({ ctx }) => {
@@ -252,6 +259,44 @@ const profissionaisRouter = router({
         telefone: input.telefone ?? null,
       });
       return result;
+    }),
+
+  atualizarUnidade: protectedProcedure
+    .input(
+      z.object({
+        id: z.number().int().positive(),
+        empresaSlug: z.string().min(1).max(64),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!podeAtualizarUnidadeColaborador(ctx.user)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Apenas gerentes e administradores podem alterar a unidade do profissional.",
+        });
+      }
+
+      const tenantId = await getTenantIdFromCtx(ctx);
+      if (input.empresaSlug !== "barbiero-grupo") {
+        const empresa = await getEmpresaBySlugAndTenant(input.empresaSlug, tenantId);
+        if (!empresa) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A unidade selecionada não pertence à sua empresa.",
+          });
+        }
+      }
+
+      const colaborador = await atualizarUnidadeColaborador(
+        tenantId,
+        input.id,
+        input.empresaSlug
+      );
+      if (!colaborador) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Profissional não encontrado." });
+      }
+
+      return { ok: true, colaborador };
     }),
 
   toggleAtivo: protectedProcedure

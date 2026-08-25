@@ -1587,6 +1587,29 @@ export async function salvarColaborador(
   }
 }
 
+/** Atualiza somente a unidade de um colaborador, preservando os demais dados */
+export async function atualizarUnidadeColaborador(
+  tenantId: number,
+  id: number,
+  empresaSlug: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB não disponível");
+
+  await db
+    .update(colaboradores)
+    .set({ empresaSlug, updatedAt: new Date() })
+    .where(and(eq(colaboradores.id, id), eq(colaboradores.tenantId, tenantId)));
+
+  const rows = await db
+    .select()
+    .from(colaboradores)
+    .where(and(eq(colaboradores.id, id), eq(colaboradores.tenantId, tenantId)))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
 /** Ativa ou desativa um colaborador */
 export async function toggleColaboradorAtivo(tenantId: number, id: number, ativo: boolean) {
   const db = await getDb();

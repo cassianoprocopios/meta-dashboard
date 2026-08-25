@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +91,10 @@ const EMPTY_FORM = {
 };
 
 export default function GestaoColaboradores() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const isGerente = user?.perfil === "gerente";
+  const podeGerenciarUnidades = isAdmin || isGerente;
   const [busca, setBusca] = useState("");
   const [filtroEmpresa, setFiltroEmpresa] = useState<string>("todas");
   const [filtroStatus, setFiltroStatus] = useState<string>("ativos");
@@ -98,13 +103,19 @@ export default function GestaoColaboradores() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [novaExclusao, setNovaExclusao] = useState("");
 
-  const { data: colaboradores = [], isLoading, refetch } = trpc.profissionais.listar.useQuery();
-  const { data: empresas = [] } = trpc.empresa.listar.useQuery();
+  const { data: colaboradores = [], isLoading, refetch } = trpc.profissionais.listar.useQuery(
+    undefined,
+    { enabled: podeGerenciarUnidades }
+  );
+  const { data: empresas = [] } = trpc.empresa.listar.useQuery(
+    undefined,
+    { enabled: podeGerenciarUnidades }
+  );
 
   // Exclusões de categorias do colaborador em edição
   const { data: exclusoes = [], refetch: refetchExclusoes } = trpc.profissionais.listarExclusoes.useQuery(
     { colaboradorId: form.id! },
-    { enabled: !!form.id }
+    { enabled: !!form.id && isAdmin }
   );
 
   const adicionarExclusao = trpc.profissionais.adicionarExclusao.useMutation({
@@ -131,6 +142,15 @@ export default function GestaoColaboradores() {
       refetch();
     },
     onError: (e) => toast.error(`Erro ao salvar: ${e.message}`),
+  });
+
+  const atualizarUnidade = trpc.profissionais.atualizarUnidade.useMutation({
+    onSuccess: () => {
+      toast.success(`Unidade atualizada para ${empresaLabel(form.empresaSlug)}`);
+      setDialogAberto(false);
+      refetch();
+    },
+    onError: (e) => toast.error(`Erro ao atualizar unidade: ${e.message}`),
   });
 
   const toggleAtivo = trpc.profissionais.toggleAtivo.useMutation({
@@ -200,6 +220,17 @@ export default function GestaoColaboradores() {
   }
 
   function handleSalvar() {
+    if (!isAdmin) {
+      if (!isGerente || !form.id) {
+        toast.error("Acesso restrito a gerentes e administradores");
+        return;
+      }
+      atualizarUnidade.mutate({
+        id: form.id,
+        empresaSlug: form.empresaSlug,
+      });
+      return;
+    }
     if (!form.nome.trim()) {
       toast.error("Nome obrigatório");
       return;
@@ -230,6 +261,20 @@ export default function GestaoColaboradores() {
     );
   }, [empresas]);
 
+  if (!podeGerenciarUnidades) {
+    return (
+      <div className="p-6 max-w-3xl mx-auto">
+        <div className="rounded-2xl border border-red-500/25 bg-red-500/10 p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
+          <h1 className="text-xl font-semibold text-white">Acesso restrito</h1>
+          <p className="text-white/60 text-sm mt-2">
+            A Gestão de Colaboradores está disponível somente para gerentes e administradores.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Cabeçalho */}
@@ -237,13 +282,17 @@ export default function GestaoColaboradores() {
         <div>
           <h1 className="text-2xl font-bold text-white">Gestão de Colaboradores</h1>
           <p className="text-white/50 text-sm mt-1">
-            Gerencie unidades, status e dados de cada profissional
+            {isAdmin
+              ? "Gerencie unidades, status e dados de cada profissional"
+              : "Defina a unidade de cada profissional"}
           </p>
         </div>
-        <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-          <Plus className="w-4 h-4" />
-          Novo Colaborador
-        </Button>
+        {isAdmin && (
+          <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Colaborador
+          </Button>
+        )}
       </div>
 
       {/* Cards de estatísticas */}
@@ -390,9 +439,10 @@ export default function GestaoColaboradores() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => toggleAtivo.mutate({ id: c.id, ativo: !c.ativo })}
-                      className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                      title={c.ativo ? "Desativar" : "Ativar"}
+                      onClick={() => isAdmin && toggleAtivo.mutate({ id: c.id, ativo: !c.ativo })}
+                      disabled={!isAdmin}
+                      className={`inline-flex items-center gap-1.5 ${isAdmin ? "transition-opacity hover:opacity-80" : "cursor-default"}`}
+                      title={isAdmin ? (c.ativo ? "Desativar" : "Ativar") : "Somente administradores alteram o status"}
                     >
                       {c.ativo ? (
                         <UserCheck className="w-4 h-4 text-green-400" />
@@ -409,17 +459,19 @@ export default function GestaoColaboradores() {
                       <button
                         onClick={() => abrirEditar(c)}
                         className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-colors"
-                        title="Editar"
+                        title={isAdmin ? "Editar" : "Alterar unidade"}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(c.id)}
-                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
-                        title="Remover"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setConfirmDeleteId(c.id)}
+                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                          title="Remover"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -440,11 +492,16 @@ export default function GestaoColaboradores() {
       <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
         <DialogContent className="bg-[#1a1f2e] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{form.id ? "Editar Colaborador" : "Novo Colaborador"}</DialogTitle>
+            <DialogTitle>
+              {isAdmin
+                ? (form.id ? "Editar Colaborador" : "Novo Colaborador")
+                : `Alterar unidade — ${form.nome}`}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             {/* Nome e Apelido */}
+            {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-white/70 text-xs">Nome *</Label>
@@ -465,6 +522,7 @@ export default function GestaoColaboradores() {
                 />
               </div>
             </div>
+            )}
 
             {/* Unidade */}
             <div className="space-y-1.5">
@@ -491,6 +549,7 @@ export default function GestaoColaboradores() {
             </div>
 
             {/* Cargo e Categoria */}
+            {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-white/70 text-xs">Cargo</Label>
@@ -518,8 +577,10 @@ export default function GestaoColaboradores() {
                 </Select>
               </div>
             </div>
+            )}
 
             {/* Meta Mensal e ID CashBarber */}
+            {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-white/70 text-xs">Meta Mensal (R$)</Label>
@@ -542,8 +603,10 @@ export default function GestaoColaboradores() {
                 />
               </div>
             </div>
+            )}
 
             {/* PIN e Telefone */}
+            {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-white/70 text-xs">PIN de Acesso</Label>
@@ -564,8 +627,10 @@ export default function GestaoColaboradores() {
                 />
               </div>
             </div>
+            )}
 
             {/* Switches */}
+            {isAdmin && (
             <div className="grid grid-cols-3 gap-3 pt-2">
               <div className="flex flex-col items-center gap-2 bg-white/5 rounded-xl p-3">
                 <Switch
@@ -589,9 +654,10 @@ export default function GestaoColaboradores() {
                 <Label className="text-white/60 text-xs text-center">Gerência</Label>
               </div>
             </div>
+            )}
 
             {/* Exclusões de categorias do ranking (apenas ao editar) */}
-            {form.id && (
+            {isAdmin && form.id && (
               <div className="space-y-2 pt-2 border-t border-white/10">
                 <div className="flex items-center gap-2">
                   <Tag className="w-3.5 h-3.5 text-amber-400" />
@@ -659,13 +725,13 @@ export default function GestaoColaboradores() {
             </Button>
             <Button
               onClick={handleSalvar}
-              disabled={salvar.isPending}
+              disabled={salvar.isPending || atualizarUnidade.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {salvar.isPending ? (
+              {salvar.isPending || atualizarUnidade.isPending ? (
                 <><Loader2 className="w-4 h-4 animate-spin mr-2" />Salvando...</>
               ) : (
-                form.id ? "Salvar Alterações" : "Criar Colaborador"
+                isAdmin ? (form.id ? "Salvar Alterações" : "Criar Colaborador") : "Salvar Unidade"
               )}
             </Button>
           </DialogFooter>

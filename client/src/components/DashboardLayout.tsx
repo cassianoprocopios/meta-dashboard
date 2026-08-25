@@ -38,7 +38,7 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Scissors, label: "Profissionais", path: "/profissionais", perfis: ["gerente", "operador", "admin"] },
-  { icon: UserCog, label: "Gestão de Colaboradores", path: "/colaboradores", perfis: ["gerente", "admin"], roles: ["admin"] },
+  { icon: UserCog, label: "Gestão de Colaboradores", path: "/colaboradores", perfis: ["gerente"] },
   { icon: Target, label: "Metas", path: "/", perfis: ["gerente", "operador", "admin"] },
   { icon: ClipboardList, label: "Lançamentos", path: "/" },
   { icon: BarChart2, label: "Bonificação", path: "/", perfis: ["gerente", "admin"] },
@@ -206,6 +206,10 @@ function DashboardLayoutContent({
                   // Filtrar por role se especificado
                   if (item.roles && item.roles.length > 0) {
                     if (!item.roles.includes(user?.role ?? "")) return false;
+                  }
+                  // Administradores têm acesso global; demais usuários respeitam o perfil do item
+                  if (item.perfis && item.perfis.length > 0 && user?.role !== "admin") {
+                    if (!item.perfis.includes(user?.perfil ?? "")) return false;
                   }
                   return true;
                 })

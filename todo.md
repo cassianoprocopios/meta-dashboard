@@ -1613,3 +1613,12 @@
 - [x] Diagnosticar por que performancemeta.sbs exibe página de manutenção (domínio personalizado retorna 503 com origem 404; domínio padrão funciona com HTTP 200)
 - [x] Restaurar a publicação do sistema no domínio de produção (domínios raiz, www e manus.space respondendo com HTTP 200)
 - [x] Validar o carregamento da tela de login pelo domínio performancemeta.sbs (interface carregada com campos de e-mail, senha e botão Entrar)
+
+## Acesso Gerencial — Gestão de Colaboradores
+- [x] Mapear restrições atuais de rota, menu e procedures da Gestão de Colaboradores
+- [x] Liberar a página de Gestão de Colaboradores para usuários com perfil gerente
+- [x] Permitir que gerentes alterem a unidade vinculada aos profissionais
+- [x] Manter criação, exclusão e demais ações administrativas sensíveis restritas na interface gerencial
+- [x] Criar testes de autorização para gerente, administrador e perfis sem permissão (5 testes passando)
+- [x] Validar o fluxo de edição de unidade (procedure, autorização, preservação dos demais campos e carregamento da rota)
+- [ ] Publicar a atualização e confirmar o domínio de produção
