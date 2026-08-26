@@ -1633,4 +1633,4 @@
 - [x] Atualizar somente snapshots de agosto que não refletem o fechamento correto da quinzena
 - [x] Corrigir cálculo ou dados inconsistentes sem alterar valores congelados automaticamente após o dia 15 (helper compartilhado entre dashboard e job)
 - [x] Criar testes para o cálculo quinzenal individual por unidade (4 testes passando)
-- [ ] Publicar e validar os resultados no dashboard
+- [x] Publicar e validar os resultados no dashboard (performancemeta.sbs respondendo HTTP 200)
