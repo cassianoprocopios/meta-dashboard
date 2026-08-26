@@ -1622,3 +1622,15 @@
 - [x] Criar testes de autorização para gerente, administrador e perfis sem permissão (5 testes passando)
 - [x] Validar o fluxo de edição de unidade (procedure, autorização, preservação dos demais campos e carregamento da rota)
 - [x] Publicar a atualização e confirmar o domínio de produção (performancemeta.sbs/colaboradores respondendo HTTP 200)
+
+## Correção do Resultado Quinzenal por Unidade
+- [x] Somar e validar os 15 valores informados do Morumbi (R$ 121.017 pelos valores arredondados; R$ 121.014,64 nos centavos do banco)
+- [x] Comparar o total do Morumbi com a meta quinzenal cadastrada (agosto está em R$ 125.000; meta padrão dos meses seguintes é R$ 112.000)
+- [x] Calcular o faturamento dos dias 1 a 15 para Mascote e Seraphine pela mesma regra (Mascote R$ 58.351,55; Seraphine R$ 66.425,70)
+- [x] Verificar snapshots e lógica atual do card quinzenal por unidade (snapshot da Seraphine foi congelado antes de todos os lançamentos)
+- [x] Recalcular os totais dos dias 1 a 15 após a nova distribuição do Dpote (regra: cat1–cat8 dos dias 1–15 + Dpote mensal integral)
+- [x] Comparar os novos totais com as metas quinzenais vigentes de agosto (Morumbi e Mascote atingiram; Seraphine ficou em 94,89%)
+- [x] Atualizar somente snapshots de agosto que não refletem o fechamento correto da quinzena
+- [x] Corrigir cálculo ou dados inconsistentes sem alterar valores congelados automaticamente após o dia 15 (helper compartilhado entre dashboard e job)
+- [x] Criar testes para o cálculo quinzenal individual por unidade (4 testes passando)
+- [ ] Publicar e validar os resultados no dashboard

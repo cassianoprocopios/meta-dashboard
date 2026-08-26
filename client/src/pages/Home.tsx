@@ -48,6 +48,7 @@ import ClientesEvolucaoChart from "@/components/ClientesEvolucaoChart";
 import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
 import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
+import { calcularTotalQuinzenal } from "@shared/quinzenal";
 
 
 const MESES = [
@@ -670,8 +671,13 @@ export default function Home() {
       const rowsQuinzenal = (faturamentosData as any[])
         .filter((r: any) => r.empresaSlug === emp.slug && parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
-      const totalQuinzenalSemRec = rowsQuinzenal.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
-      const totalQuinzenalCalculado = totalQuinzenalSemRec + recorrenciaNoFaturamento;
+      const rowsMesEmpresa = (faturamentosData as any[]).filter(
+        (r: any) => r.empresaSlug === emp.slug
+      );
+      const totalQuinzenalCalculado = calcularTotalQuinzenal(
+        rowsMesEmpresa,
+        recorrenciaNoFaturamento
+      );
 
       // Se existe snapshot congelado para esta empresa/mês/ano, usar o valor definitivo
       // O snapshot é gerado automaticamente no dia 15 às 23h BRT e garante o valor correto para bonificações

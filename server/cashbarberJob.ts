@@ -8,6 +8,7 @@
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 import { verificarQuedaBrusca } from "./alertasJob";
+import { calcularTotalQuinzenal } from "../shared/quinzenal";
 
 // ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
@@ -839,10 +840,7 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
         return dia >= 1 && dia <= 15;
       });
 
-      const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
-        const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9];
-        return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
-      }, 0);
+      const totalQuinzenal = calcularTotalQuinzenal(faturamentosMes);
 
       console.log(`[Quinzenal Job] ${empresa.slug}: dias=${diasQuinzena.length}, totalQuinzenal=${totalQuinzenal}, metaQuinzenal=${metaQuinzenal}`);
 
