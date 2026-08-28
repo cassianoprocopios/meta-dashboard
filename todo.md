@@ -1641,4 +1641,4 @@
 - [x] Preservar o calendário correto de Morumbi e Mascote (domingo fechado)
 - [x] Recalcular Dias rest., R$/dia e projeção usando somente dias de funcionamento restantes e incluindo o dia atual
 - [x] Criar testes para a contagem por unidade, incluindo o cenário de 2 dias restantes da Seraphine (7 testes passando)
-- [ ] Publicar e validar a correção no dashboard
+- [x] Publicar e validar a correção no dashboard (performancemeta.sbs respondendo HTTP 200)
