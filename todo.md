@@ -1653,3 +1653,11 @@
 - [x] Adicionar indicador verde, âmbar ou vermelho para viabilidade da necessidade diária
 - [x] Criar testes de autorização, calendário excepcional e classificação de viabilidade (19 testes específicos passando)
 - [x] Publicar e validar a funcionalidade no dashboard (performancemeta.sbs respondendo HTTP 200)
+
+## Recálculo Quinzenal Definitivo — Mascote e Morumbi
+- [x] Somar e validar os 15 valores informados da Mascote (R$ 57.774 arredondado; R$ 57.773,75 exato)
+- [x] Recalcular os valores exatos da primeira quinzena no banco com o Dpote atualizado (Mascote R$ 57.773,75; Morumbi R$ 118.472,29)
+- [x] Comparar Mascote e Morumbi com as metas quinzenais vigentes (Mascote R$ 56.000; Morumbi deve usar a meta padrão R$ 112.000 informada anteriormente)
+- [x] Atualizar somente snapshots divergentes, preservando o fechamento definitivo e a bonificação de 0,30%
+- [x] Confirmar que ambas as unidades estão marcadas como meta quinzenal atingida
+- [ ] Validar o dashboard e registrar o resultado final

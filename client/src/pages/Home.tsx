@@ -668,21 +668,16 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: cat1..cat8 dos dias 1-15 + recorrência TOTAL do mês (cat9)
-      // IMPORTANTE: O Dpote (cat9) é um valor MENSAL distribuído uniformemente por todos os dias.
-      // Para a meta quinzenal, deve-se usar o valor TOTAL de recorrência (não apenas a parcela dos dias 1-15),
-      // pois a recorrência é um faturamento real que já entrou e não pertence a dias específicos.
-      // Usa faturamentosData (dados completos do mês, sem filtro de semana).
+      // Quinzenal: soma cat1..cat9 exclusivamente dos dias 1-15.
+      // O Dpote já está distribuído diariamente e, portanto, entra apenas pela parcela
+      // registrada nos quinze dias do período.
       const rowsQuinzenal = (faturamentosData as any[])
         .filter((r: any) => r.empresaSlug === emp.slug && parseInt(r.data.split("-")[2]) <= 15);
       const diasLancadosQuinzenal = rowsQuinzenal.length;
       const rowsMesEmpresa = (faturamentosData as any[]).filter(
         (r: any) => r.empresaSlug === emp.slug
       );
-      const totalQuinzenalCalculado = calcularTotalQuinzenal(
-        rowsMesEmpresa,
-        recorrenciaNoFaturamento
-      );
+      const totalQuinzenalCalculado = calcularTotalQuinzenal(rowsMesEmpresa);
 
       // Se existe snapshot congelado para esta empresa/mês/ano, usar o valor definitivo
       // O snapshot é gerado automaticamente no dia 15 às 23h BRT e garante o valor correto para bonificações

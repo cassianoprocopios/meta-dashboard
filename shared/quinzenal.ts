@@ -16,7 +16,7 @@ function valorNumerico(valor: string | number | null | undefined) {
   return Number.isFinite(numero) ? numero : 0;
 }
 
-export function somarOperacional(faturamento: FaturamentoQuinzenal) {
+export function somarTotalDiario(faturamento: FaturamentoQuinzenal) {
   return [
     faturamento.cat1,
     faturamento.cat2,
@@ -26,29 +26,20 @@ export function somarOperacional(faturamento: FaturamentoQuinzenal) {
     faturamento.cat6,
     faturamento.cat7,
     faturamento.cat8,
+    faturamento.cat9,
   ].reduce<number>((total, categoria) => total + valorNumerico(categoria), 0);
 }
 
 /**
  * Regra do fechamento quinzenal:
- * - faturamento operacional (cat1–cat8) somente dos dias 1 a 15;
- * - Dpote/recorrência (cat9) integral do mês, pois é uma receita mensal distribuída.
+ * - soma todas as categorias, inclusive o Dpote distribuído (cat9),
+ *   exclusivamente nos lançamentos dos dias 1 a 15.
  */
-export function calcularTotalQuinzenal(
-  faturamentosMes: FaturamentoQuinzenal[],
-  recorrenciaTotalOverride?: number
-) {
-  const operacionalPrimeiraQuinzena = faturamentosMes
+export function calcularTotalQuinzenal(faturamentosMes: FaturamentoQuinzenal[]) {
+  return faturamentosMes
     .filter((faturamento) => {
       const dia = Number.parseInt(faturamento.data.split("-")[2] || "0", 10);
       return dia >= 1 && dia <= 15;
     })
-    .reduce((total, faturamento) => total + somarOperacional(faturamento), 0);
-
-  const recorrenciaTotal = recorrenciaTotalOverride ?? faturamentosMes.reduce(
-    (total, faturamento) => total + valorNumerico(faturamento.cat9),
-    0
-  );
-
-  return operacionalPrimeiraQuinzena + recorrenciaTotal;
+    .reduce((total, faturamento) => total + somarTotalDiario(faturamento), 0);
 }
