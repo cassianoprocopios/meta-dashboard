@@ -1660,4 +1660,4 @@
 - [x] Comparar Mascote e Morumbi com as metas quinzenais vigentes (Mascote R$ 56.000; Morumbi deve usar a meta padrão R$ 112.000 informada anteriormente)
 - [x] Atualizar somente snapshots divergentes, preservando o fechamento definitivo e a bonificação de 0,30%
 - [x] Confirmar que ambas as unidades estão marcadas como meta quinzenal atingida
-- [ ] Validar o dashboard e registrar o resultado final
+- [x] Validar o dashboard e registrar o resultado final (performancemeta.sbs respondendo HTTP 200)
