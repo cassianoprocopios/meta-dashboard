@@ -49,6 +49,10 @@ import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
 import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
 import { calcularTotalQuinzenal } from "@shared/quinzenal";
+import {
+  calcularIndicadoresDiasRestantes,
+  contarDiasFuncionamentoNoIntervalo,
+} from "@shared/calendarioFuncionamento";
 
 
 const MESES = [
@@ -655,10 +659,6 @@ export default function Home() {
       const diasUteisDecorridos = Math.round(diasUteis * (diaHoje / totalDiasMes));
       const diasUteisDecrridosQuinzenal = Math.round(diasUteisQuinzenal * (diaHojeQuinzenal / 15));
       
-      // Dias de calendário restantes (não dias úteis)
-      // Calcula quantos dias ainda faltam até o final do mês
-      const diasCalendarioRestantes = Math.max(0, totalDiasMes - diaHoje);
-
       // Meta acumulada esperada até hoje (apenas dias passados)
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
@@ -695,25 +695,34 @@ export default function Home() {
         ? parseFloat(snapshotEmpresa.totalRealizado)
         : totalQuinzenalCalculado;
 
-      // diasUteisRestantes: dias úteis que ainda faltam no mês
-      // = dias úteis configurados (diasUteis) - dias úteis já decorridos (proporcional ao calendário)
-      // Usa diasUteisDecorridos (baseado no dia atual do mês) para garantir consistência entre
-      // unidades com o mesmo diasUteis, independente de quantos dias foram lançados no banco
-      // CORRIGIDO: Usar dias de calendário restantes para exibição correta
-      const diasUteisRestantes = diasCalendarioRestantes;
-      // Para a quinzenal: dias de calendário restantes até o dia 15 (inclusive o dia de hoje)
-      // Usa dias de calendário para refletir corretamente quantos dias ainda restam na quinzena
-      // CORRIGIDO: Usar dias de calendário reais (sem +1 para não contar o dia atual duas vezes)
-      const diasUteisRestantesQuinzenal = ehMesFuturo
-        ? 15
-        : (ehMesVigente && diaHoje <= 15)
-          ? Math.max(0, 15 - diaHoje)
-          : 0;
+      // Dias restantes seguem o calendário real de funcionamento de cada unidade.
+      // O dia atual é incluído, pois o faturamento do dia ainda está em andamento.
+      // Seraphine fecha aos domingos e às segundas; as demais unidades fecham aos domingos.
+      const diaInicialRestante = ehMesFuturo ? 1 : ehMesVigente ? diaHoje : totalDiasMes + 1;
+      const diasUteisRestantes = contarDiasFuncionamentoNoIntervalo({
+        empresaSlug: emp.slug,
+        ano,
+        mes,
+        diaInicial: diaInicialRestante,
+        diaFinal: totalDiasMes,
+      });
+      const diasUteisRestantesQuinzenal = contarDiasFuncionamentoNoIntervalo({
+        empresaSlug: emp.slug,
+        ano,
+        mes,
+        diaInicial: ehMesFuturo ? 1 : ehMesVigente && diaHoje <= 15 ? diaHoje : 16,
+        diaFinal: 15,
+      });
 
-      // Meta/dia dinâmica: quanto precisa fazer por dia útil restante para atingir a meta
-      // Usa totalRealizado para não contar previstos como já conquistados
-      const faltaMensal = Math.max(0, metaMensal - totalRealizado);
-      const metaDiariaDinamicaMensal = diasUteisRestantes > 0 ? faltaMensal / diasUteisRestantes : 0;
+      // Meta/dia dinâmica e projeção usam os mesmos dias de funcionamento restantes.
+      const indicadoresDiasRestantes = calcularIndicadoresDiasRestantes({
+        totalRealizado,
+        metaMensal,
+        mediaDiaria,
+        diasRestantes: diasUteisRestantes,
+      });
+      const faltaMensal = indicadoresDiasRestantes.faltaMensal;
+      const metaDiariaDinamicaMensal = indicadoresDiasRestantes.metaDiariaNecessaria;
 
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
@@ -737,19 +746,13 @@ export default function Home() {
       // Onde:
       //   - totalRealizado = faturamento já realizado até hoje (cat1..cat8 + recorrência real)
       //   - médiaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
-      //   - diasRestantes = dias de calendário que faltam até o fim do mês
+      //   - diasRestantes = dias de funcionamento da unidade, incluindo o dia atual
       // Isso representa: "o que já faturou + quanto vai faturar nos dias restantes mantendo o ritmo"
       // IMPORTANTE: usa APENAS dias com dados reais (cat1..cat9 > 0) para não diluir a média
       
-      // Filtra apenas dias que têm algum faturamento (cat1..cat9 > 0)
-      const rowsComDados = rows.filter((r: any) => sumCats(r) > 0);
-      const totalRealizadoComCat9Todos = rowsComDados.reduce((sum: number, r: any) => sum + sumCats(r), 0);
-      const totalDiasComDados = rowsComDados.length;
-      const mediaDiariaComCat9Todos = totalDiasComDados > 0 ? totalRealizadoComCat9Todos / totalDiasComDados : 0;
-      
-      // Projeção = realizado + (média diária × dias restantes)
-      const projecaoFinal = totalDiasComDados > 0
-        ? totalRealizado + (mediaDiariaComCat9Todos * diasCalendarioRestantes)
+      // Projeção = realizado + (média diária dos dias apurados × dias de funcionamento restantes)
+      const projecaoFinal = diasRealizados > 0
+        ? indicadoresDiasRestantes.projecaoFinal
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
       // Totais por categoria (9 categorias)

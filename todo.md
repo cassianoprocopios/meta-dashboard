@@ -1634,3 +1634,11 @@
 - [x] Corrigir cálculo ou dados inconsistentes sem alterar valores congelados automaticamente após o dia 15 (helper compartilhado entre dashboard e job)
 - [x] Criar testes para o cálculo quinzenal individual por unidade (4 testes passando)
 - [x] Publicar e validar os resultados no dashboard (performancemeta.sbs respondendo HTTP 200)
+
+## Correção de Dias Restantes por Calendário da Unidade
+- [x] Localizar todos os cálculos de dias restantes, necessidade diária e projeção no dashboard
+- [x] Definir calendário da Seraphine com domingo e segunda-feira fechados
+- [x] Preservar o calendário correto de Morumbi e Mascote (domingo fechado)
+- [x] Recalcular Dias rest., R$/dia e projeção usando somente dias de funcionamento restantes e incluindo o dia atual
+- [x] Criar testes para a contagem por unidade, incluindo o cenário de 2 dias restantes da Seraphine (7 testes passando)
+- [ ] Publicar e validar a correção no dashboard
