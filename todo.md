@@ -1652,4 +1652,4 @@
 - [x] Adicionar tooltip em Dias rest. com dias semanais fechados e exceções do período
 - [x] Adicionar indicador verde, âmbar ou vermelho para viabilidade da necessidade diária
 - [x] Criar testes de autorização, calendário excepcional e classificação de viabilidade (19 testes específicos passando)
-- [ ] Publicar e validar a funcionalidade no dashboard
+- [x] Publicar e validar a funcionalidade no dashboard (performancemeta.sbs respondendo HTTP 200)
