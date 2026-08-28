@@ -31,6 +31,11 @@ import {
   getAllUsersByTenant,
   getAllUsersByTenantWithEmpresas,
   getEmpresasByTenant,
+  criarFechamentoUnidade,
+  excluirFechamentoUnidade,
+  getFechamentoUnidadeByData,
+  getFechamentoUnidadeById,
+  listarFechamentosUnidade,
   createEmpresa,
   deactivateEmpresa,
   updateEmpresa,
@@ -193,6 +198,105 @@ export function podeAtualizarUnidadeColaborador(
 ) {
   return user?.role === "admin" || user?.perfil === "gerente";
 }
+
+function dataIsoValida(data: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  if (!match) return false;
+  const ano = Number(match[1]);
+  const mes = Number(match[2]);
+  const dia = Number(match[3]);
+  const valor = new Date(Date.UTC(ano, mes - 1, dia));
+  return valor.getUTCFullYear() === ano && valor.getUTCMonth() === mes - 1 && valor.getUTCDate() === dia;
+}
+
+async function getEmpresasPermitidasDoUsuario(ctx: any) {
+  if (ctx.user.role === "admin") return undefined;
+  const slugs = await getUserEmpresaSlugs(ctx.user.id);
+  if (slugs.length > 0) return slugs.map((slug) => slug.toLowerCase());
+  return ctx.user.empresaVinculada ? [ctx.user.empresaVinculada.toLowerCase()] : [];
+}
+
+async function validarAcessoAoFechamento(ctx: any, empresaSlug: string) {
+  if (ctx.user.role !== "admin" && ctx.user.perfil !== "gerente") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem configurar fechamentos." });
+  }
+
+  const tenantId = await getTenantIdFromCtx(ctx);
+  const slugNormalizado = empresaSlug.toLowerCase();
+  const empresa = await getEmpresaBySlugAndTenant(slugNormalizado, tenantId);
+  if (!empresa) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Unidade inválida para este estabelecimento." });
+  }
+
+  const permitidas = await getEmpresasPermitidasDoUsuario(ctx);
+  if (permitidas && !permitidas.includes(slugNormalizado)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Você só pode configurar fechamentos das suas unidades." });
+  }
+
+  return { tenantId, empresaSlug: slugNormalizado };
+}
+
+const fechamentosRouter = router({
+  listar: protectedProcedure
+    .input(z.object({
+      mes: z.number().int().min(1).max(12),
+      ano: z.number().int().min(2020).max(2100),
+      empresaSlug: z.string().min(1).optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const permitidas = await getEmpresasPermitidasDoUsuario(ctx);
+      let empresasSlugs = permitidas;
+
+      if (input.empresaSlug) {
+        const slug = input.empresaSlug.toLowerCase();
+        if (permitidas && !permitidas.includes(slug)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Você não possui acesso a esta unidade." });
+        }
+        empresasSlugs = [slug];
+      }
+
+      return listarFechamentosUnidade({ tenantId, mes: input.mes, ano: input.ano, empresasSlugs });
+    }),
+
+  criar: protectedProcedure
+    .input(z.object({
+      empresaSlug: z.string().min(1),
+      data: z.string().refine(dataIsoValida, "Data inválida."),
+      motivo: z.string().trim().min(2).max(255),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const acesso = await validarAcessoAoFechamento(ctx, input.empresaSlug);
+      const existente = await getFechamentoUnidadeByData({
+        tenantId: acesso.tenantId,
+        empresaSlug: acesso.empresaSlug,
+        data: input.data,
+      });
+      if (existente) {
+        throw new TRPCError({ code: "CONFLICT", message: "Já existe um fechamento cadastrado para esta unidade nesta data." });
+      }
+      return criarFechamentoUnidade({
+        tenantId: acesso.tenantId,
+        empresaSlug: acesso.empresaSlug,
+        data: input.data,
+        motivo: input.motivo.trim(),
+        criadoPor: ctx.user.id,
+      });
+    }),
+
+  excluir: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.user.role !== "admin" && ctx.user.perfil !== "gerente") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Apenas gerentes e administradores podem excluir fechamentos." });
+      }
+      const tenantId = await getTenantIdFromCtx(ctx);
+      const registro = await getFechamentoUnidadeById(input.id, tenantId);
+      if (!registro) throw new TRPCError({ code: "NOT_FOUND", message: "Fechamento não encontrado." });
+      await validarAcessoAoFechamento(ctx, registro.empresaSlug);
+      return excluirFechamentoUnidade(input.id, tenantId);
+    }),
+});
 
 // ─── PROFISSIONAIS ─────────────────────────────────────────────────────────
 const profissionaisRouter = router({
@@ -1504,6 +1608,7 @@ const faturamentoCheckRouter = router({
 export const appRouter = router({
   system: systemRouter,
   profissionais: profissionaisRouter,
+  fechamentos: fechamentosRouter,
   clientesAtendidos: clientesAtendidosRouter,
   lancamentoClientesManual: lancamentoClientesManualRouter,
   clientesCashBarberSync: clientesCashBarberSyncRouter,

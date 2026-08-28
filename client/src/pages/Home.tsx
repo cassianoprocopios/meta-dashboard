@@ -14,7 +14,7 @@ import {
   TrendingUp, TrendingDown, Target, Calendar, Plus, AlertCircle,
   CheckCircle2, Clock, Building2, Users, Loader2, LogIn, LogOut, Shield, Menu, X as XIcon, Sparkles,
   ChevronDown, ChevronUp, Sun, Moon, ChevronLeft, ChevronRight, BellRing, Trophy, Zap, RefreshCw, Repeat2,
-  Pencil,
+  Info, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,7 @@ import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPo
 import { calcularTotalQuinzenal } from "@shared/quinzenal";
 import {
   calcularIndicadoresDiasRestantes,
+  classificarViabilidadeNecessidadeDiaria,
   contarDiasFuncionamentoNoIntervalo,
 } from "@shared/calendarioFuncionamento";
 
@@ -283,6 +284,10 @@ export default function Home() {
     });
   const { data: metasData = [], isLoading: loadingMetas, refetch: refetchMetas } =
     trpc.meta.listar.useQuery({ mes, ano });
+  const { data: fechamentosData = [] } = trpc.fechamentos.listar.useQuery(
+    { mes, ano },
+    { enabled: isAuthenticated }
+  );
 
   // Configurações Dpote por empresa (valor bruto de assinaturas e percentual)
   const { data: configsDpote = [] } = trpc.cashbarber.listarConfigsDpote.useQuery();
@@ -699,12 +704,17 @@ export default function Home() {
       // O dia atual é incluído, pois o faturamento do dia ainda está em andamento.
       // Seraphine fecha aos domingos e às segundas; as demais unidades fecham aos domingos.
       const diaInicialRestante = ehMesFuturo ? 1 : ehMesVigente ? diaHoje : totalDiasMes + 1;
+      const fechamentosEmpresa = (fechamentosData as any[]).filter(
+        (fechamento: any) => fechamento.empresaSlug === emp.slug
+      );
+      const datasFechamentoExcepcional = fechamentosEmpresa.map((fechamento: any) => fechamento.data);
       const diasUteisRestantes = contarDiasFuncionamentoNoIntervalo({
         empresaSlug: emp.slug,
         ano,
         mes,
         diaInicial: diaInicialRestante,
         diaFinal: totalDiasMes,
+        datasFechamentoExcepcional,
       });
       const diasUteisRestantesQuinzenal = contarDiasFuncionamentoNoIntervalo({
         empresaSlug: emp.slug,
@@ -712,6 +722,7 @@ export default function Home() {
         mes,
         diaInicial: ehMesFuturo ? 1 : ehMesVigente && diaHoje <= 15 ? diaHoje : 16,
         diaFinal: 15,
+        datasFechamentoExcepcional,
       });
 
       // Meta/dia dinâmica e projeção usam os mesmos dias de funcionamento restantes.
@@ -723,6 +734,10 @@ export default function Home() {
       });
       const faltaMensal = indicadoresDiasRestantes.faltaMensal;
       const metaDiariaDinamicaMensal = indicadoresDiasRestantes.metaDiariaNecessaria;
+      const viabilidadeMetaDiaria = classificarViabilidadeNecessidadeDiaria({
+        necessidadeDiaria: metaDiariaDinamicaMensal,
+        mediaDiaria,
+      });
 
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
@@ -788,11 +803,13 @@ export default function Home() {
         metaDiariaMensal,
         metaDiariaQuinzenal,
         metaDiariaDinamicaMensal,
+        viabilidadeMetaDiaria,
         metaDiariaDinamicaQuinzenal,
         diasUteis,
         diasUteisQuinzenal,
         diasUteisDecorridos,
         diasUteisRestantes,
+        fechamentosEmpresa,
         diasUteisRestantesQuinzenal,
         metaEsperadaAteHoje,
         metaEsperadaQuinzenalAteHoje,
@@ -817,7 +834,7 @@ export default function Home() {
         rowsPrevistos,
       };
     });
-  }, [empresasVisiveis, faturamentosData, faturamentosFiltrados, faturamentosAnteriorData, metasData, dpoteConfigMap, mes, ano, snapshotsQuinzenais]);
+  }, [empresasVisiveis, faturamentosData, faturamentosFiltrados, faturamentosAnteriorData, metasData, fechamentosData, dpoteConfigMap, mes, ano, snapshotsQuinzenais]);
 
   const totalGeral = statsPorEmpresa.reduce((s, e) => s + e.total, 0);
   const totalGeralRealizado = statsPorEmpresa.reduce((s, e) => s + e.totalRealizado, 0);
@@ -2618,6 +2635,25 @@ export default function Home() {
                   : semaforoStatus === 'amarelo' ? 'Quase no ritmo'
                   : semaforoStatus === 'neutro' ? 'Sem dados'
                   : 'Precisa acelerar';
+                const viabilidadeConfig = (() => {
+                  const status = s.viabilidadeMetaDiaria?.status;
+                  if (atingiuMeta || status === 'atingida') {
+                    return { label: 'Meta atingida', cor: 'text-emerald-400', fundo: 'bg-emerald-500/10', borda: 'border-emerald-500/25', ponto: 'bg-emerald-400' };
+                  }
+                  if (status === 'realista') {
+                    return { label: 'Dentro do ritmo atual', cor: 'text-emerald-400', fundo: 'bg-emerald-500/10', borda: 'border-emerald-500/25', ponto: 'bg-emerald-400' };
+                  }
+                  if (status === 'atencao') {
+                    return { label: 'Exige até 25% mais', cor: 'text-amber-400', fundo: 'bg-amber-500/10', borda: 'border-amber-500/25', ponto: 'bg-amber-400' };
+                  }
+                  if (status === 'critica') {
+                    return { label: 'Acima do ritmo atual', cor: 'text-red-400', fundo: 'bg-red-500/10', borda: 'border-red-500/25', ponto: 'bg-red-400' };
+                  }
+                  return { label: 'Sem média para comparar', cor: 'text-slate-400', fundo: 'bg-slate-500/10', borda: 'border-slate-500/25', ponto: 'bg-slate-400' };
+                })();
+                const fechamentoSemanal = s.emp.slug.toLowerCase().includes('seraphine')
+                  ? 'Domingo e segunda-feira'
+                  : 'Domingo';
                 return (
                   <div key={s.emp.slug} className="rounded-2xl overflow-hidden shadow-xl flex flex-col" style={{ border: `1px solid ${s.emp.cor}40` }}>
 
@@ -2779,14 +2815,50 @@ export default function Home() {
                       </div>
                       {/* Dias úteis restantes */}
                       <div className="text-center">
-                        <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>DIAS REST.</p>
+                        <div className="mb-1 flex items-center justify-center gap-1">
+                          <p className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>DIAS REST.</p>
+                          <UITooltip>
+                            <UITooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="rounded-full text-slate-500 outline-none transition-colors hover:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-400"
+                                aria-label={`Ver calendário de funcionamento da unidade ${s.emp.nome}`}
+                              >
+                                <Info className="h-3 w-3" />
+                              </button>
+                            </UITooltipTrigger>
+                            <UITooltipContent side="top" className="max-w-xs border-slate-700 bg-slate-950 p-3 text-left text-xs text-slate-200">
+                              <p className="font-semibold text-white">Calendário de {s.emp.nome}</p>
+                              <p className="mt-1"><span className="text-slate-400">Fechamento semanal:</span> {fechamentoSemanal}.</p>
+                              <p className="mt-1 text-slate-400">A contagem inclui hoje quando a unidade está aberta e exclui os fechamentos excepcionais cadastrados.</p>
+                              {s.fechamentosEmpresa.length > 0 ? (
+                                <div className="mt-2 border-t border-slate-800 pt-2">
+                                  <p className="font-medium text-amber-300">Exceções deste mês:</p>
+                                  {s.fechamentosEmpresa.map((fechamento: any) => (
+                                    <p key={fechamento.id} className="mt-1">
+                                      {fechamento.data.split('-').reverse().join('/')} — {fechamento.motivo}
+                                    </p>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="mt-2 border-t border-slate-800 pt-2 text-slate-500">Nenhum feriado ou fechamento excepcional cadastrado neste mês.</p>
+                              )}
+                            </UITooltipContent>
+                          </UITooltip>
+                        </div>
                         <p className="font-display text-base font-bold" style={{ color: 'var(--meta-card-value)' }}>
                           {s.diasUteisRestantes > 0 ? s.diasUteisRestantes : '—'}
                         </p>
                         {s.diasUteisRestantes > 0 && metaDiaAtualMensal > 0 && (
-                          <p className="text-[10px] text-slate-400 mt-0.5">
-                            {fmt(metaDiaAtualMensal)}/dia
-                          </p>
+                          <div className="mt-1 flex flex-col items-center gap-1">
+                            <p className={`text-[10px] font-semibold ${viabilidadeConfig.cor}`}>
+                              {fmt(metaDiaAtualMensal)}/dia
+                            </p>
+                            <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${viabilidadeConfig.cor} ${viabilidadeConfig.fundo} ${viabilidadeConfig.borda}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${viabilidadeConfig.ponto}`} />
+                              {viabilidadeConfig.label}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>

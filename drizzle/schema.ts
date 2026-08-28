@@ -175,6 +175,27 @@ export const metas = mysqlTable("metas", {
 export type Meta = typeof metas.$inferSelect;
 export type InsertMeta = typeof metas.$inferInsert;
 
+// ─── FERIADOS E FECHAMENTOS EXCEPCIONAIS ────────────────────────────────────
+// Datas em que uma unidade não funciona além do calendário semanal padrão.
+export const fechamentosUnidade = mysqlTable("fechamentosUnidade", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  data: varchar("data", { length: 10 }).notNull(),
+  motivo: varchar("motivo", { length: 255 }).notNull(),
+  criadoPor: int("criadoPor"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("fechamentosUnidade_tenant_empresa_data_unique").on(
+    table.tenantId,
+    table.empresaSlug,
+    table.data
+  ),
+]);
+
+export type FechamentoUnidade = typeof fechamentosUnidade.$inferSelect;
+export type InsertFechamentoUnidade = typeof fechamentosUnidade.$inferInsert;
+
 // ─── FATURAMENTOS ─────────────────────────────────────────────────────────────
 export const faturamentos = mysqlTable("faturamentos", {
   id: int("id").autoincrement().primaryKey(),

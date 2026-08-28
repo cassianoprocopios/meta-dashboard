@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Save, TrendingUp, Lock, Loader2, Star, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import FechamentosConfig from "@/components/FechamentosConfig";
 
 interface EmpresaData {
   id: number;
@@ -158,6 +159,13 @@ export default function MetaConfig({
           </div>
         )}
       </div>
+
+      <FechamentosConfig
+        mes={mes}
+        ano={ano}
+        empresasData={empresasVisiveis}
+        podeEditar={isGerente}
+      />
 
       {/* Cards de metas por empresa */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

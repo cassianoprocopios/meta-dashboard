@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   accessLogs,
@@ -16,6 +16,7 @@ import {
   InsertDpoteSyncLog,
   categorias,
   empresas,
+  fechamentosUnidade,
   faturamentos,
   InsertAccessLog,
   InsertBonificacao,
@@ -23,6 +24,7 @@ import {
   InsertCashbarberMapeamento,
   InsertColaborador,
   InsertEmpresa,
+  InsertFechamentoUnidade,
   InsertFaturamento,
   InsertMeta,
   InsertUser,
@@ -846,6 +848,84 @@ export async function inicializarCategorias(
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({ tenantId, empresaSlug, nome, ordem: i + 1, ativo: 1 }))
   );
+}
+
+// ─── FERIADOS E FECHAMENTOS EXCEPCIONAIS ────────────────────────────────────
+export async function listarFechamentosUnidade(params: {
+  tenantId: number;
+  mes: number;
+  ano: number;
+  empresasSlugs?: string[];
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const inicio = `${params.ano}-${String(params.mes).padStart(2, "0")}-01`;
+  const ultimoDia = new Date(Date.UTC(params.ano, params.mes, 0)).getUTCDate();
+  const fim = `${params.ano}-${String(params.mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+  const filtros = [
+    eq(fechamentosUnidade.tenantId, params.tenantId),
+    gte(fechamentosUnidade.data, inicio),
+    lte(fechamentosUnidade.data, fim),
+  ];
+
+  if (params.empresasSlugs) {
+    if (params.empresasSlugs.length === 0) return [];
+    filtros.push(inArray(fechamentosUnidade.empresaSlug, params.empresasSlugs));
+  }
+
+  return db
+    .select()
+    .from(fechamentosUnidade)
+    .where(and(...filtros))
+    .orderBy(asc(fechamentosUnidade.data), asc(fechamentosUnidade.empresaSlug));
+}
+
+export async function getFechamentoUnidadeByData(params: {
+  tenantId: number;
+  empresaSlug: string;
+  data: string;
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [registro] = await db
+    .select()
+    .from(fechamentosUnidade)
+    .where(and(
+      eq(fechamentosUnidade.tenantId, params.tenantId),
+      eq(fechamentosUnidade.empresaSlug, params.empresaSlug.toLowerCase()),
+      eq(fechamentosUnidade.data, params.data)
+    ))
+    .limit(1);
+  return registro;
+}
+
+export async function getFechamentoUnidadeById(id: number, tenantId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [registro] = await db
+    .select()
+    .from(fechamentosUnidade)
+    .where(and(eq(fechamentosUnidade.id, id), eq(fechamentosUnidade.tenantId, tenantId)))
+    .limit(1);
+  return registro;
+}
+
+export async function criarFechamentoUnidade(data: InsertFechamentoUnidade) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const empresaSlug = data.empresaSlug.toLowerCase();
+  await db.insert(fechamentosUnidade).values({ ...data, empresaSlug });
+  return getFechamentoUnidadeByData({ tenantId: data.tenantId, empresaSlug, data: data.data });
+}
+
+export async function excluirFechamentoUnidade(id: number, tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(fechamentosUnidade)
+    .where(and(eq(fechamentosUnidade.id, id), eq(fechamentosUnidade.tenantId, tenantId)));
+  return { success: true };
 }
 
 // ─── ACCESS LOGS ─────────────────────────────────────────────────────────────

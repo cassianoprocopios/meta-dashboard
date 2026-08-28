@@ -1642,3 +1642,14 @@
 - [x] Recalcular Dias rest., R$/dia e projeção usando somente dias de funcionamento restantes e incluindo o dia atual
 - [x] Criar testes para a contagem por unidade, incluindo o cenário de 2 dias restantes da Seraphine (7 testes passando)
 - [x] Publicar e validar a correção no dashboard (performancemeta.sbs respondendo HTTP 200)
+
+## Feriados, Fechamentos Excepcionais e Viabilidade da Meta Diária
+- [x] Mapear permissões e telas adequadas para administrar fechamentos por unidade
+- [x] Criar tabela multi-tenant de feriados e fechamentos excepcionais
+- [x] Criar procedures para listar, cadastrar e excluir fechamentos com validação de unidade
+- [x] Criar interface para cadastrar data, unidade e motivo do fechamento na aba Metas
+- [x] Integrar feriados e fechamentos excepcionais ao cálculo de dias restantes
+- [x] Adicionar tooltip em Dias rest. com dias semanais fechados e exceções do período
+- [x] Adicionar indicador verde, âmbar ou vermelho para viabilidade da necessidade diária
+- [x] Criar testes de autorização, calendário excepcional e classificação de viabilidade (19 testes específicos passando)
+- [ ] Publicar e validar a funcionalidade no dashboard

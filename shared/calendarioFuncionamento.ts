@@ -14,6 +14,7 @@ export function contarDiasFuncionamentoNoIntervalo(params: {
   mes: number;
   diaInicial: number;
   diaFinal: number;
+  datasFechamentoExcepcional?: Iterable<string>;
 }) {
   const { empresaSlug, ano, mes } = params;
   const totalDiasMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
@@ -23,14 +24,32 @@ export function contarDiasFuncionamentoNoIntervalo(params: {
   if (diaInicial > diaFinal) return 0;
 
   const diasFechados = obterDiasFechadosDaUnidade(empresaSlug);
+  const excecoes = new Set(params.datasFechamentoExcepcional ?? []);
   let diasFuncionamento = 0;
 
   for (let dia = diaInicial; dia <= diaFinal; dia += 1) {
     const diaSemana = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay();
-    if (!diasFechados.has(diaSemana)) diasFuncionamento += 1;
+    const dataIso = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+    if (!diasFechados.has(diaSemana) && !excecoes.has(dataIso)) diasFuncionamento += 1;
   }
 
   return diasFuncionamento;
+}
+
+export type ViabilidadeNecessidadeDiaria = "atingida" | "realista" | "atencao" | "critica" | "sem_dados";
+
+export function classificarViabilidadeNecessidadeDiaria(params: {
+  necessidadeDiaria: number;
+  mediaDiaria: number;
+}): { status: ViabilidadeNecessidadeDiaria; proporcao: number | null } {
+  const { necessidadeDiaria, mediaDiaria } = params;
+  if (necessidadeDiaria <= 0) return { status: "atingida", proporcao: 0 };
+  if (mediaDiaria <= 0) return { status: "sem_dados", proporcao: null };
+
+  const proporcao = necessidadeDiaria / mediaDiaria;
+  if (proporcao <= 1) return { status: "realista", proporcao };
+  if (proporcao <= 1.25) return { status: "atencao", proporcao };
+  return { status: "critica", proporcao };
 }
 
 export function calcularIndicadoresDiasRestantes(params: {
