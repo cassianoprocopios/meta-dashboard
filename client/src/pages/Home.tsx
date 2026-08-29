@@ -53,6 +53,7 @@ import {
   calcularIndicadoresDiasRestantes,
   classificarViabilidadeNecessidadeDiaria,
   contarDiasFuncionamentoNoIntervalo,
+  obterDiaInicialDiasRestantes,
 } from "@shared/calendarioFuncionamento";
 
 
@@ -696,9 +697,15 @@ export default function Home() {
         : totalQuinzenalCalculado;
 
       // Dias restantes seguem o calendário real de funcionamento de cada unidade.
-      // O dia atual é incluído, pois o faturamento do dia ainda está em andamento.
+      // Conta somente os dias posteriores a hoje; o faturamento do dia atual já está
+      // contemplado no total realizado e não deve ser contado novamente na projeção.
       // Seraphine fecha aos domingos e às segundas; as demais unidades fecham aos domingos.
-      const diaInicialRestante = ehMesFuturo ? 1 : ehMesVigente ? diaHoje : totalDiasMes + 1;
+      const diaInicialRestante = obterDiaInicialDiasRestantes({
+        ehMesFuturo,
+        ehMesVigente,
+        diaHoje,
+        totalDiasMes,
+      });
       const fechamentosEmpresa = (fechamentosData as any[]).filter(
         (fechamento: any) => fechamento.empresaSlug === emp.slug
       );
@@ -715,7 +722,7 @@ export default function Home() {
         empresaSlug: emp.slug,
         ano,
         mes,
-        diaInicial: ehMesFuturo ? 1 : ehMesVigente && diaHoje <= 15 ? diaHoje : 16,
+        diaInicial: ehMesFuturo ? 1 : ehMesVigente && diaHoje < 15 ? diaHoje + 1 : 16,
         diaFinal: 15,
         datasFechamentoExcepcional,
       });
@@ -756,7 +763,7 @@ export default function Home() {
       // Onde:
       //   - totalRealizado = faturamento já realizado até hoje (cat1..cat8 + recorrência real)
       //   - médiaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
-      //   - diasRestantes = dias de funcionamento da unidade, incluindo o dia atual
+      //   - diasRestantes = dias de funcionamento posteriores ao dia atual
       // Isso representa: "o que já faturou + quanto vai faturar nos dias restantes mantendo o ritmo"
       // IMPORTANTE: usa APENAS dias com dados reais (cat1..cat9 > 0) para não diluir a média
       
@@ -2825,7 +2832,7 @@ export default function Home() {
                             <UITooltipContent side="top" className="max-w-xs border-slate-700 bg-slate-950 p-3 text-left text-xs text-slate-200">
                               <p className="font-semibold text-white">Calendário de {s.emp.nome}</p>
                               <p className="mt-1"><span className="text-slate-400">Fechamento semanal:</span> {fechamentoSemanal}.</p>
-                              <p className="mt-1 text-slate-400">A contagem inclui hoje quando a unidade está aberta e exclui os fechamentos excepcionais cadastrados.</p>
+                              <p className="mt-1 text-slate-400">A contagem considera somente os dias de funcionamento posteriores a hoje e exclui os fechamentos excepcionais cadastrados.</p>
                               {s.fechamentosEmpresa.length > 0 ? (
                                 <div className="mt-2 border-t border-slate-800 pt-2">
                                   <p className="font-medium text-amber-300">Exceções deste mês:</p>
@@ -2842,7 +2849,7 @@ export default function Home() {
                           </UITooltip>
                         </div>
                         <p className="font-display text-base font-bold" style={{ color: 'var(--meta-card-value)' }}>
-                          {s.diasUteisRestantes > 0 ? s.diasUteisRestantes : '—'}
+                          {s.diasUteisRestantes}
                         </p>
                         {s.diasUteisRestantes > 0 && metaDiaAtualMensal > 0 && (
                           <div className="mt-1 flex flex-col items-center gap-1">

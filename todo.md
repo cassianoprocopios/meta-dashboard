@@ -1661,3 +1661,9 @@
 - [x] Atualizar somente snapshots divergentes, preservando o fechamento definitivo e a bonificação de 0,30%
 - [x] Confirmar que ambas as unidades estão marcadas como meta quinzenal atingida
 - [x] Validar o dashboard e registrar o resultado final (performancemeta.sbs respondendo HTTP 200)
+
+## Correção — Último Dia de Funcionamento da Seraphine
+- [x] Ajustar Dias rest. para contar somente dias de funcionamento posteriores a hoje
+- [x] Recalcular necessidade diária e projeção quando não houver dias futuros abertos
+- [x] Validar Seraphine com zero dias restantes no último dia aberto do mês
+- [ ] Atualizar testes, publicar e validar no domínio de produção (20 testes específicos passando)

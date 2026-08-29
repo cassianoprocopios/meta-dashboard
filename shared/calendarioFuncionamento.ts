@@ -36,6 +36,17 @@ export function contarDiasFuncionamentoNoIntervalo(params: {
   return diasFuncionamento;
 }
 
+export function obterDiaInicialDiasRestantes(params: {
+  ehMesFuturo: boolean;
+  ehMesVigente: boolean;
+  diaHoje: number;
+  totalDiasMes: number;
+}) {
+  if (params.ehMesFuturo) return 1;
+  if (params.ehMesVigente) return params.diaHoje + 1;
+  return params.totalDiasMes + 1;
+}
+
 export type ViabilidadeNecessidadeDiaria = "atingida" | "realista" | "atencao" | "critica" | "sem_dados";
 
 export function classificarViabilidadeNecessidadeDiaria(params: {

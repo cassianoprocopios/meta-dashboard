@@ -3,6 +3,7 @@ import {
   calcularIndicadoresDiasRestantes,
   contarDiasFuncionamentoNoIntervalo,
   obterDiasFechadosDaUnidade,
+  obterDiaInicialDiasRestantes,
 } from "../shared/calendarioFuncionamento";
 
 describe("calendário de funcionamento por unidade", () => {
@@ -52,16 +53,40 @@ describe("calendário de funcionamento por unidade", () => {
     expect(diasRestantes).toBe(0);
   });
 
-  it("inclui o dia atual quando a unidade está aberta", () => {
+  it("começa a contagem no dia seguinte para o mês vigente", () => {
+    const diaInicial = obterDiaInicialDiasRestantes({
+      ehMesFuturo: false,
+      ehMesVigente: true,
+      diaHoje: 29,
+      totalDiasMes: 31,
+    });
+
     const diasRestantes = contarDiasFuncionamentoNoIntervalo({
       empresaSlug: "barbiero-seraphine",
       ano: 2026,
       mes: 8,
-      diaInicial: 29,
-      diaFinal: 29,
+      diaInicial,
+      diaFinal: 31,
     });
 
-    expect(diasRestantes).toBe(1);
+    expect(diaInicial).toBe(30);
+    expect(diasRestantes).toBe(0);
+  });
+
+  it("começa no primeiro dia para mês futuro e retorna intervalo vazio para mês passado", () => {
+    expect(obterDiaInicialDiasRestantes({
+      ehMesFuturo: true,
+      ehMesVigente: false,
+      diaHoje: 29,
+      totalDiasMes: 31,
+    })).toBe(1);
+
+    expect(obterDiaInicialDiasRestantes({
+      ehMesFuturo: false,
+      ehMesVigente: false,
+      diaHoje: 29,
+      totalDiasMes: 31,
+    })).toBe(32);
   });
 
   it("recalcula R$/dia e projeção da Seraphine com dois dias restantes", () => {
