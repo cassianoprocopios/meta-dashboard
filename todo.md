@@ -1666,4 +1666,4 @@
 - [x] Ajustar Dias rest. para contar somente dias de funcionamento posteriores a hoje
 - [x] Recalcular necessidade diária e projeção quando não houver dias futuros abertos
 - [x] Validar Seraphine com zero dias restantes no último dia aberto do mês
-- [ ] Atualizar testes, publicar e validar no domínio de produção (20 testes específicos passando)
+- [x] Atualizar testes, publicar e validar no domínio de produção (20 testes específicos passando; HTTP 200)
