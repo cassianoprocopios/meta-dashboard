@@ -1675,3 +1675,11 @@
 - [x] Atualizar a interface para mostrar a Mensal como substituída quando a Super Meta for atingida
 - [x] Criar testes para todas as faixas de atingimento e evitar dupla bonificação (5 testes novos; 8 testes relacionados passando)
 - [x] Publicar e validar os totais no dashboard (performancemeta.sbs respondendo HTTP 200)
+
+## Barra de Progresso da Super Meta
+- [x] Localizar todos os cards de unidade que exibem a Super Meta
+- [x] Criar cálculo compartilhado de percentual, valor restante e estado atingido
+- [x] Adicionar barra visual com realizado, objetivo e quanto falta no card principal
+- [x] Adicionar a mesma visualização à página de Bonificações
+- [x] Criar testes para progresso abaixo, acima e sem Super Meta configurada (8 testes de bonificação passando)
+- [ ] Validar responsividade, publicar e confirmar no domínio de produção

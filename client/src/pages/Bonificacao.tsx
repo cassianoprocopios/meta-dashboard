@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
+import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "@shared/bonificacao";
 
 interface Empresa {
   slug: string;
@@ -173,6 +173,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     const bonMensal = resultado.valorMensal;
     const bonSuperMeta = resultado.valorSuperMeta;
     const bonTotal = resultado.totalPago;
+    const progressoSuperMeta = calcularProgressoSuperMeta(totalMensal, superMeta);
 
     return {
       emp,
@@ -195,6 +196,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
       bonMensal,
       bonSuperMeta,
       bonTotal,
+      progressoSuperMeta,
     };
   });
 
@@ -447,6 +449,35 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                     <p className={`text-lg font-bold ${c.atingiuSuperMeta ? "text-amber-600" : "text-slate-400"}`}>
                       {c.pctS > 0 ? fmt(c.bonSuperMeta) : "—"}
                     </p>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-amber-200/60">
+                    <div className="flex items-center justify-between text-[11px] mb-1.5">
+                      <span className="font-semibold text-slate-600">Progresso da Super Meta</span>
+                      <span className={`font-bold ${c.progressoSuperMeta.atingida ? "text-emerald-600" : "text-amber-600"}`}>
+                        {c.progressoSuperMeta.percentual.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div
+                      className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200"
+                      role="progressbar"
+                      aria-label={`Progresso da Super Meta de ${c.emp.nome}`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(c.progressoSuperMeta.percentualBarra)}
+                    >
+                      <div
+                        className={`h-full rounded-full transition-[width] duration-300 ${c.progressoSuperMeta.atingida ? "bg-emerald-500" : "bg-gradient-to-r from-amber-400 to-orange-500"}`}
+                        style={{ width: `${c.progressoSuperMeta.percentualBarra}%` }}
+                      />
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px]">
+                      <span className="text-slate-500">{fmt(c.totalMensal)} de {fmt(c.superMeta)}</span>
+                      <span className={`shrink-0 font-bold ${c.progressoSuperMeta.atingida ? "text-emerald-600" : "text-orange-600"}`}>
+                        {c.progressoSuperMeta.atingida
+                          ? `Superou ${fmt(c.progressoSuperMeta.excedente)}`
+                          : `Falta ${fmt(c.progressoSuperMeta.falta)}`}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

@@ -49,7 +49,7 @@ import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
 import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
 import { calcularTotalQuinzenal } from "@shared/quinzenal";
-import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
+import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "@shared/bonificacao";
 import {
   calcularIndicadoresDiasRestantes,
   classificarViabilidadeNecessidadeDiaria,
@@ -2989,21 +2989,39 @@ export default function Home() {
                           </div>
                           );
                         })()}
-                        {s.superMeta > 0 && (
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-label text-[10px] text-amber-400/80 tracking-widest">★ SUPER</span>
-                              <span className="text-[10px] font-bold text-amber-400">
-                                {Math.round((s.totalRealizado / s.superMeta) * 100)}%
-                              </span>
+                        {s.superMeta > 0 && (() => {
+                          const progressoSuper = calcularProgressoSuperMeta(s.totalRealizado, s.superMeta);
+                          return (
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-label text-[10px] text-amber-400/80 tracking-widest">★ SUPER META</span>
+                                <span className={`text-[10px] font-bold ${progressoSuper.atingida ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                  {progressoSuper.percentual.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div
+                                className="h-2 rounded-full overflow-hidden"
+                                style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}
+                                role="progressbar"
+                                aria-label={`Progresso da Super Meta de ${s.emp.nome}`}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={Math.round(progressoSuper.percentualBarra)}
+                              >
+                                <div
+                                  className={`h-full rounded-full ${progressoSuper.atingida ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}
+                                  style={{ width: `${progressoSuper.percentualBarra}%`, animation: 'progressFill 0.9s ease-out' }}
+                                />
+                              </div>
+                              <p className="text-[10px] mt-1" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalRealizado)} de {fmt(s.superMeta)}</p>
+                              <p className={`text-[10px] font-semibold mt-0.5 ${progressoSuper.atingida ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                {progressoSuper.atingida
+                                  ? `Superou ${fmt(progressoSuper.excedente)}`
+                                  : `Falta ${fmt(progressoSuper.falta)}`}
+                              </p>
                             </div>
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
-                              <div className="h-full rounded-full bg-amber-500"
-                                style={{ width: `${Math.min((s.totalRealizado / s.superMeta) * 100, 100)}%`, animation: 'progressFill 0.9s ease-out' }} />
-                            </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalRealizado)} / {fmt(s.superMeta)}</p>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     )}
 

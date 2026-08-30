@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcularBonificacaoSubstitutiva } from "../shared/bonificacao";
+import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "../shared/bonificacao";
 
 const percentuais = {
   pctQuinzenalSemMeta: 0.2,
@@ -94,5 +94,39 @@ describe("bonificação substitutiva da Super Meta", () => {
     expect(resultado.atingiuMetaQuinzenal).toBe(false);
     expect(resultado.pctQuinzenalAplicado).toBe(0.2);
     expect(resultado.valorQuinzenal).toBe(115.55);
+  });
+});
+
+describe("progresso visual da Super Meta", () => {
+  it("calcula percentual e valor restante antes de atingir o objetivo", () => {
+    const progresso = calcularProgressoSuperMeta(110_238.81, 115_000);
+
+    expect(progresso.configurada).toBe(true);
+    expect(progresso.atingida).toBe(false);
+    expect(progresso.percentual).toBeCloseTo(95.86, 2);
+    expect(progresso.percentualBarra).toBeCloseTo(95.86, 2);
+    expect(progresso.falta).toBe(4_761.19);
+    expect(progresso.excedente).toBe(0);
+  });
+
+  it("limita a barra em 100% e informa o excedente após atingir a Super Meta", () => {
+    const progresso = calcularProgressoSuperMeta(120_500, 115_000);
+
+    expect(progresso.atingida).toBe(true);
+    expect(progresso.percentual).toBeCloseTo(104.78, 2);
+    expect(progresso.percentualBarra).toBe(100);
+    expect(progresso.falta).toBe(0);
+    expect(progresso.excedente).toBe(5_500);
+  });
+
+  it("retorna estado neutro quando a Super Meta não está configurada", () => {
+    const progresso = calcularProgressoSuperMeta(100_000, 0);
+
+    expect(progresso.configurada).toBe(false);
+    expect(progresso.atingida).toBe(false);
+    expect(progresso.percentual).toBe(0);
+    expect(progresso.percentualBarra).toBe(0);
+    expect(progresso.falta).toBe(0);
+    expect(progresso.excedente).toBe(0);
   });
 });

@@ -18,6 +18,33 @@ function arredondarCentavos(valor: number) {
   return Math.round((valor + Number.EPSILON) * 100) / 100;
 }
 
+export function calcularProgressoSuperMeta(totalRealizado: number, superMeta: number) {
+  const configurada = Number.isFinite(superMeta) && superMeta > 0;
+  if (!configurada) {
+    return {
+      configurada: false,
+      atingida: false,
+      percentual: 0,
+      percentualBarra: 0,
+      falta: 0,
+      excedente: 0,
+    };
+  }
+
+  const realizadoSeguro = Number.isFinite(totalRealizado) ? Math.max(0, totalRealizado) : 0;
+  const percentual = (realizadoSeguro / superMeta) * 100;
+  const atingida = realizadoSeguro >= superMeta;
+
+  return {
+    configurada: true,
+    atingida,
+    percentual,
+    percentualBarra: Math.min(Math.max(percentual, 0), 100),
+    falta: arredondarCentavos(Math.max(0, superMeta - realizadoSeguro)),
+    excedente: arredondarCentavos(Math.max(0, realizadoSeguro - superMeta)),
+  };
+}
+
 /**
  * Calcula a bonificação com faixas mensais mutuamente exclusivas.
  * A Super Meta substitui integralmente a bonificação Mensal quando atingida.
