@@ -1682,4 +1682,4 @@
 - [x] Adicionar barra visual com realizado, objetivo e quanto falta no card principal
 - [x] Adicionar a mesma visualização à página de Bonificações
 - [x] Criar testes para progresso abaixo, acima e sem Super Meta configurada (8 testes de bonificação passando)
-- [ ] Validar responsividade, publicar e confirmar no domínio de produção
+- [x] Validar responsividade, publicar e confirmar no domínio de produção (performancemeta.sbs respondendo HTTP 200)
