@@ -1708,31 +1708,30 @@ export default function Home() {
             {/* ===== KPIs EXECUTIVOS — NOVA HIERARQUIA VISUAL ===== */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
               {/* KPI 1: Faturamento Total — card hero principal */}
-              <div className="col-span-2 xl:col-span-2 relative overflow-hidden rounded-2xl p-4 sm:p-6"
-                style={{ background: 'linear-gradient(135deg, #3730a3 0%, #4c1d95 100%)' }}>
+              <div className="premium-panel col-span-2 xl:col-span-2 relative overflow-hidden p-5 sm:p-6">
                 {/* Glow decorativo */}
-                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10 pointer-events-none"
-                  style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-50 pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-label text-white/60 tracking-widest text-[11px]">FATURAMENTO {periodoFiltro === "semanal" && semanaAtual ? semanaAtual.label.toUpperCase() : "DO MÊS"}</span>
+                    <span className="font-label text-slate-500 tracking-widest text-[11px]">FATURAMENTO {periodoFiltro === "semanal" && semanaAtual ? semanaAtual.label.toUpperCase() : "DO MÊS"}</span>
                     {comparativoMesAnterior.variacaoTotal !== null && (
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                         comparativoMesAnterior.variacaoTotal >= 0
-                          ? 'bg-emerald-400/20 text-emerald-300'
-                          : 'bg-red-400/20 text-red-300'
+                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                          : 'bg-red-50 text-red-700 ring-1 ring-red-200'
                       }`}>
                         {comparativoMesAnterior.variacaoTotal >= 0 ? '↑' : '↓'}
                         {Math.abs(comparativoMesAnterior.variacaoTotal).toFixed(1)}% vs {MESES[mesAnterior - 1]}
                       </span>
                     )}
                   </div>
-                  <p className="font-display text-3xl sm:text-4xl lg:text-5xl text-white leading-none tracking-tight">
+                  <p className="font-display text-3xl sm:text-4xl lg:text-5xl text-[#12233f] leading-none tracking-tight">
                     {fmt(totalGeralRealizado)}
                   </p>
-                  <p className="text-white/50 text-sm mt-1">
+                  <p className="text-slate-500 text-sm mt-2">
                     {totalGeralPrevisto > 0
-                      ? <span className="text-amber-300/80">+ {fmt(totalGeralPrevisto)} previsto → {fmt(totalGeral)}</span>
+                      ? <span className="text-amber-700">+ {fmt(totalGeralPrevisto)} previsto → {fmt(totalGeral)}</span>
                       : `${faturamentosFiltrados.length} dias lançados`
                     }
                   </p>
@@ -1741,12 +1740,12 @@ export default function Home() {
                     <div className="mt-4 space-y-1.5">
                       {statsPorEmpresa.map((e: any) => (
                         <div key={e.emp?.slug ?? e.nome} className="flex items-center gap-2">
-                          <span className="text-white/60 text-xs w-20 truncate">{e.emp?.nome ?? e.nome}</span>
-                          <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full bg-white/40"
+                          <span className="text-slate-500 text-xs w-20 truncate">{e.emp?.nome ?? e.nome}</span>
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-blue-500"
                               style={{ width: `${totalGeralRealizado > 0 ? Math.min((e.totalRealizado / totalGeralRealizado) * 100, 100) : 0}%` }} />
                           </div>
-                          <span className="text-white/70 text-xs font-medium">{fmt(e.totalRealizado)}</span>
+                          <span className="text-slate-700 text-xs font-semibold tabular-nums">{fmt(e.totalRealizado)}</span>
                         </div>
                       ))}
                     </div>
@@ -1761,13 +1760,13 @@ export default function Home() {
                 const projecaoTotal = statsPorEmpresa.reduce((s, e) => s + e.projecaoFinal, 0);
                 const projecaoAtinge = projecaoTotal >= metaTotalGeral;
                 return (
-                  <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
+                  <div className="premium-kpi p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">META DO MÊS</span>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        atingiu ? 'bg-emerald-500/15 text-emerald-400'
-                        : pctMeta >= 80 ? 'bg-amber-500/15 text-amber-400'
-                        : 'bg-red-500/15 text-red-400'
+                        atingiu ? 'bg-emerald-50 text-emerald-700'
+                        : pctMeta >= 80 ? 'bg-amber-50 text-amber-700'
+                        : 'bg-red-50 text-red-700'
                       }`}>{pctMeta}%</span>
                     </div>
                     <p className="font-display text-xl sm:text-3xl text-foreground leading-none">{fmt(metaTotalGeral)}</p>
@@ -1783,7 +1782,7 @@ export default function Home() {
                       </div>
                       {projecaoTotal > 0 && (
                         <p className={`text-xs mt-2 font-medium ${
-                          projecaoAtinge ? 'text-emerald-400' : 'text-amber-400'
+                          projecaoAtinge ? 'text-emerald-700' : 'text-amber-700'
                         }`}>
                           Projeção: {fmt(projecaoTotal)} {projecaoAtinge ? '✓' : `(−${fmt(metaTotalGeral - projecaoTotal)})`}
                         </p>
@@ -1794,21 +1793,21 @@ export default function Home() {
               })()}
 
               {/* KPI 3: Falta para Meta / Atingida */}
-              <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
+              <div className="premium-kpi p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">
                     {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0 ? 'META' : 'FALTA PARA META'}
                   </span>
                   {totalGeralRealizado >= metaTotalGeral && metaTotalGeral > 0
-                    ? <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">✓ Atingida</span>
+                    ? <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">✓ Atingida</span>
                     : null
                   }
                 </div>
                 {metaTotalGeral > 0 ? (
                   totalGeralRealizado >= metaTotalGeral ? (
                     <>
-                      <p className="font-display text-xl sm:text-3xl text-emerald-400 leading-none">Meta!</p>
-                      <p className="text-emerald-400/70 text-xs mt-1">parabéns pela conquista</p>
+                      <p className="font-display text-xl sm:text-3xl text-emerald-700 leading-none">Meta!</p>
+                      <p className="text-emerald-600 text-xs mt-1">parabéns pela conquista</p>
                       <div className="mt-2">
                         <MensalCelebrationCompact
                           atingiu={true}
@@ -1853,47 +1852,47 @@ export default function Home() {
                         // Indicador de tempo real: durante a quinzena ativa (dias 1-15 do mês vigente)
                         const exibindoTempoReal = !quinzenaEncerradaGeral && ehMesAtual;
                         return (
-                          <div className={`mt-3 p-2.5 rounded-xl border ${
+                          <div className={`mt-3 p-3 rounded-xl border ${
                             quinzenaEncerradaGeral
-                              ? atingiuQ ? 'bg-emerald-500/10 border-emerald-500/30' : pctQ >= 80 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-red-500/10 border-red-500/30'
-                              : 'bg-purple-500/10 border-purple-500/20'
+                              ? atingiuQ ? 'bg-emerald-50 border-emerald-200' : pctQ >= 80 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'
+                              : 'bg-blue-50 border-blue-200'
                           }`}>
                             <div className="flex items-center justify-between mb-1.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 {quinzenaEncerradaGeral ? (
                                   <span className="text-base leading-none">{atingiuQ ? '✅' : pctQ >= 80 ? '⚠️' : '❌'}</span>
                                 ) : (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                 )}
                                 <span className={`text-xs font-semibold ${
                                   quinzenaEncerradaGeral
-                                    ? atingiuQ ? 'text-emerald-300' : pctQ >= 80 ? 'text-yellow-300' : 'text-red-300'
-                                    : 'text-purple-300'
+                                    ? atingiuQ ? 'text-emerald-700' : pctQ >= 80 ? 'text-amber-700' : 'text-red-700'
+                                    : 'text-blue-700'
                                 }`}>
                                   {quinzenaEncerradaGeral
                                     ? (atingiuQ ? 'QUINZENAL ATINGIDA!' : 'QUINZENAL NÃO ATINGIDA')
                                     : 'Meta Quinzenal'}
                                 </span>
                                 {todosCongelados && (
-                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-100 text-blue-700 border border-blue-200">
                                     DEFINITIVO
                                   </span>
                                 )}
                                 {exibindoTempoReal && (
-                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-100 text-orange-700 border border-orange-200">
                                     TEMPO REAL
                                   </span>
                                 )}
                               </div>
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                                atingiuQ ? 'bg-emerald-500/20 text-emerald-300' :
-                                pctQ >= 80 ? 'bg-yellow-500/20 text-yellow-300' :
-                                'bg-red-500/20 text-red-300'
+                                atingiuQ ? 'bg-emerald-100 text-emerald-700' :
+                                pctQ >= 80 ? 'bg-amber-100 text-amber-700' :
+                                'bg-red-100 text-red-700'
                               }`}>{pctQ}%</span>
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/60">{fmt(totalQuinzenalGeral)}</span>
-                              <span className="text-white/40">/ {fmt(metaQuinzenalTotal)}</span>
+                              <span className="font-semibold text-slate-700">{fmt(totalQuinzenalGeral)}</span>
+                              <span className="text-slate-400">/ {fmt(metaQuinzenalTotal)}</span>
                             </div>
                             {/* Resultado pós-quinzena: superou ou faltou */}
                             {quinzenaEncerradaGeral && atingiuQ && superouQ > 0 && (
@@ -1904,12 +1903,12 @@ export default function Home() {
                             )}
                             {/* Resultado por unidade (apenas pós-quinzena) */}
                             {quinzenaEncerradaGeral && resultadosPorUnidade.length > 1 && (
-                              <div className="mt-1.5 pt-1.5 border-t border-white/10 flex flex-col gap-0.5">
+                              <div className="mt-1.5 pt-1.5 border-t border-slate-200 flex flex-col gap-0.5">
                                 {resultadosPorUnidade.map(u => (
                                   <div key={u.nome} className="flex items-center justify-between text-[10px]">
                                     <span className="flex items-center gap-1">
                                       <span>{u.atingiu ? '✅' : u.pct >= 80 ? '⚠️' : '❌'}</span>
-                                      <span className="text-white/60">{u.nome}</span>
+                                      <span className="text-slate-600">{u.nome}</span>
                                     </span>
                                     <span className={`font-semibold ${u.atingiu ? 'text-emerald-400' : u.pct >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>{u.pct}%</span>
                                   </div>
@@ -1921,7 +1920,7 @@ export default function Home() {
                               <button
                                 onClick={() => congelarQuinzenalMutation.mutate({ mes, ano })}
                                 disabled={congelarQuinzenalMutation.isPending}
-                                className="mt-2 w-full text-[10px] font-bold py-1.5 px-2 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                                className="mt-2 w-full text-[10px] font-bold py-1.5 px-2 rounded-lg bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50"
                               >
                                 {congelarQuinzenalMutation.isPending ? 'Congelando...' : 'Congelar Valores Agora'}
                               </button>
@@ -1931,7 +1930,7 @@ export default function Home() {
                               <div className="mt-1.5 text-xs">
                                 <span className="text-amber-400 font-semibold">Falta: {fmt(faltaQ)}</span>
                                 {metaDiariaQ > 0 && diasRestQ > 0 && (
-                                  <span className="text-purple-300/60 ml-1">· {fmt(metaDiariaQ)}/dia ({diasRestQ}d)</span>
+                                  <span className="text-blue-600 ml-1">· {fmt(metaDiariaQ)}/dia ({diasRestQ}d)</span>
                                 )}
                               </div>
                             )}
@@ -1944,9 +1943,9 @@ export default function Home() {
                                 />
                               </div>
                             )}
-                            <div className="mt-1.5 h-1 rounded-full bg-white/10 overflow-hidden">
+                            <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 overflow-hidden">
                               <div className={`h-full rounded-full ${
-                                atingiuQ ? 'bg-emerald-400' : pctQ >= 80 ? 'bg-yellow-400' : 'bg-purple-400'
+                                atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-amber-500' : 'bg-blue-500'
                               }`} style={{ width: `${Math.min(pctQ, 100)}%` }} />
                             </div>
                           </div>
@@ -1968,11 +1967,11 @@ export default function Home() {
               const variacao = clientesAtendidosData.variacao || 0;
               const cresceu = variacao > 0;
               return (
-                <div className="rounded-2xl p-3 sm:p-5 bg-card border border-border/50">
+                <div className="premium-kpi p-4 sm:p-5">
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-label text-muted-foreground tracking-widest text-[10px] sm:text-[11px]">CLIENTES ATENDIDOS</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      cresceu ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
+                      cresceu ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
                     }`}>
                       {cresceu ? '+' : ''}{variacao.toFixed(1)}%
                     </span>
@@ -1988,7 +1987,7 @@ export default function Home() {
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-muted-foreground">Diferença:</span>
                         <span className={`text-xs font-bold ${
-                          cresceu ? 'text-emerald-400' : 'text-amber-400'
+                          cresceu ? 'text-emerald-700' : 'text-amber-700'
                         }`}>
                           {cresceu ? '+' : ''}{clientesAtendidosData.totalClientesUnicos - clientesAnterior} clientes
                         </span>
@@ -2131,10 +2130,10 @@ export default function Home() {
 
             {/* Card Comparativo Unificado: Mês Anterior + Melhor Mês do Ano */}
             {comparativoMesAnterior.totalAnteriorMesmosDias > 0 && (
-              <Card className="p-5 border-0 shadow-sm rounded-2xl bg-card">
+              <Card className="premium-panel p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-indigo-600" />
+                  <div className="w-8 h-8 rounded-[10px] bg-blue-50 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground text-sm">Análise Comparativa</h3>
@@ -2654,28 +2653,27 @@ export default function Home() {
                 const viabilidadeConfig = (() => {
                   const status = s.viabilidadeMetaDiaria?.status;
                   if (atingiuMeta || status === 'atingida') {
-                    return { label: 'Meta atingida', cor: 'text-emerald-400', fundo: 'bg-emerald-500/10', borda: 'border-emerald-500/25', ponto: 'bg-emerald-400' };
+                    return { label: 'Meta atingida', cor: 'text-emerald-700', fundo: 'bg-emerald-50', borda: 'border-emerald-200', ponto: 'bg-emerald-500' };
                   }
                   if (status === 'realista') {
-                    return { label: 'Dentro do ritmo atual', cor: 'text-emerald-400', fundo: 'bg-emerald-500/10', borda: 'border-emerald-500/25', ponto: 'bg-emerald-400' };
+                    return { label: 'Dentro do ritmo atual', cor: 'text-emerald-700', fundo: 'bg-emerald-50', borda: 'border-emerald-200', ponto: 'bg-emerald-500' };
                   }
                   if (status === 'atencao') {
-                    return { label: 'Exige até 25% mais', cor: 'text-amber-400', fundo: 'bg-amber-500/10', borda: 'border-amber-500/25', ponto: 'bg-amber-400' };
+                    return { label: 'Exige até 25% mais', cor: 'text-amber-700', fundo: 'bg-amber-50', borda: 'border-amber-200', ponto: 'bg-amber-500' };
                   }
                   if (status === 'critica') {
-                    return { label: 'Acima do ritmo atual', cor: 'text-red-400', fundo: 'bg-red-500/10', borda: 'border-red-500/25', ponto: 'bg-red-400' };
+                    return { label: 'Acima do ritmo atual', cor: 'text-red-700', fundo: 'bg-red-50', borda: 'border-red-200', ponto: 'bg-red-500' };
                   }
-                  return { label: 'Sem média para comparar', cor: 'text-slate-400', fundo: 'bg-slate-500/10', borda: 'border-slate-500/25', ponto: 'bg-slate-400' };
+                  return { label: 'Sem média para comparar', cor: 'text-slate-600', fundo: 'bg-slate-50', borda: 'border-slate-200', ponto: 'bg-slate-400' };
                 })();
                 const fechamentoSemanal = s.emp.slug.toLowerCase().includes('seraphine')
                   ? 'Domingo e segunda-feira'
                   : 'Domingo';
                 return (
-                  <div key={s.emp.slug} className="rounded-2xl overflow-hidden shadow-xl flex flex-col" style={{ border: `1px solid ${s.emp.cor}40` }}>
+                  <div key={s.emp.slug} className="premium-panel overflow-hidden flex flex-col" style={{ borderTop: `3px solid ${s.emp.cor}` }}>
 
                     {/* ── CABEÇALHO: gradiente com cor da empresa ── */}
-                    <div className="relative px-5 pt-5 pb-4"
-                      style={{ background: `linear-gradient(135deg, ${s.emp.cor}22 0%, ${s.emp.cor}08 100%)`, borderBottom: `1px solid ${s.emp.cor}30` }}>
+                    <div className="relative bg-white px-5 pt-5 pb-4 border-b border-slate-100">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -2683,19 +2681,19 @@ export default function Home() {
                             <Building2 className="w-5 h-5" style={{ color: s.emp.cor }} />
                           </div>
                           <div>
-                            <h3 className="font-display font-bold text-white text-base leading-tight">{s.emp.nome}</h3>
+                            <h3 className="font-display font-bold text-[#12233f] text-base leading-tight">{s.emp.nome}</h3>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs text-slate-300">{s.diasRealizados} dias</span>
+                              <span className="text-xs text-slate-500">{s.diasRealizados} dias</span>
                               {s.diasPrevistos > 0 && (
-                                <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-md">
+                                <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md ring-1 ring-amber-200">
                                   +{s.diasPrevistos} prev.
                                 </span>
                               )}
                               {variacaoMes !== null && (
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                                   variacaoMes >= 0
-                                    ? 'bg-emerald-500/15 text-emerald-400'
-                                    : 'bg-red-500/15 text-red-400'
+                                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                                    : 'bg-red-50 text-red-700 ring-1 ring-red-200'
                                 }`}>
                                   {variacaoMes >= 0 ? '↑' : '↓'}{Math.abs(variacaoMes).toFixed(1)}%
                                 </span>
@@ -2703,7 +2701,7 @@ export default function Home() {
                               {dpoteNaoDistribuidoHoje && (
                                 <span
                                   title={`Recorrência do dia ${diaHoje}/${mes.toString().padStart(2,'0')} ainda não foi distribuída pelo Dpote. Execute o Sync CB para atualizar.`}
-                                  className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/30 cursor-help"
+                                  className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 cursor-help"
                                 >
                                   <AlertCircle className="w-2.5 h-2.5" />
                                   Dpote pendente
@@ -2719,10 +2717,10 @@ export default function Home() {
                           </div>
                           <p className="font-display text-2xl font-bold leading-none" style={{ color: 'var(--meta-card-value)' }}>{fmt(s.totalRealizado)}</p>
                           {s.totalPrevisto > 0 && (
-                            <p className="text-[11px] text-amber-400 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
+                            <p className="text-[11px] text-amber-700 mt-0.5">+{fmt(s.totalPrevisto)} previsto</p>
                           )}
                           {s.recorrenciaMes > 0 && (
-                            <p className="text-[10px] text-violet-400/80 mt-0.5">
+                            <p className="text-[10px] text-blue-600 mt-0.5">
                               {s.ehMesFuturo
                                 ? `prev. Dpote: + ${fmt(s.recorrenciaPrevisao)}`
                                 : `+ ${fmt(s.recorrenciaMes)} Dpote`
@@ -2736,13 +2734,13 @@ export default function Home() {
                       {s.metaMensal > 0 && (
                         <div className="mt-4">
                           <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-[11px] font-label text-slate-400 tracking-wide">META MENSAL</span>
+                            <span className="text-[11px] font-label text-slate-500 tracking-wide">META MENSAL</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-slate-300">{fmt(s.metaMensal)}</span>
+                              <span className="text-[11px] text-slate-500">{fmt(s.metaMensal)}</span>
                               <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                                atingiuMeta ? 'bg-emerald-500/20 text-emerald-400'
-                                : pctMensal >= 80 ? 'bg-amber-500/15 text-amber-400'
-                                : 'bg-red-500/15 text-red-400'
+                                atingiuMeta ? 'bg-emerald-50 text-emerald-700'
+                                : pctMensal >= 80 ? 'bg-amber-50 text-amber-700'
+                                : 'bg-red-50 text-red-700'
                               }`}>{pctMensal}%</span>
                             </div>
                           </div>
@@ -2757,9 +2755,9 @@ export default function Home() {
                           {/* Linha de falta/atingida */}
                           <div className="flex items-center justify-between mt-2">
                             {atingiuMeta ? (
-                              <span className="text-xs font-bold text-emerald-400">✓ Meta atingida!</span>
+                              <span className="text-xs font-bold text-emerald-700">✓ Meta atingida!</span>
                             ) : (
-                              <span className="text-xs font-semibold text-amber-400">
+                              <span className="text-xs font-semibold text-amber-700">
                                 Falta: <span className="font-bold">{fmt(s.metaMensal - s.totalRealizado)}</span>
                               </span>
                             )}
@@ -2795,7 +2793,7 @@ export default function Home() {
 
                                 {s.projecaoFinal > 0 && (
                                   <span className={`text-[10px] font-medium ${
-                                    s.projecaoFinal >= s.metaMensal ? 'text-emerald-400' : 'text-amber-400'
+                                    s.projecaoFinal >= s.metaMensal ? 'text-emerald-700' : 'text-amber-700'
                                   }`}>
                                     Proj: {fmt(s.projecaoFinal)}
                                   </span>
@@ -2812,11 +2810,11 @@ export default function Home() {
                       {/* Média diária */}
                       <div className="text-center">
                         <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>MÉDIA/DIA</p>
-                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-400' : ''}`} style={menorQueMeta ? {} : { color: 'var(--meta-card-value)' }}>
+                        <p className={`font-display text-base font-bold ${menorQueMeta ? 'text-orange-700' : ''}`} style={menorQueMeta ? {} : { color: 'var(--meta-card-value)' }}>
                           {fmt(s.mediaDiaria)}
                         </p>
                         {menorQueMeta && metaDiaAtualMensal > 0 && (
-                          <p className="text-[10px] text-orange-400/70 mt-0.5">
+                          <p className="text-[10px] text-orange-600 mt-0.5">
                             precisa {fmt(metaDiaAtualMensal)}
                           </p>
                         )}
@@ -2824,9 +2822,9 @@ export default function Home() {
                       {/* Maior dia */}
                       <div className="text-center border-x" style={{ borderColor: 'var(--meta-card-section-border)' }}>
                         <p className="font-label text-[10px] tracking-widest mb-1" style={{ color: 'var(--meta-card-label)' }}>MAIOR DIA</p>
-                        <p className="font-display text-base font-bold text-emerald-400">{s.maiorDia > 0 ? fmt(s.maiorDia) : '—'}</p>
+                        <p className="font-display text-base font-bold text-emerald-700">{s.maiorDia > 0 ? fmt(s.maiorDia) : '—'}</p>
                         {s.menorDia > 0 && (
-                          <p className="text-[10px] text-red-400/80 mt-0.5">mín {fmt(s.menorDia)}</p>
+                          <p className="text-[10px] text-red-600 mt-0.5">mín {fmt(s.menorDia)}</p>
                         )}
                       </div>
                       {/* Dias úteis restantes */}
@@ -2837,7 +2835,7 @@ export default function Home() {
                             <UITooltipTrigger asChild>
                               <button
                                 type="button"
-                                className="rounded-full text-slate-500 outline-none transition-colors hover:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-400"
+                                className="rounded-full text-slate-400 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-400"
                                 aria-label={`Ver calendário de funcionamento da unidade ${s.emp.nome}`}
                               >
                                 <Info className="h-3 w-3" />
@@ -2916,17 +2914,17 @@ export default function Home() {
                               <div className="flex items-center gap-1">
                                 <span className="font-label text-[10px] tracking-widest" style={{ color: 'var(--meta-card-label)' }}>QUINZENAL</span>
                                 {snapshotQ && (
-                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30" title={`Valor congelado em ${new Date(snapshotQ.congeladoEm).toLocaleDateString('pt-BR')}`}>
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-blue-100 text-blue-700 border border-blue-200" title={`Valor congelado em ${new Date(snapshotQ.congeladoEm).toLocaleDateString('pt-BR')}`}>
                                     DEFINITIVO
                                   </span>
                                 )}
                                 {exibindoTempoRealQ && (
-                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                  <span className="text-[8px] px-1 py-0.5 rounded font-bold bg-orange-100 text-orange-700 border border-orange-200">
                                     TEMPO REAL
                                   </span>
                                 )}
                               </div>
-                              <span className={`text-[10px] font-bold ${atingiuQ ? 'text-emerald-400' : pctQ >= 80 ? 'text-yellow-400' : 'text-purple-400'}`}>
+                              <span className={`text-[10px] font-bold ${atingiuQ ? 'text-emerald-700' : pctQ >= 80 ? 'text-amber-700' : 'text-blue-700'}`}>
                                 {pctQ}%
                               </span>
                             </div>
@@ -2947,17 +2945,17 @@ export default function Home() {
                                   </p>
                                 </div>
                               ) : (
-                              <div className={`rounded-lg p-2 mb-1 border ${pctQ >= 80 ? 'border-yellow-500/40 bg-yellow-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
+                              <div className={`rounded-lg p-2 mb-1 border ${pctQ >= 80 ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'}`}>
                                 <div className="flex items-center gap-1.5 mb-0.5">
                                   <span className="text-sm">{pctQ >= 80 ? '⚠️' : '❌'}</span>
-                                  <span className={`text-[11px] font-bold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  <span className={`text-[11px] font-bold ${pctQ >= 80 ? 'text-amber-700' : 'text-red-700'}`}>
                                     META NÃO ATINGIDA
                                   </span>
                                 </div>
                                 <p className="text-[10px]" style={{ color: 'var(--meta-card-label)' }}>
                                   {fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}
                                 </p>
-                                <p className={`text-[10px] font-semibold ${pctQ >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>Faltou {fmt(faltaQ)}</p>
+                                <p className={`text-[10px] font-semibold ${pctQ >= 80 ? 'text-amber-700' : 'text-red-700'}`}>Faltou {fmt(faltaQ)}</p>
                               </div>
                               )
                             ) : (
@@ -2972,17 +2970,17 @@ export default function Home() {
                               </>
                             )}
                             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}>
-                              <div className={`h-full rounded-full ${atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-yellow-500' : 'bg-purple-500'}`}
+                              <div className={`h-full rounded-full ${atingiuQ ? 'bg-emerald-500' : pctQ >= 80 ? 'bg-amber-500' : 'bg-blue-500'}`}
                                 style={{ width: `${Math.min(pctQ, 100)}%`, animation: 'progressFill 0.8s ease-out' }} />
                             </div>
                             {!quinzenaEncerrada && (
                               <>
                                 <p className="text-[10px] mt-0.5" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalQuinzenal)} / {fmt(s.metaQuinzenal)}</p>
                                 {!atingiuQ && faltaQ > 0 && (
-                                  <p className="text-[10px] font-semibold text-amber-400 mt-0.5">
+                                  <p className="text-[10px] font-semibold text-amber-700 mt-0.5">
                                     Falta: {fmt(faltaQ)}
                                     {s.metaDiariaDinamicaQuinzenal > 0 && s.diasUteisRestantesQuinzenal > 0 && (
-                                      <span className="text-purple-300/70 font-normal"> · {fmt(s.metaDiariaDinamicaQuinzenal)}/dia ({s.diasUteisRestantesQuinzenal}d)</span>
+                                      <span className="text-blue-600 font-normal"> · {fmt(s.metaDiariaDinamicaQuinzenal)}/dia ({s.diasUteisRestantesQuinzenal}d)</span>
                                     )}
                                   </p>
                                 )}
@@ -3007,8 +3005,8 @@ export default function Home() {
                           return (
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-label text-[10px] text-amber-400/80 tracking-widest">★ SUPER META</span>
-                                <span className={`text-[10px] font-bold ${progressoSuper.atingida ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                <span className="font-label text-[10px] text-amber-700 tracking-widest">★ SUPER META</span>
+                                <span className={`text-[10px] font-bold ${progressoSuper.atingida ? 'text-emerald-700' : 'text-amber-700'}`}>
                                   {progressoSuper.percentual.toFixed(1)}%
                                 </span>
                               </div>
@@ -3033,7 +3031,7 @@ export default function Home() {
                                 </div>
                               </SuperMetaProgressTooltip>
                               <p className="text-[10px] mt-1" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalRealizado)} de {fmt(s.superMeta)}</p>
-                              <p className={`text-[10px] font-semibold mt-0.5 ${progressoSuper.atingida ? 'text-emerald-400' : 'text-orange-400'}`}>
+                              <p className={`text-[10px] font-semibold mt-0.5 ${progressoSuper.atingida ? 'text-emerald-700' : 'text-orange-700'}`}>
                                 {progressoSuper.atingida
                                   ? `Superou ${fmt(progressoSuper.excedente)}`
                                   : `Falta ${fmt(progressoSuper.falta)}`}
@@ -3047,19 +3045,19 @@ export default function Home() {
                     {/* ── RECORRÊNCIA DPOTE ── */}
                     {(s.recorrenciaMes > 0 || isGerente) && (() => {
                       return (
-                        <div className="px-5 py-3" style={{ backgroundColor: 'rgba(109,40,217,0.12)', borderTop: `1px solid rgba(139,92,246,0.2)` }}>
+                        <div className="px-5 py-3 bg-blue-50/60 border-t border-blue-100">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                                <RefreshCw className="w-3 h-3 text-violet-400" />
+                              <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <RefreshCw className="w-3 h-3 text-blue-600" />
                               </div>
                               <div>
-                                <p className="font-label text-[10px] text-violet-400/70 tracking-widest">RECORRÊNCIA</p>
+                                <p className="font-label text-[10px] text-blue-600 tracking-widest">RECORRÊNCIA</p>
                                 <div className="flex items-center gap-1.5">
                                   {valorBruto && fonteAtual === "cashbarber" ? (
                                     <UITooltip>
                                       <UITooltipTrigger asChild>
-                                        <span className="font-display text-sm font-bold text-violet-300 cursor-help border-b border-dotted border-violet-400/40">
+                                        <span className="font-display text-sm font-bold text-[#12233f] cursor-help border-b border-dotted border-blue-300">
                                           {fmt(s.recorrenciaMes)}
                                         </span>
                                       </UITooltipTrigger>
@@ -3081,15 +3079,15 @@ export default function Home() {
                                       </UITooltipContent>
                                     </UITooltip>
                                   ) : (
-                                    <span className="font-display text-sm font-bold text-violet-300">{fmt(s.recorrenciaMes)}</span>
+                                    <span className="font-display text-sm font-bold text-[#12233f]">{fmt(s.recorrenciaMes)}</span>
                                   )}
                                   {fonteAtual === "cashbarber" ? (
-                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
-                                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md ring-1 ring-emerald-200">
+                                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                                       API
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-violet-400 bg-violet-500/15 px-1.5 py-0.5 rounded-md">
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md ring-1 ring-blue-200">
                                       <Pencil className="w-2 h-2" />
                                       Manual
                                     </span>
@@ -3099,7 +3097,7 @@ export default function Home() {
                             </div>
                             {/* Botões de fonte — apenas gerente */}
                             {isGerente && valorBruto && (
-                              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-800/60 border border-violet-500/20">
+                              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white border border-slate-200 shadow-sm">
                                 <button
                                   onClick={() => {
                                     if (fonteAtual !== "cashbarber" && !isSavingFonte) {
@@ -3109,8 +3107,8 @@ export default function Home() {
                                   disabled={isSavingFonte}
                                   className={`flex items-center justify-center gap-1 h-6 px-2 rounded-md text-[10px] font-semibold transition-all ${
                                     fonteAtual === "cashbarber"
-                                      ? "bg-emerald-500/25 text-emerald-300 shadow-sm"
-                                      : "text-slate-400 hover:text-slate-300"
+                                      ? "bg-emerald-50 text-emerald-700 shadow-sm"
+                                      : "text-slate-500 hover:text-slate-800"
                                   }`}
                                 >
                                   <RefreshCw className="w-2.5 h-2.5" />
@@ -3135,8 +3133,8 @@ export default function Home() {
                                   disabled={isSavingFonte}
                                   className={`flex items-center justify-center gap-1 h-6 px-2 rounded-md text-[10px] font-semibold transition-all ${
                                     fonteAtual === "manual"
-                                      ? "bg-violet-500/30 text-violet-200 shadow-sm"
-                                      : "text-slate-400 hover:text-slate-300"
+                                      ? "bg-blue-50 text-blue-700 shadow-sm"
+                                      : "text-slate-500 hover:text-slate-800"
                                   }`}
                                 >
                                   <Pencil className="w-2.5 h-2.5" />
@@ -3147,27 +3145,27 @@ export default function Home() {
                           </div>
                           {/* Detalhe: Dpote real vs previsão dos dias restantes (mês vigente) */}
                           {s.recorrenciaPrevisaoRestante > 0 && !s.ehMesFuturo && (
-                            <div className="mt-2 pt-2 border-t border-violet-500/20 grid grid-cols-2 gap-2">
-                              <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5">
-                                <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">✅ Dpote realizado</p>
-                                <p className="text-[11px] font-bold text-emerald-300">{fmtFull(s.recorrenciaRealizada)}</p>
+                            <div className="mt-2 pt-2 border-t border-blue-100 grid grid-cols-2 gap-2">
+                              <div className="rounded-lg bg-emerald-50 px-2 py-1.5 ring-1 ring-emerald-100">
+                                <p className="text-[9px] text-emerald-600 uppercase tracking-wide">Dpote realizado</p>
+                                <p className="text-[11px] font-bold text-emerald-700">{fmtFull(s.recorrenciaRealizada)}</p>
                               </div>
-                              <div className="rounded-lg bg-violet-500/10 px-2 py-1.5">
-                                <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">🔮 Previsão restante</p>
-                                <p className="text-[11px] font-bold text-violet-300">{fmtFull(s.recorrenciaPrevisaoRestante)}</p>
+                              <div className="rounded-lg bg-blue-50 px-2 py-1.5 ring-1 ring-blue-100">
+                                <p className="text-[9px] text-blue-600 uppercase tracking-wide">Previsão restante</p>
+                                <p className="text-[11px] font-bold text-blue-700">{fmtFull(s.recorrenciaPrevisaoRestante)}</p>
                               </div>
                             </div>
                           )}
 
                           {/* Painel de entrada manual */}
                           {isEditandoEsta && isGerente && fonteAtual === "manual" && (
-                            <div className="mt-3 pt-3 border-t border-violet-500/20">
-                              <p className="text-[11px] text-violet-300/80 mb-2">
+                            <div className="mt-3 pt-3 border-t border-blue-100">
+                              <p className="text-[11px] text-slate-600 mb-2">
                                 Informe o valor total de Recorrência apurado até hoje.
                               </p>
                               <div className="flex items-center gap-2">
                                 <div className="relative flex-1">
-                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-semibold">R$</span>
+                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">R$</span>
                                   <Input
                                     type="number"
                                     min="0"
@@ -3181,7 +3179,7 @@ export default function Home() {
                                       }
                                       if (e.key === "Escape") { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }
                                     }}
-                                    className="pl-8 h-8 text-sm bg-slate-800/60 border-violet-500/30 text-violet-100 placeholder:text-violet-400/40 focus:border-violet-400"
+                                    className="pl-8 h-8 text-sm bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
                                     autoFocus
                                   />
                                 </div>
@@ -3193,13 +3191,13 @@ export default function Home() {
                                     }
                                   }}
                                   disabled={valorManualNum <= 0 || salvarRecorrenciaManualMutation.isPending}
-                                  className="h-8 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white shrink-0"
+                                  className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white shrink-0"
                                 >
                                   {salvarRecorrenciaManualMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Aplicar"}
                                 </Button>
                                 <button
                                   onClick={() => { setRecorrenciaManualSlug(null); setRecorrenciaManualValor(""); }}
-                                  className="h-8 w-8 flex items-center justify-center rounded text-slate-400 hover:text-slate-200 shrink-0"
+                                  className="h-8 w-8 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 shrink-0"
                                 >
                                   <XIcon className="w-3.5 h-3.5" />
                                 </button>

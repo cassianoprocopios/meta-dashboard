@@ -1697,8 +1697,8 @@
 - [x] Documentar decisões e critérios de preservação funcional em ideas.md
 - [x] Criar Design System global: cores, tipografia, espaçamento, sombras, raios e estados
 - [x] Redesenhar sidebar recolhível, header global e navegação móvel
-- [ ] Redesenhar dashboard principal, KPIs, metas, comparativos e cards das unidades
-- [ ] Modernizar gráficos e visualizações mantendo dados e regras existentes
+- [x] Redesenhar dashboard principal, KPIs, metas, comparativos e cards das unidades
+- [x] Modernizar gráficos e visualizações mantendo dados e regras existentes
 - [ ] Redesenhar Metas, Bonificações, Histórico e Dpote
 - [ ] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
 - [ ] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
