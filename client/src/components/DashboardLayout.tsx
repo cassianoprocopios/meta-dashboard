@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Scissors, BarChart2, Building2, Trophy, Target, ClipboardList, Shield, Code2, History, Activity, Smartphone, UserCog } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Scissors, BarChart2, Building2, Trophy, Target, ClipboardList, Shield, Code2, History, Activity, Smartphone, UserCog, CalendarDays } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -180,27 +180,27 @@ function DashboardLayoutContent({
           className="border-r-0"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
+          <SidebarHeader className="h-[72px] justify-center border-b border-white/8 px-3">
+            <div className="flex items-center gap-3 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="h-9 w-9 flex items-center justify-center rounded-[10px] bg-white/8 text-white/70 transition-colors hover:bg-white/12 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <PanelLeft className="h-4 w-4" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
+                <div className="min-w-0">
+                  <span className="block truncate text-sm font-semibold tracking-[-0.02em] text-white">Meta Dashboard</span>
+                  <span className="mt-0.5 block truncate text-[10px] uppercase tracking-[0.12em] text-white/35">Gestão de performance</span>
                 </div>
               ) : null}
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
+          <SidebarContent className="gap-0 px-2 py-3">
+            {!isCollapsed && <p className="px-2 pb-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/30">Navegação</p>}
+            <SidebarMenu className="gap-1">
               {menuItems
                 .filter(item => {
                   // Filtrar por role se especificado
@@ -221,10 +221,10 @@ function DashboardLayoutContent({
                         isActive={isActive}
                         onClick={() => setLocation(item.path)}
                         tooltip={item.label}
-                        className={`h-10 transition-all font-normal`}
+                        className="h-11 rounded-[10px] font-medium text-white/55 transition-all hover:bg-white/7 hover:text-white data-[active=true]:bg-white/10 data-[active=true]:text-white data-[active=true]:shadow-[inset_3px_0_0_#34d399]"
                       >
                         <item.icon
-                          className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                          className={`h-4 w-4 ${isActive ? "text-emerald-300" : "text-white/45"}`}
                         />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
@@ -234,20 +234,20 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3">
+          <SidebarFooter className="border-t border-white/8 p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
+                <button className="flex items-center gap-3 rounded-[10px] px-1 py-1.5 transition-colors w-full text-left hover:bg-white/7 group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                  <Avatar className="h-9 w-9 border border-white/10 shrink-0">
+                    <AvatarFallback className="bg-emerald-400/15 text-xs font-semibold text-emerald-200">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none">
+                    <p className="text-sm font-medium truncate leading-none text-white/85">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
+                    <p className="text-xs text-white/35 truncate mt-1.5">
                       {user?.email || "-"}
                     </p>
                   </div>
@@ -275,22 +275,21 @@ function DashboardLayoutContent({
         />
       </div>
 
-      <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
+      <SidebarInset className="bg-[#f5f7fa]">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6">
+          <div className="flex items-center gap-3">
+            {isMobile && <SidebarTrigger className="h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm" />}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Meta Dashboard</p>
+              <h1 className="text-base font-semibold tracking-[-0.025em] text-[#12233f]">{activeMenuItem?.label ?? "Visão geral"}</h1>
             </div>
           </div>
-        )}
-        <main className="flex-1 p-4">{children}</main>
+          <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 sm:flex">
+            <CalendarDays className="h-3.5 w-3.5 text-blue-600" />
+            {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date())}
+          </div>
+        </header>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
     </>
   );

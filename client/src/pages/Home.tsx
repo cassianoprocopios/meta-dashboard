@@ -77,6 +77,19 @@ function pct(v: number, total: number) {
 
 type Tab = "dashboard" | "lancamentos" | "metas" | "bonificacao" | "historico" | "usuarios" | "empresas" | "auditoria" | "ia" | "dpote";
 
+const TAB_TITLES: Record<Tab, { title: string; subtitle: string }> = {
+  dashboard: { title: "Visão geral", subtitle: "Faturamento, metas e performance das unidades" },
+  lancamentos: { title: "Lançamentos", subtitle: "Faturamento diário e movimentações" },
+  metas: { title: "Metas", subtitle: "Objetivos mensais, quinzenais e calendário" },
+  bonificacao: { title: "Bonificações", subtitle: "Resultados e valores por unidade" },
+  historico: { title: "Histórico anual", subtitle: "Evolução e comparativos do ano" },
+  usuarios: { title: "Usuários", subtitle: "Acessos, perfis e permissões" },
+  empresas: { title: "Empresas", subtitle: "Configuração das unidades" },
+  auditoria: { title: "Auditoria", subtitle: "Rastreabilidade das ações" },
+  ia: { title: "Análise inteligente", subtitle: "Insights orientados pelos dados do negócio" },
+  dpote: { title: "Dpote", subtitle: "Distribuição e recorrência por unidade" },
+};
+
 function LogoutButton() {
   const logoutMutation = trpc.auth.logoutApp.useMutation({
     onSuccess: () => { window.location.reload(); },
@@ -1203,7 +1216,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <div className="min-h-screen bg-[#f5f7fa] text-slate-900 flex">
       {/* Sidebar lateral */}
       {isAuthenticated && (
         <AppSidebar
@@ -1239,20 +1252,19 @@ export default function Home() {
       {/* Conteúdo principal */}
       <div className="flex-1 min-w-0 flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16 pl-10 md:pl-0">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-[0_1px_2px_rgba(15,23,42,0.025)] backdrop-blur-xl">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between pl-10 md:h-[72px] md:pl-0">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[11px] bg-[#12233f] shadow-[0_6px_16px_rgba(18,35,63,0.16)] flex items-center justify-center flex-shrink-0">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-base font-bold text-foreground leading-tight">Meta Dashboard</h1>
-                <p className="text-xs text-muted-foreground leading-tight hidden sm:block">
-                  {empresaVinculada
-                    ? empresasData.find((e) => e.slug === empresaVinculada)?.nome ?? empresaVinculada
-                    : "Todas as Unidades"}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-blue-600 leading-tight hidden sm:block">Meta Dashboard</p>
+                <h1 className="text-sm sm:text-base font-semibold tracking-[-0.025em] text-[#12233f] leading-tight">{TAB_TITLES[activeTab].title}</h1>
+                <p className="text-[11px] text-slate-400 leading-tight hidden lg:block">
+                  {TAB_TITLES[activeTab].subtitle}
                 </p>
               </div>
             </div>
@@ -1262,7 +1274,7 @@ export default function Home() {
               <select
                 value={mes}
                 onChange={(e) => { setMes(Number(e.target.value)); setSemanaIdx(0); }}
-                className="text-sm border border-border rounded-xl px-3 py-1.5 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="h-9 text-sm border border-slate-200 rounded-[10px] px-3 bg-white text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 {MESES.map((m, i) => (
                   <option key={i} value={i + 1}>{m} {ano}</option>
@@ -1270,23 +1282,23 @@ export default function Home() {
               </select>
               {/* Filtro de período: Mensal / Semanal */}
               {activeTab === "dashboard" && (
-                <div className="flex items-center rounded-xl border border-border overflow-hidden text-sm">
+                <div className="flex items-center rounded-[10px] border border-slate-200 bg-slate-50 p-0.5 text-sm">
                   <button
                     onClick={() => setPeriodoFiltro("mensal")}
-                    className={`px-3 py-1.5 transition-colors ${
+                    className={`rounded-lg px-3 py-1.5 transition-colors ${
                       periodoFiltro === "mensal"
-                        ? "bg-primary text-primary-foreground font-semibold"
-                        : "bg-background text-muted-foreground hover:bg-accent"
+                        ? "bg-white text-[#12233f] font-semibold shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
                     Mensal
                   </button>
                   <button
                     onClick={() => setPeriodoFiltro("semanal")}
-                    className={`px-3 py-1.5 transition-colors ${
+                    className={`rounded-lg px-3 py-1.5 transition-colors ${
                       periodoFiltro === "semanal"
-                        ? "bg-primary text-primary-foreground font-semibold"
-                        : "bg-background text-muted-foreground hover:bg-accent"
+                        ? "bg-white text-[#12233f] font-semibold shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
                     Semanal
@@ -1416,10 +1428,10 @@ export default function Home() {
                 </button>
               )}
               {user && (
-                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border">
+                  <div className="flex items-center gap-2 ml-1 pl-3 border-l border-slate-200">
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-semibold text-foreground leading-none">{user.name ?? user.email}</span>
-                    <span className="text-xs text-muted-foreground leading-none mt-0.5 capitalize">{(user as any).perfil ?? user.role}</span>
+                    <span className="text-xs font-semibold text-[#12233f] leading-none">{user.name ?? user.email}</span>
+                    <span className="text-[10px] text-slate-400 leading-none mt-1 capitalize">{(user as any).perfil ?? user.role}</span>
                   </div>
                   <LogoutButton />
                 </div>
@@ -1463,7 +1475,7 @@ export default function Home() {
 
           {/* Menu mobile expandido */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-border py-3 space-y-1">
+            <div className="md:hidden border-t border-slate-200 py-3 space-y-1 bg-white">
               {/* Seletor de mês */}
               <div className="px-1 pb-2">
                 <label className="text-xs text-muted-foreground font-medium mb-1 block">Mês de referência</label>
@@ -1616,7 +1628,7 @@ export default function Home() {
 
 
 
-      <main className="flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 md:pb-6 max-w-full overflow-x-hidden">
+      <main className="mx-auto w-full max-w-[1600px] flex-1 overflow-x-hidden px-3 py-4 pb-20 sm:px-6 sm:py-6 md:pb-8 lg:px-8">
         {loading && activeTab === "dashboard" && (
           <DashboardSkeleton />
         )}

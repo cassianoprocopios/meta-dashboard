@@ -65,20 +65,20 @@ export default function BottomNav({
           flex-1 flex flex-col items-center justify-center gap-0.5 px-1
           transition-colors duration-150
           ${isActive
-            ? "text-indigo-400"
-            : "text-muted-foreground hover:text-foreground"
+            ? "text-[#12233f]"
+            : "text-slate-400 hover:text-slate-700"
           }
         `}
         aria-label={item.label}
       >
         <div className={`
-          flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-150
-          ${isActive ? "bg-indigo-500/15" : ""}
+          flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-[10px] transition-all duration-150
+          ${isActive ? "bg-slate-100 shadow-[inset_0_-2px_0_#34d399]" : ""}
         `}>
-          <span className={`transition-transform duration-150 ${isActive ? "scale-110" : ""}`}>
+          <span className={`transition-transform duration-150 ${isActive ? "text-blue-600" : ""}`}>
             {item.icon}
           </span>
-          <span className={`text-[10px] font-medium leading-none ${isActive ? "text-indigo-400 font-semibold" : ""}`}>
+          <span className={`text-[10px] font-medium leading-none ${isActive ? "text-[#12233f] font-semibold" : ""}`}>
             {item.label}
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function BottomNav({
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border safe-area-pb">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 shadow-[0_-8px_28px_rgba(15,23,42,0.06)] backdrop-blur-xl safe-area-pb">
       <div className="flex items-stretch h-16 relative">
         {/* Itens da esquerda */}
         {leftItems.map((item) => (
@@ -102,12 +102,12 @@ export default function BottomNav({
               onClick={onFabClick}
               className="
                 w-12 h-12 rounded-full
-                bg-gradient-to-br from-indigo-500 to-violet-600
+                bg-[#12233f]
                 flex items-center justify-center
-                shadow-[0_4px_20px_rgba(99,102,241,0.55)]
+                shadow-[0_8px_20px_rgba(18,35,63,0.28)]
                 active:scale-95 transition-transform duration-100
                 -mt-5
-                border-2 border-card
+                border-[3px] border-white
               "
               aria-label="Novo lançamento"
             >
@@ -122,7 +122,7 @@ export default function BottomNav({
         ))}
       </div>
       {/* Safe area para iPhone com notch */}
-      <div className="h-safe-bottom bg-card" />
+      <div className="h-safe-bottom bg-white" />
     </nav>
   );
 }

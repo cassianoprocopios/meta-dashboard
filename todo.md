@@ -1696,7 +1696,7 @@
 - [x] Inventariar rotas, páginas, layouts, componentes compartilhados e estados atuais (28 páginas, 43 componentes de domínio e biblioteca UI)
 - [x] Documentar decisões e critérios de preservação funcional em ideas.md
 - [x] Criar Design System global: cores, tipografia, espaçamento, sombras, raios e estados
-- [ ] Redesenhar sidebar recolhível, header global e navegação móvel
+- [x] Redesenhar sidebar recolhível, header global e navegação móvel
 - [ ] Redesenhar dashboard principal, KPIs, metas, comparativos e cards das unidades
 - [ ] Modernizar gráficos e visualizações mantendo dados e regras existentes
 - [ ] Redesenhar Metas, Bonificações, Histórico e Dpote
