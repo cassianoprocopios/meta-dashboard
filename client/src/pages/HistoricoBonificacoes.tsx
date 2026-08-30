@@ -158,21 +158,21 @@ export default function HistoricoBonificacoes() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Histórico de Bonificações</h1>
-            <p className="text-slate-400 text-sm mt-1">Registro mensal de bonificações pagas por unidade</p>
+            <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f]">Histórico de Bonificações</h1>
+            <p className="text-slate-500 text-sm mt-1">Registro mensal de bonificações pagas por unidade</p>
           </div>
           <div className="flex items-center gap-3">
             {/* Seletor de ano */}
-            <div className="flex items-center gap-1 bg-slate-800 rounded-lg px-2 py-1">
-              <button onClick={() => setAno(a => a - 1)} className="p-1 text-slate-400 hover:text-white">
+            <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-[10px] px-2 py-1 shadow-sm">
+              <button onClick={() => setAno(a => a - 1)} className="p-1 text-slate-400 hover:text-[#12233f]">
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-white font-semibold w-12 text-center">{ano}</span>
-              <button onClick={() => setAno(a => a + 1)} className="p-1 text-slate-400 hover:text-white">
+              <span className="text-[#12233f] font-semibold w-12 text-center">{ano}</span>
+              <button onClick={() => setAno(a => a + 1)} className="p-1 text-slate-400 hover:text-[#12233f]">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -200,18 +200,18 @@ export default function HistoricoBonificacoes() {
         </div>
 
         {/* Cards de resumo anual */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="rounded-xl p-4" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="premium-kpi p-4">
             <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Faturamento Total {ano}</p>
-            <p className="text-white text-xl font-bold">{fmt(totalFaturamento)}</p>
+            <p className="text-[#12233f] text-xl font-bold">{fmt(totalFaturamento)}</p>
           </div>
-          <div className="rounded-xl p-4" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
-            <p className="text-emerald-400 text-xs uppercase tracking-widest mb-1">Total Pago em Bonificações {ano}</p>
-            <p className="text-emerald-300 text-xl font-bold">{fmt(totalAnual)}</p>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+            <p className="text-emerald-700 text-xs uppercase tracking-widest mb-1">Total Pago em Bonificações {ano}</p>
+            <p className="text-emerald-800 text-xl font-bold">{fmt(totalAnual)}</p>
           </div>
-          <div className="rounded-xl p-4" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="premium-kpi p-4">
             <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">% Bonif. / Faturamento</p>
-            <p className="text-white text-xl font-bold">
+            <p className="text-[#12233f] text-xl font-bold">
               {totalFaturamento > 0 ? ((totalAnual / totalFaturamento) * 100).toFixed(2) : "0.00"}%
             </p>
           </div>
@@ -240,14 +240,14 @@ export default function HistoricoBonificacoes() {
           const rows = porMes[mes];
           const totalMes = rows.reduce((acc, r) => acc + parseFloat(r.totalPago || "0"), 0);
           return (
-            <div key={mes} className="mb-6 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div key={mes} className="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               {/* Header do mês */}
-              <div className="px-5 py-3 flex items-center justify-between" style={{ background: 'rgba(30,41,59,0.9)' }}>
+              <div className="px-5 py-3 flex items-center justify-between bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-3">
-                  <span className="text-white font-bold text-base">{MESES[mes - 1]} {ano}</span>
+                  <span className="text-[#12233f] font-bold text-base">{MESES[mes - 1]} {ano}</span>
                   <span className="text-slate-400 text-sm">{rows.length} unidade{rows.length > 1 ? "s" : ""}</span>
                 </div>
-                <span className="text-emerald-300 font-bold">{fmt(totalMes)}</span>
+                <span className="text-emerald-700 font-bold">{fmt(totalMes)}</span>
               </div>
 
               {/* Linhas por unidade */}
@@ -255,12 +255,12 @@ export default function HistoricoBonificacoes() {
                 const empresa = EMPRESAS.find(e => e.slug === row.empresaSlug);
                 const pctMeta = pct(parseFloat(row.faturamentoTotal), parseFloat(row.metaMensal));
                 return (
-                  <div key={row.id} className="px-5 py-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.04)', background: 'rgba(15,23,42,0.6)' }}>
+                  <div key={row.id} className="px-5 py-4 border-t border-slate-100 bg-white transition-colors hover:bg-slate-50/70">
                     <div className="flex items-start justify-between gap-4">
                       {/* Info principal */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-white font-semibold">{empresa?.label ?? row.empresaSlug}</span>
+                          <span className="text-[#12233f] font-semibold">{empresa?.label ?? row.empresaSlug}</span>
                           {row.atingiuSuperMeta ? (
                             <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-medium">Super Meta ⭐</span>
                           ) : row.atingiuMeta ? (
@@ -284,7 +284,7 @@ export default function HistoricoBonificacoes() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           <div>
                             <p className="text-slate-500 text-[10px] uppercase tracking-wide">Faturamento</p>
-                            <p className="text-white text-sm font-medium">{fmt(row.faturamentoTotal)}</p>
+                            <p className="text-slate-800 text-sm font-medium">{fmt(row.faturamentoTotal)}</p>
                             <p className="text-slate-400 text-[10px]">{pctMeta}% da meta</p>
                           </div>
                           {parseFloat(row.valorQuinzenal) > 0 && (
@@ -319,7 +319,7 @@ export default function HistoricoBonificacoes() {
                       {/* Ações */}
                       {isAdmin && (
                         <div className="flex items-center gap-1 shrink-0">
-                          <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-700">
+                          <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-blue-700 rounded-lg hover:bg-blue-50">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => setDeleteId(row.id)} className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-900/20">
@@ -338,7 +338,7 @@ export default function HistoricoBonificacoes() {
 
       {/* Dialog de edição/criação */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="premium-form-scope max-w-lg border-slate-200 bg-white text-slate-900">
           <DialogHeader>
             <DialogTitle>{form.id ? "Editar Registro" : "Novo Registro de Bonificação"}</DialogTitle>
           </DialogHeader>
@@ -349,8 +349,8 @@ export default function HistoricoBonificacoes() {
                 <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  {EMPRESAS.map(e => <SelectItem key={e.slug} value={e.slug} className="text-white">{e.label}</SelectItem>)}
+                <SelectContent className="bg-white border-slate-200">
+                  {EMPRESAS.map(e => <SelectItem key={e.slug} value={e.slug} className="text-slate-700">{e.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -360,8 +360,8 @@ export default function HistoricoBonificacoes() {
                 <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  {MESES.map((m, i) => <SelectItem key={i + 1} value={String(i + 1)} className="text-white">{m}</SelectItem>)}
+                <SelectContent className="bg-white border-slate-200">
+                  {MESES.map((m, i) => <SelectItem key={i + 1} value={String(i + 1)} className="text-slate-700">{m}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -416,9 +416,9 @@ export default function HistoricoBonificacoes() {
                 <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
-                  <SelectItem value="0" className="text-white">Não</SelectItem>
-                  <SelectItem value="1" className="text-white">Sim</SelectItem>
+                <SelectContent className="bg-white border-slate-200">
+                  <SelectItem value="0" className="text-slate-700">Não</SelectItem>
+                  <SelectItem value="1" className="text-slate-700">Sim</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -441,7 +441,7 @@ export default function HistoricoBonificacoes() {
 
       {/* Dialog de confirmação de exclusão */}
       <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="max-w-sm bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="premium-form-scope max-w-sm border-slate-200 bg-white text-slate-900">
           <DialogHeader>
             <DialogTitle>Confirmar exclusão</DialogTitle>
           </DialogHeader>

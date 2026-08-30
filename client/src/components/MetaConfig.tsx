@@ -144,17 +144,17 @@ export default function MetaConfig({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="premium-form-scope space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-black rounded-2xl p-6 border border-gray-800">
+      <div className="premium-panel flex items-center justify-between p-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Metas de {mesLabel} {ano}</h2>
-          <p className="text-sm text-gray-300 mt-2">
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f]">Metas de {mesLabel} {ano}</h2>
+          <p className="text-sm text-slate-500 mt-2">
             Configure os valores alvo, super meta e os dias úteis de cada empresa para o mês.
           </p>
         </div>
         {!isGerente && (
-          <div className="flex items-center gap-1.5 bg-gray-900 text-gray-200 px-4 py-2 rounded-lg text-xs font-medium border border-gray-700">
+          <div className="flex items-center gap-1.5 bg-slate-50 text-slate-600 px-4 py-2 rounded-lg text-xs font-medium border border-slate-200">
             <Lock className="w-3.5 h-3.5" /> Somente leitura
           </div>
         )}
@@ -187,17 +187,17 @@ export default function MetaConfig({
           const atingiuSuperMeta = realizado >= superMetaVal && superMetaVal > 0;
 
           return (
-            <Card key={emp.slug} className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-gray-950 overflow-hidden relative">
+            <Card key={emp.slug} className="premium-panel p-6 overflow-hidden relative">
               {/* Barra de cor no topo */}
               <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl" style={{ backgroundColor: emp.cor }} />
 
               {/* Header da empresa */}
               <div className="flex items-center gap-3 mb-5 mt-1">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-800 border border-gray-700">
-                  <Target className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center bg-blue-50 border border-blue-100">
+                  <Target className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-white text-lg">{emp.nome}</h3>
+                  <h3 className="font-bold text-[#12233f] text-lg">{emp.nome}</h3>
                   <p className="text-xs text-gray-400 truncate">
                     {emp.categorias && emp.categorias.length > 0
                       ? emp.categorias.slice(0, 4).map((c) => c.nome).join(" / ")
@@ -390,10 +390,10 @@ export default function MetaConfig({
 
       {/* Resumo total */}
       {(totalMetaMensal > 0 || totalMetaQuinzenal > 0 || totalSuperMeta > 0) && (
-        <Card className="p-6 border border-gray-700 shadow-lg rounded-2xl bg-black">
+        <Card className="premium-panel p-6">
           <div className="flex items-center gap-3 mb-5">
-            <TrendingUp className="w-5 h-5 text-white" />
-            <h3 className="font-bold text-white text-lg">Resumo das Metas</h3>
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-[#12233f] text-lg">Resumo das Metas</h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {empresasVisiveis.map((emp) => {
@@ -443,7 +443,7 @@ export default function MetaConfig({
         <Button
           onClick={handleSave}
           disabled={salvarMeta.isPending}
-          className="w-full bg-white hover:bg-gray-200 text-black rounded-lg gap-2 py-3 font-semibold border border-gray-300"
+          className="w-full bg-[#12233f] hover:bg-[#0b1830] text-white rounded-[10px] gap-2 py-3 font-semibold border border-[#12233f] shadow-sm"
         >
           {salvarMeta.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Salvar Metas de {mesLabel}

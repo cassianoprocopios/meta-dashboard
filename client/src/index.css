@@ -344,6 +344,49 @@
     font-weight: 650;
   }
 
+  .premium-form-scope .bg-black,
+  .premium-form-scope .bg-gray-950,
+  .premium-form-scope .bg-gray-900,
+  .premium-form-scope .bg-slate-900,
+  .premium-form-scope .bg-slate-800 {
+    background-color: #ffffff;
+  }
+
+  .premium-form-scope .bg-gray-800 {
+    background-color: #f1f5f9;
+  }
+
+  .premium-form-scope .border-gray-800,
+  .premium-form-scope .border-gray-700,
+  .premium-form-scope .border-slate-700,
+  .premium-form-scope .border-slate-600 {
+    border-color: #e2e8f0;
+  }
+
+  .premium-form-scope .text-white {
+    color: #12233f;
+  }
+
+  .premium-form-scope .text-gray-300,
+  .premium-form-scope .text-gray-400,
+  .premium-form-scope .text-gray-500,
+  .premium-form-scope .text-slate-300,
+  .premium-form-scope .text-slate-400 {
+    color: #64748b;
+  }
+
+  .premium-form-scope input.bg-gray-900 {
+    border-color: #dce2ea;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
+  }
+
+  .premium-form-scope input.bg-gray-900:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.12);
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *
