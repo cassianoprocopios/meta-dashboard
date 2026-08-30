@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "../shared/bonificacao";
+import {
+  calcularBonificacaoSubstitutiva,
+  calcularProgressoSuperMeta,
+  criarDetalhesTooltipSuperMeta,
+} from "../shared/bonificacao";
 
 const percentuais = {
   pctQuinzenalSemMeta: 0.2,
@@ -128,5 +132,27 @@ describe("progresso visual da Super Meta", () => {
     expect(progresso.percentualBarra).toBe(0);
     expect(progresso.falta).toBe(0);
     expect(progresso.excedente).toBe(0);
+  });
+});
+
+describe("conteúdo detalhado do tooltip da Super Meta", () => {
+  it("expõe faturamento, objetivo, percentual e falta com valores exatos", () => {
+    const detalhes = criarDetalhesTooltipSuperMeta("Mascote", 110_238.81, 115_000);
+
+    expect(detalhes.titulo).toBe("Super Meta — Mascote");
+    expect(detalhes.faturamentoTexto).toContain("110.238,81");
+    expect(detalhes.objetivoTexto).toContain("115.000,00");
+    expect(detalhes.percentualTexto).toBe("95.86%");
+    expect(detalhes.statusRotulo).toBe("Quanto falta");
+    expect(detalhes.statusValorTexto).toContain("4.761,19");
+    expect(detalhes.descricaoAcessivel).toContain("Mascote: 95.9% atingidos");
+  });
+
+  it("troca a falta pelo excedente quando a Super Meta foi atingida", () => {
+    const detalhes = criarDetalhesTooltipSuperMeta("Morumbi", 120_500, 115_000);
+
+    expect(detalhes.percentualTexto).toBe("104.78%");
+    expect(detalhes.statusRotulo).toBe("Valor excedente");
+    expect(detalhes.statusValorTexto).toContain("5.500,00");
   });
 });

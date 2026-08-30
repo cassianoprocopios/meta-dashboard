@@ -1683,3 +1683,11 @@
 - [x] Adicionar a mesma visualização à página de Bonificações
 - [x] Criar testes para progresso abaixo, acima e sem Super Meta configurada (8 testes de bonificação passando)
 - [x] Validar responsividade, publicar e confirmar no domínio de produção (performancemeta.sbs respondendo HTTP 200)
+
+## Tooltip Interativo da Barra de Super Meta
+- [x] Revisar as duas barras de Super Meta e o padrão de tooltip acessível do projeto
+- [x] Adicionar tooltip ao dashboard com faturamento, objetivo, percentual e falta ou excedente
+- [x] Adicionar o mesmo tooltip à página de Bonificações
+- [x] Garantir interação por mouse, toque e teclado com descrição acessível
+- [x] Criar testes do conteúdo detalhado do tooltip (10 testes de bonificação passando)
+- [ ] Validar responsividade, publicar e confirmar no domínio de produção

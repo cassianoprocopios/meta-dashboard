@@ -50,6 +50,7 @@ import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChar
 import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
 import { calcularTotalQuinzenal } from "@shared/quinzenal";
 import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "@shared/bonificacao";
+import { SuperMetaProgressTooltip } from "@/components/SuperMetaProgressTooltip";
 import {
   calcularIndicadoresDiasRestantes,
   classificarViabilidadeNecessidadeDiaria,
@@ -2999,20 +3000,26 @@ export default function Home() {
                                   {progressoSuper.percentual.toFixed(1)}%
                                 </span>
                               </div>
-                              <div
-                                className="h-2 rounded-full overflow-hidden"
-                                style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}
-                                role="progressbar"
-                                aria-label={`Progresso da Super Meta de ${s.emp.nome}`}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-valuenow={Math.round(progressoSuper.percentualBarra)}
+                              <SuperMetaProgressTooltip
+                                nomeUnidade={s.emp.nome}
+                                totalRealizado={s.totalRealizado}
+                                superMeta={s.superMeta}
                               >
                                 <div
-                                  className={`h-full rounded-full ${progressoSuper.atingida ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}
-                                  style={{ width: `${progressoSuper.percentualBarra}%`, animation: 'progressFill 0.9s ease-out' }}
-                                />
-                              </div>
+                                  className="h-2 rounded-full overflow-hidden"
+                                  style={{ backgroundColor: 'var(--meta-card-bar-bg)' }}
+                                  role="progressbar"
+                                  aria-label={`Progresso da Super Meta de ${s.emp.nome}`}
+                                  aria-valuemin={0}
+                                  aria-valuemax={100}
+                                  aria-valuenow={Math.round(progressoSuper.percentualBarra)}
+                                >
+                                  <div
+                                    className={`h-full rounded-full ${progressoSuper.atingida ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}
+                                    style={{ width: `${progressoSuper.percentualBarra}%`, animation: 'progressFill 0.9s ease-out' }}
+                                  />
+                                </div>
+                              </SuperMetaProgressTooltip>
                               <p className="text-[10px] mt-1" style={{ color: 'var(--meta-card-label)' }}>{fmt(s.totalRealizado)} de {fmt(s.superMeta)}</p>
                               <p className={`text-[10px] font-semibold mt-0.5 ${progressoSuper.atingida ? 'text-emerald-400' : 'text-orange-400'}`}>
                                 {progressoSuper.atingida

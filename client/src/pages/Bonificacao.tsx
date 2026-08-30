@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "@shared/bonificacao";
+import { SuperMetaProgressTooltip } from "@/components/SuperMetaProgressTooltip";
 
 interface Empresa {
   slug: string;
@@ -457,19 +458,25 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                         {c.progressoSuperMeta.percentual.toFixed(1)}%
                       </span>
                     </div>
-                    <div
-                      className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200"
-                      role="progressbar"
-                      aria-label={`Progresso da Super Meta de ${c.emp.nome}`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={Math.round(c.progressoSuperMeta.percentualBarra)}
+                    <SuperMetaProgressTooltip
+                      nomeUnidade={c.emp.nome}
+                      totalRealizado={c.totalMensal}
+                      superMeta={c.superMeta}
                     >
                       <div
-                        className={`h-full rounded-full transition-[width] duration-300 ${c.progressoSuperMeta.atingida ? "bg-emerald-500" : "bg-gradient-to-r from-amber-400 to-orange-500"}`}
-                        style={{ width: `${c.progressoSuperMeta.percentualBarra}%` }}
-                      />
-                    </div>
+                        className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200"
+                        role="progressbar"
+                        aria-label={`Progresso da Super Meta de ${c.emp.nome}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(c.progressoSuperMeta.percentualBarra)}
+                      >
+                        <div
+                          className={`h-full rounded-full transition-[width] duration-300 ${c.progressoSuperMeta.atingida ? "bg-emerald-500" : "bg-gradient-to-r from-amber-400 to-orange-500"}`}
+                          style={{ width: `${c.progressoSuperMeta.percentualBarra}%` }}
+                        />
+                      </div>
+                    </SuperMetaProgressTooltip>
                     <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px]">
                       <span className="text-slate-500">{fmt(c.totalMensal)} de {fmt(c.superMeta)}</span>
                       <span className={`shrink-0 font-bold ${c.progressoSuperMeta.atingida ? "text-emerald-600" : "text-orange-600"}`}>

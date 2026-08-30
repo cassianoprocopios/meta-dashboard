@@ -45,6 +45,34 @@ export function calcularProgressoSuperMeta(totalRealizado: number, superMeta: nu
   };
 }
 
+const formatarMoedaBr = (valor: number) =>
+  valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+export function criarDetalhesTooltipSuperMeta(
+  nomeUnidade: string,
+  totalRealizado: number,
+  superMeta: number,
+) {
+  const progresso = calcularProgressoSuperMeta(totalRealizado, superMeta);
+  const valorStatus = progresso.atingida ? progresso.excedente : progresso.falta;
+
+  return {
+    progresso,
+    titulo: `Super Meta — ${nomeUnidade}`,
+    faturamentoTexto: formatarMoedaBr(totalRealizado),
+    objetivoTexto: formatarMoedaBr(superMeta),
+    percentualTexto: `${progresso.percentual.toFixed(2)}%`,
+    statusRotulo: progresso.atingida ? "Valor excedente" : "Quanto falta",
+    statusValorTexto: formatarMoedaBr(valorStatus),
+    descricaoAcessivel: `Abrir detalhes da Super Meta de ${nomeUnidade}: ${progresso.percentual.toFixed(1)}% atingidos`,
+  };
+}
+
 /**
  * Calcula a bonificação com faixas mensais mutuamente exclusivas.
  * A Super Meta substitui integralmente a bonificação Mensal quando atingida.
