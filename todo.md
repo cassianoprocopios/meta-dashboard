@@ -1690,4 +1690,4 @@
 - [x] Adicionar o mesmo tooltip à página de Bonificações
 - [x] Garantir interação por mouse, toque e teclado com descrição acessível
 - [x] Criar testes do conteúdo detalhado do tooltip (10 testes de bonificação passando)
-- [ ] Validar responsividade, publicar e confirmar no domínio de produção
+- [x] Validar responsividade, publicar e confirmar no domínio de produção (performancemeta.sbs respondendo HTTP 200)
