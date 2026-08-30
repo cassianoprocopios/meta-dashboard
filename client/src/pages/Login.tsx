@@ -48,57 +48,95 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30 mb-4">
-            <Target className="w-8 h-8 text-white" />
+    <div className="premium-page flex min-h-screen items-stretch bg-[#f5f7fa] p-0 lg:p-6">
+      <aside className="relative hidden w-[44%] flex-col justify-between overflow-hidden rounded-[28px] bg-[#0b1830] p-12 text-white lg:flex">
+        <div className="premium-data-grid pointer-events-none absolute inset-0 opacity-40" />
+        <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-blue-500/15 blur-3xl" />
+        <div className="absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="relative">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/10 ring-1 ring-white/15">
+            <Target className="h-6 w-6 text-emerald-300" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Meta Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Painel de Gestão de Metas para Salões</p>
+          <p className="mt-5 text-sm font-semibold tracking-wide text-white/75">META DASHBOARD</p>
         </div>
+        <div className="relative max-w-lg">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Gestão orientada a dados</p>
+          <h1 className="mt-5 text-4xl font-semibold leading-[1.12] tracking-[-0.04em] text-white xl:text-5xl">
+            Toda a operação sob controle, em uma única visão.
+          </h1>
+          <p className="mt-6 max-w-md text-base leading-7 text-slate-300">
+            Metas, faturamento, performance da equipe e indicadores de cada unidade com clareza para decisões mais rápidas.
+          </p>
+          <div className="mt-10 grid grid-cols-3 gap-3 border-t border-white/10 pt-6">
+            {[
+              ["Metas", "Acompanhamento diário"],
+              ["Equipe", "Performance individual"],
+              ["Unidades", "Visão consolidada"],
+            ].map(([titulo, descricao]) => (
+              <div key={titulo}>
+                <p className="text-sm font-semibold text-white">{titulo}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">{descricao}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="relative flex items-center gap-2 text-xs text-slate-400">
+          <Shield className="h-3.5 w-3.5 text-emerald-300" />
+          Dados isolados e protegidos por empresa
+        </p>
+      </aside>
 
-        {/* Card de login */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-lg font-semibold text-white mb-6">Entrar na sua conta</h2>
+      <main className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:px-14">
+        <div className="premium-panel w-full max-w-[480px] p-7 sm:p-9">
+          <div className="mb-9 lg:hidden">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#12233f] shadow-[0_10px_24px_rgba(18,35,63,0.18)]">
+              <Target className="h-6 w-6 text-white" />
+            </div>
+            <p className="mt-4 text-sm font-semibold tracking-wide text-slate-500">META DASHBOARD</p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="mb-8">
+            <p className="premium-eyebrow text-blue-600">Acesso seguro</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#12233f]">Bem-vindo de volta</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Entre para acompanhar as metas e a operação das suas unidades.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                Email
-              </label>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 autoComplete="email"
                 disabled={loginMutation.isPending}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                Senha
-              </label>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-semibold text-slate-700">Senha</label>
+                <a href="/recuperar-senha" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Esqueci minha senha</a>
+              </div>
               <div className="relative">
                 <input
                   type={showSenha ? "text" : "password"}
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-12 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-12 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   autoComplete="current-password"
                   disabled={loginMutation.isPending}
                 />
                 <button
                   type="button"
                   onClick={() => setShowSenha(!showSenha)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
                 >
-                  {showSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showSenha ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
                 </button>
               </div>
             </div>
@@ -106,51 +144,34 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="submit"
               disabled={loginMutation.isPending}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="premium-action mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#12233f] px-4 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(18,35,63,0.16)] hover:bg-[#183055] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loginMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Entrando...</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Entrando...</>
               ) : (
-                "Entrar"
+                "Entrar no painel"
               )}
             </button>
           </form>
 
-          {/* Link para recuperação de senha */}
-          <div className="mt-4 text-center">
-            <a
-              href="/recuperar-senha"
-              className="text-slate-400 hover:text-blue-300 text-sm transition-colors"
-            >
-              Esqueci minha senha
-            </a>
-          </div>
-
-          {/* Link para registro */}
-          <div className="mt-4 pt-5 border-t border-white/10 text-center">
-            <p className="text-slate-400 text-sm">
+          <div className="mt-7 border-t border-slate-200 pt-6 text-center">
+            <p className="text-sm text-slate-500">
               Ainda não tem uma conta?{" "}
               <button
                 onClick={() => setShowRegister(true)}
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                className="font-semibold text-blue-600 transition-colors hover:text-blue-700"
               >
-                Criar conta gratuita
+                Solicitar novo acesso
               </button>
             </p>
           </div>
-        </div>
 
-        {/* Rodapé */}
-        <div className="mt-6 text-center space-y-2">
-          <p className="text-slate-500 text-xs">
-            Sistema exclusivo para gestão de metas de salões de beleza.
-          </p>
-          <p className="text-slate-600 text-xs flex items-center justify-center gap-1">
-            <Shield className="w-3 h-3" />
+          <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400 lg:hidden">
+            <Shield className="h-3.5 w-3.5" />
             Dados isolados e seguros por empresa
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -1691,3 +1691,18 @@
 - [x] Garantir interação por mouse, toque e teclado com descrição acessível
 - [x] Criar testes do conteúdo detalhado do tooltip (10 testes de bonificação passando)
 - [x] Validar responsividade, publicar e confirmar no domínio de produção (performancemeta.sbs respondendo HTTP 200)
+
+## Redesign Visual Completo — Light Premium Dashboard
+- [x] Inventariar rotas, páginas, layouts, componentes compartilhados e estados atuais (28 páginas, 43 componentes de domínio e biblioteca UI)
+- [x] Documentar decisões e critérios de preservação funcional em ideas.md
+- [x] Criar Design System global: cores, tipografia, espaçamento, sombras, raios e estados
+- [ ] Redesenhar sidebar recolhível, header global e navegação móvel
+- [ ] Redesenhar dashboard principal, KPIs, metas, comparativos e cards das unidades
+- [ ] Modernizar gráficos e visualizações mantendo dados e regras existentes
+- [ ] Redesenhar Metas, Bonificações, Histórico e Dpote
+- [ ] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
+- [ ] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
+- [ ] Padronizar estados de carregamento, vazios, erros, confirmações e feedbacks
+- [ ] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular
+- [ ] Executar testes funcionais e garantir preservação de regras, APIs e integrações
+- [ ] Publicar e validar o redesign completo no domínio de produção

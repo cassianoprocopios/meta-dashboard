@@ -38,13 +38,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#12233f] shadow-[0_12px_32px_rgba(18,35,63,0.18)] mb-4">
             <Target className="w-8 h-8 text-white" />
           </div>
-          <div className="flex items-center gap-2 text-white/60 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin" />
+          <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
             Carregando...
           </div>
         </div>
@@ -85,7 +85,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={true}>
+      <ThemeProvider defaultTheme="light" switchable={false}>
         <TooltipProvider>
           <Toaster />
           {/* Rotas públicas (sem AuthGate) */}
