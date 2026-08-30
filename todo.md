@@ -1667,3 +1667,11 @@
 - [x] Recalcular necessidade diária e projeção quando não houver dias futuros abertos
 - [x] Validar Seraphine com zero dias restantes no último dia aberto do mês
 - [x] Atualizar testes, publicar e validar no domínio de produção (20 testes específicos passando; HTTP 200)
+
+## Correção — Super Meta Substitui a Bonificação Mensal
+- [x] Mapear todos os cálculos e telas que somam bonificações mensal e super meta
+- [x] Criar regra compartilhada: Quinzenal + Mensal, ou Quinzenal + Super Meta quando atingida
+- [x] Aplicar a regra no backend, histórico e totalizações anuais
+- [x] Atualizar a interface para mostrar a Mensal como substituída quando a Super Meta for atingida
+- [x] Criar testes para todas as faixas de atingimento e evitar dupla bonificação (5 testes novos; 8 testes relacionados passando)
+- [ ] Publicar e validar os totais no dashboard

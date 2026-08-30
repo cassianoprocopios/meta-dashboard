@@ -49,6 +49,7 @@ import ClientesPorUnidadeCard from "@/components/ClientesPorUnidadeCard";
 import ClientesEvolucaoMensalChart from "@/components/ClientesEvolucaoMensalChart";
 import RankingProfissionaisPorClientes from "@/components/RankingProfissionaisPorClientes";
 import { calcularTotalQuinzenal } from "@shared/quinzenal";
+import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
 import {
   calcularIndicadoresDiasRestantes,
   classificarViabilidadeNecessidadeDiaria,
@@ -3192,31 +3193,43 @@ export default function Home() {
                     {(isGerente || isAdmin) && (() => {
                       const bonif = bonificacaoMap[s.emp.slug];
                       if (!bonif) return null;
-                      const atingiuMensal = s.totalRealizado >= s.metaMensal && s.metaMensal > 0;
-                      const atingiuQuinzenal = s.totalQuinzenal >= s.metaQuinzenal && s.metaQuinzenal > 0;
-                      const atingiuSuperMeta = s.superMeta > 0 && s.totalRealizado >= s.superMeta;
-
-                      // Quinzenal: usa pct com meta se atingiu, sem meta caso contrário
-                      const pctQz = atingiuQuinzenal ? bonif.pctQuinzenalComMeta : bonif.pctQuinzenalSemMeta;
-                      const valorQz = s.metaQuinzenal > 0 ? (s.totalQuinzenal * pctQz) / 100 : 0;
-
-                      // Mensal: usa pct com meta se atingiu, sem meta caso contrário
-                      const pctMensal = atingiuMensal ? bonif.pctMensalComMeta : bonif.pctMensalSemMeta;
-                      const valorMensal = s.metaMensal > 0 ? (s.totalRealizado * pctMensal) / 100 : 0;
-
-                      // Super meta
-                      const valorSuper = atingiuSuperMeta ? (s.totalRealizado * bonif.pctSuperMeta) / 100 : 0;
-
-                      const totalPagar = valorQz + valorMensal + valorSuper;
+                      const resultadoAtual = calcularBonificacaoSubstitutiva({
+                        totalQuinzenal: s.totalQuinzenal,
+                        totalMensal: s.totalRealizado,
+                        metaQuinzenal: s.metaQuinzenal,
+                        metaMensal: s.metaMensal,
+                        superMeta: s.superMeta,
+                        pctQuinzenalSemMeta: bonif.pctQuinzenalSemMeta,
+                        pctQuinzenalComMeta: bonif.pctQuinzenalComMeta,
+                        pctMensalSemMeta: bonif.pctMensalSemMeta,
+                        pctMensalComMeta: bonif.pctMensalComMeta,
+                        pctSuperMeta: bonif.pctSuperMeta,
+                      });
+                      const atingiuMensal = resultadoAtual.atingiuMetaMensal;
+                      const atingiuQuinzenal = resultadoAtual.atingiuMetaQuinzenal;
+                      const atingiuSuperMeta = resultadoAtual.atingiuSuperMeta;
+                      const pctQz = resultadoAtual.pctQuinzenalAplicado;
+                      const pctMensal = resultadoAtual.pctMensalAplicado;
+                      const valorQz = resultadoAtual.valorQuinzenal;
+                      const valorMensal = resultadoAtual.valorMensal;
+                      const valorSuper = resultadoAtual.valorSuperMeta;
+                      const totalPagar = resultadoAtual.totalPago;
 
                       // Projeção: quanto será pago se mantiver o ritmo atual
                       const projecao = s.projecaoFinal;
-                      const projecaoAtingeMensal = projecao >= s.metaMensal && s.metaMensal > 0;
-                      const projecaoAtingeSuper = s.superMeta > 0 && projecao >= s.superMeta;
-                      const pctMensalProj = projecaoAtingeMensal ? bonif.pctMensalComMeta : bonif.pctMensalSemMeta;
-                      const valorMensalProj = s.metaMensal > 0 ? (projecao * pctMensalProj) / 100 : 0;
-                      const valorSuperProj = projecaoAtingeSuper ? (projecao * bonif.pctSuperMeta) / 100 : 0;
-                      const totalPagarProj = valorQz + valorMensalProj + valorSuperProj;
+                      const resultadoProjetado = calcularBonificacaoSubstitutiva({
+                        totalQuinzenal: s.totalQuinzenal,
+                        totalMensal: projecao,
+                        metaQuinzenal: s.metaQuinzenal,
+                        metaMensal: s.metaMensal,
+                        superMeta: s.superMeta,
+                        pctQuinzenalSemMeta: bonif.pctQuinzenalSemMeta,
+                        pctQuinzenalComMeta: bonif.pctQuinzenalComMeta,
+                        pctMensalSemMeta: bonif.pctMensalSemMeta,
+                        pctMensalComMeta: bonif.pctMensalComMeta,
+                        pctSuperMeta: bonif.pctSuperMeta,
+                      });
+                      const totalPagarProj = resultadoProjetado.totalPago;
                       const projecaoMaior = totalPagarProj > totalPagar;
 
                       if (totalPagar === 0 && valorQz === 0 && valorMensal === 0) return null;
@@ -3252,18 +3265,19 @@ export default function Home() {
                               </div>
                             )}
                             {s.metaMensal > 0 && (
-                              <div className={`rounded-lg px-2 py-1.5 ${atingiuMensal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
-                                <p className="text-[9px] uppercase tracking-wide" style={{ color: atingiuMensal ? '#6ee7b7' : '#94a3b8' }}>
-                                  {atingiuMensal ? '✅' : '⏳'} Mensal ({pctMensal.toFixed(1)}%)
+                              <div className={`rounded-lg px-2 py-1.5 ${resultadoAtual.mensalSubstituida ? 'bg-slate-500/10 border border-slate-500/20' : atingiuMensal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
+                                <p className="text-[9px] uppercase tracking-wide" style={{ color: resultadoAtual.mensalSubstituida ? '#94a3b8' : atingiuMensal ? '#6ee7b7' : '#94a3b8' }}>
+                                  {resultadoAtual.mensalSubstituida ? '⭐ Mensal substituída' : `${atingiuMensal ? '✅' : '⏳'} Mensal (${pctMensal.toFixed(1)}%)`}
                                 </p>
-                                <p className={`text-[11px] font-bold ${atingiuMensal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorMensal)}</p>
-                                <p className="text-[9px] text-slate-400">{fmt(s.totalRealizado)}</p>
+                                <p className={`text-[11px] font-bold ${resultadoAtual.mensalSubstituida ? 'text-slate-500 line-through' : atingiuMensal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorMensal)}</p>
+                                <p className="text-[9px] text-slate-400">{resultadoAtual.mensalSubstituida ? 'Super Meta ativa' : fmt(s.totalRealizado)}</p>
                               </div>
                             )}
                             {atingiuSuperMeta && bonif.pctSuperMeta > 0 && (
                               <div className="rounded-lg px-2 py-1.5 bg-amber-500/15 col-span-2">
                                 <p className="text-[9px] text-amber-400/80 uppercase tracking-wide">⭐ Super Meta ({bonif.pctSuperMeta.toFixed(1)}%)</p>
                                 <p className="text-[11px] font-bold text-amber-300">{fmt(valorSuper)}</p>
+                                <p className="text-[9px] text-amber-400/70">Substitui a bonificação Mensal</p>
                               </div>
                             )}
                           </div>

@@ -14,6 +14,7 @@ import {
   Legend,
 } from "recharts";
 import { Trophy, Star, CheckCircle2, TrendingUp, TrendingDown, Minus, Calendar, Award } from "lucide-react";
+import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
 
 const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -102,17 +103,24 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
         const metaQuinzenal = parseFloat(String(meta?.metaQuinzenal || "0"));
         const superMeta = parseFloat(String(meta?.superMeta || "0"));
 
-        const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;
-        const atingiuQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
-        const atingiuSuperMeta = superMeta > 0 && totalMensal >= superMeta;
+        const resultado = calcularBonificacaoSubstitutiva({
+          totalQuinzenal,
+          totalMensal,
+          metaQuinzenal,
+          metaMensal,
+          superMeta,
+          pctQuinzenalSemMeta,
+          pctQuinzenalComMeta,
+          pctMensalSemMeta,
+          pctMensalComMeta,
+          pctSuperMeta,
+        });
 
-        const pctQ = atingiuQuinzenal ? pctQuinzenalComMeta : pctQuinzenalSemMeta;
-        const pctM = atingiuMensal ? pctMensalComMeta : pctMensalSemMeta;
-
-        const bonQuinzenal = metaQuinzenal > 0 ? (totalQuinzenal * pctQ) / 100 : 0;
-        const bonMensal = metaMensal > 0 ? (totalMensal * pctM) / 100 : 0;
-        const bonSuperMeta = atingiuSuperMeta && pctSuperMeta > 0 ? (totalMensal * pctSuperMeta) / 100 : 0;
-        const bonTotal = bonQuinzenal + bonMensal + bonSuperMeta;
+        const atingiuSuperMeta = resultado.atingiuSuperMeta;
+        const bonQuinzenal = resultado.valorQuinzenal;
+        const bonMensal = resultado.valorMensal;
+        const bonSuperMeta = resultado.valorSuperMeta;
+        const bonTotal = resultado.totalPago;
 
         const temDados = fatsRealizados.length > 0;
         return { mesNum, mesLabel: MESES[idx], bonTotal, bonQuinzenal, bonMensal, bonSuperMeta, temDados, atingiuSuperMeta };

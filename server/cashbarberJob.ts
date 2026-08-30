@@ -9,6 +9,7 @@ import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
 import { verificarQuedaBrusca } from "./alertasJob";
 import { calcularTotalQuinzenal } from "../shared/quinzenal";
+import { calcularBonificacaoSubstitutiva } from "../shared/bonificacao";
 
 // ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
@@ -661,32 +662,24 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
 
         // Buscar configuração de bonificação da empresa
         const bonifConfig = bonificacoesConfig.find((b) => b.empresaSlug === slug);
-        const pctQSemMeta = parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0") / 100;
-        const pctQComMeta = parseFloat(bonifConfig?.pctQuinzenalComMeta || "0") / 100;
-        const pctMSemMeta = parseFloat(bonifConfig?.pctMensalSemMeta || "0") / 100;
-        const pctMComMeta = parseFloat(bonifConfig?.pctMensalComMeta || "0") / 100;
-        const pctSuperMeta = parseFloat(bonifConfig?.pctSuperMeta || "0") / 100;
-
-        // Determinar se atingiu metas
-        const atingiuMetaQuinzenal = metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
-        const atingiuMetaMensal = metaMensal > 0 && totalMes >= metaMensal;
-        const atingiuSuperMeta = superMetaValor > 0 && totalMes >= superMetaValor;
-
-        // Calcular valores de bonificação
-        const pctQAplicado = atingiuMetaQuinzenal ? pctQComMeta : pctQSemMeta;
-        const valorQuinzenal = Math.round(totalQuinzenal * pctQAplicado * 100) / 100;
-
-        let valorMensal = 0;
-        let valorSuperMetaCalc = 0;
-        if (atingiuSuperMeta) {
-          valorSuperMetaCalc = Math.round(totalMes * pctSuperMeta * 100) / 100;
-        } else if (atingiuMetaMensal) {
-          valorMensal = Math.round(totalMes * pctMComMeta * 100) / 100;
-        } else {
-          valorMensal = Math.round(totalMes * pctMSemMeta * 100) / 100;
-        }
-
-        const totalPago = valorQuinzenal + valorMensal + valorSuperMetaCalc;
+        const resultadoBonificacao = calcularBonificacaoSubstitutiva({
+          totalQuinzenal,
+          totalMensal: totalMes,
+          metaQuinzenal,
+          metaMensal,
+          superMeta: superMetaValor,
+          pctQuinzenalSemMeta: parseFloat(bonifConfig?.pctQuinzenalSemMeta || "0"),
+          pctQuinzenalComMeta: parseFloat(bonifConfig?.pctQuinzenalComMeta || "0"),
+          pctMensalSemMeta: parseFloat(bonifConfig?.pctMensalSemMeta || "0"),
+          pctMensalComMeta: parseFloat(bonifConfig?.pctMensalComMeta || "0"),
+          pctSuperMeta: parseFloat(bonifConfig?.pctSuperMeta || "0"),
+        });
+        const atingiuMetaMensal = resultadoBonificacao.atingiuMetaMensal;
+        const atingiuSuperMeta = resultadoBonificacao.atingiuSuperMeta;
+        const valorQuinzenal = resultadoBonificacao.valorQuinzenal;
+        const valorMensal = resultadoBonificacao.valorMensal;
+        const valorSuperMetaCalc = resultadoBonificacao.valorSuperMeta;
+        const totalPago = resultadoBonificacao.totalPago;
 
         // Upsert no histórico de bonificações
         const payload = {

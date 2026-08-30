@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
 
 interface Empresa {
   slug: string;
@@ -146,25 +147,32 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
       ? parseFloat(String(snapshot.totalRealizado))
       : totalQuinzenalCalculado;
 
-    const atingiuQuinzenal = usandoSnapshot
-      ? snapshot.atingiu === 1
-      : metaQuinzenal > 0 && totalQuinzenal >= metaQuinzenal;
-    const atingiuMensal = metaMensal > 0 && totalMensal >= metaMensal;
-    const atingiuSuperMeta = superMeta > 0 && totalMensal >= superMeta;
+    const resultado = calcularBonificacaoSubstitutiva({
+      totalQuinzenal,
+      totalMensal,
+      metaQuinzenal,
+      metaMensal,
+      superMeta,
+      pctQuinzenalSemMeta: parseFloat(String(bon?.pctQuinzenalSemMeta ?? 0)),
+      pctQuinzenalComMeta: parseFloat(String(bon?.pctQuinzenalComMeta ?? 0)),
+      pctMensalSemMeta: parseFloat(String(bon?.pctMensalSemMeta ?? 0)),
+      pctMensalComMeta: parseFloat(String(bon?.pctMensalComMeta ?? 0)),
+      pctSuperMeta: parseFloat(String(bon?.pctSuperMeta ?? 0)),
+      atingiuMetaQuinzenalOverride: usandoSnapshot ? snapshot.atingiu === 1 : undefined,
+    });
 
-    // Usar sempre o percentual de bonificação da configuração (snapshot.percentual = % de atingimento da meta, não % de bonificação)
+    const atingiuQuinzenal = resultado.atingiuMetaQuinzenal;
+    const atingiuMensal = resultado.atingiuMetaMensal;
+    const atingiuSuperMeta = resultado.atingiuSuperMeta;
     const pctQ = atingiuQuinzenal
       ? parseFloat(String(bon?.pctQuinzenalComMeta ?? 0))
       : parseFloat(String(bon?.pctQuinzenalSemMeta ?? 0));
-    const pctM = atingiuMensal
-      ? parseFloat(String(bon?.pctMensalComMeta ?? 0))
-      : parseFloat(String(bon?.pctMensalSemMeta ?? 0));
+    const pctM = resultado.pctMensalAplicado;
     const pctS = parseFloat(String(bon?.pctSuperMeta ?? 0));
-
-    const bonQuinzenal = metaQuinzenal > 0 ? (totalQuinzenal * pctQ) / 100 : 0;
-    const bonMensal = metaMensal > 0 ? (totalMensal * pctM) / 100 : 0;
-    const bonSuperMeta = atingiuSuperMeta && pctS > 0 ? (totalMensal * pctS) / 100 : 0;
-    const bonTotal = bonQuinzenal + bonMensal + bonSuperMeta;
+    const bonQuinzenal = resultado.valorQuinzenal;
+    const bonMensal = resultado.valorMensal;
+    const bonSuperMeta = resultado.valorSuperMeta;
+    const bonTotal = resultado.totalPago;
 
     return {
       emp,
@@ -179,6 +187,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
       atingiuQuinzenal,
       atingiuMensal,
       atingiuSuperMeta,
+      mensalSubstituida: resultado.mensalSubstituida,
       pctQ,
       pctM,
       pctS,
@@ -382,12 +391,14 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
               </div>
 
               {/* Seção Mensal */}
-              <div className={`rounded-xl p-3 mb-3 ${c.atingiuMensal ? "bg-emerald-50" : "bg-orange-50"}`}>
+              <div className={`rounded-xl p-3 mb-3 ${c.mensalSubstituida ? "bg-slate-50 border border-slate-200" : c.atingiuMensal ? "bg-emerald-50" : "bg-orange-50"}`}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-semibold uppercase tracking-wide ${c.atingiuMensal ? "text-emerald-600" : "text-orange-600"}`}>
-                    Mensal
+                  <span className={`text-xs font-semibold uppercase tracking-wide ${c.mensalSubstituida ? "text-slate-500" : c.atingiuMensal ? "text-emerald-600" : "text-orange-600"}`}>
+                    {c.mensalSubstituida ? "Mensal — substituída" : "Mensal"}
                   </span>
-                  {c.atingiuMensal
+                  {c.mensalSubstituida
+                    ? <Star className="w-3.5 h-3.5 text-amber-500" />
+                    : c.atingiuMensal
                     ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                     : <TrendingDown className="w-3.5 h-3.5 text-orange-500" />
                   }
@@ -395,7 +406,9 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-xs text-slate-500">
-                      {c.atingiuMensal ? "Meta atingida" : "Abaixo da meta"} · {c.pctM}% sobre {fmt(c.totalMensal)}
+                      {c.mensalSubstituida
+                        ? "Substituída pela bonificação da Super Meta"
+                        : `${c.atingiuMensal ? "Meta atingida" : "Abaixo da meta"} · ${c.pctM}% sobre ${fmt(c.totalMensal)}`}
                     </p>
                     {c.metaMensal > 0 && (
                       <p className="text-xs text-slate-400 mt-0.5">
@@ -403,7 +416,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                       </p>
                     )}
                   </div>
-                  <p className={`text-lg font-bold ${c.atingiuMensal ? "text-emerald-700" : "text-orange-700"}`}>
+                  <p className={`text-lg font-bold ${c.mensalSubstituida ? "text-slate-400 line-through" : c.atingiuMensal ? "text-emerald-700" : "text-orange-700"}`}>
                     {c.metaMensal > 0 ? fmt(c.bonMensal) : "—"}
                   </p>
                 </div>
@@ -425,7 +438,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-xs text-slate-500">
-                        {c.atingiuSuperMeta ? "Super meta atingida!" : "Não atingida"} · {c.pctS}% sobre {fmt(c.totalMensal)}
+                        {c.atingiuSuperMeta ? "Super meta atingida — substitui a Mensal" : "Não atingida"} · {c.pctS}% sobre {fmt(c.totalMensal)}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">
                         Super meta: {fmt(c.superMeta)} · Realizado: {fmt(c.totalMensal)}
@@ -446,10 +459,10 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold text-amber-600">{fmt(c.bonTotal)}</p>
-                  {c.bonSuperMeta > 0 && (
+                  {c.mensalSubstituida && (
                     <p className="text-xs text-amber-500 flex items-center gap-0.5 justify-end">
                       <Star className="w-3 h-3" />
-                      incl. {fmt(c.bonSuperMeta)} super meta
+                      Quinzenal + Super Meta
                     </p>
                   )}
                 </div>
@@ -500,7 +513,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
                 Resumo de Bonificações — {mesLabel} {ano}
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                Soma de todas as bonificações quinzenais, mensais e super metas das unidades
+                Quinzenal + faixa mensal aplicável: Mensal ou Super Meta, sem duplicidade
               </p>
             </div>
             <div className="text-right">
