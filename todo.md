@@ -1674,4 +1674,4 @@
 - [x] Aplicar a regra no backend, histórico e totalizações anuais
 - [x] Atualizar a interface para mostrar a Mensal como substituída quando a Super Meta for atingida
 - [x] Criar testes para todas as faixas de atingimento e evitar dupla bonificação (5 testes novos; 8 testes relacionados passando)
-- [ ] Publicar e validar os totais no dashboard
+- [x] Publicar e validar os totais no dashboard (performancemeta.sbs respondendo HTTP 200)
