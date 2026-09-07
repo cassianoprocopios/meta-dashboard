@@ -1724,4 +1724,4 @@
 - [x] Identificar a regra CSS que deixa textos e números esbranquiçados sobre fundos claros (utilidades Tailwind venciam o escopo definido na camada components)
 - [x] Aplicar contraste explícito e prioritário em KPIs, tabela, nomes, valores, badges, filtros e ações
 - [x] Validar o CSS compilado em desktop e celular, com regressão automatizada, TypeScript e build aprovados
-- [ ] Publicar a correção e sincronizar o repositório GitHub
+- [x] Publicar a correção e sincronizar o repositório GitHub (produção HTTP 200 e commit remoto confirmado)
