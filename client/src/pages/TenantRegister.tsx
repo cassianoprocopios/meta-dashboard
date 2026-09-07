@@ -207,6 +207,7 @@ export default function TenantRegister({ onBack, onSuccess }: TenantRegisterProp
                   />
                   <button
                     type="button"
+                    aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
                     onClick={() => setShowSenha(!showSenha)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
                   >

@@ -24,31 +24,28 @@ class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen p-8 bg-background">
-          <div className="flex flex-col items-center w-full max-w-2xl p-8">
-            <AlertTriangle
-              size={48}
-              className="text-destructive mb-6 flex-shrink-0"
-            />
-
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
-
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
+        <div className="flex min-h-screen items-center justify-center bg-[#f5f7fa] p-5">
+          <div className="premium-panel flex w-full max-w-lg flex-col items-center p-8 text-center sm:p-10">
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 ring-1 ring-red-100">
+              <AlertTriangle size={26} className="flex-shrink-0 text-red-600" />
             </div>
+
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-red-600">Não foi possível carregar</p>
+            <h2 className="mb-3 font-heading text-2xl font-bold text-[#12233f]">Ocorreu um erro inesperado</h2>
+            <p className="mb-7 max-w-sm text-sm leading-relaxed text-slate-500">
+              Atualize a página para tentar novamente. Se o problema continuar, informe o administrador do sistema.
+            </p>
 
             <button
               onClick={() => window.location.reload()}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg",
-                "bg-primary text-primary-foreground",
-                "hover:opacity-90 cursor-pointer"
+                "premium-action flex items-center gap-2 rounded-xl px-5 py-3",
+                "bg-[#12233f] text-white shadow-sm",
+                "cursor-pointer hover:bg-[#1a3157]"
               )}
             >
               <RotateCcw size={16} />
-              Reload Page
+              Atualizar página
             </button>
           </div>
         </div>

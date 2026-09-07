@@ -77,7 +77,7 @@ async function main() {
     // 3. Atualizar atendimentos com nomes corretos
     let totalAtualizados = 0;
 
-    for (const [profId, { nome, empresaSlug }] of profissionalMap.entries()) {
+    for (const [profId, { nome, empresaSlug }] of Array.from(profissionalMap.entries())) {
       try {
         const resultado = await db
           .update(cashbarberAtendimentos)

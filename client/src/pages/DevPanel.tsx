@@ -80,6 +80,7 @@ function ModalCredenciais({ nome, email, senha, onClose }: { nome: string; email
             <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200">
               <span className="flex-1 text-sm font-mono text-slate-700 truncate">{email}</span>
               <button
+                aria-label="Copiar email de acesso"
                 onClick={() => copiar(email, "email")}
                 className="shrink-0 p-1 hover:bg-slate-200 rounded-lg transition-colors text-slate-500"
               >
@@ -93,6 +94,7 @@ function ModalCredenciais({ nome, email, senha, onClose }: { nome: string; email
             <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2.5 border border-amber-200">
               <span className="flex-1 text-sm font-mono text-amber-800 font-bold tracking-widest">{senha}</span>
               <button
+                aria-label="Copiar senha inicial"
                 onClick={() => copiar(senha, "senha")}
                 className="shrink-0 p-1 hover:bg-amber-200 rounded-lg transition-colors text-amber-600"
               >
@@ -177,7 +179,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
               <p className="text-xs text-slate-500">Cadastrar empresa + admin de acesso</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <button aria-label="Fechar criação de cliente" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -277,6 +279,7 @@ function ModalCriarTenant({ onClose, onSuccess }: { onClose: () => void; onSucce
                 />
                 <button
                   type="button"
+                  aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
                   onClick={() => setShowSenha(s => !s)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
@@ -359,7 +362,7 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
               <p className="text-xs text-slate-500">{tenant.nome} · #{tenant.id}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <button aria-label="Fechar edição de cliente" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -377,6 +380,7 @@ function ModalEditarTenant({ tenant, onClose, onSuccess }: { tenant: any; onClos
               <span className="flex-1 text-sm font-mono text-slate-600 truncate">{tenant.adminEmail}</span>
               <button
                 type="button"
+                aria-label="Copiar email do administrador"
                 onClick={() => { navigator.clipboard.writeText(tenant.adminEmail); toast.success("Email copiado!"); }}
                 className="shrink-0 p-1 hover:bg-slate-200 rounded transition-colors text-slate-400"
               >
@@ -527,6 +531,7 @@ export default function DevPanel() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              aria-label="Atualizar lista de clientes"
               onClick={() => refetch()}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500"
               title="Atualizar"
@@ -647,6 +652,7 @@ export default function DevPanel() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className="text-sm text-slate-500 font-mono">{t.adminEmail}</span>
                         <button
+                          aria-label={`Copiar email de ${t.nome}`}
                           onClick={() => { navigator.clipboard.writeText(t.adminEmail); toast.success("Email copiado!"); }}
                           className="p-0.5 hover:bg-slate-100 rounded transition-colors text-slate-400 hover:text-slate-600"
                           title="Copiar email"
@@ -687,6 +693,7 @@ export default function DevPanel() {
                     {/* Ações */}
                     <div className="flex items-center gap-1 shrink-0">
                       <button
+                        aria-label={`Editar ${t.nome}`}
                         onClick={() => setEditando(t)}
                         className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors text-slate-400"
                         title="Editar"
@@ -694,6 +701,7 @@ export default function DevPanel() {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
+                        aria-label={t.ativo === 1 ? `Bloquear acesso de ${t.nome}` : `Reativar acesso de ${t.nome}`}
                         onClick={() => handleToggleAtivo(t)}
                         disabled={toggleAtivo.isPending}
                         className={`p-2 rounded-lg transition-colors ${

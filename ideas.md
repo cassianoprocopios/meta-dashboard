@@ -76,3 +76,9 @@ O trabalho será realizado em camadas: Design System global; shell de navegaçã
 ## Revisão visual da primeira implementação
 
 A primeira validação visual confirmou o contraste correto entre navy institucional e superfícies claras, boa hierarquia e legibilidade. Foram incorporados três refinamentos: motivo analítico sutil no painel institucional, superfície branca mais definida para o formulário e linguagem de acesso mais executiva. O sistema evitará chamadas promocionais genéricas e reforçará metas, unidades, equipe, faturamento e decisão em sua comunicação.
+
+A validação da área pública do profissional mostrou que o acesso por PIN precisava compartilhar a mesma assinatura institucional. A tela passou a usar superfície branca definida, marca Meta Dashboard explícita, linguagem de metas e desempenho e Space Grotesk nos números do teclado. Assim, o acesso profissional e o login administrativo pertencem ao mesmo produto sem perder suas funções distintas.
+
+## Validação responsiva
+
+As superfícies públicas foram verificadas em 1280×900, 768×1024 e 390×844. Login e acesso profissional preservaram hierarquia, área de toque, legibilidade e ausência de rolagem horizontal. A tela de PIN passou a usar um card institucional compacto no celular, enquanto o login mantém o painel executivo em desktop e prioriza o formulário em telas menores. Estados globais de erro foram revisados em código, pois a proteção de autenticação redireciona visitantes sem sessão antes de exibir rotas internas inválidas.

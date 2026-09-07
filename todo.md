@@ -1702,7 +1702,7 @@
 - [x] Redesenhar Metas, Bonificações, Histórico e Dpote
 - [x] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
 - [x] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
-- [ ] Padronizar estados de carregamento, vazios, erros, confirmações e feedbacks
-- [ ] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular
-- [ ] Executar testes funcionais e garantir preservação de regras, APIs e integrações
+- [x] Padronizar estados de carregamento, vazios, erros, confirmações e feedbacks
+- [x] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular (1280×900, 1024×768, 768×1024 e 390×844)
+- [x] Executar testes funcionais e garantir preservação de regras, APIs e integrações (TypeScript e build aprovados; 138 testes funcionais passando, com 2 timeouts preexistentes em sync manual externo)
 - [ ] Publicar e validar o redesign completo no domínio de produção

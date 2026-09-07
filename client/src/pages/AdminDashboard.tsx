@@ -134,6 +134,7 @@ function ResetPasswordModal({ user, onClose }: ResetPasswordModalProps) {
               />
               <button
                 type="button"
+                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
               >
@@ -528,6 +529,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                             <Button
                               variant="ghost"
                               size="sm"
+                              aria-label={`Editar telefone de ${u.name || "utilizador"}`}
                               className="h-6 w-6 p-0 text-slate-500 hover:text-green-400 hover:bg-green-400/10"
                               onClick={() =>
                                 setUserParaTelefone({
@@ -593,6 +595,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                             <Button
                               variant="ghost"
                               size="sm"
+                              aria-label={`Redefinir senha de ${u.name || "utilizador"}`}
                               title="Redefinir Senha"
                               className="h-7 w-7 p-0 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10"
                               onClick={() =>

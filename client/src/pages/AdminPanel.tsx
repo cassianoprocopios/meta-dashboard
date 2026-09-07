@@ -207,7 +207,7 @@ function ModalCriarUsuario({ empresas, onClose, onSuccess }: {
                   placeholder="Mínimo 6 caracteres"
                   className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
-                <button type="button" onClick={() => setShowSenha(!showSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <button type="button" aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowSenha(!showSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -626,6 +626,7 @@ function ModalEditarUsuario({ usuario, empresas, onClose, onSuccess }: {
                   />
                   <button
                     type="button"
+                    aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
                     onClick={() => setShowSenha(!showSenha)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >

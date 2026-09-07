@@ -103,7 +103,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
     return (
       <div className="min-h-screen bg-[#f5f7fa] flex flex-col items-center justify-center px-6">
         <div
-          className="flex flex-col items-center gap-4"
+          className="premium-panel flex w-full max-w-sm flex-col items-center gap-4 p-8"
           style={{ animation: "rankingSlideIn 0.5s ease-out both" }}
         >
           {/* Foto de perfil grande */}
@@ -132,14 +132,16 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fa] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-[#f5f7fa] flex flex-col items-center justify-center p-4 sm:p-6">
+      <div className="premium-panel flex w-full max-w-sm flex-col items-center p-7 sm:p-9">
       {/* Logo */}
-      <div className="mb-8 text-center">
+      <div className="mb-7 text-center">
+        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-600">Meta Dashboard · Área do profissional</p>
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30 mb-3">
           <Trophy className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-[#12233f]">Ranking</h1>
-        <p className="text-slate-500 text-sm mt-1">Acesso para profissionais</p>
+        <h1 className="text-2xl font-bold text-[#12233f]">Acesse seu ranking</h1>
+        <p className="text-slate-500 text-sm mt-1">Metas, posição e desempenho da equipe</p>
       </div>
       {/* Indicador PIN ou campo de texto */}
       {modoTexto ? (
@@ -187,7 +189,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
                 disabled={d === "" || loginMut.isPending}
                 onClick={() => d === "⌫" ? handleDelete() : d !== "" ? handleDigit(d) : undefined}
                 className={`
-                  h-16 rounded-2xl text-xl font-semibold transition-all active:scale-95
+                  h-16 rounded-2xl text-xl font-semibold font-heading transition-all active:scale-95
                   ${d === "" ? "invisible" : ""}
                   ${d === "⌫"
                     ? "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 shadow-sm"
@@ -209,6 +211,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
           </button>
         </>
       )}
+      </div>
     </div>
   );
 }
