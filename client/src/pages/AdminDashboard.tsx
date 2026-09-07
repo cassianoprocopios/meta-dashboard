@@ -97,18 +97,18 @@ function ResetPasswordModal({ user, onClose }: ResetPasswordModalProps) {
 
   return (
     <Dialog open={!!user} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-md bg-[#1a2035] border-white/10 text-white">
+      <DialogContent className="premium-form-scope max-w-md border-slate-200 bg-white text-slate-900">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
+          <DialogTitle className="flex items-center gap-2 text-[#12233f]">
             <KeyRound className="w-5 h-5 text-blue-400" />
             Redefinir Senha
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
             <p className="text-sm text-slate-400">Utilizador</p>
-            <p className="font-medium text-white">{user?.name || "—"}</p>
+            <p className="font-medium text-[#12233f]">{user?.name || "—"}</p>
             <p className="text-sm text-slate-400">{user?.email || "—"}</p>
           </div>
 
@@ -201,9 +201,9 @@ function EditTelefoneModal({ user, onClose }: EditTelefoneModalProps) {
 
   return (
     <Dialog open={!!user} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-sm bg-[#1a2035] border-white/10 text-white">
+      <DialogContent className="premium-form-scope max-w-sm border-slate-200 bg-white text-slate-900">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
+          <DialogTitle className="flex items-center gap-2 text-[#12233f]">
             <Phone className="w-5 h-5 text-green-400" />
             Editar Telefone
           </DialogTitle>
@@ -211,7 +211,7 @@ function EditTelefoneModal({ user, onClose }: EditTelefoneModalProps) {
 
         <div className="space-y-4 py-2">
           <p className="text-sm text-slate-400">
-            Utilizador: <span className="text-white font-medium">{user?.name}</span>
+            Utilizador: <span className="text-[#12233f] font-medium">{user?.name}</span>
           </p>
           <div className="space-y-2">
             <label className="text-sm text-slate-300">Telefone</label>
@@ -327,9 +327,9 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1629] text-white">
+    <div className="premium-admin-scope min-h-screen bg-[#f5f7fa] text-slate-900">
       {/* Header */}
-      <div className="bg-[#1a2035] border-b border-white/10 px-6 py-4">
+      <div className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {onBack && (
@@ -337,7 +337,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="text-slate-400 hover:text-white mr-1"
+                className="text-slate-500 hover:text-[#12233f] mr-1"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Voltar
@@ -347,15 +347,15 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
               <Shield className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Admin Dashboard</h1>
-              <p className="text-xs text-slate-400">Gestão de Utilizadores</p>
+              <h1 className="text-lg font-bold text-[#12233f]">Admin Dashboard</h1>
+              <p className="text-xs text-slate-500">Gestão de Utilizadores</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => refetch()}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-500 hover:text-[#12233f]"
           >
             <RefreshCw className="w-4 h-4 mr-1" />
             Atualizar
@@ -373,7 +373,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   <Users className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats?.total ?? "—"}</p>
+                  <p className="text-2xl font-bold text-[#12233f]">{stats?.total ?? "—"}</p>
                   <p className="text-xs text-slate-400">Total</p>
                 </div>
               </div>
@@ -387,7 +387,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   <UserCheck className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats?.ativos ?? "—"}</p>
+                  <p className="text-2xl font-bold text-[#12233f]">{stats?.ativos ?? "—"}</p>
                   <p className="text-xs text-slate-400">Ativos</p>
                 </div>
               </div>
@@ -401,7 +401,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   <UserX className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats?.inativos ?? "—"}</p>
+                  <p className="text-2xl font-bold text-[#12233f]">{stats?.inativos ?? "—"}</p>
                   <p className="text-xs text-slate-400">Inativos</p>
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   <UserPlus className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats?.novosMes ?? "—"}</p>
+                  <p className="text-2xl font-bold text-[#12233f]">{stats?.novosMes ?? "—"}</p>
                   <p className="text-xs text-slate-400">Novos este mês</p>
                 </div>
               </div>
@@ -424,7 +424,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
         </div>
 
         {/* Filtros */}
-        <Card className="bg-[#1a2035] border-white/10">
+        <Card className="premium-panel">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -433,21 +433,21 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   placeholder="Buscar por nome, email ou telefone..."
-                  className="pl-9 bg-white/5 border-white/20 text-white placeholder:text-slate-500"
+                  className="pl-9 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
 
               <Select value={filtroTenant} onValueChange={setFiltroTenant}>
-                <SelectTrigger className="w-full sm:w-48 bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full sm:w-48 bg-white border-slate-200 text-slate-800">
                   <Building2 className="w-4 h-4 mr-2 text-slate-400" />
                   <SelectValue placeholder="Tenant" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a2035] border-white/10">
-                  <SelectItem value="todos" className="text-white hover:bg-white/10">
+                <SelectContent className="bg-white border-slate-200">
+                  <SelectItem value="todos" className="text-slate-700 hover:bg-slate-50">
                     Todos os tenants
                   </SelectItem>
                   {tenantsList.map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-white hover:bg-white/10">
+                    <SelectItem key={t.id} value={t.id} className="text-slate-700 hover:bg-slate-50">
                       {t.nome}
                     </SelectItem>
                   ))}
@@ -455,13 +455,13 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
               </Select>
 
               <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="w-full sm:w-40 bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full sm:w-40 bg-white border-slate-200 text-slate-800">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a2035] border-white/10">
-                  <SelectItem value="todos" className="text-white hover:bg-white/10">Todos</SelectItem>
-                  <SelectItem value="ativo" className="text-white hover:bg-white/10">Ativos</SelectItem>
-                  <SelectItem value="inativo" className="text-white hover:bg-white/10">Inativos</SelectItem>
+                <SelectContent className="bg-white border-slate-200">
+                  <SelectItem value="todos" className="text-slate-700 hover:bg-slate-50">Todos</SelectItem>
+                  <SelectItem value="ativo" className="text-slate-700 hover:bg-slate-50">Ativos</SelectItem>
+                  <SelectItem value="inativo" className="text-slate-700 hover:bg-slate-50">Inativos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -469,9 +469,9 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
         </Card>
 
         {/* Tabela de Utilizadores */}
-        <Card className="bg-[#1a2035] border-white/10">
+        <Card className="premium-panel">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white text-base flex items-center gap-2">
+            <CardTitle className="text-[#12233f] text-base flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-400" />
               Utilizadores
               <Badge variant="secondary" className="bg-white/10 text-slate-300 text-xs">

@@ -56,34 +56,34 @@ export default function TenantRegister({ onBack, onSuccess }: TenantRegisterProp
 
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
+      <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-4">
+        <div className="premium-panel w-full max-w-md p-8 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/30 mb-6">
             <CheckCircle2 className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Conta criada!</h1>
-          <p className="text-slate-400 mb-8">
+          <h1 className="text-3xl font-bold text-[#12233f] mb-2">Conta criada!</h1>
+          <p className="text-slate-500 mb-8">
             Bem-vindo ao Meta Dashboard. Sua conta foi criada com sucesso e está em período de avaliação gratuita.
           </p>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 mb-6 text-left">
-            <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">Próximos passos</h3>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6 text-left">
+            <h3 className="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wide">Próximos passos</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">1</div>
-                <p className="text-slate-300 text-sm">Faça login com o email e senha que acabou de criar</p>
+                <p className="text-slate-600 text-sm">Faça login com o email e senha que acabou de criar</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">2</div>
-                <p className="text-slate-300 text-sm">Adicione as unidades do seu salão na aba <strong className="text-white">Empresas</strong></p>
+                <p className="text-slate-600 text-sm">Adicione as unidades do seu salão na aba <strong className="text-[#12233f]">Empresas</strong></p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">3</div>
-                <p className="text-slate-300 text-sm">Configure as metas mensais e quinzenais por unidade</p>
+                <p className="text-slate-600 text-sm">Configure as metas mensais e quinzenais por unidade</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">4</div>
-                <p className="text-slate-300 text-sm">Comece a lançar os faturamentos diários</p>
+                <p className="text-slate-600 text-sm">Comece a lançar os faturamentos diários</p>
               </div>
             </div>
           </div>
@@ -100,27 +100,27 @@ export default function TenantRegister({ onBack, onSuccess }: TenantRegisterProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Logo e título */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30 mb-4">
             <Target className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Meta Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Crie a conta da sua empresa</p>
+          <h1 className="text-2xl font-bold text-[#12233f]">Meta Dashboard</h1>
+          <p className="text-slate-500 text-sm mt-1">Crie a conta da sua empresa</p>
         </div>
 
         {/* Card de registro */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
+        <div className="premium-form-scope premium-panel p-8">
           <div className="flex items-center gap-2 mb-6">
             <button
               onClick={onBack}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-[#12233f] hover:bg-slate-100 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h2 className="text-lg font-semibold text-white">Criar nova conta</h2>
+            <h2 className="text-lg font-semibold text-[#12233f]">Criar nova conta</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

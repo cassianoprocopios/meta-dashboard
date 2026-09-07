@@ -1701,7 +1701,7 @@
 - [x] Modernizar gráficos e visualizações mantendo dados e regras existentes
 - [x] Redesenhar Metas, Bonificações, Histórico e Dpote
 - [x] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
-- [ ] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
+- [x] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
 - [ ] Padronizar estados de carregamento, vazios, erros, confirmações e feedbacks
 - [ ] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular
 - [ ] Executar testes funcionais e garantir preservação de regras, APIs e integrações

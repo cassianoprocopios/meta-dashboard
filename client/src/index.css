@@ -348,7 +348,8 @@
   .premium-form-scope .bg-gray-950,
   .premium-form-scope .bg-gray-900,
   .premium-form-scope .bg-slate-900,
-  .premium-form-scope .bg-slate-800 {
+  .premium-form-scope .bg-slate-800,
+  .premium-form-scope .bg-white\/10 {
     background-color: #ffffff;
   }
 
@@ -359,7 +360,8 @@
   .premium-form-scope .border-gray-800,
   .premium-form-scope .border-gray-700,
   .premium-form-scope .border-slate-700,
-  .premium-form-scope .border-slate-600 {
+  .premium-form-scope .border-slate-600,
+  .premium-form-scope .border-white\/20 {
     border-color: #e2e8f0;
   }
 
@@ -463,6 +465,32 @@
   .professional-light-scope .bg-emerald-600.text-white,
   .professional-light-scope .bg-red-500.text-white,
   .professional-light-scope .bg-red-600.text-white {
+    color: #ffffff;
+  }
+
+  .premium-admin-scope .bg-\[\#1a2035\],
+  .premium-admin-scope .bg-white\/5,
+  .premium-admin-scope .bg-white\/10 {
+    background-color: #ffffff;
+  }
+
+  .premium-admin-scope .border-white\/5,
+  .premium-admin-scope .border-white\/10,
+  .premium-admin-scope .border-white\/20 {
+    border-color: #e2e8f0;
+  }
+
+  .premium-admin-scope .text-white,
+  .premium-admin-scope .text-slate-100,
+  .premium-admin-scope .text-slate-200,
+  .premium-admin-scope .text-slate-300 {
+    color: #12233f;
+  }
+
+  .premium-admin-scope .bg-blue-600.text-white,
+  .premium-admin-scope .bg-red-600.text-white,
+  .premium-admin-scope .bg-emerald-600.text-white,
+  .premium-admin-scope .bg-purple-600.text-white {
     color: #ffffff;
   }
 
