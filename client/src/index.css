@@ -683,6 +683,105 @@
     }
   }
 }
+
+/*
+ * Contraste da área de pessoas.
+ * Estas regras ficam fora das cascade layers de propósito: as classes legadas
+ * text-white/bg-white foram geradas na layer utilities e venciam os estilos de
+ * compatibilidade definidos em components, deixando a tela quase invisível.
+ */
+.people-light-scope {
+  color: #12233f;
+}
+
+.people-light-scope .text-white,
+.people-light-scope .text-white\/90,
+.people-light-scope .text-white\/80,
+.people-light-scope .text-white\/70 {
+  color: #12233f !important;
+}
+
+.people-light-scope .text-white\/60,
+.people-light-scope .text-white\/50,
+.people-light-scope .text-white\/40,
+.people-light-scope .text-white\/30 {
+  color: #526174 !important;
+}
+
+.people-light-scope .bg-white\/5,
+.people-light-scope .bg-white\/\[0\.02\] {
+  background-color: #ffffff !important;
+}
+
+.people-light-scope .bg-white\/10 {
+  background-color: #f8fafc !important;
+}
+
+.people-light-scope .border-white\/5,
+.people-light-scope .border-white\/10,
+.people-light-scope .border-white\/20 {
+  border-color: #d7dee8 !important;
+}
+
+.people-light-scope .from-white\/10,
+.people-light-scope .from-white\/5 {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.people-light-scope .to-white\/5 {
+  --tw-gradient-to: #f8fafc var(--tw-gradient-to-position) !important;
+}
+
+.people-light-scope .text-blue-300,
+.people-light-scope .text-blue-400 { color: #1d4ed8 !important; }
+.people-light-scope .text-green-300,
+.people-light-scope .text-green-400,
+.people-light-scope .text-emerald-300,
+.people-light-scope .text-emerald-400 { color: #047857 !important; }
+.people-light-scope .text-purple-300,
+.people-light-scope .text-purple-400 { color: #7e22ce !important; }
+.people-light-scope .text-orange-300,
+.people-light-scope .text-orange-400 { color: #c2410c !important; }
+.people-light-scope .text-amber-300,
+.people-light-scope .text-amber-400,
+.people-light-scope .text-yellow-300,
+.people-light-scope .text-yellow-400 { color: #a16207 !important; }
+.people-light-scope .text-red-300,
+.people-light-scope .text-red-400 { color: #b91c1c !important; }
+
+.people-light-scope .bg-blue-600.text-white,
+.people-light-scope .bg-blue-700.text-white,
+.people-light-scope .bg-emerald-600.text-white,
+.people-light-scope .bg-green-600.text-white,
+.people-light-scope .bg-red-600.text-white,
+.people-light-scope .from-blue-500.to-blue-700.text-white {
+  color: #ffffff !important;
+}
+
+.people-light-scope input,
+.people-light-scope textarea,
+.people-light-scope button[role="combobox"],
+.people-light-scope select {
+  border-color: #d7dee8 !important;
+  background-color: #ffffff !important;
+  color: #12233f !important;
+}
+
+.people-light-scope input::placeholder,
+.people-light-scope textarea::placeholder {
+  color: #718096 !important;
+  opacity: 1;
+}
+
+.people-light-scope table {
+  background-color: #ffffff !important;
+}
+
+.people-light-scope tbody tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
 /* ─── Utilitários mobile ─────────────────────────────────────────────────── */
 .scrollbar-none {
   -ms-overflow-style: none;

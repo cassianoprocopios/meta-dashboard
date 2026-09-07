@@ -317,7 +317,7 @@ export default function Profissionais() {
                 className="bg-transparent text-white/70 text-sm border-none outline-none cursor-pointer"
               >
                 {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => (
-                  <option key={i+1} value={i+1} className="bg-gray-900">{m}</option>
+                  <option key={i+1} value={i+1} className="bg-white text-slate-900">{m}</option>
                 ))}
               </select>
               <select
@@ -326,7 +326,7 @@ export default function Profissionais() {
                 className="bg-transparent text-white/70 text-sm border-none outline-none cursor-pointer"
               >
                 {[hoje.getFullYear(), hoje.getFullYear()-1, hoje.getFullYear()-2].map((y) => (
-                  <option key={y} value={y} className="bg-gray-900">{y}</option>
+                  <option key={y} value={y} className="bg-white text-slate-900">{y}</option>
                 ))}
               </select>
             </div>

@@ -1719,3 +1719,9 @@
 - [x] Preparar documentação, licença e regras de arquivos ignorados; validar TypeScript e ausência de credenciais rastreadas
 - [x] Criar o repositório privado cassianoprocopios/meta-dashboard e enviar o histórico completo pela branch main
 - [x] Confirmar privacidade, README, licença, diretórios essenciais e igualdade do commit local com o GitHub
+
+## Correção Definitiva de Contraste — Tela de Profissionais
+- [x] Identificar a regra CSS que deixa textos e números esbranquiçados sobre fundos claros (utilidades Tailwind venciam o escopo definido na camada components)
+- [x] Aplicar contraste explícito e prioritário em KPIs, tabela, nomes, valores, badges, filtros e ações
+- [x] Validar o CSS compilado em desktop e celular, com regressão automatizada, TypeScript e build aprovados
+- [ ] Publicar a correção e sincronizar o repositório GitHub

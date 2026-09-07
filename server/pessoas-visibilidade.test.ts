@@ -34,4 +34,23 @@ describe("visibilidade das telas de pessoas", () => {
     expect(styles).toContain(".people-select-content");
     expect(styles).toContain(".people-table th:nth-child(2)");
   });
+
+  it("mantém as regras de contraste fora das cascade layers e acima das utilidades legadas", () => {
+    const layerStart = styles.indexOf("@layer components");
+    const contrastStart = styles.indexOf("Contraste da área de pessoas");
+    const cssBeforeContrast = styles.slice(layerStart, contrastStart);
+    let depth = 0;
+
+    for (const char of cssBeforeContrast) {
+      if (char === "{") depth += 1;
+      if (char === "}") depth -= 1;
+    }
+
+    expect(layerStart).toBeGreaterThanOrEqual(0);
+    expect(contrastStart).toBeGreaterThan(layerStart);
+    expect(depth).toBe(0);
+    expect(styles).toContain(".people-light-scope .text-white\\/50");
+    expect(styles).toContain("color: #526174 !important;");
+    expect(styles).toContain("background-color: #ffffff !important;");
+  });
 });
