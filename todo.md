@@ -1711,4 +1711,4 @@
 - [x] Auditar contraste e legibilidade das telas de Profissionais e Gestão de Colaboradores
 - [x] Corrigir superfícies, textos, badges, filtros e botões de ação com baixo contraste
 - [x] Validar as telas em desktop e celular sem alterar permissões ou funcionalidades (10 testes passando, TypeScript e build aprovados)
-- [ ] Publicar e confirmar a correção no domínio de produção
+- [x] Publicar e confirmar a correção no domínio de produção (rotas /profissionais e /colaboradores respondendo HTTP 200)
