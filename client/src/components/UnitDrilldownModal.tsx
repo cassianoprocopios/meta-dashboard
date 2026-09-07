@@ -55,7 +55,7 @@ function Avatar({ nome, fotoUrl, size = 36 }: { nome: string; fotoUrl?: string |
 
 function ProgressBar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div className="h-2 bg-slate-700/60 rounded-full overflow-hidden">
+    <div className="h-2 overflow-hidden rounded-full bg-slate-200">
       <div
         className="h-full rounded-full transition-all"
         style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }}
@@ -85,10 +85,10 @@ function CustomTooltip({ active, payload, label }: any) {
     const item = payload[0]?.payload;
     const val = (payload[0]?.value ?? 0) + (payload[1]?.value ?? 0);
     return (
-      <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-xs shadow-xl">
-        <p className="text-slate-400 mb-1">Dia {label}</p>
-        <p className="text-white font-bold">{fmt(val)}</p>
-        {item?.isFuturo && <p className="text-slate-500 italic mt-0.5">Projeção</p>}
+      <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-xl">
+        <p className="mb-1 text-slate-500">Dia {label}</p>
+        <p className="font-bold text-slate-900">{fmt(val)}</p>
+        {item?.isFuturo && <p className="mt-0.5 italic text-slate-500">Projeção</p>}
       </div>
     );
   }
@@ -172,12 +172,12 @@ export default function UnitDrilldownModal({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 p-0">
+      <DialogContent className="premium-form-scope max-h-[90vh] max-w-2xl overflow-y-auto border-slate-200 bg-white p-0 text-slate-900">
         <DialogHeader className="px-5 pt-5 pb-0">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: unitColor }} />
-            <DialogTitle className="text-white text-lg font-bold">Ranking — {unitName}</DialogTitle>
-            <button onClick={() => onOpenChange(false)} className="ml-auto text-slate-400 hover:text-white transition-colors">
+            <DialogTitle className="text-lg font-bold text-slate-900">Ranking — {unitName}</DialogTitle>
+            <button onClick={() => onOpenChange(false)} className="ml-auto text-slate-500 transition-colors hover:text-slate-900" aria-label="Fechar detalhamento da unidade">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -453,11 +453,10 @@ export default function UnitDrilldownModal({
             )}
 
             {/* ── BLOCO 8: Botão Exportar Imagem ── */}
-            <button
-              onClick={handleExportImage}
-              disabled={isExporting}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: '#334155', color: '#e2e8f0', border: '1px solid rgba(71,85,105,0.6)' }}
+              <button
+                onClick={handleExportImage}
+                disabled={isExporting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-100 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-200 disabled:opacity-50"
             >
               {isExporting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

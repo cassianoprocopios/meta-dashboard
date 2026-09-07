@@ -608,7 +608,7 @@ export default function AvecIntegracao({ empresas }: AvecIntegracaoProps) {
   const dataHojeFormatada = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return (
-    <div className="space-y-4">
+    <div className="premium-form-scope space-y-4">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">

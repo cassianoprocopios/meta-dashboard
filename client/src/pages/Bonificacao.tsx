@@ -204,7 +204,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
   const totalBonificacoes = calculos.reduce((s, c) => s + c.bonTotal, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="premium-form-scope space-y-6">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>

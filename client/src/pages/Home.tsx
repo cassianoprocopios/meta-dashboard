@@ -3206,15 +3206,15 @@ export default function Home() {
                                 <div className="mt-2 grid grid-cols-3 gap-2">
                                   <div className="rounded-lg bg-violet-500/10 px-2 py-1.5 text-center">
                                     <p className="text-[9px] text-violet-400/70 uppercase tracking-wide">Diário</p>
-                                    <p className="text-[11px] font-bold text-violet-300">{fmtFull(previewDiario)}</p>
+                                    <p className="text-[11px] font-bold text-violet-700">{fmtFull(previewDiario)}</p>
                                   </div>
                                   <div className="rounded-lg bg-emerald-500/10 px-2 py-1.5 text-center">
-                                    <p className="text-[9px] text-emerald-400/70 uppercase tracking-wide">Até dia {diaHoje}</p>
-                                    <p className="text-[11px] font-bold text-emerald-300">{fmtFull(valorManualNum)}</p>
+                                    <p className="text-[9px] uppercase tracking-wide text-emerald-700">Até dia {diaHoje}</p>
+                                    <p className="text-[11px] font-bold text-emerald-800">{fmtFull(valorManualNum)}</p>
                                   </div>
                                   <div className="rounded-lg bg-slate-500/10 px-2 py-1.5 text-center">
-                                    <p className="text-[9px] text-slate-400/70 uppercase tracking-wide">Projeção</p>
-                                    <p className="text-[11px] font-bold text-slate-300">{fmtFull(previewProjecaoMensal)}</p>
+                                    <p className="text-[9px] uppercase tracking-wide text-slate-600">Projeção</p>
+                                    <p className="text-[11px] font-bold text-slate-800">{fmtFull(previewProjecaoMensal)}</p>
                                   </div>
                                 </div>
                               )}
@@ -3274,15 +3274,15 @@ export default function Home() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                                <span className="text-emerald-400 text-xs font-bold">R$</span>
+                                <span className="text-xs font-bold text-emerald-700">R$</span>
                               </div>
-                              <p className="font-label text-[10px] text-emerald-400/70 tracking-widest">VALOR A PAGAR</p>
+                              <p className="font-label text-[10px] tracking-widest text-emerald-700">VALOR A PAGAR</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-display text-lg font-bold text-emerald-300">{fmt(totalPagar)}</p>
+                              <p className="font-display text-lg font-bold text-emerald-800">{fmt(totalPagar)}</p>
                               {projecao > 0 && s.diasUteisRestantes > 0 && (
                                 <p className={`text-[10px] font-medium mt-0.5 ${
-                                  projecaoMaior ? 'text-amber-400' : 'text-slate-400'
+                                  projecaoMaior ? 'text-amber-700' : 'text-slate-600'
                                 }`}>
                                   Proj: {fmt(totalPagarProj)} {projecaoMaior ? '↑' : ''}
                                 </p>
@@ -3291,28 +3291,28 @@ export default function Home() {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             {s.metaQuinzenal > 0 && (
-                              <div className={`rounded-lg px-2 py-1.5 ${atingiuQuinzenal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
-                                <p className="text-[9px] uppercase tracking-wide" style={{ color: atingiuQuinzenal ? '#6ee7b7' : '#94a3b8' }}>
+                              <div className={`rounded-lg px-2 py-1.5 ${atingiuQuinzenal ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+                                <p className="text-[9px] uppercase tracking-wide" style={{ color: atingiuQuinzenal ? '#047857' : '#64748b' }}>
                                   {atingiuQuinzenal ? '✅' : '⏳'} Quinzenal ({pctQz.toFixed(1)}%)
                                 </p>
-                                <p className={`text-[11px] font-bold ${atingiuQuinzenal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorQz)}</p>
-                                <p className="text-[9px] text-slate-400">{fmt(s.totalQuinzenal)}</p>
+                                <p className={`text-[11px] font-bold ${atingiuQuinzenal ? 'text-emerald-800' : 'text-slate-700'}`}>{fmt(valorQz)}</p>
+                                <p className="text-[9px] text-slate-500">{fmt(s.totalQuinzenal)}</p>
                               </div>
                             )}
                             {s.metaMensal > 0 && (
-                              <div className={`rounded-lg px-2 py-1.5 ${resultadoAtual.mensalSubstituida ? 'bg-slate-500/10 border border-slate-500/20' : atingiuMensal ? 'bg-emerald-500/15' : 'bg-slate-500/10'}`}>
-                                <p className="text-[9px] uppercase tracking-wide" style={{ color: resultadoAtual.mensalSubstituida ? '#94a3b8' : atingiuMensal ? '#6ee7b7' : '#94a3b8' }}>
+                              <div className={`rounded-lg px-2 py-1.5 ${resultadoAtual.mensalSubstituida ? 'border border-slate-200 bg-slate-50' : atingiuMensal ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+                                <p className="text-[9px] uppercase tracking-wide" style={{ color: resultadoAtual.mensalSubstituida ? '#64748b' : atingiuMensal ? '#047857' : '#64748b' }}>
                                   {resultadoAtual.mensalSubstituida ? '⭐ Mensal substituída' : `${atingiuMensal ? '✅' : '⏳'} Mensal (${pctMensal.toFixed(1)}%)`}
                                 </p>
-                                <p className={`text-[11px] font-bold ${resultadoAtual.mensalSubstituida ? 'text-slate-500 line-through' : atingiuMensal ? 'text-emerald-300' : 'text-slate-300'}`}>{fmt(valorMensal)}</p>
-                                <p className="text-[9px] text-slate-400">{resultadoAtual.mensalSubstituida ? 'Super Meta ativa' : fmt(s.totalRealizado)}</p>
+                                <p className={`text-[11px] font-bold ${resultadoAtual.mensalSubstituida ? 'text-slate-600 line-through' : atingiuMensal ? 'text-emerald-800' : 'text-slate-700'}`}>{fmt(valorMensal)}</p>
+                                <p className="text-[9px] text-slate-500">{resultadoAtual.mensalSubstituida ? 'Super Meta ativa' : fmt(s.totalRealizado)}</p>
                               </div>
                             )}
                             {atingiuSuperMeta && bonif.pctSuperMeta > 0 && (
-                              <div className="rounded-lg px-2 py-1.5 bg-amber-500/15 col-span-2">
-                                <p className="text-[9px] text-amber-400/80 uppercase tracking-wide">⭐ Super Meta ({bonif.pctSuperMeta.toFixed(1)}%)</p>
-                                <p className="text-[11px] font-bold text-amber-300">{fmt(valorSuper)}</p>
-                                <p className="text-[9px] text-amber-400/70">Substitui a bonificação Mensal</p>
+                              <div className="col-span-2 rounded-lg bg-amber-50 px-2 py-1.5">
+                                <p className="text-[9px] uppercase tracking-wide text-amber-700">⭐ Super Meta ({bonif.pctSuperMeta.toFixed(1)}%)</p>
+                                <p className="text-[11px] font-bold text-amber-800">{fmt(valorSuper)}</p>
+                                <p className="text-[9px] text-amber-700">Substitui a bonificação Mensal</p>
                               </div>
                             )}
                           </div>
@@ -3324,10 +3324,10 @@ export default function Home() {
                     {s.mediaDiaria > 0 && (
                       <div className={`px-5 py-2.5 flex items-center gap-2 text-xs font-semibold ${
                         atingiuMeta
-                          ? 'bg-emerald-500/15 text-emerald-300'
+                          ? 'bg-emerald-50 text-emerald-800'
                           : s.mediaDiaria >= metaDiaAtualMensal
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-orange-500/10 text-orange-400'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-orange-50 text-orange-700'
                       }`}>
                         {atingiuMeta
                           ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Meta mensal atingida! Projeção: {fmt(s.projecaoFinal)}</>

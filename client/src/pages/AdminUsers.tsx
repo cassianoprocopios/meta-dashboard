@@ -162,7 +162,7 @@ export default function AdminUsers({ empresasData, currentUser }: AdminUsersProp
   };
 
   return (
-    <div className="space-y-6">
+    <div className="premium-admin-scope space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

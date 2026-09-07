@@ -37,15 +37,15 @@ const CORES_FILIAL = [
 function CustomLineTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900 border border-violet-500/30 rounded-xl px-3 py-2.5 shadow-xl text-xs min-w-[160px]">
-      <p className="font-semibold text-violet-300 mb-2">{label}</p>
+    <div className="min-w-[160px] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs shadow-xl">
+      <p className="mb-2 font-semibold text-violet-700">{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-4 mb-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
             <span className="text-muted-foreground">{p.name}</span>
           </div>
-          <span className="font-bold text-white">
+          <span className="font-bold text-slate-900">
             {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(p.value)}
           </span>
         </div>
@@ -73,11 +73,11 @@ function CustomPieTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div className="bg-slate-900 border border-violet-500/30 rounded-xl px-3 py-2.5 shadow-xl text-xs">
-      <p className="font-semibold text-violet-300 mb-1">{d.name}</p>
-      <p className="text-white">Faturamento: <span className="font-bold">{fmtFull(d.payload.valorDistribuido)}</span></p>
-      <p className="text-violet-200/70">Fichas: {fmtNum(d.payload.fichas)}</p>
-      <p className="text-violet-200/70">Proporção: {d.value.toFixed(1)}%</p>
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs shadow-xl">
+      <p className="mb-1 font-semibold text-violet-700">{d.name}</p>
+      <p className="text-slate-700">Faturamento: <span className="font-bold text-slate-900">{fmtFull(d.payload.valorDistribuido)}</span></p>
+      <p className="text-slate-500">Fichas: {fmtNum(d.payload.fichas)}</p>
+      <p className="text-slate-500">Proporção: {d.value.toFixed(1)}%</p>
     </div>
   );
 }
@@ -192,7 +192,7 @@ export default function DpoteDistribuicao() {
   const distribuicaoCompleta = diferenca <= 1; // tolerância de R$ 1 por arredondamentos
 
   return (
-    <div className="space-y-6">
+    <div className="premium-form-scope space-y-6">
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -218,7 +218,7 @@ export default function DpoteDistribuicao() {
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            className="flex items-center gap-1.5 text-xs font-medium text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 hover:text-violet-800 disabled:opacity-50"
           >
             {isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
             Atualizar
@@ -265,7 +265,7 @@ export default function DpoteDistribuicao() {
       {!isLoading && !error && data && data.filiais.length === 0 && (
         <Card className="p-8 border-dashed border-violet-500/20 bg-violet-500/5 text-center">
           <Repeat2 className="w-10 h-10 text-violet-400/40 mx-auto mb-3" />
-          <p className="text-sm font-medium text-violet-300">Dpote não configurado</p>
+                          <p className="text-sm font-medium text-violet-700">Dpote não configurado</p>
           <p className="text-xs text-muted-foreground mt-1">
             Configure as credenciais CashBarber e o nome da filial Dpote no AdminPanel para ver a distribuição.
           </p>
@@ -445,7 +445,7 @@ export default function DpoteDistribuicao() {
                     onClick={() => setQtdMesesHistorico(n)}
                     className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
                       qtdMesesHistorico === n
-                        ? "bg-violet-500/20 border-violet-500/40 text-violet-300 font-semibold"
+                        ? "bg-violet-50 border-violet-300 text-violet-700 font-semibold"
                         : "bg-muted/40 border-border text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -536,7 +536,7 @@ export default function DpoteDistribuicao() {
                             }`}
                           >
                             <td className={`py-1.5 pr-3 font-medium ${
-                              isMesAtual ? "text-violet-300" : "text-foreground"
+                              isMesAtual ? "text-violet-700" : "text-foreground"
                             }`}>
                               {ponto.mesLabel as string}
                               {isMesAtual && <span className="ml-1 text-[9px] text-violet-400 font-bold">atual</span>}
@@ -670,7 +670,7 @@ export default function DpoteDistribuicao() {
                                 onClick={() => setAjusteAberto(isAberto ? null : slug)}
                                 className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-colors ${
                                   isAberto
-                                    ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                                    ? "bg-violet-50 border-violet-300 text-violet-700"
                                     : "bg-muted/50 border-border text-muted-foreground hover:text-foreground hover:border-violet-500/30"
                                 }`}
                               >
@@ -684,7 +684,7 @@ export default function DpoteDistribuicao() {
                             <tr key={`${f.filialId}-ajuste`}>
                               <td colSpan={5} className="pb-3 pt-1">
                                 <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-3">
-                                  <p className="text-xs font-semibold text-violet-300 flex items-center gap-1.5">
+                                  <p className="flex items-center gap-1.5 text-xs font-semibold text-violet-700">
                                     <PencilLine className="w-3.5 h-3.5" />
                                     Ajuste manual — {f.filialNome} ({MESES[mes - 1]} {ano})
                                   </p>

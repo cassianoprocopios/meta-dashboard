@@ -29,10 +29,10 @@ export default function ClientesEvolucaoMensalChart({
 }: ClientesEvolucaoMensalChartProps) {
   if (isLoading) {
     return (
-      <Card className="p-6 bg-slate-900/50 border-slate-700">
+      <Card className="border-slate-200 bg-white p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-700 rounded w-1/3"></div>
-          <div className="h-64 bg-slate-700 rounded"></div>
+          <div className="h-8 w-1/3 rounded bg-slate-200"></div>
+          <div className="h-64 rounded bg-slate-100"></div>
         </div>
       </Card>
     );
@@ -40,9 +40,9 @@ export default function ClientesEvolucaoMensalChart({
 
   if (!dados || dados.length === 0) {
     return (
-      <Card className="p-6 bg-slate-900/50 border-slate-700">
+      <Card className="border-slate-200 bg-white p-6">
         <div className="text-center py-12">
-          <p className="text-slate-400">Nenhum dado disponível para exibição</p>
+          <p className="text-slate-500">Nenhum dado disponível para exibição</p>
         </div>
       </Card>
     );
@@ -72,8 +72,8 @@ export default function ClientesEvolucaoMensalChart({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-semibold text-white mb-2">{data.label}</p>
+        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
+          <p className="mb-2 text-sm font-semibold text-slate-900">{data.label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value.toLocaleString("pt-BR")}
@@ -86,12 +86,12 @@ export default function ClientesEvolucaoMensalChart({
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+    <Card className="premium-form-scope border-slate-200 bg-white p-6 text-slate-900">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-white">Evolução Mensal de Clientes</h3>
+          <TrendingUp className="w-5 h-5 text-blue-600" />
+          <h3 className="text-lg font-semibold text-slate-900">Evolução Mensal de Clientes</h3>
         </div>
 
         {/* Resumo de Variações */}
@@ -148,21 +148,21 @@ export default function ClientesEvolucaoMensalChart({
         </div>
 
         {/* Gráfico */}
-        <div className="w-full h-80 bg-slate-800/30 rounded-lg p-4 border border-slate-700">
+        <div className="h-80 w-full rounded-lg border border-slate-200 bg-slate-50 p-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={dadosGrafico}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d7dee8" />
               <XAxis
                 dataKey="label"
-                stroke="#94a3b8"
+                stroke="#64748b"
                 style={{ fontSize: "12px" }}
               />
-              <YAxis stroke="#94a3b8" style={{ fontSize: "12px" }} />
+              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} />
               <Tooltip content={<CustomTooltip />} />
               <Legend
                 wrapperStyle={{ paddingTop: "20px" }}
                 formatter={(value) => (
-                  <span style={{ color: "#e2e8f0", fontSize: "12px" }}>
+                  <span style={{ color: "#475569", fontSize: "12px" }}>
                     {value === "morumbi"
                       ? "Morumbi"
                       : value === "mascote"
@@ -208,16 +208,16 @@ export default function ClientesEvolucaoMensalChart({
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CORES.morumbi }}></div>
-            <span className="text-slate-300">Morumbi</span>
+            <span className="text-slate-600">Morumbi</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CORES.mascote }}></div>
-            <span className="text-slate-300">Mascote</span>
+            <span className="text-slate-600">Mascote</span>
           </div>
           {dados.some((d) => d.seraphine) && (
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CORES.seraphine }}></div>
-              <span className="text-slate-300">Seraphine</span>
+              <span className="text-slate-600">Seraphine</span>
             </div>
           )}
         </div>

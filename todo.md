@@ -1725,3 +1725,12 @@
 - [x] Aplicar contraste explícito e prioritário em KPIs, tabela, nomes, valores, badges, filtros e ações
 - [x] Validar o CSS compilado em desktop e celular, com regressão automatizada, TypeScript e build aprovados
 - [x] Publicar a correção e sincronizar o repositório GitHub (produção HTTP 200 e commit remoto confirmado)
+
+## Revisão Visual Completa — Tema Claro
+- [x] Inventariar 124 arquivos TSX e identificar páginas, modais, dropdowns, popovers e componentes com risco de contraste insuficiente
+- [x] Corrigir campos, rótulos, seletores, switches e ações do modal Editar Colaborador com cores claras explícitas
+- [x] Corrigir modais, formulários e conteúdos em portal com estilos herdados do tema escuro (nenhum portal de produção mantém fundo escuro explícito)
+- [x] Corrigir páginas, cards, tabelas, gráficos e estados globais com baixo contraste; auditoria final mantém apenas sidebars, tooltips e recuperação de senha intencionalmente navy
+- [x] Adicionar testes de regressão para cascata, escopos claros, portais, cards e controles interativos (8 testes passando)
+- [x] Validar TypeScript, build, 159 testes funcionais e responsividade em desktop/celular; 2 testes antigos de sincronização manual externa permanecem com timeout conhecido
+- [ ] Publicar, validar produção e sincronizar o GitHub

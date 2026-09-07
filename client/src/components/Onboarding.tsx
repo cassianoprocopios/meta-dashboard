@@ -494,7 +494,7 @@ export default function Onboarding({ userName, onComplete, onSkip }: OnboardingP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative overflow-hidden">
+      <div className="premium-form-scope relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
         {/* Gradiente decorativo no topo */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
 

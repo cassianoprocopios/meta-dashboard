@@ -51,10 +51,10 @@ export function ManusDialog({
       open={onOpenChange ? open : internalOpen}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent className="py-5 bg-slate-900 rounded-[20px] w-[400px] shadow-[0px_4px_11px_0px_rgba(0,0,0,0.3)] border border-slate-700 backdrop-blur-2xl p-0 gap-0 text-center">
+      <DialogContent className="premium-form-scope w-[calc(100%-2rem)] max-w-[400px] gap-0 rounded-[20px] border border-slate-200 bg-white p-0 py-5 text-center text-slate-900 shadow-[0_20px_55px_rgba(15,23,42,0.16)]">
         <div className="flex flex-col items-center gap-2 p-5 pt-12">
           {logo ? (
-            <div className="w-16 h-16 bg-slate-800 rounded-xl border border-slate-700 flex items-center justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
               <img
                 src={logo}
                 alt="Dialog graphic"
@@ -65,12 +65,12 @@ export function ManusDialog({
 
           {/* Title and subtitle */}
           {title ? (
-            <DialogTitle className="text-xl font-semibold text-white leading-[26px] tracking-[-0.44px]">
+            <DialogTitle className="text-xl font-semibold leading-[26px] tracking-[-0.44px] text-slate-900">
               {title}
             </DialogTitle>
           ) : null}
-          <DialogDescription className="text-sm text-slate-400 leading-5 tracking-[-0.154px]">
-            Please login with Manus to continue
+          <DialogDescription className="text-sm leading-5 tracking-[-0.154px] text-slate-500">
+            Entre com sua conta para continuar
           </DialogDescription>
         </div>
 

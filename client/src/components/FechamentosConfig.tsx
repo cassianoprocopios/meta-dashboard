@@ -87,15 +87,15 @@ export default function FechamentosConfig({ mes, ano, empresasData, podeEditar }
   };
 
   return (
-    <Card className="border border-gray-800 bg-gray-950 p-5 shadow-lg">
+    <Card className="premium-form-scope border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10">
-            <CalendarOff className="h-5 w-5 text-amber-400" />
+            <CalendarOff className="h-5 w-5 text-amber-700" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">Feriados e fechamentos excepcionais</h3>
-            <p className="mt-1 text-sm text-gray-400">
+            <h3 className="font-semibold text-slate-900">Feriados e fechamentos excepcionais</h3>
+            <p className="mt-1 text-sm text-slate-500">
               Cadastre dias sem expediente para ajustar automaticamente Dias rest., R$/dia e projeção.
             </p>
           </div>
@@ -106,7 +106,7 @@ export default function FechamentosConfig({ mes, ano, empresasData, podeEditar }
             <select
               value={empresaSlug}
               onChange={(event) => setEmpresaSlug(event.target.value)}
-              className="h-10 rounded-lg border border-gray-700 bg-gray-900 px-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               aria-label="Unidade do fechamento"
             >
               {empresasData.map((empresa) => (
@@ -119,7 +119,7 @@ export default function FechamentosConfig({ mes, ano, empresasData, podeEditar }
               min={inicioMes}
               max={fimMes}
               onChange={(event) => setData(event.target.value)}
-              className="border-gray-700 bg-gray-900 text-white"
+              className="border-slate-300 bg-white text-slate-900"
               aria-label="Data do fechamento"
             />
             <Input
@@ -128,7 +128,7 @@ export default function FechamentosConfig({ mes, ano, empresasData, podeEditar }
               onChange={(event) => setMotivo(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") void handleCriar(); }}
               placeholder="Motivo: feriado, manutenção, evento..."
-              className="border-gray-700 bg-gray-900 text-white placeholder:text-gray-500"
+              className="border-slate-300 bg-white text-slate-900 placeholder:text-slate-400"
               aria-label="Motivo do fechamento"
             />
             <Button
@@ -142,25 +142,25 @@ export default function FechamentosConfig({ mes, ano, empresasData, podeEditar }
           </div>
         )}
 
-        <div className="overflow-hidden rounded-xl border border-gray-800">
+        <div className="overflow-hidden rounded-xl border border-slate-200">
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 p-6 text-sm text-gray-400">
+            <div className="flex items-center justify-center gap-2 p-6 text-sm text-slate-500">
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando fechamentos...
             </div>
           ) : fechamentos.length === 0 ? (
-            <div className="p-6 text-center text-sm text-gray-500">Nenhum fechamento excepcional neste mês.</div>
+            <div className="p-6 text-center text-sm text-slate-500">Nenhum fechamento excepcional neste mês.</div>
           ) : (
-            <div className="divide-y divide-gray-800">
+            <div className="divide-y divide-slate-200">
               {fechamentos.map((fechamento) => {
                 const empresa = empresasPorSlug[fechamento.empresaSlug];
                 return (
-                  <div key={fechamento.id} className="flex items-center gap-3 bg-black/20 px-4 py-3">
+                  <div key={fechamento.id} className="flex items-center gap-3 bg-white px-4 py-3 hover:bg-slate-50">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: empresa?.cor ?? "#64748b" }} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-white">
+                      <p className="text-sm font-medium text-slate-900">
                         {formatarData(fechamento.data)} · {empresa?.nome ?? fechamento.empresaSlug}
                       </p>
-                      <p className="truncate text-xs text-gray-400">{fechamento.motivo}</p>
+                      <p className="truncate text-xs text-slate-500">{fechamento.motivo}</p>
                     </div>
                     {podeEditar && (
                       <Button

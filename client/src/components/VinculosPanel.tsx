@@ -132,7 +132,7 @@ export default function VinculosPanel() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-5">
+      <div className="premium-form-scope space-y-5">
         {/* Cabeçalho com estatísticas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
@@ -180,7 +180,7 @@ export default function VinculosPanel() {
             <SelectTrigger className="w-full sm:w-44 bg-slate-800/60 border-slate-700 text-white">
               <SelectValue placeholder="Perfil" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent className="people-select-content">
               <SelectItem value="todos">Todos os perfis</SelectItem>
               <SelectItem value="gerente">Gerente</SelectItem>
               <SelectItem value="recepcionista">Recepcionista</SelectItem>
@@ -191,7 +191,7 @@ export default function VinculosPanel() {
             <SelectTrigger className="w-full sm:w-48 bg-slate-800/60 border-slate-700 text-white">
               <SelectValue placeholder="Empresa" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent className="people-select-content">
               <SelectItem value="todas">Todas as empresas</SelectItem>
               {empresas.map((e) => (
                 <SelectItem key={e.slug} value={e.slug}>{e.nome}</SelectItem>
@@ -202,7 +202,7 @@ export default function VinculosPanel() {
             variant="outline"
             size="icon"
             onClick={() => refetch()}
-            className="border-slate-700 text-slate-400 hover:text-white shrink-0"
+            className="shrink-0 border-slate-300 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -309,7 +309,7 @@ export default function VinculosPanel() {
                                   />
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="bg-slate-800 border-slate-700 text-white text-xs">
+                              <TooltipContent side="top" className="border-slate-200 bg-white text-xs text-slate-700 shadow-lg">
                                 {vinculado ? (
                                   <span className="flex items-center gap-1.5">
                                     <Link2 className="w-3 h-3 text-green-400" />
@@ -334,7 +334,7 @@ export default function VinculosPanel() {
                             <TooltipTrigger>
                               <AlertTriangle className="w-4 h-4 text-amber-400 mx-auto" />
                             </TooltipTrigger>
-                            <TooltipContent side="left" className="bg-slate-800 border-slate-700 text-white text-xs">
+                            <TooltipContent side="left" className="border-slate-200 bg-white text-xs text-slate-700 shadow-lg">
                               Sem nenhum vínculo
                             </TooltipContent>
                           </Tooltip>

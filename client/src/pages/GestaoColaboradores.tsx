@@ -336,19 +336,19 @@ export default function GestaoColaboradores() {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Buscar por nome ou apelido..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+            className="border-slate-300 bg-white pl-9 text-slate-900 placeholder:text-slate-400"
           />
         </div>
         <Select value={filtroEmpresa} onValueChange={setFiltroEmpresa}>
-          <SelectTrigger className="w-full sm:w-52 bg-white/5 border-white/10 text-white">
+          <SelectTrigger className="w-full border-slate-300 bg-white text-slate-900 sm:w-52">
             <SelectValue placeholder="Todas as unidades" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="people-select-content">
             <SelectItem value="todas">Todas as unidades</SelectItem>
             {EMPRESAS.map((e) => (
               <SelectItem key={e.slug} value={e.slug}>{e.label}</SelectItem>
@@ -356,10 +356,10 @@ export default function GestaoColaboradores() {
           </SelectContent>
         </Select>
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
+          <SelectTrigger className="w-full border-slate-300 bg-white text-slate-900 sm:w-40">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="people-select-content">
             <SelectItem value="ativos">Ativos</SelectItem>
             <SelectItem value="inativos">Inativos</SelectItem>
             <SelectItem value="todos">Todos</SelectItem>
@@ -508,21 +508,21 @@ export default function GestaoColaboradores() {
             {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">Nome *</Label>
+                <Label className="text-slate-700 text-xs font-medium">Nome *</Label>
                 <Input
                   value={form.nome}
                   onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
                   placeholder="Nome completo"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">Apelido</Label>
+                <Label className="text-slate-700 text-xs font-medium">Apelido</Label>
                 <Input
                   value={form.apelido}
                   onChange={(e) => setForm((f) => ({ ...f, apelido: e.target.value }))}
                   placeholder="Como é chamado"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -530,22 +530,22 @@ export default function GestaoColaboradores() {
 
             {/* Unidade */}
             <div className="space-y-1.5">
-              <Label className="text-white/70 text-xs">Unidade *</Label>
+              <Label className="text-slate-700 text-xs font-medium">Unidade *</Label>
               <Select
                 value={form.empresaSlug}
                 onValueChange={(v) => setForm((f) => ({ ...f, empresaSlug: v }))}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="people-select-content">
                   {EMPRESAS.map((e) => (
                     <SelectItem key={e.slug} value={e.slug}>{e.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {form.empresaSlug === "barbiero-grupo" && (
-                <p className="text-yellow-400 text-xs flex items-center gap-1">
+                <p className="text-amber-700 text-xs flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
                   Sem unidade: não aparece no ranking de nenhuma unidade
                 </p>
@@ -556,24 +556,24 @@ export default function GestaoColaboradores() {
             {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">Cargo</Label>
+                <Label className="text-slate-700 text-xs font-medium">Cargo</Label>
                 <Input
                   value={form.cargo}
                   onChange={(e) => setForm((f) => ({ ...f, cargo: e.target.value }))}
                   placeholder="Barbeiro"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">Categoria Ranking</Label>
+                <Label className="text-slate-700 text-xs font-medium">Categoria Ranking</Label>
                 <Select
                   value={form.categoriaRanking}
                   onValueChange={(v) => setForm((f) => ({ ...f, categoriaRanking: v as any }))}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="people-select-content">
                     {CATEGORIAS.map((c) => (
                       <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                     ))}
@@ -587,23 +587,23 @@ export default function GestaoColaboradores() {
             {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">Meta Mensal (R$)</Label>
+                <Label className="text-slate-700 text-xs font-medium">Meta Mensal (R$)</Label>
                 <Input
                   type="number"
                   value={form.metaMensal}
                   onChange={(e) => setForm((f) => ({ ...f, metaMensal: e.target.value }))}
                   placeholder="Ex: 5000"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">ID CashBarber</Label>
+                <Label className="text-slate-700 text-xs font-medium">ID CashBarber</Label>
                 <Input
                   type="number"
                   value={form.cashbarberProfissionalId}
                   onChange={(e) => setForm((f) => ({ ...f, cashbarberProfissionalId: e.target.value }))}
                   placeholder="Ex: 29459"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -613,21 +613,21 @@ export default function GestaoColaboradores() {
             {isAdmin && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">PIN de Acesso</Label>
+                <Label className="text-slate-700 text-xs font-medium">PIN de Acesso</Label>
                 <Input
                   value={form.pinAcesso}
                   onChange={(e) => setForm((f) => ({ ...f, pinAcesso: e.target.value }))}
                   placeholder="Ex: 1234"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-white/70 text-xs">WhatsApp</Label>
+                <Label className="text-slate-700 text-xs font-medium">WhatsApp</Label>
                 <Input
                   value={form.telefone}
                   onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
                   placeholder="5511999999999"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -636,51 +636,51 @@ export default function GestaoColaboradores() {
             {/* Switches */}
             {isAdmin && (
             <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="flex flex-col items-center gap-2 bg-white/5 rounded-xl p-3">
+              <div className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <Switch
                   checked={form.ativo}
                   onCheckedChange={(v) => setForm((f) => ({ ...f, ativo: v }))}
                 />
-                <Label className="text-white/60 text-xs text-center">Ativo</Label>
+                <Label className="text-slate-700 text-xs font-medium text-center">Ativo</Label>
               </div>
-              <div className="flex flex-col items-center gap-2 bg-white/5 rounded-xl p-3">
+              <div className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <Switch
                   checked={form.exibirNoRanking}
                   onCheckedChange={(v) => setForm((f) => ({ ...f, exibirNoRanking: v }))}
                 />
-                <Label className="text-white/60 text-xs text-center">No Ranking</Label>
+                <Label className="text-slate-700 text-xs font-medium text-center">No Ranking</Label>
               </div>
-              <div className="flex flex-col items-center gap-2 bg-white/5 rounded-xl p-3">
+              <div className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <Switch
                   checked={form.isGerencia}
                   onCheckedChange={(v) => setForm((f) => ({ ...f, isGerencia: v }))}
                 />
-                <Label className="text-white/60 text-xs text-center">Gerência</Label>
+                <Label className="text-slate-700 text-xs font-medium text-center">Gerência</Label>
               </div>
             </div>
             )}
 
             {/* Exclusões de categorias do ranking (apenas ao editar) */}
             {isAdmin && form.id && (
-              <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="space-y-2 border-t border-slate-200 pt-3">
                 <div className="flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5 text-amber-400" />
-                  <Label className="text-white/70 text-xs">Categorias excluídas do ranking</Label>
+                  <Tag className="w-3.5 h-3.5 text-amber-700" />
+                  <Label className="text-slate-700 text-xs font-medium">Categorias excluídas do ranking</Label>
                 </div>
-                <p className="text-white/40 text-xs">Serviços com esses nomes não serão somados no faturamento deste profissional.</p>
+                <p className="text-slate-500 text-xs">Serviços com esses nomes não serão somados no faturamento deste profissional.</p>
                 {/* Lista de exclusões existentes */}
                 {exclusoes.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {exclusoes.map((exc: any) => (
                       <span
                         key={exc.id}
-                        className="inline-flex items-center gap-1 bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs px-2 py-0.5 rounded-full"
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs text-amber-800"
                       >
                         {exc.nomeCategoria}
                         <button
                           type="button"
                           onClick={() => removerExclusao.mutate({ id: exc.id })}
-                          className="text-amber-400 hover:text-red-400 transition-colors ml-0.5"
+                          className="ml-0.5 text-amber-700 transition-colors hover:text-red-700"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -699,7 +699,7 @@ export default function GestaoColaboradores() {
                       }
                     }}
                     placeholder="Ex: Corte Cabelo, Barba..."
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-xs h-8"
+                    className="h-8 border-slate-300 bg-white text-xs text-slate-900 placeholder:text-slate-400"
                   />
                   <Button
                     type="button"
@@ -723,7 +723,7 @@ export default function GestaoColaboradores() {
             <Button
               variant="outline"
               onClick={() => setDialogAberto(false)}
-              className="border-white/10 text-white/70 hover:bg-white/5"
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
             >
               Cancelar
             </Button>
@@ -746,19 +746,19 @@ export default function GestaoColaboradores() {
       <Dialog open={confirmDeleteId !== null} onOpenChange={() => setConfirmDeleteId(null)}>
         <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-400">
+            <DialogTitle className="flex items-center gap-2 text-red-700">
               <Trash2 className="w-5 h-5" />
               Confirmar Exclusão
             </DialogTitle>
           </DialogHeader>
-          <p className="text-white/70 text-sm">
+          <p className="text-slate-600 text-sm">
             Tem certeza que deseja remover este colaborador? Esta ação não pode ser desfeita.
           </p>
           <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setConfirmDeleteId(null)}
-              className="border-white/10 text-white/70 hover:bg-white/5"
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
             >
               Cancelar
             </Button>
