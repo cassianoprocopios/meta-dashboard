@@ -1733,4 +1733,4 @@
 - [x] Corrigir páginas, cards, tabelas, gráficos e estados globais com baixo contraste; auditoria final mantém apenas sidebars, tooltips e recuperação de senha intencionalmente navy
 - [x] Adicionar testes de regressão para cascata, escopos claros, portais, cards e controles interativos (8 testes passando)
 - [x] Validar TypeScript, build, 159 testes funcionais e responsividade em desktop/celular; 2 testes antigos de sincronização manual externa permanecem com timeout conhecido
-- [ ] Publicar, validar produção e sincronizar o GitHub
+- [x] Publicar, validar produção e sincronizar o GitHub (três domínios HTTP 200; commit remoto idêntico ao checkpoint)
