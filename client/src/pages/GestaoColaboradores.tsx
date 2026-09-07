@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   Dialog,
   DialogContent,
@@ -263,25 +264,28 @@ export default function GestaoColaboradores() {
 
   if (!podeGerenciarUnidades) {
     return (
-      <div className="p-6 max-w-3xl mx-auto">
-        <div className="rounded-2xl border border-red-500/25 bg-red-500/10 p-6 text-center">
-          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-          <h1 className="text-xl font-semibold text-white">Acesso restrito</h1>
-          <p className="text-white/60 text-sm mt-2">
-            A Gestão de Colaboradores está disponível somente para gerentes e administradores.
-          </p>
+      <DashboardLayout>
+        <div className="p-6 max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
+            <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-3" />
+            <h1 className="text-xl font-semibold text-[#12233f]">Acesso restrito</h1>
+            <p className="text-slate-500 text-sm mt-2">
+              A Gestão de Colaboradores está disponível somente para gerentes e administradores.
+            </p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+    <DashboardLayout>
+    <div className="premium-dark-scope space-y-6 max-w-7xl mx-auto">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Gestão de Colaboradores</h1>
-          <p className="text-white/50 text-sm mt-1">
+          <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f]">Gestão de Colaboradores</h1>
+          <p className="text-slate-500 text-sm mt-1">
             {isAdmin
               ? "Gerencie unidades, status e dados de cada profissional"
               : "Defina a unidade de cada profissional"}
@@ -769,5 +773,6 @@ export default function GestaoColaboradores() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

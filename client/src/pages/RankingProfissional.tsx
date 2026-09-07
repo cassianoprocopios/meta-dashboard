@@ -101,7 +101,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
   // Tela de boas-vindas após login bem-sucedido
   if (loginOk) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen bg-[#f5f7fa] flex flex-col items-center justify-center px-6">
         <div
           className="flex flex-col items-center gap-4"
           style={{ animation: "rankingSlideIn 0.5s ease-out both" }}
@@ -119,8 +119,8 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
             </div>
           )}
           <div className="text-center">
-            <p className="text-white/60 text-sm">Bem-vindo,</p>
-            <h2 className="text-white text-2xl font-bold mt-0.5">{loginOk.nome}!</h2>
+            <p className="text-slate-500 text-sm">Bem-vindo,</p>
+            <h2 className="text-[#12233f] text-2xl font-bold mt-0.5">{loginOk.nome}!</h2>
           </div>
           <div className="flex items-center gap-2 text-emerald-400">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -132,14 +132,14 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-[#f5f7fa] flex flex-col items-center justify-center px-6">
       {/* Logo */}
       <div className="mb-8 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30 mb-3">
           <Trophy className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-white">Ranking</h1>
-        <p className="text-white/50 text-sm mt-1">Acesso para profissionais</p>
+        <h1 className="text-2xl font-bold text-[#12233f]">Ranking</h1>
+        <p className="text-slate-500 text-sm mt-1">Acesso para profissionais</p>
       </div>
       {/* Indicador PIN ou campo de texto */}
       {modoTexto ? (
@@ -152,7 +152,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
             onChange={(e) => setPin(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleTextoSubmit()}
             placeholder="Digite seu PIN"
-            className="w-full bg-white/10 border border-white/20 rounded-2xl px-4 py-4 text-white text-center text-xl tracking-widest placeholder:text-white/30 focus:outline-none focus:border-blue-400"
+            className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-[#12233f] text-center text-xl tracking-widest placeholder:text-slate-300 shadow-sm focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           />
           <button
             onClick={handleTextoSubmit}
@@ -161,7 +161,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
           >
             {loginMut.isPending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Entrar'}
           </button>
-          <button onClick={() => { setModoTexto(false); setPin(""); }} className="w-full text-white/30 text-sm text-center py-2">
+          <button onClick={() => { setModoTexto(false); setPin(""); }} className="w-full text-slate-400 text-sm text-center py-2 hover:text-slate-600">
             Usar teclado numérico
           </button>
         </div>
@@ -174,7 +174,7 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
                 className={`w-4 h-4 rounded-full border-2 transition-all ${
                   i < pin.length
                     ? "bg-blue-400 border-blue-400"
-                    : "bg-transparent border-white/30"
+                    : "bg-transparent border-slate-300"
                 }`}
               />
             ))}
@@ -190,8 +190,8 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
                   h-16 rounded-2xl text-xl font-semibold transition-all active:scale-95
                   ${d === "" ? "invisible" : ""}
                   ${d === "⌫"
-                    ? "bg-white/10 text-white/60 hover:bg-white/20"
-                    : "bg-white/10 text-white hover:bg-white/20 active:bg-blue-500/50"}
+                    ? "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 shadow-sm"
+                    : "bg-white text-[#12233f] border border-slate-200 hover:bg-blue-50 active:bg-blue-100 shadow-sm"}
                   ${loginMut.isPending ? "opacity-50 cursor-not-allowed" : ""}
                 `}
               >
@@ -201,10 +201,10 @@ function LoginPIN({ onLogin }: { onLogin: (nome: string, empresaSlug: string, fo
               </button>
             ))}
           </div>
-          <p className="text-white/30 text-xs mt-8 text-center">
+          <p className="text-slate-400 text-xs mt-8 text-center">
             Digite seu PIN de 4 dígitos para acessar o ranking
           </p>
-          <button onClick={() => { setModoTexto(true); setPin(""); }} className="text-white/20 text-xs mt-3 text-center hover:text-white/40 transition-colors">
+          <button onClick={() => { setModoTexto(true); setPin(""); }} className="text-slate-400 text-xs mt-3 text-center hover:text-blue-600 transition-colors">
             PIN com letras? Clique aqui
           </button>
         </>
@@ -4485,9 +4485,9 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div className="professional-light-scope min-h-screen bg-[#f5f7fa]">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         {/* Linha principal: avatar + nome + botão sair */}
         <div className="px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -4510,7 +4510,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-bold text-base leading-tight">{meuNome.split(" ")[0]}</h1>
+                <h1 className="text-[#12233f] font-bold text-base leading-tight">{meuNome.split(" ")[0]}</h1>
                 {isGerencia && (
                   <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
                     Gerência
@@ -4522,7 +4522,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
           </div>
           <button
             onClick={() => logoutMut.mutate()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 text-white/60 hover:bg-white/20 text-xs"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 text-xs"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sair
@@ -4533,10 +4533,10 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
           <div className="px-4 pb-2.5">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Unidade · {nomeMes(mesHdr)}</span>
+                <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Unidade · {nomeMes(mesHdr)}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-white font-bold text-sm">{formatarMoeda(fatHdr.total)}</span>
+                <span className="text-[#12233f] font-bold text-sm">{formatarMoeda(fatHdr.total)}</span>
                 {pctHdr != null && (
                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                     pctHdr >= 100 ? 'bg-emerald-500/20 text-emerald-300'
@@ -4548,7 +4548,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
             </div>
             {/* Mini barra de progresso */}
             {(fatHdr as any).metaMensal && (
-              <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div
                   className={`h-full rounded-full ${corBarraHdr}`}
                   style={{ width: `${Math.min(100, pctHdr ?? 0)}%`, transition: 'width 0.6s ease' }}
@@ -4570,7 +4570,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
                 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap
                 ${aba === id
                   ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
-                  : "bg-white/5 text-white/50 hover:bg-white/10"}
+                  : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}
               `}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -4618,7 +4618,7 @@ export default function RankingProfissional() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
       </div>
     );

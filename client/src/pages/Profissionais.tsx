@@ -297,15 +297,15 @@ export default function Profissionais() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="premium-dark-scope mx-auto max-w-[1500px] space-y-6">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Scissors className="w-6 h-6 text-blue-400" />
+            <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f] flex items-center gap-2">
+              <Scissors className="w-6 h-6 text-blue-600" />
               Profissionais
             </h1>
-            <p className="text-white/50 text-sm mt-1">
+            <p className="text-slate-500 text-sm mt-1">
               Gerencie os profissionais e vincule ao CashBarber para sincronização automática
             </p>
           </div>

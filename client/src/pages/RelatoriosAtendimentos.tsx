@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Users, TrendingUp, DollarSign, Calendar } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function RelatoriosAtendimentos() {
   const [empresaSlug, setEmpresaSlug] = useState("barbiero-morumbi");
@@ -23,16 +24,16 @@ export default function RelatoriosAtendimentos() {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto">
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Relatórios de Atendimentos</h1>
-          <p className="text-muted-foreground">Acompanhe clientes atendidos e desempenho por período</p>
+        <div>
+          <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f] mb-2">Relatórios de Atendimentos</h1>
+          <p className="text-slate-500">Acompanhe clientes atendidos e desempenho por período</p>
         </div>
 
         {/* Filtros */}
-        <Card className="p-6 mb-8 bg-card border-border">
+        <Card className="premium-panel p-6">
           <h2 className="text-lg font-semibold text-card-foreground mb-4">Filtros</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -91,7 +92,7 @@ export default function RelatoriosAtendimentos() {
         {relatorio && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <Card className="p-6 bg-card border-border">
+              <Card className="premium-kpi p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Total de Clientes</p>
@@ -101,7 +102,7 @@ export default function RelatoriosAtendimentos() {
                 </div>
               </Card>
 
-              <Card className="p-6 bg-card border-border">
+              <Card className="premium-kpi p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Total de Atendimentos</p>
@@ -111,7 +112,7 @@ export default function RelatoriosAtendimentos() {
                 </div>
               </Card>
 
-              <Card className="p-6 bg-card border-border">
+              <Card className="premium-kpi p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Faturamento Total</p>
@@ -123,7 +124,7 @@ export default function RelatoriosAtendimentos() {
                 </div>
               </Card>
 
-              <Card className="p-6 bg-card border-border">
+              <Card className="premium-kpi p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Ticket Médio</p>
@@ -140,7 +141,7 @@ export default function RelatoriosAtendimentos() {
             </div>
 
             {/* Atendimentos por Profissional */}
-            <Card className="p-6 bg-card border-border mb-8">
+            <Card className="premium-panel p-6">
               <h2 className="text-lg font-semibold text-card-foreground mb-4">Atendimentos por Profissional</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -175,7 +176,7 @@ export default function RelatoriosAtendimentos() {
             </Card>
 
             {/* Clientes por Dia */}
-            <Card className="p-6 bg-card border-border">
+            <Card className="premium-panel p-6">
               <h2 className="text-lg font-semibold text-card-foreground mb-4">Clientes por Dia</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -209,6 +210,6 @@ export default function RelatoriosAtendimentos() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

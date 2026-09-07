@@ -387,6 +387,85 @@
     box-shadow: 0 0 0 3px rgb(59 130 246 / 0.12);
   }
 
+  .premium-dark-scope .bg-black,
+  .premium-dark-scope .bg-gray-950,
+  .premium-dark-scope .bg-gray-900,
+  .premium-dark-scope .bg-slate-950,
+  .premium-dark-scope .bg-slate-900,
+  .premium-dark-scope .bg-slate-800,
+  .premium-dark-scope .bg-white\/5 {
+    background-color: #ffffff;
+  }
+
+  .premium-dark-scope .bg-white\/10 {
+    background-color: #f8fafc;
+  }
+
+  .premium-dark-scope .border-white\/10,
+  .premium-dark-scope .border-white\/5,
+  .premium-dark-scope .border-gray-700,
+  .premium-dark-scope .border-slate-700,
+  .premium-dark-scope .border-slate-600 {
+    border-color: #e2e8f0;
+  }
+
+  .premium-dark-scope .text-white,
+  .premium-dark-scope .text-white\/90,
+  .premium-dark-scope .text-white\/80,
+  .premium-dark-scope .text-white\/70 {
+    color: #12233f;
+  }
+
+  .premium-dark-scope .text-white\/60,
+  .premium-dark-scope .text-white\/50,
+  .premium-dark-scope .text-white\/40,
+  .premium-dark-scope .text-white\/30 {
+    color: #64748b;
+  }
+
+  .premium-dark-scope input,
+  .premium-dark-scope textarea,
+  .premium-dark-scope button[role="combobox"] {
+    border-color: #dce2ea;
+  }
+
+  .professional-light-scope .bg-white\/5,
+  .professional-light-scope .bg-white\/10 {
+    background-color: #ffffff;
+  }
+
+  .professional-light-scope .border-white\/10,
+  .professional-light-scope .border-white\/20 {
+    border-color: #e2e8f0;
+  }
+
+  .professional-light-scope .text-white,
+  .professional-light-scope .text-white\/90,
+  .professional-light-scope .text-white\/80,
+  .professional-light-scope .text-white\/70 {
+    color: #12233f;
+  }
+
+  .professional-light-scope .text-white\/60,
+  .professional-light-scope .text-white\/55,
+  .professional-light-scope .text-white\/50,
+  .professional-light-scope .text-white\/45,
+  .professional-light-scope .text-white\/40,
+  .professional-light-scope .text-white\/30,
+  .professional-light-scope .text-white\/25,
+  .professional-light-scope .text-white\/20 {
+    color: #64748b;
+  }
+
+  .professional-light-scope .bg-blue-500.text-white,
+  .professional-light-scope .bg-blue-600.text-white,
+  .professional-light-scope .bg-emerald-500.text-white,
+  .professional-light-scope .bg-emerald-600.text-white,
+  .professional-light-scope .bg-red-500.text-white,
+  .professional-light-scope .bg-red-600.text-white {
+    color: #ffffff;
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *

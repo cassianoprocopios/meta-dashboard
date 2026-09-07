@@ -837,10 +837,10 @@ export default function RankingPublico() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-slate-950">
+      <div className="min-h-screen bg-transparent">
         {/* Header fixo */}
         <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
+          <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -921,7 +921,7 @@ export default function RankingPublico() {
           </div>
 
           {/* Abas */}
-          <div className="flex border-t border-border/50 px-4 max-w-5xl mx-auto overflow-x-auto">
+          <div className="flex border-t border-border/50 px-4 max-w-7xl mx-auto overflow-x-auto">
             {abas.map((aba) => (
               <button
                 key={aba.id}

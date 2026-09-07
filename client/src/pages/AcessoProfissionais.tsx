@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
@@ -433,7 +434,8 @@ export default function AcessoProfissionais() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-foreground">
+    <DashboardLayout>
+    <div className="premium-dark-scope min-h-screen text-foreground">
       {/* Modais */}
       {qrProfissional && <QRModal profissional={qrProfissional} onClose={() => setQrProfissional(null)} />}
       {telProfissional && (
@@ -455,7 +457,7 @@ export default function AcessoProfissionais() {
 
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/40">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => setLocation("/")} className="gap-1.5 text-muted-foreground hover:text-foreground">
             <ChevronLeft className="w-4 h-4" />Voltar
           </Button>
@@ -479,7 +481,7 @@ export default function AcessoProfissionais() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Instruções */}
         <div className="rounded-2xl border border-border/40 bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border/30 flex items-center gap-3">
@@ -651,5 +653,6 @@ export default function AcessoProfissionais() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

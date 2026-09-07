@@ -1700,7 +1700,7 @@
 - [x] Redesenhar dashboard principal, KPIs, metas, comparativos e cards das unidades
 - [x] Modernizar gráficos e visualizações mantendo dados e regras existentes
 - [x] Redesenhar Metas, Bonificações, Histórico e Dpote
-- [ ] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
+- [x] Redesenhar Ranking, Profissionais, Gestão de Colaboradores e telas operacionais
 - [ ] Redesenhar painéis administrativos, configurações, tabelas, formulários e modais
 - [ ] Padronizar estados de carregamento, vazios, erros, confirmações e feedbacks
 - [ ] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular

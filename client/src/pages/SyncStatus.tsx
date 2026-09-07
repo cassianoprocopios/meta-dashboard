@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   CheckCircle2,
   XCircle,
@@ -419,15 +420,16 @@ export default function SyncStatus() {
   const sistemasOk = [cbOk > 0, avecOk > 0, dpoteOk > 0].filter(Boolean).length;
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto">
+    <DashboardLayout>
+    <div className="premium-dark-scope space-y-5 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
+          <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f] flex items-center gap-2">
+            <Activity className="w-5 h-5 text-blue-600" />
             Status de Sincronização
           </h1>
-          <p className="text-slate-400 text-sm mt-0.5">
+          <p className="text-slate-500 text-sm mt-0.5">
             Monitoramento em tempo real dos sistemas de integração
           </p>
         </div>
@@ -448,7 +450,7 @@ export default function SyncStatus() {
             size="sm"
             variant="outline"
             onClick={() => refetch()}
-            className="h-7 text-xs bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600"
+            className="h-8 text-xs bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             <RefreshCw className="w-3 h-3 mr-1" />
             Atualizar
@@ -488,7 +490,7 @@ export default function SyncStatus() {
             <p className={`text-xs font-semibold ${s.cor} uppercase tracking-wider`}>
               {s.label}
             </p>
-            <p className="text-2xl font-bold text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-[#12233f] mt-1">
               {s.ok}
               <span className="text-slate-500 text-base font-normal">/{s.total}</span>
             </p>
@@ -499,7 +501,7 @@ export default function SyncStatus() {
 
       {/* Tabs por sistema */}
       <Tabs defaultValue="cashbarber">
-        <TabsList className="bg-slate-800/60 border border-slate-700 w-full">
+        <TabsList className="bg-slate-100 border border-slate-200 w-full">
           <TabsTrigger value="cashbarber" className="flex-1 data-[state=active]:bg-blue-600/30 data-[state=active]:text-blue-300">
             <Scissors className="w-3.5 h-3.5 mr-1.5" />
             CashBarber
@@ -515,7 +517,7 @@ export default function SyncStatus() {
         </TabsList>
 
         <TabsContent value="cashbarber">
-          <Card className="bg-slate-800/60 border-slate-700">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardContent className="pt-5">
               <PainelSistema
                 titulo="CashBarber"
@@ -533,7 +535,7 @@ export default function SyncStatus() {
         </TabsContent>
 
         <TabsContent value="avec">
-          <Card className="bg-slate-800/60 border-slate-700">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardContent className="pt-5">
               <PainelSistema
                 titulo="Avec (Seraphine)"
@@ -551,7 +553,7 @@ export default function SyncStatus() {
         </TabsContent>
 
         <TabsContent value="dpote">
-          <Card className="bg-slate-800/60 border-slate-700">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardContent className="pt-5">
               <PainelSistema
                 titulo="D-Pote (Recorrência)"
@@ -576,5 +578,6 @@ export default function SyncStatus() {
         </p>
       )}
     </div>
+    </DashboardLayout>
   );
 }

@@ -35,16 +35,16 @@ export default function DashboardPerformanceProfissionais({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Carregando dados...</div>
+      <div className="premium-panel flex items-center justify-center h-64">
+        <div className="text-slate-500">Carregando dados...</div>
       </div>
     );
   }
 
   if (!profissionais || profissionais.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Nenhum profissional encontrado neste período</div>
+      <div className="premium-panel flex items-center justify-center h-64">
+        <div className="text-slate-500">Nenhum profissional encontrado neste período</div>
       </div>
     );
   }
@@ -86,21 +86,21 @@ export default function DashboardPerformanceProfissionais({
         {podio.map((prof: ProfissionalPerformance, idx: number) => (
           <div
             key={prof.profissional}
-            className={`${getMedalBgColor(idx)} rounded-lg p-6 border-2 ${
+            className={`${getMedalBgColor(idx)} rounded-xl p-6 border shadow-sm transition-transform hover:-translate-y-0.5 ${
               idx === 0 ? "border-yellow-300" : idx === 1 ? "border-gray-300" : "border-orange-300"
             }`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Trophy className={`w-6 h-6 ${getMedalColor(idx)}`} />
-                <span className="text-2xl font-bold text-gray-700">#{idx + 1}</span>
+              <span className="text-2xl font-bold text-[#12233f]">#{idx + 1}</span>
               </div>
               <span className="text-sm font-semibold text-gray-600">
                 {idx === 0 ? "OURO" : idx === 1 ? "PRATA" : "BRONZE"}
               </span>
             </div>
 
-            <h3 className="text-lg font-bold text-gray-900 mb-4">{prof.profissional}</h3>
+            <h3 className="text-lg font-bold text-[#12233f] mb-4">{prof.profissional}</h3>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -147,9 +147,9 @@ export default function DashboardPerformanceProfissionais({
 
       {/* Ranking completo */}
       {profissionais.length > 3 && (
-        <Card className="p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+        <Card className="premium-panel p-6">
+          <h3 className="text-lg font-bold text-[#12233f] mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
             Ranking Completo
           </h3>
 
@@ -170,8 +170,8 @@ export default function DashboardPerformanceProfissionais({
                 {profissionais.map((prof: ProfissionalPerformance, idx: number) => (
                   <tr
                     key={prof.profissional}
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition ${
-                      idx < 3 ? "bg-blue-50" : ""
+                    className={`border-b border-slate-100 hover:bg-slate-50 transition ${
+                      idx < 3 ? "bg-blue-50/60" : ""
                     }`}
                   >
                     <td className="py-3 px-4 font-bold text-gray-900">#{idx + 1}</td>
@@ -196,8 +196,8 @@ export default function DashboardPerformanceProfissionais({
       )}
 
       {/* Estatísticas gerais */}
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Estatísticas do Período</h3>
+      <Card className="p-6 border-blue-100 bg-gradient-to-br from-white to-blue-50 shadow-sm">
+        <h3 className="text-lg font-bold text-[#12233f] mb-4">Estatísticas do Período</h3>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>

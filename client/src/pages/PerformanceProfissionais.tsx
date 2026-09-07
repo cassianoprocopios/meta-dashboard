@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Download, Filter } from "lucide-react";
 import DashboardPerformanceProfissionais from "@/components/DashboardPerformanceProfissionais";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -105,20 +106,21 @@ export default function PerformanceProfissionais() {
   };
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Cabeçalho */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Performance dos Profissionais</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f]">Performance dos Profissionais</h1>
+        <p className="text-slate-500 mt-2">
           Analise o desempenho e o ranking de seus profissionais por período
         </p>
       </div>
 
       {/* Filtros */}
-      <Card className="p-6">
+      <Card className="premium-panel p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+          <Filter className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-[#12233f]">Filtros</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -128,7 +130,7 @@ export default function PerformanceProfissionais() {
             <select
               value={empresaSlug}
               onChange={(e) => setEmpresaSlug(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-[10px] bg-white text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
             >
               {empresas.map((emp: any) => (
                 <option key={emp.slug} value={emp.slug}>
@@ -205,5 +207,6 @@ export default function PerformanceProfissionais() {
         dataFim={dataFim}
       />
     </div>
+    </DashboardLayout>
   );
 }
