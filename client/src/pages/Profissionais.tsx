@@ -297,9 +297,9 @@ export default function Profissionais() {
 
   return (
     <DashboardLayout>
-      <div className="premium-dark-scope mx-auto max-w-[1500px] space-y-6">
+      <div className="people-light-scope mx-auto max-w-[1500px] space-y-6">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f] flex items-center gap-2">
               <Scissors className="w-6 h-6 text-blue-600" />
@@ -309,7 +309,7 @@ export default function Profissionais() {
               Gerencie os profissionais e vincule ao CashBarber para sincronização automática
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1">
               <select
                 value={syncMes}
@@ -412,7 +412,7 @@ export default function Profissionais() {
         </div>
 
         {/* Cards de resumo */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <Users className="w-5 h-5 text-blue-400" />
@@ -522,8 +522,8 @@ export default function Profissionais() {
             {busca ? "Nenhum profissional encontrado." : "Nenhum profissional cadastrado."}
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white/5 border border-white/10 rounded-xl overflow-x-auto">
+            <table className="people-table w-full min-w-[560px] lg:min-w-[980px]">
               <thead>
                 <tr className="border-b border-white/10">
                   <th className="text-left px-4 py-3 text-white/50 text-xs font-medium uppercase tracking-wider">
@@ -557,7 +557,7 @@ export default function Profissionais() {
                   <tr
                     key={p.id}
                     className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
-                      !p.ativo ? "opacity-50" : ""
+                      !p.ativo ? "opacity-70" : ""
                     } ${idx % 2 === 0 ? "" : "bg-white/[0.02]"}`}
                   >
                     {/* Nome */}
@@ -687,7 +687,7 @@ export default function Profissionais() {
 
       {/* Modal de cadastro/edição */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-md">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Scissors className="w-5 h-5 text-blue-400" />
@@ -736,7 +736,7 @@ export default function Profissionais() {
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/10">
+                <SelectContent className="people-select-content">
                   {CARGOS.map((c) => (
                     <SelectItem key={c} value={c} className="text-white hover:bg-white/10">
                       {c}
@@ -756,7 +756,7 @@ export default function Profissionais() {
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/10">
+                <SelectContent className="people-select-content">
                   <SelectItem value="barbeiro" className="text-white hover:bg-white/10">
                     ✂️ Barbeiro
                   </SelectItem>
@@ -935,7 +935,7 @@ export default function Profissionais() {
         open={confirmDeleteId !== null}
         onOpenChange={() => setConfirmDeleteId(null)}
       >
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-sm">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-400" />
@@ -967,7 +967,7 @@ export default function Profissionais() {
 
       {/* Modal de Mensagens de Ranking WhatsApp */}
       <Dialog open={modalRankingWa} onOpenChange={setModalRankingWa}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-emerald-400" />
@@ -1073,7 +1073,7 @@ export default function Profissionais() {
 
       {/* ─── Modal: Ranking para Grupo de WhatsApp ─── */}
       <Dialog open={modalRankingGrupo} onOpenChange={setModalRankingGrupo}>
-        <DialogContent className="bg-[#0f1117] border border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="premium-form-scope bg-white border border-slate-200 text-slate-900 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Share2 className="w-5 h-5 text-green-400" />
@@ -1117,7 +1117,7 @@ export default function Profissionais() {
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1d27] border-white/10">
+                <SelectContent className="people-select-content">
                   {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map((m, i) => (
                     <SelectItem key={i + 1} value={String(i + 1)} className="text-white hover:bg-white/10">{m}</SelectItem>
                   ))}
@@ -1134,7 +1134,7 @@ export default function Profissionais() {
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1d27] border-white/10">
+                <SelectContent className="people-select-content">
                   {Array.from({ length: 4 }, (_, i) => hoje.getFullYear() - i).map((a) => (
                     <SelectItem key={a} value={String(a)} className="text-white hover:bg-white/10">{a}</SelectItem>
                   ))}
@@ -1162,7 +1162,7 @@ export default function Profissionais() {
                 <SelectTrigger className="bg-white/5 border-white/10 text-white">
                   <SelectValue placeholder="Selecione a unidade" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1d27] border-white/10">
+                <SelectContent className="people-select-content">
                   {empresasData.map((e) => (
                     <SelectItem key={e.slug} value={e.slug} className="text-white hover:bg-white/10">
                       {e.nome}
@@ -1293,7 +1293,7 @@ export default function Profissionais() {
 
       {/* Modal: PIN de Acesso para Gerentes */}
       <Dialog open={modalPinGerentes} onOpenChange={setModalPinGerentes}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-lg">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-amber-400 flex items-center gap-2">
               <UserCheck className="w-5 h-5" />

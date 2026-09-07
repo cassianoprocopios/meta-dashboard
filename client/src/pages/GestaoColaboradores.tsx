@@ -280,9 +280,9 @@ export default function GestaoColaboradores() {
 
   return (
     <DashboardLayout>
-    <div className="premium-dark-scope space-y-6 max-w-7xl mx-auto">
+    <div className="people-light-scope space-y-6 max-w-7xl mx-auto">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-[-0.03em] text-[#12233f]">Gestão de Colaboradores</h1>
           <p className="text-slate-500 text-sm mt-1">
@@ -394,7 +394,7 @@ export default function GestaoColaboradores() {
               {listaFiltrada.map((c, i) => (
                 <tr
                   key={c.id}
-                  className={`border-b border-white/5 transition-colors hover:bg-white/5 ${!c.ativo ? "opacity-50" : ""}`}
+                  className={`border-b border-white/5 transition-colors hover:bg-white/5 ${!c.ativo ? "opacity-70" : ""}`}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -494,7 +494,7 @@ export default function GestaoColaboradores() {
 
       {/* Dialog de edição/criação */}
       <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
-        <DialogContent className="bg-[#1a1f2e] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isAdmin
@@ -744,7 +744,7 @@ export default function GestaoColaboradores() {
 
       {/* Dialog de confirmação de exclusão */}
       <Dialog open={confirmDeleteId !== null} onOpenChange={() => setConfirmDeleteId(null)}>
-        <DialogContent className="bg-[#1a1f2e] border-white/10 text-white max-w-sm">
+        <DialogContent className="premium-form-scope bg-white border-slate-200 text-slate-900 max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <Trash2 className="w-5 h-5" />

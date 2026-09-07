@@ -1706,3 +1706,9 @@
 - [x] Validar acessibilidade e responsividade em desktop, notebook, tablet e celular (1280×900, 1024×768, 768×1024 e 390×844)
 - [x] Executar testes funcionais e garantir preservação de regras, APIs e integrações (TypeScript e build aprovados; 138 testes funcionais passando, com 2 timeouts preexistentes em sync manual externo)
 - [x] Publicar e validar o redesign completo no domínio de produção (performancemeta.sbs, www e manus.space respondendo HTTP 200)
+
+## Correção de Visibilidade — Profissionais e Colaboradores
+- [x] Auditar contraste e legibilidade das telas de Profissionais e Gestão de Colaboradores
+- [x] Corrigir superfícies, textos, badges, filtros e botões de ação com baixo contraste
+- [x] Validar as telas em desktop e celular sem alterar permissões ou funcionalidades (10 testes passando, TypeScript e build aprovados)
+- [ ] Publicar e confirmar a correção no domínio de produção
