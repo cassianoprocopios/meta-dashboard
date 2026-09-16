@@ -57,6 +57,7 @@ import {
   contarDiasFuncionamentoNoIntervalo,
   obterDiaInicialDiasRestantes,
 } from "@shared/calendarioFuncionamento";
+import { calcularVariacaoMetaDiaria } from "@shared/metaCalculos";
 
 
 const MESES = [
@@ -821,6 +822,11 @@ export default function Home() {
         metaDiariaQuinzenal,
         metaDiariaDinamicaMensal,
         viabilidadeMetaDiaria,
+        variacaoMetaDiaria: calcularVariacaoMetaDiaria({
+          metaDiariaOriginal: metaDiariaMensal,
+          metaDiariaAtual: metaDiariaDinamicaMensal,
+          diasRestantes: diasUteisRestantes,
+        }),
         metaDiariaDinamicaQuinzenal,
         diasUteis,
         diasUteisQuinzenal,
@@ -2601,6 +2607,11 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {statsPorEmpresa.map((s) => {
                 const metaDiaAtualMensal = s.diasUteisRestantes > 0 ? s.metaDiariaDinamicaMensal : s.metaDiariaMensal;
+                const variacaoMetaDia = calcularVariacaoMetaDiaria({
+                  metaDiariaOriginal: s.metaDiariaMensal,
+                  metaDiariaAtual: metaDiaAtualMensal,
+                  diasRestantes: s.diasUteisRestantes,
+                });
                 const menorQueMeta = s.mediaDiaria > 0 && metaDiaAtualMensal > 0 && s.mediaDiaria < metaDiaAtualMensal;
                 const atingiuMeta = s.totalRealizado >= s.metaMensal && s.metaMensal > 0;
                 const pctMensal = s.metaMensal > 0 ? Math.min(Math.round((s.totalRealizado / s.metaMensal) * 100), 100) : 0;
@@ -2762,9 +2773,24 @@ export default function Home() {
                               </span>
                             )}
                             {!atingiuMeta && (s.metaMensal - s.totalRealizado) > 0 && s.diasUteisRestantes > 0 && (
-                              <span className="text-[10px] text-muted-foreground">
-                                {fmt((s.metaMensal - s.totalRealizado) / s.diasUteisRestantes)}/dia
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-muted-foreground">
+                                  {fmt((s.metaMensal - s.totalRealizado) / s.diasUteisRestantes)}/dia
+                                </span>
+                                {Math.abs(variacaoMetaDia) >= 0.1 && (
+                                  <span
+                                    title={`Meta original: ${fmt(s.metaDiariaMensal)}/dia. Necessidade atual: ${fmt(metaDiaAtualMensal)}/dia.`}
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${
+                                      variacaoMetaDia > 0
+                                        ? "bg-red-50 text-red-700 border-red-200"
+                                        : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    }`}
+                                  >
+                                    <span aria-hidden="true">{variacaoMetaDia > 0 ? "↑" : "↓"}</span>
+                                    {Math.abs(variacaoMetaDia).toFixed(1)}% vs. original
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
                           {/* Badge de celebração mensal */}

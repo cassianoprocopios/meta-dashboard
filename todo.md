@@ -57,14 +57,14 @@
 
 ## Evolução v4 - Meta/Dia Dinâmica e Categorias Editáveis
 
-- [ ] Adicionar colunas cat1Nome..cat5Nome na tabela `empresas`
-- [ ] Router empresa.atualizar para editar nome, cor, categorias e nomes das categorias
-- [ ] Aba Empresas: formulário de edição de nomes das categorias (cat1..cat5)
-- [ ] Dashboard por empresa: meta/dia necessária para quinzenal (baseada em faturado + dias úteis restantes até dia 15)
-- [ ] Dashboard por empresa: meta/dia necessária para mensal (baseada em faturado + dias úteis restantes no mês)
-- [ ] Indicador visual: meta/dia subiu ou desceu em relação à meta original
-- [ ] FaturamentoForm: usar nomes de categorias dinâmicos da empresa
-- [ ] Testes das novas procedures
+- [x] Adicionar colunas cat1Nome..cat5Nome na tabela `empresas` (já existentes no schema)
+- [x] Router empresa.atualizar para editar nome, cor, categorias e nomes das categorias
+- [x] Aba Empresas: formulário de edição de nomes das categorias (cat1..cat5)
+- [x] Dashboard por empresa: meta/dia necessária para quinzenal (baseada em faturado + dias úteis restantes até dia 15)
+- [x] Dashboard por empresa: meta/dia necessária para mensal (baseada em faturado + dias úteis restantes no mês)
+- [x] Indicador visual: meta/dia subiu ou desceu em relação à meta original
+- [x] FaturamentoForm: usar nomes de categorias dinâmicos da empresa
+- [x] Testes das novas procedures (cobertura existente validada na auditoria)
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 
@@ -1734,3 +1734,8 @@
 - [x] Adicionar testes de regressão para cascata, escopos claros, portais, cards e controles interativos (8 testes passando)
 - [x] Validar TypeScript, build, 159 testes funcionais e responsividade em desktop/celular; 2 testes antigos de sincronização manual externa permanecem com timeout conhecido
 - [x] Publicar, validar produção e sincronizar o GitHub (três domínios HTTP 200; commit remoto idêntico ao checkpoint)
+
+### Pendências identificadas na auditoria v4
+- [x] Implementar na aba Empresas um formulário explícito para editar os nomes base das categorias cat1..cat5, mantendo a gestão dinâmica existente
+- [x] Adicionar indicador visual explícito de variação da meta/dia atual versus a meta/dia original no dashboard
+- [x] Criar testes específicos para empresa.atualizar, edição de categorias e cálculo/indicador de meta diária dinâmica (9 testes aprovados)
