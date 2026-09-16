@@ -1739,3 +1739,10 @@
 - [x] Implementar na aba Empresas um formulário explícito para editar os nomes base das categorias cat1..cat5, mantendo a gestão dinâmica existente
 - [x] Adicionar indicador visual explícito de variação da meta/dia atual versus a meta/dia original no dashboard
 - [x] Criar testes específicos para empresa.atualizar, edição de categorias e cálculo/indicador de meta diária dinâmica (9 testes aprovados)
+
+
+## Retomada da sincronização GitHub — 2026-09-16
+- [x] Verificar acesso atual ao repositório privado cassiano-Procopio88/meta-dashboard
+- [x] Sincronizar o commit publicado da Evolução v4 com o GitHub
+- [x] Validar branch main, commit remoto e privacidade do repositório
+- [x] Registrar a confirmação da sincronização
