@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { destinoCategoriaCashBarber, empresaUsaCashBarber } from "../shared/cashbarberCategorias";
+import {
+  destinoCategoriaCashBarber,
+  destinoServicoCashBarberPorNome,
+  empresaUsaCashBarber,
+} from "../shared/cashbarberCategorias";
 import { calcularFaturamentoPorCategoriaComCatalogo } from "./cashbarber";
+import { getCategoriasMapeadas } from "./cashbarberSincronizador";
 
 describe("mapeamento completo CashBarber", () => {
   it("exclui Seraphine e mantém unidades padrão na integração", () => {
@@ -22,6 +27,42 @@ describe("mapeamento completo CashBarber", () => {
     ["Don Alcides", "produto", "cat5"],
   ] as const)("mapeia %s para %s", (nome, tipo, esperado) => {
     expect(destinoCategoriaCashBarber(nome, tipo)).toBe(esperado);
+  });
+
+  it("reconhece Pacote Corte pelo nome comercial", () => {
+    expect(destinoServicoCashBarberPorNome("Pacote Corte")).toBe("cat10");
+    expect(destinoServicoCashBarberPorNome("PACOTES PROMOCIONAIS")).toBe("cat10");
+    expect(destinoServicoCashBarberPorNome("Corte Masculino")).toBeNull();
+  });
+
+  it("permite sincronizar cat10 a cat12 e mantém cat9 exclusivo do Dpote", () => {
+    const categorias = getCategoriasMapeadas([
+      { metaCategoria: "cat2" },
+      { metaCategoria: "cat9" },
+      { metaCategoria: "cat10" },
+      { metaCategoria: "cat11" },
+      { metaCategoria: "cat12" },
+    ]);
+    expect([...categorias]).toEqual(["cat2", "cat10", "cat11", "cat12"]);
+  });
+
+  it("separa Pacote mesmo quando o CashBarber o cadastra em Serviço Extra", () => {
+    const resultado = calcularFaturamentoPorCategoriaComCatalogo(
+      {
+        servicos: [{ ags_id_servico: 89124, ser_nome: "Pacote Corte", sum: 1200 }],
+        produtos: [],
+      } as any,
+      [
+        { tipo: "servico_categoria", cbId: "605", cbNome: "SERVIÇO EXTRA", metaCategoria: "cat2" },
+        { tipo: "servico_categoria", cbId: "28267", cbNome: "Pacote", metaCategoria: "cat10" },
+      ],
+      [{ id: 89124, ser_id_categoria: 605, ser_nome: "Pacote Corte" }] as any,
+      []
+    );
+
+    expect(resultado.cat2).toBe(0);
+    expect(resultado.cat10).toBe(1200);
+    expect(resultado.totalGeral).toBe(1200);
   });
 
   it("mantém Estética, Pacote e Óleo Essencial em totais separados", () => {

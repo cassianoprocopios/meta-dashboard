@@ -1,3 +1,5 @@
+import { destinoServicoCashBarberPorNome } from "../shared/cashbarberCategorias";
+
 /**
  * Serviço de integração com a API do CashBarber
  *
@@ -321,6 +323,7 @@ export function calcularFaturamentoPorCategoria(
     // Prioridade: mapeamento por ID > mapeamento por categoria
     const metaCat =
       mapaServicoPorId.get(String(s.ags_id_servico)) ||
+      destinoServicoCashBarberPorNome(s.ser_nome) ||
       // Precisamos do cat_id do serviço, mas o relatório 15 não retorna isso
       // Usamos o mapeamento por nome de categoria se disponível
       "cat1"; // fallback padrão
@@ -420,11 +423,16 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
     const valor = s.sum;
     totalServicos += valor;
 
-    // Prioridade: por ID > por categoria
+    // Prioridade: ID específico > categoria configurada, com correção semântica
+    // quando um serviço chamado "Pacote" está misturado em Serviço Extra (cat2).
     let metaCat = mapaServicoPorId.get(String(s.ags_id_servico));
     if (!metaCat) {
       const catId = servicoCatMap.get(s.ags_id_servico);
-      if (catId) metaCat = mapaServicoCat.get(String(catId));
+      const categoriaMapeada = catId ? mapaServicoCat.get(String(catId)) : undefined;
+      const destinoPorNome = destinoServicoCashBarberPorNome(s.ser_nome);
+      metaCat = destinoPorNome === "cat10" && (!categoriaMapeada || categoriaMapeada === "cat2")
+        ? "cat10"
+        : categoriaMapeada;
     }
     metaCat = metaCat || "cat1"; // fallback final
 

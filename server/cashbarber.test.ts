@@ -140,8 +140,9 @@ describe("calcularFaturamentoPorCategoriaComCatalogo", () => {
       catalogoProdutos
     );
 
-    // Serviços sem mapeamento vão para cat1 (fallback)
-    expect(resultado.cat1).toBe(10000); // todos os serviços
+    // Serviços comuns sem mapeamento vão para cat1; Pacote continua separado em cat10.
+    expect(resultado.cat1).toBe(8000);
+    expect(resultado.cat10).toBe(2000);
   });
 
   it("deve lidar com relatório vazio", () => {

@@ -13,6 +13,17 @@ function normalizar(nome: string): string {
 }
 
 /**
+ * Alguns serviços de pacote são cadastrados no CashBarber dentro de outra
+ * categoria técnica (por exemplo, Serviço Extra). O nome comercial do serviço
+ * prevalece para que o faturamento seja exibido em Pacote no dashboard.
+ */
+export function destinoServicoCashBarberPorNome(nome: string): string | null {
+  const servico = normalizar(nome);
+  if (/\bpacotes?\b/.test(servico)) return "cat10";
+  return null;
+}
+
+/**
  * Destinos fixos das categorias conhecidas do CashBarber.
  * cat9 é reservado exclusivamente à Recorrência/Dpote.
  */

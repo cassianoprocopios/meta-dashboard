@@ -78,6 +78,7 @@
 - [x] Criar destinos próprios para Estética (`cat11`) e Óleo Essencial (`cat12`)
 - [x] Vincular todas as categorias CashBarber de Morumbi e Mascote aos seus destinos nominais
 - [x] Desativar configuração e agendamento CashBarber da Seraphine
+- [x] Separar serviços com nome Pacote cadastrados tecnicamente em Serviço Extra no CashBarber
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 

@@ -57,15 +57,15 @@ export interface ResultadoSincronizacao {
 }
 
 /**
- * Determina quais categorias (cat1–cat5) são alimentadas pelo CashBarber
+ * Determina quais categorias (cat1–cat12, exceto cat9) são alimentadas pelo CashBarber
  * com base no mapeamento configurado.
  *
  * Retorna um Set com as chaves que devem ser sobrescritas (ex: {"cat1", "cat2"}).
  */
-function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Set<string> {
+export function getCategoriasMapeadas(mapeamento: Array<{ metaCategoria: string }>): Set<string> {
   const cats = new Set<string>();
   for (const m of mapeamento) {
-    if (m.metaCategoria && m.metaCategoria.match(/^cat[1-9]$/)) {
+    if (m.metaCategoria && m.metaCategoria.match(/^cat(?:[1-8]|1[0-2])$/)) {
       cats.add(m.metaCategoria);
     }
   }
