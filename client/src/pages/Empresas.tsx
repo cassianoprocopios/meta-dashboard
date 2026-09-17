@@ -23,6 +23,8 @@ interface EditState {
   cat4Nome: string;
   cat5Nome: string;
   cat10Nome?: string;
+  cat11Nome?: string;
+  cat12Nome?: string;
   whatsappGrupoLink: string | null;
 }
 
@@ -349,6 +351,8 @@ export default function Empresas({ currentUser }: EmpresasProps) {
       cat4Nome: emp.cat4Nome,
       cat5Nome: emp.cat5Nome,
       cat10Nome: emp.cat10Nome ?? "Pacote",
+      cat11Nome: emp.cat11Nome ?? "Estética",
+      cat12Nome: emp.cat12Nome ?? "Óleo Essencial",
       whatsappGrupoLink: emp.whatsappGrupoLink ?? null,
     });
   };
@@ -522,6 +526,8 @@ export default function Empresas({ currentUser }: EmpresasProps) {
                               ["cat4Nome", "Categoria 4"],
                               ["cat5Nome", "Categoria 5"],
                               ["cat10Nome", "Pacote"],
+                              ["cat11Nome", "Estética"],
+                              ["cat12Nome", "Óleo Essencial"],
                             ] as const
                         ).map(([field, label]) => (
                           <label key={field} className="text-[11px] font-semibold text-slate-600">

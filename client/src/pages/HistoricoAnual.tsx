@@ -92,7 +92,7 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
 
         // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
         const sumCatsBon = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10]
+          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
         const totalMensal = fatsRealizados.reduce((s: number, f: any) => s + sumCatsBon(f), 0);
 
@@ -153,7 +153,7 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
 
         // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
         const sumCatsHist = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10]
+          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
             .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
         const totalRealizado = fatsRealizados.reduce((s: number, f: any) => s + sumCatsHist(f), 0);
 

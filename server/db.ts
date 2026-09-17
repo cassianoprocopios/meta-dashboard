@@ -430,7 +430,7 @@ export async function createEmpresa(input: InsertEmpresa) {
   const empresaId = (result as any).insertId;
   // Inicializar categorias padrão na tabela categorias
   // Unidades padrão mantêm as nove categorias originais; Pacote é a décima.
-  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
+  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote", "Estética", "Óleo Essencial"];
   // Seraphine não usa CashBarber: registra somente o faturamento total em cat1.
   const CATS_SERAPHINE = ["Faturamento total"];
   const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
@@ -448,6 +448,8 @@ export async function createEmpresa(input: InsertEmpresa) {
     (input as any).cat8Nome ?? catNomes[7],
     (input as any).cat9Nome ?? catNomes[8],
     (input as any).cat10Nome ?? catNomes[9],
+    (input as any).cat11Nome ?? catNomes[10],
+    (input as any).cat12Nome ?? catNomes[11],
   ];
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({
@@ -489,6 +491,8 @@ export async function updateEmpresa(
     cat8Nome?: string;
     cat9Nome?: string;
     cat10Nome?: string;
+    cat11Nome?: string;
+    cat12Nome?: string;
     whatsappGrupoLink?: string | null;
   }
 ) {
@@ -534,7 +538,8 @@ export async function getFaturamentoDiaColaborador(tenantId: number, colaborador
     (Number(fatUnidade.cat3) || 0) + (Number(fatUnidade.cat4) || 0) + 
     (Number(fatUnidade.cat5) || 0) + (Number(fatUnidade.cat6) || 0) + 
     (Number(fatUnidade.cat7) || 0) + (Number(fatUnidade.cat8) || 0) + 
-    (Number(fatUnidade.cat9) || 0) + (Number(fatUnidade.cat10) || 0);
+    (Number(fatUnidade.cat9) || 0) + (Number(fatUnidade.cat10) || 0) +
+    (Number(fatUnidade.cat11) || 0) + (Number(fatUnidade.cat12) || 0);
   
   // Buscar faturamento do colaborador no mês para calcular percentual
   const [ano, mes] = data.split('-').map(Number);
@@ -580,7 +585,7 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
     console.log(`[getAllFaturamentosByTenant] ${empresaSlug}: mes=${mes}, ano=${ano}, found=${filtered.length} rows`);
     filtered.slice(0, 20).forEach(r => {
       const dia = parseInt(r.data.split("-")[2], 10);
-      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10].reduce((s, c) => s + parseFloat(c || "0"), 0);
+      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12].reduce((s, c) => s + parseFloat(c || "0"), 0);
       console.log(`  dia=${dia}, total=${total}, data=${r.data}`);
     });
   }
@@ -615,6 +620,8 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat8 as string || "0"),
       parseFloat(input.cat9 as string || "0"),
       parseFloat(input.cat10 as string || "0"),
+      parseFloat(input.cat11 as string || "0"),
+      parseFloat(input.cat12 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const hoje = new Date();
     const [ano, mes, dia] = (input.data as string).split("-").map(Number);
@@ -630,7 +637,9 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat7: input.cat7,
       cat8: input.cat8,
       cat9: input.cat9,
-      cat10: input.cat10,
+      cat10: input.cat10 ?? existing.cat10,
+      cat11: input.cat11 ?? existing.cat11,
+      cat12: input.cat12 ?? existing.cat12,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
       empresaSlug: normalizedSlug, // Normalizar slug também no UPDATE
@@ -660,6 +669,8 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat8 as string || "0"),
       parseFloat(input.cat9 as string || "0"),
       parseFloat(input.cat10 as string || "0"),
+      parseFloat(input.cat11 as string || "0"),
+      parseFloat(input.cat12 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const insertData = {
       ...input,
@@ -851,7 +862,7 @@ export async function inicializarCategorias(
   const existing = await db.select().from(categorias)
     .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.tenantId, tenantId)));
   if (existing.length > 0) return; // já tem categorias, não sobrescrever
-  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
+  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote", "Estética", "Óleo Essencial"];
   const CATS_SERAPHINE = ["Faturamento total"];
   const nomes = tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
   await db.insert(categorias).values(

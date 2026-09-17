@@ -47,7 +47,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
     initialData?.empresaSlug ?? defaultEmpresa
   );
   const [data, setData] = useState<string>(initialData?.data ?? defaultData);
-  const [cats, setCats] = useState<[string, string, string, string, string, string, string, string, string, string]>(
+  const [cats, setCats] = useState<[string, string, string, string, string, string, string, string, string, string, string, string]>(
     initialData
       ? [
           String(parseFloat(initialData.cat1 || "0")),
@@ -60,8 +60,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
           String(parseFloat(initialData.cat8 || "0")),
           String(parseFloat(initialData.cat9 || "0")),
           String(parseFloat(initialData.cat10 || "0")),
+          String(parseFloat(initialData.cat11 || "0")),
+          String(parseFloat(initialData.cat12 || "0")),
         ]
-      : ["", "", "", "", "", "", "", "", "", ""]
+      : ["", "", "", "", "", "", "", "", "", "", "", ""]
   );
   const [observacao, setObservacao] = useState<string>(initialData?.observacao ?? "");
 
@@ -84,18 +86,18 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
   );
 
   // Usar categorias do banco se disponíveis, senão fallback para padrão
-  const LABELS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
+  const LABELS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote", "Estética", "Óleo Essencial"];
   const LABELS_SERAPHINE = ["Faturamento total"];
   const isSeraphine = empresaAtual?.tipoCategorias === "seraphine";
   const fallbackLabels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
   const labels = categoriasData.length > 0
-    ? categoriasData.slice(0, isSeraphine ? 1 : 10).map((c) => c.nome)
+    ? categoriasData.slice(0, isSeraphine ? 1 : 12).map((c) => c.nome)
     : fallbackLabels;
 
   // Reset cats when empresa changes (only for new entries)
   useEffect(() => {
     if (!initialData) {
-      setCats(["", "", "", "", "", "", "", "", "", ""]);
+      setCats(["", "", "", "", "", "", "", "", "", "", "", ""]);
     }
   }, [empresaSlug]);
 
@@ -128,6 +130,8 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         cat8: isSeraphine ? "0" : parseValStr(cats[7]),
         cat9: isSeraphine ? "0" : parseValStr(cats[8]),
         cat10: isSeraphine ? "0" : parseValStr(cats[9]),
+        cat11: isSeraphine ? "0" : parseValStr(cats[10]),
+        cat12: isSeraphine ? "0" : parseValStr(cats[11]),
         observacao: observacao || undefined,
       });
       toast.success(futuro ? "Lançamento previsto salvo!" : "Lançamento salvo com sucesso!");
@@ -197,10 +201,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   <p className="text-xs text-slate-500">
                     {/* Cada empresa mostra suas próprias categorias do banco */}
                     {emp.categorias && emp.categorias.length > 0
-                      ? emp.categorias.slice(0, emp.tipoCategorias === "seraphine" ? 1 : 10).map((c) => c.nome).join(" / ")
+                      ? emp.categorias.slice(0, emp.tipoCategorias === "seraphine" ? 1 : 12).map((c) => c.nome).join(" / ")
                       : (emp.tipoCategorias === "seraphine"
                         ? "Faturamento total"
-                        : "Avulso / Serv. Extra / Auxiliar / Keune / Don Alcides / Caixinha / Barbiero / Bar / Recorrência / Pacote")}
+                        : "Avulso / Serv. Extra / Auxiliar / Keune / Don Alcides / Caixinha / Barbiero / Bar / Recorrência / Pacote / Estética / Óleo Essencial")}
                   </p>
                 </div>
               </button>
@@ -282,7 +286,7 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   autoComplete="off"
                   value={cats[i]}
                   onChange={(e) => {
-                    const newCats = [...cats] as [string, string, string, string, string, string, string, string, string, string];
+                    const newCats = [...cats] as [string, string, string, string, string, string, string, string, string, string, string, string];
                     newCats[i] = e.target.value;
                     setCats(newCats);
                   }}

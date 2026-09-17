@@ -29,6 +29,13 @@
       "when": 1787952429968,
       "tag": "0003_add_fechamentos_unidade",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1789663372572,
+      "tag": "0004_add_categories_11_12",
+      "breakpoints": true
     }
   ]
 }

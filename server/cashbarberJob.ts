@@ -640,7 +640,7 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
         }
 
         const totalMes = diasRealizados.reduce((acc, r) => {
-          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10];
+          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
           return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
         }, 0);
 
@@ -650,7 +650,7 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
           return dia <= 15;
         });
         const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
-          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10];
+          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
           return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
         }, 0);
 

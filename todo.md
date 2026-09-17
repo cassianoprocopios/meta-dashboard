@@ -75,6 +75,9 @@
 - [x] Testar sincronização CashBarber e cálculo isolado de Pacote
 - [x] Preservar todas as categorias padrão originais e acrescentar Pacote sem substituir nenhuma
 - [x] Consolidar Seraphine em um único campo `Faturamento total`, sem sincronização CashBarber
+- [x] Criar destinos próprios para Estética (`cat11`) e Óleo Essencial (`cat12`)
+- [x] Vincular todas as categorias CashBarber de Morumbi e Mascote aos seus destinos nominais
+- [x] Desativar configuração e agendamento CashBarber da Seraphine
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 

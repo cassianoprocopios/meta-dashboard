@@ -16,9 +16,9 @@ try {
        SET cat1 = COALESCE(cat1, 0) + COALESCE(cat2, 0) + COALESCE(cat3, 0) +
                   COALESCE(cat4, 0) + COALESCE(cat5, 0) + COALESCE(cat6, 0) +
                   COALESCE(cat7, 0) + COALESCE(cat8, 0) + COALESCE(cat9, 0) +
-                  COALESCE(cat10, 0),
+                  COALESCE(cat10, 0) + COALESCE(cat11, 0) + COALESCE(cat12, 0),
            cat2 = 0, cat3 = 0, cat4 = 0, cat5 = 0, cat6 = 0,
-           cat7 = 0, cat8 = 0, cat9 = 0, cat10 = 0
+           cat7 = 0, cat8 = 0, cat9 = 0, cat10 = 0, cat11 = 0, cat12 = 0
        WHERE tenantId = ? AND empresaSlug = ?`,
       [empresa.tenantId, empresa.slug]
     );

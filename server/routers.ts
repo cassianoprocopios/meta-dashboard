@@ -132,6 +132,7 @@ import { sql, sum } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
+import { empresaUsaCashBarber } from "../shared/cashbarberCategorias";
 
 // JWT helper para sessão própria
 const APP_COOKIE = "meta_session";
@@ -191,6 +192,16 @@ async function getTenantIdFromCtx(ctx: any): Promise<number> {
 // Versão pública (sem require auth) - sempre retorna tenant 1
 async function getTenantIdFromCtxPublic(_ctx: any): Promise<number> {
   return 1;
+}
+
+async function assertEmpresaUsaCashBarber(tenantId: number, empresaSlug: string) {
+  const empresa = await getEmpresaBySlugAndTenant(empresaSlug, tenantId);
+  if (!empresaUsaCashBarber(empresa?.tipoCategorias)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "A Seraphine não utiliza integração com o CashBarber.",
+    });
+  }
 }
 
 export function podeAtualizarUnidadeColaborador(
@@ -1343,7 +1354,7 @@ const profissionaisRouter = router({
       const hojeStr = hoje.toISOString().slice(0, 10);
       const rowsRealizados = fatUnidadeRows.filter((r) => r.data <= hojeStr);
       const totalRealizado = rowsRealizados.reduce((sum, r) => {
-        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10]
+        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
           .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
       }, 0);
 
@@ -1374,7 +1385,7 @@ const profissionaisRouter = router({
         return ehPrimeiraQuinzena ? dia <= 15 : dia > 15;
       });
       const totalQuinzena = rowsQuinzena.reduce((sum, r) => {
-        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10]
+        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
           .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
       }, 0);
       const pctMetaQuinzenal = metaQuinzenal && metaQuinzenal > 0
@@ -1387,7 +1398,7 @@ const profissionaisRouter = router({
       // Melhor e pior dia
       const totaisPorDia = rowsRealizados.map((r) => ({
         data: r.data,
-        total: [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10]
+        total: [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
           .reduce((s, v) => s + parseFloat(String(v) || '0'), 0),
       }));
       const melhorDia = totaisPorDia.length > 0
@@ -1408,7 +1419,7 @@ const profissionaisRouter = router({
         const dataStr = `${input.ano}-${String(input.mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const row = rowsRealizados.find((r) => r.data === dataStr);
         const total = row
-          ? [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9, row.cat10]
+          ? [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9, row.cat10, row.cat11, row.cat12]
               .reduce((s, v) => s + parseFloat(String(v) || '0'), 0)
           : 0;
         faturamentoPorDia.push({ dia: d, total, isFuturo: d > diaAtual });
@@ -1420,7 +1431,7 @@ const profissionaisRouter = router({
       let totalMesAnteriorCompleto = 0;
       for (const r of fatMesAnteriorRows) {
         const dia = parseInt(r.data.slice(8, 10));
-        const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10]
+        const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
           .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
         totalMesAnteriorCompleto += total;
         if (dia <= diaAtual) totalMesAnteriorMesmoPeriodo += total;
@@ -1927,6 +1938,8 @@ export const appRouter = router({
         cat4Nome: z.string().min(1).max(64).optional(),
         cat5Nome: z.string().min(1).max(64).optional(),
         cat10Nome: z.string().min(1).max(64).optional(),
+        cat11Nome: z.string().min(1).max(64).optional(),
+        cat12Nome: z.string().min(1).max(64).optional(),
         whatsappGrupoLink: z.string().max(512).nullable().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -1973,6 +1986,8 @@ export const appRouter = router({
         cat8: z.string().default("0"),
         cat9: z.string().default("0"),
         cat10: z.string().default("0"),
+        cat11: z.string().default("0"),
+        cat12: z.string().default("0"),
         observacao: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -2074,6 +2089,7 @@ export const appRouter = router({
               cat5: existente.cat5 ?? "0", cat6: existente.cat6 ?? "0",
               cat7: existente.cat7 ?? "0", cat8: existente.cat8 ?? "0",
               cat9: cat9Valor, cat10: existente.cat10 ?? "0",
+              cat11: existente.cat11 ?? "0", cat12: existente.cat12 ?? "0",
               sincronizadoCB: existente.sincronizadoCB ?? 0,
               observacao: existente.observacao ?? undefined,
               lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
@@ -2084,7 +2100,7 @@ export const appRouter = router({
               tenantId, empresaSlug, data: dataStr,
               cat1: "0", cat2: "0", cat3: "0", cat4: "0",
               cat5: "0", cat6: "0", cat7: "0", cat8: "0",
-              cat9: cat9Valor, cat10: "0", sincronizadoCB: 0,
+              cat9: cat9Valor, cat10: "0", cat11: "0", cat12: "0", sincronizadoCB: 0,
               lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
             });
             diasInseridos++;
@@ -2181,7 +2197,7 @@ export const appRouter = router({
             });
 
             const totalQ = fatQuinzena.reduce((acc, r) => {
-              const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10];
+              const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
               return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
             }, 0);
 
@@ -4122,6 +4138,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       )
       .mutation(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
+        await assertEmpresaUsaCashBarber(tenantId, input.empresaSlug);
         const user = await getUserById(ctx.user?.id || 0);
         if (!user || (user.role !== "admin" && user.tenantId !== null)) {
           // Verificar se é admin do tenant
@@ -4179,6 +4196,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       )
       .query(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
+        await assertEmpresaUsaCashBarber(tenantId, input.empresaSlug);
         const config = await getCashbarberConfig(tenantId, input.empresaSlug);
         if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Configuração CashBarber não encontrada" });
         try {
@@ -4292,6 +4310,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       )
       .mutation(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
+        await assertEmpresaUsaCashBarber(tenantId, input.empresaSlug);
         await saveCashbarberMapeamento(tenantId, input.empresaSlug, input.mapeamento);
         return { ok: true };
       }),
@@ -4308,6 +4327,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       )
       .mutation(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
+        await assertEmpresaUsaCashBarber(tenantId, input.empresaSlug);
         const config = await getCashbarberConfig(tenantId, input.empresaSlug);
         if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Configuração CashBarber não encontrada" });
 

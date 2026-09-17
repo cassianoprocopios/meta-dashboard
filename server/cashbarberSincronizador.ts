@@ -328,6 +328,12 @@ export async function sincronizarFaturamentoCashbarber(
       const cat10 = categoriasMapeadas.has("cat10")
         ? String(faturamentoCB.cat10)
         : existente?.cat10 ?? "0";
+      const cat11 = categoriasMapeadas.has("cat11")
+        ? String(faturamentoCB.cat11)
+        : existente?.cat11 ?? "0";
+      const cat12 = categoriasMapeadas.has("cat12")
+        ? String(faturamentoCB.cat12)
+        : existente?.cat12 ?? "0";
 
       // cat9 (Recorrência / Dpote):
       // Regra:
@@ -386,6 +392,8 @@ export async function sincronizarFaturamentoCashbarber(
         cat7,
         cat8,
         cat10,
+        cat11,
+        cat12,
         cat9,
         sincronizadoCB: 1,
         // Preservar observacao e lancadoPor do registro existente

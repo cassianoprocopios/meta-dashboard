@@ -92,6 +92,8 @@ export const empresas = mysqlTable("empresas", {
   cat8Nome: varchar("cat8Nome", { length: 64 }).notNull().default("Bar"),
   cat9Nome: varchar("cat9Nome", { length: 64 }).notNull().default("Recorrência"),
   cat10Nome: varchar("cat10Nome", { length: 64 }).notNull().default("Pacote"),
+  cat11Nome: varchar("cat11Nome", { length: 64 }).notNull().default("Estética"),
+  cat12Nome: varchar("cat12Nome", { length: 64 }).notNull().default("Óleo Essencial"),
   ativo: int("ativo").notNull().default(1),
   /** Link de convite do grupo WhatsApp da unidade (ex: https://chat.whatsapp.com/XXXXX) */
   whatsappGrupoLink: varchar("whatsappGrupoLink", { length: 512 }),
@@ -214,6 +216,8 @@ export const faturamentos = mysqlTable("faturamentos", {
   cat9: decimal("cat9", { precision: 12, scale: 2 }).notNull().default("0"),
   /** Pacote importado do CashBarber; cat9 permanece reservado à Recorrência/Dpote. */
   cat10: decimal("cat10", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat11: decimal("cat11", { precision: 12, scale: 2 }).notNull().default("0"),
+  cat12: decimal("cat12", { precision: 12, scale: 2 }).notNull().default("0"),
   observacao: text("observacao"),
   lancadoPor: varchar("lancadoPor", { length: 128 }),
   // Valor total registrado quando o lançamento era previsto (dia futuro).

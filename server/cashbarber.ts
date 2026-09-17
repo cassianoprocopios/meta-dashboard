@@ -287,6 +287,8 @@ export function calcularFaturamentoPorCategoria(
   cat8: number;
   cat9: number;
   cat10: number;
+  cat11: number;
+  cat12: number;
   totalServicos: number;
   totalProdutos: number;
   totalGeral: number;
@@ -307,7 +309,7 @@ export function calcularFaturamentoPorCategoria(
     else if (m.tipo === "produto_id") mapaProdutoPorId.set(m.cbId, m.metaCategoria);
   }
 
-  const resultado = { cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0, cat10: 0 };
+  const resultado = { cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0, cat10: 0, cat11: 0, cat12: 0 };
   const detalhes: Array<{ nome: string; valor: number; categoria: string }> = [];
 
   // Processar serviços
@@ -377,6 +379,8 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
   cat8: number;
   cat9: number;
   cat10: number;
+  cat11: number;
+  cat12: number;
   totalServicos: number;
   totalProdutos: number;
   totalGeral: number;
@@ -407,7 +411,7 @@ export function calcularFaturamentoPorCategoriaComCatalogo(
     (catalogoProdutos || []).map((p) => [p.id, p.pro_id_categoria])
   );
 
-  const resultado = { cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0, cat10: 0 };
+  const resultado = { cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0, cat7: 0, cat8: 0, cat9: 0, cat10: 0, cat11: 0, cat12: 0 };
   const detalhes: Array<{ nome: string; valor: number; categoria: string; tipo: string }> = [];
 
   // Processar serviços

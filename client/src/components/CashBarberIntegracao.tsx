@@ -12,13 +12,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { destinoCategoriaCashBarber, empresaUsaCashBarber } from "@shared/cashbarberCategorias";
 import {
   Loader2, CheckCircle, XCircle, RefreshCw, Settings,
   Zap, Map, Calendar, ChevronDown, ChevronRight,
   Building2, AlertTriangle, Info, Save, Play, Clock, History, Search
 } from "lucide-react";
 
-type Empresa = { id: number; nome: string; slug: string; ativo: number };
+type Empresa = { id: number; nome: string; slug: string; ativo: number; tipoCategorias?: "padrao" | "seraphine" };
 
 interface CashBarberIntegracaoProps {
   empresas: Empresa[];
@@ -35,6 +36,8 @@ const META_CATEGORIAS = [
   { value: "cat7", label: "Categoria 7" },
   { value: "cat8", label: "Categoria 8" },
   { value: "cat10", label: "Pacote" },
+  { value: "cat11", label: "Estética" },
+  { value: "cat12", label: "Óleo Essencial" },
   { value: "ignorar", label: "Ignorar (não importar)" },
 ];
 
@@ -151,24 +154,26 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       // Adicionar categorias de serviços
       for (const cat of catalogo.categorias.filter((c: any) => c.cat_type === "SERVICO")) {
         const existente = mapeamentoExistente.find((m: any) => m.tipo === "servico_categoria" && m.cbId === String(cat.id));
-        const ehPacote = /pacot/i.test(cat.cat_nome ?? "");
+        const nome = cat.cat_nome ?? "";
+        const destinoObrigatorio = destinoCategoriaCashBarber(nome, "servico");
         novoMapeamento.push({
           tipo: "servico_categoria",
           cbId: String(cat.id),
           cbNome: cat.cat_nome,
-          metaCategoria: existente?.metaCategoria || (ehPacote ? "cat10" : "cat1"),
+          metaCategoria: destinoObrigatorio ?? existente?.metaCategoria ?? "cat1",
         });
       }
 
       // Adicionar categorias de produtos
       for (const cat of catalogo.categorias.filter((c: any) => c.cat_type === "PRODUTO")) {
         const existente = mapeamentoExistente.find((m: any) => m.tipo === "produto_categoria" && m.cbId === String(cat.id));
-        const ehPacote = /pacot/i.test(cat.cat_nome ?? "");
+        const nome = cat.cat_nome ?? "";
+        const destinoObrigatorio = destinoCategoriaCashBarber(nome, "produto");
         novoMapeamento.push({
           tipo: "produto_categoria",
           cbId: String(cat.id),
           cbNome: cat.cat_nome,
-          metaCategoria: existente?.metaCategoria || (ehPacote ? "cat10" : "cat2"),
+          metaCategoria: destinoObrigatorio ?? existente?.metaCategoria ?? "cat2",
         });
       }
 
@@ -1154,13 +1159,13 @@ export default function CashBarberIntegracao({ empresas }: CashBarberIntegracaoP
     const mapa: Record<string, Array<{ numero: number; nome: string }>> = {};
     for (const emp of todasEmpresas as any[]) {
       if (emp.categorias) {
-        mapa[emp.slug] = emp.categorias.map((c: any) => ({ numero: c.numero, nome: c.nome }));
+        mapa[emp.slug] = emp.categorias.map((c: any) => ({ numero: c.numero ?? c.ordem, nome: c.nome }));
       }
     }
     return mapa;
   }, [todasEmpresas]);
 
-  const empresasAtivas = empresas.filter((e) => e.ativo);
+  const empresasAtivas = empresas.filter((e) => e.ativo && empresaUsaCashBarber(e.tipoCategorias));
 
   return (
     <div className="p-4 sm:p-6 space-y-6">

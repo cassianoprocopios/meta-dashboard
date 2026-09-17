@@ -43,7 +43,7 @@ const DIAS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 // ─── Helpers de soma de categorias ───────────────────────────────────────────
 
-/** Soma todas as categorias (cat1..cat9) de um registro de faturamento */
+/** Soma todas as categorias de um registro de faturamento. */
 function somarCats(f: {
   cat1: string | number | null;
   cat2: string | number | null;
@@ -54,6 +54,9 @@ function somarCats(f: {
   cat7: string | number | null;
   cat8: string | number | null;
   cat9: string | number | null;
+  cat10: string | number | null;
+  cat11: string | number | null;
+  cat12: string | number | null;
 }): number {
   return (
     (Number(f.cat1) || 0) +
@@ -64,11 +67,14 @@ function somarCats(f: {
     (Number(f.cat6) || 0) +
     (Number(f.cat7) || 0) +
     (Number(f.cat8) || 0) +
-    (Number(f.cat9) || 0)
+    (Number(f.cat9) || 0) +
+    (Number(f.cat10) || 0) +
+    (Number(f.cat11) || 0) +
+    (Number(f.cat12) || 0)
   );
 }
 
-/** Soma apenas categorias operacionais (cat1..cat8), excluindo recorrência (cat9) */
+/** Soma categorias operacionais, excluindo apenas Recorrência (cat9). */
 function somarCatsOperacionais(f: {
   cat1: string | number | null;
   cat2: string | number | null;
@@ -78,6 +84,9 @@ function somarCatsOperacionais(f: {
   cat6: string | number | null;
   cat7: string | number | null;
   cat8: string | number | null;
+  cat10: string | number | null;
+  cat11: string | number | null;
+  cat12: string | number | null;
 }): number {
   return (
     (Number(f.cat1) || 0) +
@@ -87,7 +96,10 @@ function somarCatsOperacionais(f: {
     (Number(f.cat5) || 0) +
     (Number(f.cat6) || 0) +
     (Number(f.cat7) || 0) +
-    (Number(f.cat8) || 0)
+    (Number(f.cat8) || 0) +
+    (Number(f.cat10) || 0) +
+    (Number(f.cat11) || 0) +
+    (Number(f.cat12) || 0)
   );
 }
 
