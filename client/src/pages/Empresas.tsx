@@ -22,6 +22,7 @@ interface EditState {
   cat3Nome: string;
   cat4Nome: string;
   cat5Nome: string;
+  cat10Nome?: string;
   whatsappGrupoLink: string | null;
 }
 
@@ -347,6 +348,7 @@ export default function Empresas({ currentUser }: EmpresasProps) {
       cat3Nome: emp.cat3Nome,
       cat4Nome: emp.cat4Nome,
       cat5Nome: emp.cat5Nome,
+      cat10Nome: emp.cat10Nome ?? "Pacote",
       whatsappGrupoLink: emp.whatsappGrupoLink ?? null,
     });
   };
@@ -517,6 +519,7 @@ export default function Empresas({ currentUser }: EmpresasProps) {
                           ["cat3Nome", "Categoria 3"],
                           ["cat4Nome", "Categoria 4"],
                           ["cat5Nome", "Categoria 5"],
+                          ["cat10Nome", "Pacote"],
                         ] as const).map(([field, label]) => (
                           <label key={field} className="text-[11px] font-semibold text-slate-600">
                             {label}

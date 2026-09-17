@@ -429,10 +429,10 @@ export async function createEmpresa(input: InsertEmpresa) {
   const result = await db.insert(empresas).values(input);
   const empresaId = (result as any).insertId;
   // Inicializar categorias padrão na tabela categorias
-  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
-  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "", "", "", "", "Recorrência"];
+  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
+  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "", "", "", "", "Recorrência", "Pacote"];
   const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
-  // Usar cat1Nome..cat9Nome se fornecidos, senão usar padrão do tipo
+  // Usar cat1Nome..cat10Nome se fornecidos, senão usar padrão do tipo
   const nomes = [
     (input as any).cat1Nome ?? catNomes[0],
     (input as any).cat2Nome ?? catNomes[1],
@@ -443,6 +443,7 @@ export async function createEmpresa(input: InsertEmpresa) {
     (input as any).cat7Nome ?? catNomes[6],
     (input as any).cat8Nome ?? catNomes[7],
     (input as any).cat9Nome ?? catNomes[8],
+    (input as any).cat10Nome ?? catNomes[9],
   ];
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({
@@ -483,6 +484,7 @@ export async function updateEmpresa(
     cat7Nome?: string;
     cat8Nome?: string;
     cat9Nome?: string;
+    cat10Nome?: string;
     whatsappGrupoLink?: string | null;
   }
 ) {
@@ -528,7 +530,7 @@ export async function getFaturamentoDiaColaborador(tenantId: number, colaborador
     (Number(fatUnidade.cat3) || 0) + (Number(fatUnidade.cat4) || 0) + 
     (Number(fatUnidade.cat5) || 0) + (Number(fatUnidade.cat6) || 0) + 
     (Number(fatUnidade.cat7) || 0) + (Number(fatUnidade.cat8) || 0) + 
-    (Number(fatUnidade.cat9) || 0);
+    (Number(fatUnidade.cat9) || 0) + (Number(fatUnidade.cat10) || 0);
   
   // Buscar faturamento do colaborador no mês para calcular percentual
   const [ano, mes] = data.split('-').map(Number);
@@ -574,7 +576,7 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
     console.log(`[getAllFaturamentosByTenant] ${empresaSlug}: mes=${mes}, ano=${ano}, found=${filtered.length} rows`);
     filtered.slice(0, 20).forEach(r => {
       const dia = parseInt(r.data.split("-")[2], 10);
-      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((s, c) => s + parseFloat(c || "0"), 0);
+      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10].reduce((s, c) => s + parseFloat(c || "0"), 0);
       console.log(`  dia=${dia}, total=${total}, data=${r.data}`);
     });
   }
@@ -608,6 +610,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat7 as string || "0"),
       parseFloat(input.cat8 as string || "0"),
       parseFloat(input.cat9 as string || "0"),
+      parseFloat(input.cat10 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const hoje = new Date();
     const [ano, mes, dia] = (input.data as string).split("-").map(Number);
@@ -623,6 +626,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       cat7: input.cat7,
       cat8: input.cat8,
       cat9: input.cat9,
+      cat10: input.cat10,
       observacao: input.observacao,
       lancadoPor: input.lancadoPor,
       empresaSlug: normalizedSlug, // Normalizar slug também no UPDATE
@@ -651,6 +655,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
       parseFloat(input.cat7 as string || "0"),
       parseFloat(input.cat8 as string || "0"),
       parseFloat(input.cat9 as string || "0"),
+      parseFloat(input.cat10 as string || "0"),
     ].reduce((a, b) => a + b, 0);
     const insertData = {
       ...input,

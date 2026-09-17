@@ -788,8 +788,8 @@ export default function Home() {
         ? indicadoresDiasRestantes.projecaoFinal
         : totalPrevisto; // se ainda não há realizados, usa apenas os previstos
 
-      // Totais por categoria (9 categorias)
-      const catTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      // Totais por categoria (10 categorias; cat9 = Recorrência, cat10 = Pacote)
+      const catTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       rows.forEach((r: any) => {
         catTotals[0] += parseFloat(r.cat1 || "0");
         catTotals[1] += parseFloat(r.cat2 || "0");
@@ -800,6 +800,7 @@ export default function Home() {
         catTotals[6] += parseFloat(r.cat7 || "0");
         catTotals[7] += parseFloat(r.cat8 || "0");
         catTotals[8] += parseFloat(r.cat9 || "0");
+        catTotals[9] += parseFloat(r.cat10 || "0");
       });
 
       return {
@@ -906,7 +907,7 @@ export default function Home() {
         return !ehMesVigenteComp || dia <= diaLimiteComp;
       });
       const totalAtual = rowsAtual.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAtualRealizado += totalAtual;
       // Usa o período global (dias 1 até diaFim) para comparar com o mês anterior.
       // Isso garante que empresas com dias diferentes (ex: Seraphine não abre dom/seg)
@@ -917,7 +918,7 @@ export default function Home() {
         return dia >= diaInicio && dia <= diaFim;
       });
       const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
       totalAnteriorMesmosDias += totalAnterior;
       porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
@@ -951,7 +952,7 @@ export default function Home() {
         });
         if (fatsMes.length === 0) continue;
         const totalEmp = fatsMes.reduce((s: number, r: any) =>
-          s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+          s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
         mesesEmpresa.push({ mes: m, total: totalEmp });
       }
       if (mesesEmpresa.length === 0) {
@@ -1011,8 +1012,8 @@ export default function Home() {
       const labels = cats && cats.length > 0
         ? cats.map((c) => c.nome)
         : emp.tipoCategorias === "seraphine"
-          ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", ""]
-          : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
+          ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"]
+          : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
       return {
         empresa: emp.nome,
         cor: emp.cor,
@@ -1043,7 +1044,7 @@ export default function Home() {
       rows.forEach((f: any) => {
         if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
         const dia = parseInt(f.data.split("-")[2]);
-        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
+        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10]
           .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
         mapa[dia] = (mapa[dia] ?? 0) + total;
       });
@@ -1099,7 +1100,7 @@ export default function Home() {
     faturamentosFiltrados.forEach((f: any) => {
       if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
       const dia = parseInt(f.data.split("-")[2]);
-      const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9]
+      const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10]
         .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
       mapaAtual[dia] = (mapaAtual[dia] ?? 0) + total;
     });
@@ -3777,8 +3778,8 @@ export default function Home() {
                   const labels = empCats && empCats.length > 0
                     ? empCats.map((c) => c.nome)
                     : s.emp.tipoCategorias === "seraphine"
-                      ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", ""]
-                      : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
+                      ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"]
+                      : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
                   const pieData = labels
                     .map((l, i) => ({ name: l, value: s.catTotals[i] }))
                     .filter((d) => d.value > 0 && d.name);
@@ -3927,8 +3928,8 @@ export default function Home() {
                 const labels = empCats && empCats.length > 0
                   ? empCats.map((c) => c.nome)
                   : emp.tipoCategorias === "seraphine"
-                    ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", ""]
-                    : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência"];
+                    ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"]
+                    : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
@@ -3950,7 +3951,7 @@ export default function Home() {
                         </thead>
                         <tbody>
                           {rowsSorted.map((row: any) => {
-                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9].map((v: any) => parseFloat(v || "0"));
+                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9, row.cat10].map((v: any) => parseFloat(v || "0"));
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
                             // Detectar se o dia é futuro (previsto)
@@ -4061,7 +4062,7 @@ export default function Home() {
                           const previstos  = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
                           const sumCats = (list: any[]) =>
                             [0,1,2,3,4,5,6,7,8].map((i) =>
-                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5,r.cat6,r.cat7,r.cat8,r.cat9][i] || "0"), 0)
+                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5,r.cat6,r.cat7,r.cat8,r.cat9, r.cat10][i] || "0"), 0)
                             );
                           const catsReal = sumCats(realizados);
                           const catsPrev = sumCats(previstos);

@@ -130,7 +130,7 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
 
     // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
     const sumCats = (r: any) =>
-      [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9]
+      [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10]
         .reduce((a: number, v: any) => a + parseFloat(String(v || 0)), 0);
     const totalMensal = rowsRealizados.reduce((s: number, r) => s + sumCats(r), 0);
 

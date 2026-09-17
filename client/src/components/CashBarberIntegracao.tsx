@@ -34,6 +34,7 @@ const META_CATEGORIAS = [
   { value: "cat6", label: "Categoria 6" },
   { value: "cat7", label: "Categoria 7" },
   { value: "cat8", label: "Categoria 8" },
+  { value: "cat10", label: "Pacote" },
   { value: "ignorar", label: "Ignorar (não importar)" },
 ];
 
@@ -150,22 +151,24 @@ function EmpresaConfigPanel({ empresa, categoriasMeta }: {
       // Adicionar categorias de serviços
       for (const cat of catalogo.categorias.filter((c: any) => c.cat_type === "SERVICO")) {
         const existente = mapeamentoExistente.find((m: any) => m.tipo === "servico_categoria" && m.cbId === String(cat.id));
+        const ehPacote = /pacot/i.test(cat.cat_nome ?? "");
         novoMapeamento.push({
           tipo: "servico_categoria",
           cbId: String(cat.id),
           cbNome: cat.cat_nome,
-          metaCategoria: existente?.metaCategoria || "cat1",
+          metaCategoria: existente?.metaCategoria || (ehPacote ? "cat10" : "cat1"),
         });
       }
 
       // Adicionar categorias de produtos
       for (const cat of catalogo.categorias.filter((c: any) => c.cat_type === "PRODUTO")) {
         const existente = mapeamentoExistente.find((m: any) => m.tipo === "produto_categoria" && m.cbId === String(cat.id));
+        const ehPacote = /pacot/i.test(cat.cat_nome ?? "");
         novoMapeamento.push({
           tipo: "produto_categoria",
           cbId: String(cat.id),
           cbNome: cat.cat_nome,
-          metaCategoria: existente?.metaCategoria || "cat2",
+          metaCategoria: existente?.metaCategoria || (ehPacote ? "cat10" : "cat2"),
         });
       }
 

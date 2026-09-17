@@ -66,6 +66,14 @@
 - [x] FaturamentoForm: usar nomes de categorias dinâmicos da empresa
 - [x] Testes das novas procedures (cobertura existente validada na auditoria)
 
+### Correção — Categoria Pacote integrada ao CashBarber
+
+- [x] Adicionar `cat10` para Pacote, preservando `cat9` como Recorrência/Dpote
+- [x] Adicionar `cat10Nome` e categoria Pacote às unidades existentes e novas
+- [x] Exibir Pacote no lançamento, totais, histórico, bonificação e dashboard
+- [x] Mapear automaticamente categorias CashBarber cujo nome contém “Pacote” para `cat10`
+- [x] Testar sincronização CashBarber e cálculo isolado de Pacote
+
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 
 - [ ] Adicionar campo `passwordHash` e `ativo` na tabela users
