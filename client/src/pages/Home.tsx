@@ -58,6 +58,11 @@ import {
   obterDiaInicialDiasRestantes,
 } from "@shared/calendarioFuncionamento";
 import { calcularVariacaoMetaDiaria } from "@shared/metaCalculos";
+import {
+  obterCategoriaKeys,
+  obterValoresCategorias,
+  somarCategoriasPorColuna,
+} from "@shared/faturamentoCategorias";
 
 
 const MESES = [
@@ -3932,6 +3937,7 @@ export default function Home() {
                   : emp.tipoCategorias === "seraphine"
                     ? ["Faturamento total"]
                     : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote", "Estética", "Óleo Essencial"];
+                const categoriaKeys = obterCategoriaKeys(labels.length);
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
@@ -3953,7 +3959,7 @@ export default function Home() {
                         </thead>
                         <tbody>
                           {rowsSorted.map((row: any) => {
-                            const cats = [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9, row.cat10, row.cat11, row.cat12].map((v: any) => parseFloat(v || "0"));
+                            const cats = obterValoresCategorias(row, categoriaKeys);
                             const total = cats.reduce((a: number, b: number) => a + b, 0);
                             const [, , dia] = row.data.split("-");
                             // Detectar se o dia é futuro (previsto)
@@ -4011,8 +4017,7 @@ export default function Home() {
                                   </div>
                                 </td>
                                 {cats.map((v: number, i: number) => {
-                                  // Índice 8 = cat9 (Recorrência)
-                                  const isCat9 = i === 8;
+                                  const isCat9 = categoriaKeys[i] === "cat9";
                                   const mostrarPrevisao = isCat9 && temPrevisaoRecorrencia;
                                   return (
                                     <td key={i} className="px-4 py-3 text-right text-foreground/80">
@@ -4062,12 +4067,8 @@ export default function Home() {
                             : new Date(ano, mes, 0).getDate();
                           const realizados = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) <= diaHoje2);
                           const previstos  = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
-                          const sumCats = (list: any[]) =>
-                            [0,1,2,3,4,5,6,7,8].map((i) =>
-                              list.reduce((s: number, r: any) => s + parseFloat([r.cat1,r.cat2,r.cat3,r.cat4,r.cat5,r.cat6,r.cat7,r.cat8,r.cat9, r.cat10, r.cat11, r.cat12][i] || "0"), 0)
-                            );
-                          const catsReal = sumCats(realizados);
-                          const catsPrev = sumCats(previstos);
+                          const catsReal = somarCategoriasPorColuna(realizados, categoriaKeys);
+                          const catsPrev = somarCategoriasPorColuna(previstos, categoriaKeys);
                           const totalReal = catsReal.reduce((a, b) => a + b, 0);
                           const totalPrev = catsPrev.reduce((a, b) => a + b, 0);
                           const hasPrev = previstos.length > 0;
@@ -4099,9 +4100,9 @@ export default function Home() {
                                       Recorr. Prevista
                                     </span>
                                   </td>
-                                  {[0,1,2,3,4,5,6,7,8].map((i) => (
-                                    <td key={i} className="px-4 py-2.5 text-right text-xs italic text-violet-500/80 dark:text-violet-300/70">
-                                      {i === 8 ? fmt(totalRecorrenciaPrevista) : <span className="text-muted-foreground/20">—</span>}
+                                  {categoriaKeys.map((key) => (
+                                    <td key={key} className="px-4 py-2.5 text-right text-xs italic text-violet-500/80 dark:text-violet-300/70">
+                                      {key === "cat9" ? fmt(totalRecorrenciaPrevista) : <span className="text-muted-foreground/20">—</span>}
                                     </td>
                                   ))}
                                   <td className="px-4 py-2.5 text-right text-xs italic font-semibold text-violet-500/80 dark:text-violet-300/70">{fmt(totalRecorrenciaPrevista)}</td>
