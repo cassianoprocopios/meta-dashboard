@@ -187,7 +187,7 @@ function CategoriasPanel({ empresaSlug, empresaCor, tipoCategorias, currentUser 
                     {cat.nome}
                   </span>
 
-                  {canManage && (
+                  {canManage && tipoCategorias !== "seraphine" && (
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       {/* Reordenar */}
                       <button
@@ -247,7 +247,7 @@ function CategoriasPanel({ empresaSlug, empresaCor, tipoCategorias, currentUser 
         </div>
       )}
 
-      {canManage && (
+      {canManage && tipoCategorias !== "seraphine" && (
         <div className="flex gap-2 mt-3">
           <input
             type="text"
@@ -424,9 +424,9 @@ export default function Empresas({ currentUser }: EmpresasProps) {
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="padrao">Padrão — Avulso / Produtos / Serv. Extra / Lavatório / Recorrência</option>
-                <option value="seraphine">Seraphine — Serviços / Pacotes / Produtos / Caixinha / Recorrência</option>
+                <option value="seraphine">Seraphine — Faturamento total</option>
               </select>
-              <p className="text-xs text-slate-400 mt-1">As categorias serão criadas automaticamente e podem ser editadas depois.</p>
+              <p className="text-xs text-slate-400 mt-1">As categorias serão criadas automaticamente e podem ser editadas depois. Seraphine usa somente Faturamento total.</p>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 mb-1.5 block uppercase tracking-wide">Cor de Identificação</label>
@@ -513,14 +513,17 @@ export default function Empresas({ currentUser }: EmpresasProps) {
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {([
-                          ["cat1Nome", "Categoria 1"],
-                          ["cat2Nome", "Categoria 2"],
-                          ["cat3Nome", "Categoria 3"],
-                          ["cat4Nome", "Categoria 4"],
-                          ["cat5Nome", "Categoria 5"],
-                          ["cat10Nome", "Pacote"],
-                        ] as const).map(([field, label]) => (
+                        {(emp.tipoCategorias === "seraphine"
+                          ? [["cat1Nome", "Faturamento total"]] as const
+                          : [
+                              ["cat1Nome", "Categoria 1"],
+                              ["cat2Nome", "Categoria 2"],
+                              ["cat3Nome", "Categoria 3"],
+                              ["cat4Nome", "Categoria 4"],
+                              ["cat5Nome", "Categoria 5"],
+                              ["cat10Nome", "Pacote"],
+                            ] as const
+                        ).map(([field, label]) => (
                           <label key={field} className="text-[11px] font-semibold text-slate-600">
                             {label}
                             <input

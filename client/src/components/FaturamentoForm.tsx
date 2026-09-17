@@ -85,10 +85,11 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
 
   // Usar categorias do banco se disponíveis, senão fallback para padrão
   const LABELS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
-  const LABELS_SERAPHINE = ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"];
+  const LABELS_SERAPHINE = ["Faturamento total"];
+  const isSeraphine = empresaAtual?.tipoCategorias === "seraphine";
   const fallbackLabels = empresaAtual?.tipoCategorias === "seraphine" ? LABELS_SERAPHINE : LABELS_PADRAO;
   const labels = categoriasData.length > 0
-    ? categoriasData.slice(0, 10).map((c) => c.nome)
+    ? categoriasData.slice(0, isSeraphine ? 1 : 10).map((c) => c.nome)
     : fallbackLabels;
 
   // Reset cats when empresa changes (only for new entries)
@@ -118,15 +119,15 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
         empresaSlug,
         data,
         cat1: parseValStr(cats[0]),
-        cat2: parseValStr(cats[1]),
-        cat3: parseValStr(cats[2]),
-        cat4: parseValStr(cats[3]),
-        cat5: parseValStr(cats[4]),
-        cat6: parseValStr(cats[5]),
-        cat7: parseValStr(cats[6]),
-        cat8: parseValStr(cats[7]),
-        cat9: parseValStr(cats[8]),
-        cat10: parseValStr(cats[9]),
+        cat2: isSeraphine ? "0" : parseValStr(cats[1]),
+        cat3: isSeraphine ? "0" : parseValStr(cats[2]),
+        cat4: isSeraphine ? "0" : parseValStr(cats[3]),
+        cat5: isSeraphine ? "0" : parseValStr(cats[4]),
+        cat6: isSeraphine ? "0" : parseValStr(cats[5]),
+        cat7: isSeraphine ? "0" : parseValStr(cats[6]),
+        cat8: isSeraphine ? "0" : parseValStr(cats[7]),
+        cat9: isSeraphine ? "0" : parseValStr(cats[8]),
+        cat10: isSeraphine ? "0" : parseValStr(cats[9]),
         observacao: observacao || undefined,
       });
       toast.success(futuro ? "Lançamento previsto salvo!" : "Lançamento salvo com sucesso!");
@@ -196,9 +197,9 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
                   <p className="text-xs text-slate-500">
                     {/* Cada empresa mostra suas próprias categorias do banco */}
                     {emp.categorias && emp.categorias.length > 0
-                      ? emp.categorias.slice(0, 10).map((c) => c.nome).join(" / ")
+                      ? emp.categorias.slice(0, emp.tipoCategorias === "seraphine" ? 1 : 10).map((c) => c.nome).join(" / ")
                       : (emp.tipoCategorias === "seraphine"
-                        ? "Serviços / Pacotes / Produtos / Caixinha / Recorrência"
+                        ? "Faturamento total"
                         : "Avulso / Serv. Extra / Auxiliar / Keune / Don Alcides / Caixinha / Barbiero / Bar / Recorrência / Pacote")}
                   </p>
                 </div>

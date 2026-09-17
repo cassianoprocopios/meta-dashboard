@@ -429,11 +429,15 @@ export async function createEmpresa(input: InsertEmpresa) {
   const result = await db.insert(empresas).values(input);
   const empresaId = (result as any).insertId;
   // Inicializar categorias padrão na tabela categorias
+  // Unidades padrão mantêm as nove categorias originais; Pacote é a décima.
   const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
-  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "", "", "", "", "Recorrência", "Pacote"];
+  // Seraphine não usa CashBarber: registra somente o faturamento total em cat1.
+  const CATS_SERAPHINE = ["Faturamento total"];
   const catNomes = input.tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
   // Usar cat1Nome..cat10Nome se fornecidos, senão usar padrão do tipo
-  const nomes = [
+  const nomes = input.tipoCategorias === "seraphine" ? [
+    (input as any).cat1Nome ?? catNomes[0],
+  ] : [
     (input as any).cat1Nome ?? catNomes[0],
     (input as any).cat2Nome ?? catNomes[1],
     (input as any).cat3Nome ?? catNomes[2],
@@ -847,8 +851,8 @@ export async function inicializarCategorias(
   const existing = await db.select().from(categorias)
     .where(and(eq(categorias.empresaSlug, empresaSlug), eq(categorias.tenantId, tenantId)));
   if (existing.length > 0) return; // já tem categorias, não sobrescrever
-  const CATS_PADRAO = ["Avulso", "Produtos", "Serv. Extra", "Lavatório", "Recorrência"];
-  const CATS_SERAPHINE = ["Cabelo", "Manicure e Pedicure", "Sobrancelha", "Pacote", "Recorrência"];
+  const CATS_PADRAO = ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
+  const CATS_SERAPHINE = ["Faturamento total"];
   const nomes = tipoCategorias === "seraphine" ? CATS_SERAPHINE : CATS_PADRAO;
   await db.insert(categorias).values(
     nomes.map((nome, i) => ({ tenantId, empresaSlug, nome, ordem: i + 1, ativo: 1 }))

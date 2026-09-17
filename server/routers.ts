@@ -4497,7 +4497,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     syncManual: protectedProcedure.mutation(async ({ ctx }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
       const configs = await listCashbarberConfigs(tenantId);
-      const configsAtivas = configs.filter((c) => c.ativo === 1);
+      const configsAtivas = (await Promise.all(
+          configs.filter((c) => c.ativo === 1).map(async (config) => {
+            const empresa = await getEmpresaBySlugAndTenant(config.empresaSlug, tenantId);
+            return empresa?.tipoCategorias === "seraphine" ? null : config;
+          })
+        )).filter((config): config is (typeof configs)[number] => config !== null);
       if (configsAtivas.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
       }
@@ -4540,7 +4545,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       .mutation(async ({ ctx }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
         const configs = await listCashbarberConfigs(tenantId);
-        const configsAtivas = configs.filter((c) => c.ativo === 1);
+        const configsAtivas = (await Promise.all(
+          configs.filter((c) => c.ativo === 1).map(async (config) => {
+            const empresa = await getEmpresaBySlugAndTenant(config.empresaSlug, tenantId);
+            return empresa?.tipoCategorias === "seraphine" ? null : config;
+          })
+        )).filter((config): config is (typeof configs)[number] => config !== null);
         if (configsAtivas.length === 0) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
         }
@@ -4591,7 +4601,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
         const tenantId = await getTenantIdFromCtx(ctx);
         const configs = await listCashbarberConfigs(tenantId);
-        const configsAtivas = configs.filter((c) => c.ativo === 1);
+        const configsAtivas = (await Promise.all(
+          configs.filter((c) => c.ativo === 1).map(async (config) => {
+            const empresa = await getEmpresaBySlugAndTenant(config.empresaSlug, tenantId);
+            return empresa?.tipoCategorias === "seraphine" ? null : config;
+          })
+        )).filter((config): config is (typeof configs)[number] => config !== null);
         if (configsAtivas.length === 0) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com integração CashBarber configurada" });
         }
@@ -5941,7 +5956,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
     syncCashbarber: protectedProcedure.mutation(async ({ ctx }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
       const configs = await listCashbarberConfigs(tenantId);
-      const configsAtivas = configs.filter((c) => c.ativo === 1);
+      const configsAtivas = (await Promise.all(
+          configs.filter((c) => c.ativo === 1).map(async (config) => {
+            const empresa = await getEmpresaBySlugAndTenant(config.empresaSlug, tenantId);
+            return empresa?.tipoCategorias === "seraphine" ? null : config;
+          })
+        )).filter((config): config is (typeof configs)[number] => config !== null);
       if (configsAtivas.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhuma empresa com CashBarber configurado" });
       const agora = new Date();
       const mes = agora.getMonth() + 1;

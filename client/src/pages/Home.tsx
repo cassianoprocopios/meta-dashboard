@@ -1142,7 +1142,7 @@ export default function Home() {
     const refCats = (refEmp as any).categorias as Array<{ nome: string }> | undefined;
     const LABELS = refCats && refCats.length > 0
       ? refCats.map((c) => c.nome)
-      : ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência"];
+      : ["Faturamento total"];
     // Montar dados no formato: cada barra = uma empresa, cada grupo = uma categoria
     const data = LABELS.map((label, i) => {
       const entry: Record<string, any> = { categoria: label, cor: COLORS_CAT[i % COLORS_CAT.length] };
@@ -3778,7 +3778,7 @@ export default function Home() {
                   const labels = empCats && empCats.length > 0
                     ? empCats.map((c) => c.nome)
                     : s.emp.tipoCategorias === "seraphine"
-                      ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"]
+                      ? ["Faturamento total"]
                       : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
                   const pieData = labels
                     .map((l, i) => ({ name: l, value: s.catTotals[i] }))
@@ -3928,7 +3928,7 @@ export default function Home() {
                 const labels = empCats && empCats.length > 0
                   ? empCats.map((c) => c.nome)
                   : emp.tipoCategorias === "seraphine"
-                    ? ["Serviços", "Pacotes", "Produtos", "Caixinha", "Recorrência", "", "", "", "", "Pacote"]
+                    ? ["Faturamento total"]
                     : ["Avulso/Clube", "Serv. Extra", "Auxiliar", "Keune", "Don Alcides", "Caixinha", "Barbiero", "Bar", "Recorrência", "Pacote"];
                 return (
                   <Card key={emp.slug} className="border-0 shadow-sm rounded-2xl bg-card overflow-hidden">

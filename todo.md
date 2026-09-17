@@ -73,6 +73,8 @@
 - [x] Exibir Pacote no lançamento, totais, histórico, bonificação e dashboard
 - [x] Mapear automaticamente categorias CashBarber cujo nome contém “Pacote” para `cat10`
 - [x] Testar sincronização CashBarber e cálculo isolado de Pacote
+- [x] Preservar todas as categorias padrão originais e acrescentar Pacote sem substituir nenhuma
+- [x] Consolidar Seraphine em um único campo `Faturamento total`, sem sincronização CashBarber
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 
