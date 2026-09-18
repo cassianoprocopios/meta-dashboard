@@ -11,6 +11,10 @@ import { verificarQuedaBrusca } from "./alertasJob";
 import { calcularTotalQuinzenal } from "../shared/quinzenal";
 import { calcularBonificacaoSubstitutiva } from "../shared/bonificacao";
 import { somarFaturamentoTotal } from "../shared/faturamentoCategorias";
+import {
+  podeCongelarQuinzena,
+  snapshotFoiCongeladoPrematuramente,
+} from "../shared/fechamentoQuinzenal";
 
 // ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
@@ -790,6 +794,10 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
   const dataHora = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
   console.log(`[Quinzenal Job] Verificando meta quinzenal ${mes}/${ano} para tenant ${tenantId} (${dataHora})`);
 
+  if (!podeCongelarQuinzena({ mes, ano })) {
+    throw new Error("A quinzena só pode ser congelada após o dia 15 às 23:50 (horário de Brasília).");
+  }
+
   try {
     const {
       getEmpresasByTenant,
@@ -807,11 +815,10 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
     const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     const chaveGlobal = `meta_quinzenal_fechada:${tenantId}:${ano}-${String(mes).padStart(2, "0")}`;
 
-    // Evitar duplicata: só notifica uma vez por mês/tenant
+    // A notificação é única, mas o cálculo ainda precisa reparar snapshots prematuros.
     const jaNotificado = await eventoJaNotificado(tenantId, chaveGlobal);
     if (jaNotificado) {
-      console.log(`[Quinzenal Job] Já notificado para tenant ${tenantId} em ${mes}/${ano}, pulando.`);
-      return;
+      console.log(`[Quinzenal Job] Já notificado para tenant ${tenantId} em ${mes}/${ano}; snapshots ainda serão conferidos.`);
     }
 
     // Buscar configurações de bonificação
@@ -889,6 +896,16 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
           if (existing.length === 0) {
             await db.insert(snapshotQuinzenal).values(payload);
             console.log(`[Quinzenal Job] Snapshot CONGELADO para ${empresa.slug}: R$ ${totalQuinzenal.toFixed(2)} (${pctAtingimento}% - ${atingiu ? 'META ATINGIDA' : 'NAO ATINGIU'})`);
+          } else if (snapshotFoiCongeladoPrematuramente({
+            mes,
+            ano,
+            congeladoEm: existing[0].congeladoEm,
+          })) {
+            await db
+              .update(snapshotQuinzenal)
+              .set(payload)
+              .where(eq(snapshotQuinzenal.id, existing[0].id));
+            console.log(`[Quinzenal Job] Snapshot PREMATURO corrigido para ${empresa.slug}: R$ ${totalQuinzenal.toFixed(2)} (${pctAtingimento}% - ${atingiu ? 'META ATINGIDA' : 'NAO ATINGIU'})`);
           } else {
             // NAO atualizar snapshot existente - uma vez congelado, nao pode mudar mais
             console.log(`[Quinzenal Job] Snapshot JA EXISTE para ${empresa.slug} - nao sera atualizado (congelado em ${existing[0].congeladoEm})`);
@@ -912,6 +929,11 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
       return;
     }
 
+    if (jaNotificado) {
+      console.log(`[Quinzenal Job] Snapshots conferidos sem reenviar a notificação de ${mes}/${ano}.`);
+      return;
+    }
+
     const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
     const titulo = `📊 Fechamento Quinzenal — ${mesesNomes[mes - 1]}/${ano}`;
     const conteudo =
@@ -931,14 +953,12 @@ async function verificarMetaQuinzenalParaTenant(tenantId: number, mes: number, a
   }
 }
 
-// Job do dia 15 às 23h BRT (02:00 UTC do dia 16)
-// Cron: "0 0 2 16 * *" — roda todo dia 16 às 02:00 UTC (= dia 15 às 23h BRT)
-// Alterado para "0 30 2 16 * *" para rodar às 02:30 UTC (23:30 BRT do dia 15) com mais precisão
-const quinzenalTask = cron.schedule("0 30 2 16 * *", async () => {
+// Job do dia 15 às 23:50 BRT (02:50 UTC do dia 16)
+const quinzenalTask = cron.schedule("0 50 2 16 * *", async () => {
   const agora = new Date();
   // Usar horário BRT para determinar o mês correto
   const agoraBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-  // Às 02:00 UTC do dia 16, em BRT ainda é dia 15 (23h BRT)
+  // Às 02:50 UTC do dia 16, em BRT ainda é dia 15 (23:50 BRT)
   // Então usamos o mês do dia 15 BRT
   const mes = agoraBRT.getMonth() + 1;
   const ano = agoraBRT.getFullYear();
@@ -960,7 +980,7 @@ const quinzenalTask = cron.schedule("0 30 2 16 * *", async () => {
   console.log(`[Quinzenal Job] ===== FECHAMENTO CONCLUÍDO ====`);
 });
 
-console.log("[Quinzenal Job] Job de fechamento quinzenal agendado (dia 15 às 23:30 BRT)");
+console.log("[Quinzenal Job] Job de fechamento quinzenal agendado (dia 15 às 23:50 BRT)");
 
 /**
  * Exporta a função e a task para serem chamadas manualmente via painel de administração.

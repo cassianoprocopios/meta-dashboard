@@ -521,7 +521,7 @@ export const snapshotQuinzenal = mysqlTable("snapshotQuinzenal", {
   metaQuinzenal: decimal("metaQuinzenal", { precision: 12, scale: 2 }).notNull().default("0"),
   /** true = meta atingida */
   atingiu: tinyint("atingiu").notNull().default(0),
-  /** Percentual atingido (ex: 95.4) */
+  /** Percentual de bonificação congelado (ex: 0.30 para 0,30%) */
   percentual: decimal("percentual", { precision: 6, scale: 2 }).notNull().default("0"),
   /** Quem gerou o snapshot: 'auto' (job) ou 'manual' (admin) */
   origem: varchar("origem", { length: 16 }).notNull().default("auto"),
