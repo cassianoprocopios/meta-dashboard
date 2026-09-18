@@ -3138,30 +3138,56 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
           totalGeral: number; percentualDoRecorde: number; faltaParaRecorde: number;
           valorAcimaDoRecorde: number; novoRecorde: boolean; igualouRecorde: boolean;
         };
-        const recordeSuperado = melhor.novoRecorde || melhor.igualouRecorde;
+        const recordeAlcancado = melhor.novoRecorde || melhor.igualouRecorde;
         return (
-          <div className={`rounded-2xl border p-4 ${recordeSuperado ? 'bg-emerald-500/10 border-emerald-500/25' : 'bg-amber-500/10 border-amber-500/25'}`}>
+          <div className={`rounded-2xl border p-4 relative overflow-hidden ${
+            melhor.novoRecorde
+              ? 'bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-teal-500/15 border-emerald-400/50 shadow-[0_16px_40px_-24px_rgba(52,211,153,0.9)]'
+              : melhor.igualouRecorde
+                ? 'bg-blue-500/10 border-blue-400/30'
+                : 'bg-amber-500/10 border-amber-500/25'
+          }`}>
+            {recordeAlcancado && (
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${
+                  melhor.novoRecorde ? 'bg-emerald-400 text-emerald-950' : 'bg-blue-400 text-blue-950'
+                }`}>
+                  <Trophy className="w-3.5 h-3.5" />
+                  {melhor.novoRecorde ? 'NOVO RECORDE' : 'RECORDE IGUALADO'}
+                </span>
+                {melhor.novoRecorde && (
+                  <span className="text-emerald-300 text-xs font-black">+{formatarMoeda(melhor.valorAcimaDoRecorde)}</span>
+                )}
+              </div>
+            )}
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2 min-w-0">
-                <Award className={`w-5 h-5 shrink-0 ${recordeSuperado ? 'text-emerald-400' : 'text-amber-400'}`} />
+                <Award className={`w-5 h-5 shrink-0 ${recordeAlcancado ? 'text-emerald-400' : 'text-amber-400'}`} />
                 <div className="min-w-0">
                   <p className="text-white text-sm font-bold truncate">Seu melhor mês: {mesNomes[melhor.mes - 1]}/{String(melhor.ano).slice(-2)}</p>
                   <p className="text-white/45 text-xs">Serv. {formatarMoeda(melhor.totalServicos)} · Prod. {formatarMoeda(melhor.totalProdutos)}</p>
                 </div>
               </div>
-              <p className={`text-lg font-black shrink-0 ${recordeSuperado ? 'text-emerald-300' : 'text-amber-300'}`}>{melhor.percentualDoRecorde}%</p>
+              <p className={`rounded-full px-2.5 py-1 text-lg font-black shrink-0 ${recordeAlcancado ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>{melhor.percentualDoRecorde}%</p>
             </div>
             <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-white/55">Atual: {formatarMoeda(mesAtualData.totalGeral)}</span>
               <span className="text-white font-semibold">Recorde: {formatarMoeda(melhor.totalGeral)}</span>
             </div>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-3 rounded-full bg-white/10 overflow-hidden ring-1 ring-inset ring-white/10"
+              role="progressbar"
+              aria-label="Progresso para superar o recorde histórico"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
+            >
               <div
-                className={`h-full rounded-full ${recordeSuperado ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? 'bg-gradient-to-r from-emerald-400 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-yellow-300'}`}
                 style={{ width: `${Math.min(Math.max(melhor.percentualDoRecorde, 0), 100)}%` }}
               />
             </div>
-            <p className={`text-xs font-semibold mt-2 ${recordeSuperado ? 'text-emerald-300' : 'text-amber-300'}`}>
+            <p className={`text-xs font-bold mt-2 ${recordeAlcancado ? 'text-emerald-300' : 'text-amber-300'}`}>
               {melhor.novoRecorde
                 ? `Novo recorde! Você superou em ${formatarMoeda(melhor.valorAcimaDoRecorde)}.`
                 : melhor.igualouRecorde

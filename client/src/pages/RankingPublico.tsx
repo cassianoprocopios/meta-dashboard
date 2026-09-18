@@ -147,37 +147,71 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
   }
 
   const progresso = Math.min(Math.max(melhor.percentualDoRecorde, 0), 100);
-  const recordeSuperado = melhor.novoRecorde || melhor.igualouRecorde;
+  const recordeAlcancado = melhor.novoRecorde || melhor.igualouRecorde;
   const mensagem = melhor.novoRecorde
-    ? `Novo recorde: ${formatCurrency(melhor.valorAcimaDoRecorde)} acima`
+    ? `${formatCurrency(melhor.valorAcimaDoRecorde)} acima do recorde anterior`
     : melhor.igualouRecorde
       ? "Recorde igualado"
       : `Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar`;
 
   return (
-    <div className={`rounded-lg border ${recordeSuperado ? "border-emerald-500/25 bg-emerald-500/5" : "border-amber-500/25 bg-amber-500/5"} ${detalhado ? "p-3 mb-4" : "p-2 mt-2"}`}>
+    <div className={`rounded-xl border ${
+      melhor.novoRecorde
+        ? "border-emerald-400/50 bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-teal-500/10 shadow-[0_8px_24px_-16px_rgba(16,185,129,0.9)]"
+        : melhor.igualouRecorde
+          ? "border-blue-400/35 bg-blue-500/5"
+          : "border-amber-500/25 bg-amber-500/5"
+    } ${detalhado ? "p-3.5 mb-4" : "p-2.5 mt-2"}`}>
+      {recordeAlcancado && (
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-black tracking-[0.12em] ${
+            melhor.novoRecorde
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "bg-blue-600 text-white"
+          }`}>
+            <Trophy className="h-3 w-3" />
+            {melhor.novoRecorde ? "NOVO RECORDE" : "RECORDE IGUALADO"}
+          </span>
+          {melhor.novoRecorde && (
+            <span className="text-[10px] font-bold text-emerald-700">
+              +{formatCurrency(melhor.valorAcimaDoRecorde)}
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Crown className={`shrink-0 ${detalhado ? "h-4 w-4" : "h-3.5 w-3.5"} ${recordeSuperado ? "text-emerald-600" : "text-amber-600"}`} />
+          <Crown className={`shrink-0 ${detalhado ? "h-4 w-4" : "h-3.5 w-3.5"} ${recordeAlcancado ? "text-emerald-600" : "text-amber-600"}`} />
           <span className="text-[11px] font-semibold text-foreground truncate">
             Melhor mês: {periodoCurto(melhor.mes, melhor.ano)} · {formatCurrency(melhor.totalGeral)}
           </span>
         </div>
-        <span className={`text-[11px] font-bold shrink-0 ${recordeSuperado ? "text-emerald-600" : "text-amber-600"}`}>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-black shrink-0 ${recordeAlcancado ? "bg-emerald-600/10 text-emerald-700" : "bg-amber-500/10 text-amber-700"}`}>
           {melhor.percentualDoRecorde}%
         </span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+      <div className="mt-2 flex items-center justify-between gap-3 text-[9px] font-medium text-muted-foreground">
+        <span>Atual {formatCurrency(profissional.totalGeral)}</span>
+        <span>Meta recorde {formatCurrency(melhor.totalGeral)}</span>
+      </div>
+      <div
+        className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-slate-200 ring-1 ring-inset ring-slate-300/60"
+        role="progressbar"
+        aria-label={`Progresso de ${profissional.apelido ?? profissional.nome} para o recorde histórico`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
+      >
         <div
-          className={`h-full rounded-full ${recordeSuperado ? "bg-emerald-500" : "bg-amber-500"}`}
+          className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"}`}
           style={{ width: `${progresso}%` }}
         />
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px]">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px]">
         <span className="text-muted-foreground">
           Serv. {formatCurrency(melhor.totalServicos)} · Prod. {formatCurrency(melhor.totalProdutos)}
         </span>
-        <span className={`font-semibold ${recordeSuperado ? "text-emerald-600" : "text-amber-700"}`}>
+        <span className={`font-bold ${recordeAlcancado ? "text-emerald-700" : "text-amber-700"}`}>
           {mensagem}
         </span>
       </div>

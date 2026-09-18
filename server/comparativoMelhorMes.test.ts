@@ -81,7 +81,11 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(router).toContain("melhorMes: calcularComparativoMelhorMes(");
     expect(pagina).toContain("Melhor mês:");
     expect(pagina).toContain("Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar");
+    expect(pagina).toContain('role="progressbar"');
+    expect(pagina).toContain('"NOVO RECORDE"');
     expect(portal).toContain("Seu melhor mês:");
     expect(portal).toContain("para superar seu melhor mês");
+    expect(portal).toContain('role="progressbar"');
+    expect(portal).toContain("'NOVO RECORDE'");
   });
 });
