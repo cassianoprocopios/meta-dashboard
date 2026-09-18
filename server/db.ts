@@ -36,6 +36,7 @@ import {
   colaboradorExclusaoCategoria,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { somarFaturamentoTotal } from "../shared/faturamentoCategorias";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -534,12 +535,7 @@ export async function getFaturamentoDiaColaborador(tenantId: number, colaborador
   if (!fatUnidade) return 0;
   
   // Calcular total do dia para a unidade
-  const totalUnidade = (Number(fatUnidade.cat1) || 0) + (Number(fatUnidade.cat2) || 0) + 
-    (Number(fatUnidade.cat3) || 0) + (Number(fatUnidade.cat4) || 0) + 
-    (Number(fatUnidade.cat5) || 0) + (Number(fatUnidade.cat6) || 0) + 
-    (Number(fatUnidade.cat7) || 0) + (Number(fatUnidade.cat8) || 0) + 
-    (Number(fatUnidade.cat9) || 0) + (Number(fatUnidade.cat10) || 0) +
-    (Number(fatUnidade.cat11) || 0) + (Number(fatUnidade.cat12) || 0);
+  const totalUnidade = somarFaturamentoTotal(fatUnidade);
   
   // Buscar faturamento do colaborador no mês para calcular percentual
   const [ano, mes] = data.split('-').map(Number);
@@ -585,7 +581,7 @@ export async function getAllFaturamentosByTenant(tenantId: number, mes: number, 
     console.log(`[getAllFaturamentosByTenant] ${empresaSlug}: mes=${mes}, ano=${ano}, found=${filtered.length} rows`);
     filtered.slice(0, 20).forEach(r => {
       const dia = parseInt(r.data.split("-")[2], 10);
-      const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12].reduce((s, c) => s + parseFloat(c || "0"), 0);
+      const total = somarFaturamentoTotal(r);
       console.log(`  dia=${dia}, total=${total}, data=${r.data}`);
     });
   }
@@ -609,20 +605,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
     // Não sobrescreve totalPrevisto: preserva o valor original da previsão.
     // Se ainda não tinha totalPrevisto (lançamento antigo) e o dia ainda é futuro,
     // preenche agora para garantir rastreabilidade.
-    const novoTotal = [
-      parseFloat(input.cat1 as string || "0"),
-      parseFloat(input.cat2 as string || "0"),
-      parseFloat(input.cat3 as string || "0"),
-      parseFloat(input.cat4 as string || "0"),
-      parseFloat(input.cat5 as string || "0"),
-      parseFloat(input.cat6 as string || "0"),
-      parseFloat(input.cat7 as string || "0"),
-      parseFloat(input.cat8 as string || "0"),
-      parseFloat(input.cat9 as string || "0"),
-      parseFloat(input.cat10 as string || "0"),
-      parseFloat(input.cat11 as string || "0"),
-      parseFloat(input.cat12 as string || "0"),
-    ].reduce((a, b) => a + b, 0);
+    const novoTotal = somarFaturamentoTotal(input);
     const hoje = new Date();
     const [ano, mes, dia] = (input.data as string).split("-").map(Number);
     const dataLancamento = new Date(ano, mes - 1, dia);
@@ -658,20 +641,7 @@ export async function upsertFaturamento(input: InsertFaturamento) {
     const [ano, mes, dia] = (input.data as string).split("-").map(Number);
     const dataLancamento = new Date(ano, mes - 1, dia);
     const isFuturo = dataLancamento > hoje;
-    const total = [
-      parseFloat(input.cat1 as string || "0"),
-      parseFloat(input.cat2 as string || "0"),
-      parseFloat(input.cat3 as string || "0"),
-      parseFloat(input.cat4 as string || "0"),
-      parseFloat(input.cat5 as string || "0"),
-      parseFloat(input.cat6 as string || "0"),
-      parseFloat(input.cat7 as string || "0"),
-      parseFloat(input.cat8 as string || "0"),
-      parseFloat(input.cat9 as string || "0"),
-      parseFloat(input.cat10 as string || "0"),
-      parseFloat(input.cat11 as string || "0"),
-      parseFloat(input.cat12 as string || "0"),
-    ].reduce((a, b) => a + b, 0);
+    const total = somarFaturamentoTotal(input);
     const insertData = {
       ...input,
       empresaSlug: normalizedSlug, // Sobrescreve o slug do input com o normalizado
@@ -1448,10 +1418,10 @@ export async function getDpoteHistoricoId(
 }
 
 
-// ─── HISTÓRICO MENSAL DE RECORRÊNCIA (cat5) ───────────────────────────────────
+// ─── HISTÓRICO MENSAL DE RECORRÊNCIA (cat9) ───────────────────────────────────
 
 /**
- * Retorna o total de cat5 (Recorrência/Dpote) por empresa e mês/ano
+ * Retorna o total de cat9 (Recorrência/Dpote) por empresa e mês/ano
  * para os últimos N meses a partir do mês de referência.
  * Retorna array de { mesAno: "YYYY-MM", empresaSlug: string, totalCat5: number }
  */

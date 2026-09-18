@@ -6,10 +6,10 @@
  *
  * IMPORTANTE:
  * - O CashBarber alimenta apenas as categorias mapeadas (ex: cat1, cat2).
- * - cat5 (Recorrência) representa planos mensais cobrados diariamente.
+ * - cat9 (Recorrência) representa planos mensais distribuídos pelo Dpote.
  *   O valor total mensal é distribuído igualmente por todos os dias do mês
  *   (ex: R$ 30.000 em 30 dias = R$ 1.000/dia), refletindo a cobrança diária.
- * - O total mensal de cat5 é calculado via Dpote (fichas ponderadas) e
+ * - O total mensal de cat9 é calculado via Dpote (fichas ponderadas) e
  *   atualizado a cada sync (pois as assinaturas entram no banco ao longo do mês).
  * - Um único histórico Dpote é criado por mês e reutilizado nas syncs seguintes
  *   (o ID é armazenado em cashbarberConfig.dpoteHistoricoId).
@@ -23,6 +23,7 @@ import {
   updateCashbarberSyncStatus,
   insertCashbarberSyncLog,
   insertDpoteSyncLog,
+  getAllFaturamentosByTenant,
   getFaturamentoByDataEmpresaTenant,
   saveDpoteHistoricoId,
   getDpoteHistoricoId,
@@ -38,6 +39,7 @@ import {
   cashbarberCriarHistoricoDpote,
   cashbarberCalcularDpoteViaHistorico,
 } from "./cashbarber";
+import { distribuirSaldoRecorrencia } from "../shared/recorrencia";
 
 /**
  * Resultado de uma sincronização
@@ -116,7 +118,7 @@ async function calcularRecorrenciaDpotePorFichas(
  *
  * Comportamento de merge:
  * - As categorias presentes no mapeamento CashBarber são sobrescritas com dados do relatório 15.
- * - cat5 (Recorrência) é calculada via Dpote (Comissão Bruta da filial) e atualizada em TODOS os dias do mês.
+ * - cat9 (Recorrência) é calculada via Dpote e fecha no total mensal apurado.
  *
  * @param tenantId - ID do tenant (empresa no Meta Dashboard)
  * @param empresaSlug - Slug da empresa no Meta Dashboard
@@ -266,7 +268,28 @@ export async function sincronizarFaturamentoCashbarber(
   const ultimoDia = ehMesAtual
     ? hojeBRT.getDate()
     : new Date(ano, mes, 0).getDate();
-  const totalDiasMesAtual = new Date(ano, mes, 0).getDate();
+  const faturamentosExistentes = await getAllFaturamentosByTenant(
+    tenantId,
+    mes,
+    ano,
+    empresaSlug
+  );
+  const quinzenaProtegidaSync = ehMesAtual && hojeBRT.getDate() > 15;
+  const diasElegiveisRecorrencia = Array.from({ length: ultimoDia }, (_, indice) => indice + 1)
+    .filter((dia) => !(quinzenaProtegidaSync && dia <= 15));
+  const valoresProtegidosRecorrencia = quinzenaProtegidaSync
+    ? faturamentosExistentes
+        .filter((row) => row.data.startsWith(`${ano}-${String(mes).padStart(2, "0")}-`))
+        .filter((row) => Number(row.data.slice(8, 10)) <= 15)
+        .map((row) => Number(row.cat9 || 0))
+    : [];
+  const distribuicaoRecorrencia = recorrenciaAtualizada && recorrenciaValor > 0
+    ? distribuirSaldoRecorrencia({
+        totalApurado: recorrenciaValor,
+        diasElegiveis: diasElegiveisRecorrencia,
+        valoresProtegidos: valoresProtegidosRecorrencia,
+      })
+    : null;
 
 
   const detalhes: ResultadoSincronizacao["detalhes"] = [];
@@ -336,45 +359,19 @@ export async function sincronizarFaturamentoCashbarber(
         : existente?.cat12 ?? "0";
 
       // cat9 (Recorrência / Dpote):
-      // Regra:
-      //   - Dias 1 até hoje: valor diário = recorrenciaValor ÷ diasRealizados (ultimoDia)
-      //     Isso garante que a soma total dos dias realizados = recorrenciaValor
-      //     (mesmo cálculo usado pelo job de Dpote em aplicarDpoteParaTenant)
-      //   - Dias futuros (após hoje): SEMPRE "0" no banco.
-      //     A previsão baseada no mês passado é calculada dinamicamente no frontend.
-      //   - Meses passados: valor diário calculado pelo Dpote do mês
-      //   - PROTEÇÃO QUINZENAL: após dia 15, não alterar cat9 dos dias 1-15
-      //     para preservar o valor definitivo da quinzena.
+      // - antes do fechamento quinzenal, distribui o total exato pelos dias realizados;
+      // - depois do fechamento, preserva os dias 1-15 e distribui somente o saldo
+      //   nos dias seguintes, evitando somar novamente o valor já congelado;
+      // - o ajuste de centavos garante que a soma feche exatamente no CashBarber.
       let cat9: string;
 
-      // Proteção quinzenal: se já passamos do dia 15 no mês atual,
-      // não alterar cat9 dos dias 1-15 (valor da quinzena é definitivo)
-      const quinzenaProtegidaSync = ehMesAtual && hojeBRT.getDate() > 15 && dia <= 15;
-      if (quinzenaProtegidaSync) {
-        // Preservar o cat9 existente sem alteração
+      if (quinzenaProtegidaSync && dia <= 15) {
         cat9 = existente?.cat9 ?? "0";
-      } else if (recorrenciaAtualizada && recorrenciaValor > 0) {
-        // Usar hojeBRT (já calculado acima) para determinar dia futuro
-        const diaFuturo = ehMesAtual && dia > hojeBRT.getDate();
-        if (diaFuturo) {
-          // Dia futuro: gravar "0" no banco. Previsão é calculada no frontend.
-          cat9 = "0";
-        } else {
-          // Dia realizado: dividir pelo número de dias JA REALIZADOS (ultimoDia)
-          // para que a soma total bata com recorrenciaValor
-          const diasRealizadosSync = ultimoDia; // = hojeBRT.getDate() para mês atual
-          const valorDiario = Math.round((recorrenciaValor / diasRealizadosSync) * 100) / 100;
-          cat9 = String(valorDiario);
-        }
+      } else if (distribuicaoRecorrencia) {
+        cat9 = String(distribuicaoRecorrencia.porDia.get(dia) ?? 0);
       } else {
-        // Dpote falhou ou não configurado: preservar valor existente (ou "0")
-        // Dias futuros sempre recebem "0" no banco (usando horário BRT)
-        const diaFuturo = ehMesAtual && dia > hojeBRT.getDate();
-        if (diaFuturo) {
-          cat9 = "0";
-        } else {
-          cat9 = existente?.cat9 ?? "0";
-        }
+        // Dpote falhou ou não configurado: preservar valor existente.
+        cat9 = existente?.cat9 ?? "0";
       }
 
       // Salvar no banco (upsert com merge seletivo)
@@ -425,14 +422,6 @@ export async function sincronizarFaturamentoCashbarber(
 
   // 9a. Registrar no log do Dpote (se a recorrência foi atualizada)
   if (recorrenciaAtualizada) {
-    // Calcular valor anterior: soma do cat5 atual no banco antes da sync
-    // (aproximação: buscar todos os registros do mês e somar cat5 antes do upsert)
-    // Como já fizemos o upsert, usamos o valor anterior como: totalDias * valorDiarioAnterior
-    // Para simplificar, buscamos o cat5 atual do banco (já atualizado) e registramos
-    // Calcular valor diário real: dividido pelos dias realizados (não pelos 31 do mês)
-    // Usar horário de Brasília para consistência com o cálculo acima
-    const diasRealizadosLog = ehMesAtual ? hojeBRT.getDate() : new Date(ano, mes, 0).getDate();
-    const valorDiarioNovo = recorrenciaValor / diasRealizadosLog;
     // Registrar o log de sincronização do Dpote
     try {
       await insertDpoteSyncLog({
@@ -440,14 +429,14 @@ export async function sincronizarFaturamentoCashbarber(
         empresaSlug,
         mes,
         ano,
-        valorAnterior: 0, // será calculado na próxima iteração via histórico
+        valorAnterior: distribuicaoRecorrencia?.totalProtegido ?? 0,
         valorNovo: recorrenciaValor,
-        diasAtualizados: diasSincronizados,
+        diasAtualizados: distribuicaoRecorrencia?.porDia.size ?? 0,
         fonte: "api",
         tipoExecucao: origem === "auto" ? "automatico" : "manual",
         erro: errosMsgs.length > 0 ? errosMsgs.slice(0, 3).join("; ") : null,
       });
-      console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído diariamente para ${empresaSlug}: R$ ${valorDiarioNovo.toFixed(2)}/dia × ${diasRealizadosLog} dias = R$ ${recorrenciaValor.toFixed(2)} total`);
+      console.log(`[CashBarber Dpote] cat9 (Recorrência) para ${empresaSlug}: protegido R$ ${(distribuicaoRecorrencia?.totalProtegido ?? 0).toFixed(2)} + saldo R$ ${(distribuicaoRecorrencia?.saldoDistribuido ?? 0).toFixed(2)} = R$ ${(distribuicaoRecorrencia?.totalFinal ?? recorrenciaValor).toFixed(2)}`);
     } catch (errLog) {
       console.warn(`[CashBarber] Falha ao registrar DpoteSyncLog para ${empresaSlug}:`, errLog);
     }
@@ -487,8 +476,8 @@ export interface ResultadoAplicacaoDpote {
 
 /**
  * Calcula a distribuição Dpote por filial e aplica 100% do valor de assinaturas
- * como cat5 (Recorrência) distribuindo igualmente por todos os dias do mês.
- * Ex: R$ 30.000 em 30 dias = R$ 1.000/dia por empresa.
+ * como cat9 (Recorrência), preservando a quinzena fechada e distribuindo
+ * somente o saldo restante pelos dias elegíveis.
  *
  * Esta função é chamada automaticamente pelo job de sync após sincronizar todas as empresas,
  * e também pode ser chamada manualmente via procedure tRPC.
@@ -619,10 +608,6 @@ export async function aplicarDpoteParaTenant(
     console.log(`[CashBarber Dpote] ${config.empresaSlug}: aplicando Dpote (fonte atual: ${recorrenciaFonteAtual})`);
 
 
-    // Valor diário = total ÷ dias JA REALIZADOS (até hoje para mês atual)
-    // Garante que a soma até hoje = valor total do Dpote
-    const valorDiario = Math.round((filial.valorDistribuido / diasRealizadosAplic) * 100) / 100;
-
     // Verificar se a quinzena (dias 1-15) já foi fechada com snapshot para este mês/empresa
     // Se sim, não alterar o cat9 dos dias 1-15 para preservar o valor definitivo do fechamento
     let quinzenaFechada = false;
@@ -654,6 +639,27 @@ export async function aplicarDpoteParaTenant(
       console.warn(`[CashBarber Dpote] ${config.empresaSlug}: erro ao verificar snapshot quinzenal, prosseguindo sem proteção:`, snapCheckErr);
     }
 
+    const faturamentosExistentes = await getAllFaturamentosByTenant(
+      tenantId,
+      mes,
+      ano,
+      config.empresaSlug
+    );
+    const quinzenaProtegida = quinzenaFechada || (ehMesAtualAplic && diaVigenteAplic > 15);
+    const diasElegiveis = Array.from({ length: diasRealizadosAplic }, (_, indice) => indice + 1)
+      .filter((dia) => !(quinzenaProtegida && dia <= 15));
+    const valoresProtegidos = quinzenaProtegida
+      ? faturamentosExistentes
+          .filter((row) => row.data.startsWith(`${ano}-${String(mes).padStart(2, "0")}-`))
+          .filter((row) => Number(row.data.slice(8, 10)) <= 15)
+          .map((row) => Number(row.cat9 || 0))
+      : [];
+    const distribuicao = distribuirSaldoRecorrencia({
+      totalApurado: filial.valorDistribuido,
+      diasElegiveis,
+      valoresProtegidos,
+    });
+
     for (let dia = 1; dia <= totalDiasMes; dia++) {
       const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
       const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
@@ -665,13 +671,12 @@ export async function aplicarDpoteParaTenant(
       // 1. A quinzena já foi fechada (snapshot existe), OU
       // 2. Estamos no mês atual e já passamos do dia 15 (quinzena encerrada naturalmente)
       // Isso garante que o valor da quinzena não é retroativamente alterado pelo sync.
-      const quinzenaProtegida = quinzenaFechada || (ehMesAtualAplic && diaVigenteAplic > 15);
       if (quinzenaProtegida && dia <= 15) {
         // Manter o cat9 existente sem alteração
         continue;
       }
 
-      const cat9Valor = diaFuturoAplic ? "0" : String(valorDiario);
+      const cat9Valor = diaFuturoAplic ? "0" : String(distribuicao.porDia.get(dia) ?? 0);
 
       await upsertFaturamento({
         tenantId,
@@ -681,10 +686,14 @@ export async function aplicarDpoteParaTenant(
         cat2: existente?.cat2 ?? "0",
         cat3: existente?.cat3 ?? "0",
         cat4: existente?.cat4 ?? "0",
+        cat5: existente?.cat5 ?? "0",
         cat6: existente?.cat6 ?? "0",
         cat7: existente?.cat7 ?? "0",
         cat8: existente?.cat8 ?? "0",
         cat9: cat9Valor,
+        cat10: existente?.cat10 ?? "0",
+        cat11: existente?.cat11 ?? "0",
+        cat12: existente?.cat12 ?? "0",
         sincronizadoCB: existente?.sincronizadoCB ?? 0,
         observacao: existente?.observacao ?? undefined,
         lancadoPor: existente?.lancadoPor ?? undefined,
@@ -692,12 +701,15 @@ export async function aplicarDpoteParaTenant(
     }
 
     // Previsão para o mês seguinte: distribuir o valor total do mês atual como estimativa
-    // Cada dia do próximo mês recebe valorDiario como previsão
     // Quando chegar o dia vigente no mês seguinte, a sync sobrescreverá com o valor real
     const mesProximo = mes === 12 ? 1 : mes + 1;
     const anoProximo = mes === 12 ? ano + 1 : ano;
     const totalDiasMesProximo = new Date(anoProximo, mesProximo, 0).getDate();
-    const valorDiarioPrevisao = Math.round((filial.valorDistribuido / totalDiasMesProximo) * 100) / 100;
+    const diasPrevisao = Array.from({ length: totalDiasMesProximo }, (_, indice) => indice + 1);
+    const distribuicaoPrevisao = distribuirSaldoRecorrencia({
+      totalApurado: filial.valorDistribuido,
+      diasElegiveis: diasPrevisao,
+    });
 
     for (let dia = 1; dia <= totalDiasMesProximo; dia++) {
       const dataStr = `${anoProximo}-${String(mesProximo).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -716,10 +728,14 @@ export async function aplicarDpoteParaTenant(
         cat2: existente?.cat2 ?? "0",
         cat3: existente?.cat3 ?? "0",
         cat4: existente?.cat4 ?? "0",
+        cat5: existente?.cat5 ?? "0",
         cat6: existente?.cat6 ?? "0",
         cat7: existente?.cat7 ?? "0",
         cat8: existente?.cat8 ?? "0",
-        cat9: String(valorDiarioPrevisao),
+        cat9: String(distribuicaoPrevisao.porDia.get(dia) ?? 0),
+        cat10: existente?.cat10 ?? "0",
+        cat11: existente?.cat11 ?? "0",
+        cat12: existente?.cat12 ?? "0",
         sincronizadoCB: 0, // marca como previsão (não sincronizado do CashBarber)
         observacao: existente?.observacao ?? undefined,
         lancadoPor: existente?.lancadoPor ?? undefined,
@@ -732,7 +748,7 @@ export async function aplicarDpoteParaTenant(
       valorDistribuido: filial.valorDistribuido,
     });
 
-    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: R$ ${valorDiario.toFixed(2)}/dia × ${diasRealizadosAplic} dias = R$ ${filial.valorDistribuido.toFixed(2)} total | previsão ${mesProximo}/${anoProximo}: R$ ${valorDiarioPrevisao.toFixed(2)}/dia`);
+    console.log(`[CashBarber Dpote] cat9 (Recorrência) distribuído para ${config.empresaSlug}: protegido R$ ${distribuicao.totalProtegido.toFixed(2)} + saldo R$ ${distribuicao.saldoDistribuido.toFixed(2)} = R$ ${distribuicao.totalFinal.toFixed(2)} | previsão ${mesProximo}/${anoProximo}: R$ ${distribuicaoPrevisao.totalFinal.toFixed(2)}`);
   }
 
   return { aplicados, naoEncontrados, totalAssinaturas: valorAssinaturas };

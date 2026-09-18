@@ -10,6 +10,7 @@ import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cash
 import { verificarQuedaBrusca } from "./alertasJob";
 import { calcularTotalQuinzenal } from "../shared/quinzenal";
 import { calcularBonificacaoSubstitutiva } from "../shared/bonificacao";
+import { somarFaturamentoTotal } from "../shared/faturamentoCategorias";
 
 // ─── Horários de sync: 7h e 18h BRT ─────────────────────────────────────────
 // BRT = UTC-3
@@ -639,20 +640,20 @@ async function fecharMesBonificacoes(tenantId: number, mes: number, ano: number)
           continue;
         }
 
-        const totalMes = diasRealizados.reduce((acc, r) => {
-          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
-          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
-        }, 0);
+        const totalMes = diasRealizados.reduce(
+          (acc, r) => acc + somarFaturamentoTotal(r),
+          0
+        );
 
         // Calcular total quinzenal (dias 1-15)
         const diasQuinzena = diasRealizados.filter((r) => {
           const [, , dia] = r.data.split("-").map(Number);
           return dia <= 15;
         });
-        const totalQuinzenal = diasQuinzena.reduce((acc, r) => {
-          const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
-          return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
-        }, 0);
+        const totalQuinzenal = diasQuinzena.reduce(
+          (acc, r) => acc + somarFaturamentoTotal(r),
+          0
+        );
 
         // Buscar meta da empresa para o mês
         const metaEmpresa = metasMes.find((m) => m.empresaSlug === slug);

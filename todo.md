@@ -80,6 +80,7 @@
 - [x] Desativar configuração e agendamento CashBarber da Seraphine
 - [x] Separar serviços com nome Pacote cadastrados tecnicamente em Serviço Extra no CashBarber
 - [x] Alinhar rodapés Realizado, Previsto e Total Geral às 12 categorias da tabela de lançamentos
+- [x] Reconciliar Morumbi com o CashBarber: incluir Pacote/Estética/Óleo no total e distribuir apenas o saldo de Recorrência após a quinzena
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 

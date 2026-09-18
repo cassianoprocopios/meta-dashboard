@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { Trophy, Star, CheckCircle2, TrendingUp, TrendingDown, Minus, Calendar, Award } from "lucide-react";
 import { calcularBonificacaoSubstitutiva } from "@shared/bonificacao";
+import { somarFaturamentoTotal } from "@shared/faturamentoCategorias";
 
 const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -90,10 +91,7 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
           return new Date(fAno, fMes - 1, fDia) <= hoje;
         });
 
-        // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
-        const sumCatsBon = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
-            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
+        const sumCatsBon = (f: any) => somarFaturamentoTotal(f);
         const totalMensal = fatsRealizados.reduce((s: number, f: any) => s + sumCatsBon(f), 0);
 
         const fatsQ = fatsRealizados.filter((f: any) => parseInt(f.data.split("-")[2]) <= 15);
@@ -151,10 +149,7 @@ export default function HistoricoAnual({ empresasData, empresaVinculada, isGeren
           return new Date(fAno, fMes - 1, fDia) <= hoje;
         });
 
-        // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
-        const sumCatsHist = (f: any) =>
-          [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
-            .reduce((a: number, v: any) => a + parseFloat(v || "0"), 0);
+        const sumCatsHist = (f: any) => somarFaturamentoTotal(f);
         const totalRealizado = fatsRealizados.reduce((s: number, f: any) => s + sumCatsHist(f), 0);
 
         const metaMensal = parseFloat(String(meta?.metaMensal || "0"));

@@ -62,6 +62,8 @@ import {
   obterCategoriaKeys,
   obterValoresCategorias,
   somarCategoriasPorColuna,
+  somarFaturamentoOperacional,
+  somarFaturamentoTotal,
 } from "@shared/faturamentoCategorias";
 
 
@@ -571,12 +573,9 @@ export default function Home() {
       const dpoteCfgEmp = dpoteConfigMap[emp.slug];
       const usaRecorrenciaManual = dpoteCfgEmp?.recorrenciaFonte === "manual" && dpoteCfgEmp?.recorrenciaValorManual != null;
 
-      // Helper: soma apenas cat1..cat8 (faturamento operacional)
-      const sumCatsSemCat9 = (r: any) =>
-        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
-          .reduce((acc: number, v: any) => acc + parseFloat(v || "0"), 0);
-      // Helper: soma cat1..cat9 (faturamento completo incluindo recorrência)
-      const sumCats = (r: any) => sumCatsSemCat9(r) + parseFloat(r.cat9 || "0");
+      // Todas as categorias CashBarber compõem o operacional; Recorrência entra à parte.
+      const sumCatsSemCat9 = (r: any) => somarFaturamentoOperacional(r);
+      const sumCats = (r: any) => somarFaturamentoTotal(r);
 
       // Cat9 acumulado de TODOS os dias do mês (Dpote REAL distribuído)
       // O Dpote distribuído pelo sync é sempre valor real (não previsão), portanto
@@ -636,21 +635,21 @@ export default function Home() {
       // recorrenciaMes: valor exibido no card (o que já entrou no faturamento)
       const recorrenciaMes = recorrenciaNoFaturamento;
 
-      // Faturamento total = cat1..cat8 + recorrência REAL que entra no faturamento (sem previsão)
+      // Faturamento total = categorias operacionais + recorrência REAL
       const totalSemRec = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
       const total = totalSemRec + recorrenciaNoFaturamento;
 
-      // Faturamento realizado = cat1..cat8 dos dias ≤ hoje + recorrência REAL (sem previsão)
+      // Faturamento realizado = categorias operacionais dos dias ≤ hoje + recorrência REAL
       const totalRealizadoSemRec = rowsRealizados.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
       const totalRealizado = totalRealizadoSemRec + recorrenciaNoFaturamento;
 
-      // Faturamento previsto = cat1..cat8 dos dias > hoje (sem recorrência)
+      // Faturamento previsto = categorias operacionais dos dias > hoje (sem recorrência)
       const totalPrevisto = rows
         .filter((r: any) => parseInt(r.data.split("-")[2]) > diaHoje)
         .reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
 
       // diasLancados: quantidade total de lançamentos (pode ter múltiplos por dia)
-      // diasRealizados: quantidade de DIAS ÚNICOS com faturamento operacional REAL (cat1..cat8 > 0)
+      // diasRealizados: quantidade de DIAS ÚNICOS com faturamento operacional REAL
       // IMPORTANTE: dias com apenas cat9 (recorrência pré-lançada) NÃO contam como realizados
       // para não distorcer a média diária e o cálculo de dias restantes para projeção
       const diasLancados = rows.length;
@@ -659,13 +658,13 @@ export default function Home() {
       const diasRealizados = diasRealizadosSet.size;
       const diasPrevistos = rowsPrevistos.length;
 
-      // Média diária = total do dia (cat1..cat9) dos dias com faturamento real / dias realizados
+      // Média diária = faturamento financeiro do dia / dias realizados
       // Usa apenas dias com faturamento operacional para refletir o ritmo real
       const totaisDiariosRealizados = rowsComFatReal.map((r: any) => sumCats(r));
       const totalRealizadoComCat9 = totaisDiariosRealizados.reduce((s: number, v: number) => s + v, 0);
       const mediaDiaria = diasRealizados > 0 ? totalRealizadoComCat9 / diasRealizados : 0;
 
-      // Máximo e mínimo diário (cat1..cat9 por dia — total completo)
+      // Máximo e mínimo diário pela composição financeira oficial
       const maiorDia = totaisDiariosRealizados.length > 0 ? Math.max(...totaisDiariosRealizados) : 0;
       const menorDia = totaisDiariosRealizados.length > 0 ? Math.min(...totaisDiariosRealizados) : 0;
 
@@ -690,7 +689,7 @@ export default function Home() {
       const metaEsperadaAteHoje = metaDiariaMensal * diasUteisDecorridos;
       const metaEsperadaQuinzenalAteHoje = metaDiariaQuinzenal * diasUteisDecrridosQuinzenal;
 
-      // Quinzenal: soma cat1..cat9 exclusivamente dos dias 1-15.
+      // Quinzenal: soma a composição financeira oficial exclusivamente dos dias 1-15.
       // O Dpote já está distribuído diariamente e, portanto, entra apenas pela parcela
       // registrada nos quinze dias do período.
       const rowsQuinzenal = (faturamentosData as any[])
@@ -765,7 +764,7 @@ export default function Home() {
       const faltaQuinzenal = Math.max(0, metaQuinzenal - totalQuinzenal);
       const metaDiariaDinamicaQuinzenal = diasUteisRestantesQuinzenal > 0 ? faltaQuinzenal / diasUteisRestantesQuinzenal : 0;
 
-      // Faturamento do dia atual (para o semáforo) — total completo (cat1..cat9)
+      // Faturamento do dia atual (para o semáforo) — composição financeira oficial
       const dataHojeStr = `${ano}-${String(mes).padStart(2, '0')}-${String(diaHoje).padStart(2, '0')}`;
       const rowHoje = rows.find((r: any) => r.data === dataHojeStr);
       const fatHoje = rowHoje ? sumCats(rowHoje) : 0;
@@ -782,11 +781,11 @@ export default function Home() {
       // Projeção final:
       // Fórmula: totalRealizado + (médiaDiária × diasRestantes)
       // Onde:
-      //   - totalRealizado = faturamento já realizado até hoje (cat1..cat8 + recorrência real)
+      //   - totalRealizado = faturamento já realizado até hoje
       //   - médiaDiária = faturamento dos dias com dados reais ÷ quantidade de dias com dados
       //   - diasRestantes = dias de funcionamento posteriores ao dia atual
       // Isso representa: "o que já faturou + quanto vai faturar nos dias restantes mantendo o ritmo"
-      // IMPORTANTE: usa APENAS dias com dados reais (cat1..cat9 > 0) para não diluir a média
+      // IMPORTANTE: usa APENAS dias com dados financeiros reais para não diluir a média
       
       // Projeção = realizado + (média diária dos dias apurados × dias de funcionamento restantes)
       const projecaoFinal = diasRealizados > 0
@@ -913,8 +912,10 @@ export default function Home() {
         const dia = parseInt(f.data.split("-")[2]);
         return !ehMesVigenteComp || dia <= diaLimiteComp;
       });
-      const totalAtual = rowsAtual.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+      const totalAtual = rowsAtual.reduce(
+        (s: number, r: any) => s + somarFaturamentoTotal(r),
+        0
+      );
       totalAtualRealizado += totalAtual;
       // Usa o período global (dias 1 até diaFim) para comparar com o mês anterior.
       // Isso garante que empresas com dias diferentes (ex: Seraphine não abre dom/seg)
@@ -924,8 +925,10 @@ export default function Home() {
         const dia = parseInt(f.data.split("-")[2]);
         return dia >= diaInicio && dia <= diaFim;
       });
-      const totalAnterior = rowsAnterior.reduce((s: number, r: any) =>
-        s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+      const totalAnterior = rowsAnterior.reduce(
+        (s: number, r: any) => s + somarFaturamentoTotal(r),
+        0
+      );
       totalAnteriorMesmosDias += totalAnterior;
       porEmpresa[emp.slug] = { totalAtual, totalAnterior, diasAtual: diasAtual.size, diasAnterior: rowsAnterior.length };
     });
@@ -958,8 +961,10 @@ export default function Home() {
           return fMes === m && fAno === ano && fDia >= diaInicio && fDia <= diaFim && f.empresaSlug === emp.slug;
         });
         if (fatsMes.length === 0) continue;
-        const totalEmp = fatsMes.reduce((s: number, r: any) =>
-          s + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12].reduce((a: number, v: any) => a + parseFloat(v || "0"), 0), 0);
+        const totalEmp = fatsMes.reduce(
+          (s: number, r: any) => s + somarFaturamentoTotal(r),
+          0
+        );
         mesesEmpresa.push({ mes: m, total: totalEmp });
       }
       if (mesesEmpresa.length === 0) {
@@ -1051,8 +1056,7 @@ export default function Home() {
       rows.forEach((f: any) => {
         if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
         const dia = parseInt(f.data.split("-")[2]);
-        const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
-          .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
+        const total = somarFaturamentoTotal(f);
         mapa[dia] = (mapa[dia] ?? 0) + total;
       });
       return mapa;
@@ -1107,12 +1111,11 @@ export default function Home() {
     faturamentosFiltrados.forEach((f: any) => {
       if (!empresasVisiveis.find((e) => e.slug === f.empresaSlug)) return;
       const dia = parseInt(f.data.split("-")[2]);
-      const total = [f.cat1, f.cat2, f.cat3, f.cat4, f.cat5, f.cat6, f.cat7, f.cat8, f.cat9, f.cat10, f.cat11, f.cat12]
-        .reduce((s: number, v: any) => s + parseFloat(v || "0"), 0);
+      const total = somarFaturamentoTotal(f);
       mapaAtual[dia] = (mapaAtual[dia] ?? 0) + total;
     });
 
-    // Previsão: cat1..cat8 dos dias futuros já lançados (sem cat9 — cat9 futuro é 0 no banco)
+    // Previsão: categorias operacionais dos dias futuros (cat9 futuro é 0 no banco)
     // + cat9 previsto baseado no mês anterior (calculado no frontend)
     const totalCat9MesAnterior = faturamentosAnteriorFiltrados
       .filter((f: any) => empresasVisiveis.find((e) => e.slug === f.empresaSlug))
@@ -3951,7 +3954,9 @@ export default function Home() {
                           <tr className="bg-muted/50">
                             <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Data</th>
                             {labels.map((l) => (
-                              <th key={l} className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">{l}</th>
+                              <th key={l} className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                {l}
+                              </th>
                             ))}
                             <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total</th>
                             {isGerente && <th className="px-4 py-2.5" />}
@@ -3960,7 +3965,7 @@ export default function Home() {
                         <tbody>
                           {rowsSorted.map((row: any) => {
                             const cats = obterValoresCategorias(row, categoriaKeys);
-                            const total = cats.reduce((a: number, b: number) => a + b, 0);
+                            const total = somarFaturamentoTotal(row);
                             const [, , dia] = row.data.split("-");
                             // Detectar se o dia é futuro (previsto)
                             const hojeRef = new Date();
@@ -4069,8 +4074,8 @@ export default function Home() {
                           const previstos  = rowsSorted.filter((r: any) => parseInt(r.data.split("-")[2]) >  diaHoje2);
                           const catsReal = somarCategoriasPorColuna(realizados, categoriaKeys);
                           const catsPrev = somarCategoriasPorColuna(previstos, categoriaKeys);
-                          const totalReal = catsReal.reduce((a, b) => a + b, 0);
-                          const totalPrev = catsPrev.reduce((a, b) => a + b, 0);
+                          const totalReal = realizados.reduce((s: number, row: any) => s + somarFaturamentoTotal(row), 0);
+                          const totalPrev = previstos.reduce((s: number, row: any) => s + somarFaturamentoTotal(row), 0);
                           const hasPrev = previstos.length > 0;
                           // Recorrência prevista: dias realizados sem cat9 × valor diário previsto
                           const diasRealizadosSemDpote = realizados.filter((r: any) => parseFloat(r.cat9 || "0") === 0).length;

@@ -5,6 +5,8 @@ import {
   obterCategoriaKeys,
   obterValoresCategorias,
   somarCategoriasPorColuna,
+  somarFaturamentoOperacional,
+  somarFaturamentoTotal,
 } from "../shared/faturamentoCategorias";
 
 describe("alinhamento das categorias de faturamento", () => {
@@ -27,6 +29,24 @@ describe("alinhamento das categorias de faturamento", () => {
     expect(totais[9]).toBe(330);
     expect(totais[10]).toBe(44);
     expect(totais[11]).toBe(55);
+  });
+
+  it("inclui Pacote no total financeiro do CashBarber", () => {
+    const linha = {
+      cat1: "100",
+      cat9: "200",
+      cat10: "300",
+      cat11: "40",
+      cat12: "50",
+    };
+
+    expect(somarFaturamentoOperacional(linha)).toBe(490);
+    expect(somarFaturamentoTotal(linha)).toBe(690);
+    expect(obterValoresCategorias(linha)[9]).toBe(300);
+  });
+
+  it("inclui Óleo Essencial no total do Morumbi", () => {
+    expect(somarFaturamentoTotal({ cat1: "1000", cat9: "2000", cat12: "43" })).toBe(3043);
   });
 
   it("usa somente cat1 para a tabela simplificada da Seraphine", () => {

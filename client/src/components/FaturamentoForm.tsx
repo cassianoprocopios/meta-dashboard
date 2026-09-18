@@ -3,6 +3,10 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Save, Building2, CalendarClock, Clock } from "lucide-react";
 import { toast } from "sonner";
+import {
+  FATURAMENTO_CATEGORIA_KEYS,
+  somarFaturamentoTotal,
+} from "@shared/faturamentoCategorias";
 
 interface EmpresaData {
   id: number;
@@ -110,7 +114,10 @@ export default function FaturamentoForm({ mes, ano, empresas, empresaVinculada, 
     return isNaN(n) ? 0 : n;
   };
 
-  const total = cats.reduce((s, v) => s + parseValNum(v), 0);
+  const valoresPorCategoria = Object.fromEntries(
+    cats.map((valor, indice) => [FATURAMENTO_CATEGORIA_KEYS[indice], parseValNum(valor)])
+  );
+  const total = somarFaturamentoTotal(valoresPorCategoria);
 
   const handleSave = async () => {
     if (!empresaSlug) { toast.error("Selecione a empresa."); return; }

@@ -9,6 +9,10 @@ import crypto from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
+import {
+  somarFaturamentoOperacional,
+  somarFaturamentoTotal,
+} from "@shared/faturamentoCategorias";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -123,7 +127,7 @@ import {
   cashbarberBuscarFotoProfissional,
   cashbarberListarBarbeirosAtivos,
 } from "./cashbarber";
-import { sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
+import { aplicarDpoteParaTenant, sincronizarFaturamentoCashbarber } from "./cashbarberSincronizador";
 import { notificarMudancaConfigCashbarber, getStatusJobsCashbarber, recarregarJobsCashbarber } from "./cashbarberJob";
 import { getDb } from "./db";
 import { faturamentos, metas } from "../drizzle/schema";
@@ -133,6 +137,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
 import { empresaUsaCashBarber } from "../shared/cashbarberCategorias";
+import { distribuirSaldoRecorrencia } from "../shared/recorrencia";
 
 // JWT helper para sessão própria
 const APP_COOKIE = "meta_session";
@@ -202,6 +207,80 @@ async function assertEmpresaUsaCashBarber(tenantId: number, empresaSlug: string)
       message: "A Seraphine não utiliza integração com o CashBarber.",
     });
   }
+}
+
+async function aplicarValorRecorrencia(params: {
+  tenantId: number;
+  empresaSlug: string;
+  mes: number;
+  ano: number;
+  valorTotal: number;
+  lancadoPor: string;
+}) {
+  const { tenantId, empresaSlug, mes, ano, valorTotal, lancadoPor } = params;
+  const diasDoMes = new Date(ano, mes, 0).getDate();
+  const agora = new Date();
+  const hojeBRT = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const ehMesAtual = mes === hojeBRT.getMonth() + 1 && ano === hojeBRT.getFullYear();
+  const ehMesPassado = ano < hojeBRT.getFullYear()
+    || (ano === hojeBRT.getFullYear() && mes < hojeBRT.getMonth() + 1);
+  const diaVigente = ehMesAtual ? hojeBRT.getDate() : ehMesPassado ? diasDoMes : 0;
+  const quinzenaProtegida = ehMesAtual && diaVigente > 15;
+  const existentes = await getAllFaturamentosByTenant(tenantId, mes, ano, empresaSlug);
+  const existentesPorData = new Map(existentes.map((row) => [row.data, row]));
+  const valoresProtegidos = quinzenaProtegida
+    ? existentes
+        .filter((row) => Number(row.data.slice(8, 10)) <= 15)
+        .map((row) => Number(row.cat9 || 0))
+    : [];
+  const diasElegiveis = Array.from({ length: diaVigente }, (_, indice) => indice + 1)
+    .filter((dia) => !(quinzenaProtegida && dia <= 15));
+  const distribuicao = distribuirSaldoRecorrencia({
+    totalApurado: valorTotal,
+    diasElegiveis,
+    valoresProtegidos,
+  });
+  let diasAtualizados = 0;
+  let diasInseridos = 0;
+
+  for (let dia = 1; dia <= diasDoMes; dia++) {
+    if (quinzenaProtegida && dia <= 15) continue;
+    const data = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+    const existente = existentesPorData.get(data);
+    const cat9 = dia <= diaVigente ? String(distribuicao.porDia.get(dia) ?? 0) : "0";
+    if (!existente && dia > diaVigente) continue;
+
+    await upsertFaturamento({
+      tenantId,
+      empresaSlug,
+      data,
+      cat1: existente?.cat1 ?? "0",
+      cat2: existente?.cat2 ?? "0",
+      cat3: existente?.cat3 ?? "0",
+      cat4: existente?.cat4 ?? "0",
+      cat5: existente?.cat5 ?? "0",
+      cat6: existente?.cat6 ?? "0",
+      cat7: existente?.cat7 ?? "0",
+      cat8: existente?.cat8 ?? "0",
+      cat9,
+      cat10: existente?.cat10 ?? "0",
+      cat11: existente?.cat11 ?? "0",
+      cat12: existente?.cat12 ?? "0",
+      sincronizadoCB: existente?.sincronizadoCB ?? 0,
+      observacao: existente?.observacao ?? undefined,
+      lancadoPor,
+    });
+    if (existente) diasAtualizados++;
+    else diasInseridos++;
+  }
+
+  return {
+    diasDoMes,
+    diaVigente,
+    diasAtualizados,
+    diasInseridos,
+    distribuicao,
+  };
 }
 
 export function podeAtualizarUnidadeColaborador(
@@ -1353,10 +1432,10 @@ const profissionaisRouter = router({
       const hoje = new Date();
       const hojeStr = hoje.toISOString().slice(0, 10);
       const rowsRealizados = fatUnidadeRows.filter((r) => r.data <= hojeStr);
-      const totalRealizado = rowsRealizados.reduce((sum, r) => {
-        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
-          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
-      }, 0);
+      const totalRealizado = rowsRealizados.reduce(
+        (sum, r) => sum + somarFaturamentoTotal(r),
+        0
+      );
 
       // Meta da unidade a partir da tabela metas
       const metaUnidade = metasUnidade.find((m) => m.empresaSlug === input.empresaSlug);
@@ -1384,10 +1463,10 @@ const profissionaisRouter = router({
         const dia = parseInt(r.data.slice(8, 10));
         return ehPrimeiraQuinzena ? dia <= 15 : dia > 15;
       });
-      const totalQuinzena = rowsQuinzena.reduce((sum, r) => {
-        return sum + [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
-          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
-      }, 0);
+      const totalQuinzena = rowsQuinzena.reduce(
+        (sum, r) => sum + somarFaturamentoTotal(r),
+        0
+      );
       const pctMetaQuinzenal = metaQuinzenal && metaQuinzenal > 0
         ? Math.round((totalQuinzena / metaQuinzenal) * 100)
         : null;
@@ -1398,8 +1477,7 @@ const profissionaisRouter = router({
       // Melhor e pior dia
       const totaisPorDia = rowsRealizados.map((r) => ({
         data: r.data,
-        total: [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
-          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0),
+        total: somarFaturamentoTotal(r),
       }));
       const melhorDia = totaisPorDia.length > 0
         ? totaisPorDia.reduce((a, b) => a.total > b.total ? a : b)
@@ -1418,10 +1496,7 @@ const profissionaisRouter = router({
       for (let d = 1; d <= diasNoMes; d++) {
         const dataStr = `${input.ano}-${String(input.mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const row = rowsRealizados.find((r) => r.data === dataStr);
-        const total = row
-          ? [row.cat1, row.cat2, row.cat3, row.cat4, row.cat5, row.cat6, row.cat7, row.cat8, row.cat9, row.cat10, row.cat11, row.cat12]
-              .reduce((s, v) => s + parseFloat(String(v) || '0'), 0)
-          : 0;
+        const total = row ? somarFaturamentoTotal(row) : 0;
         faturamentoPorDia.push({ dia: d, total, isFuturo: d > diaAtual });
       }
 
@@ -1431,8 +1506,7 @@ const profissionaisRouter = router({
       let totalMesAnteriorCompleto = 0;
       for (const r of fatMesAnteriorRows) {
         const dia = parseInt(r.data.slice(8, 10));
-        const total = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
-          .reduce((s, v) => s + parseFloat(String(v) || '0'), 0);
+        const total = somarFaturamentoTotal(r);
         totalMesAnteriorCompleto += total;
         if (dia <= diaAtual) totalMesAnteriorMesmoPeriodo += total;
       }
@@ -2061,67 +2135,31 @@ export const appRouter = router({
         const tenantId = await getTenantIdFromCtx(ctx);
         const { mes, ano, empresaSlug, valorTotal } = input;
 
-        const diasDoMes = new Date(ano, mes, 0).getDate();
-        const hoje = new Date();
-        const diaVigente =
-          hoje.getFullYear() === ano && hoje.getMonth() + 1 === mes
-            ? hoje.getDate()
-            : hoje.getFullYear() > ano || (hoje.getFullYear() === ano && hoje.getMonth() + 1 > mes)
-            ? diasDoMes
-            : 0;
-
-        // valorTotal é o total APURADO até hoje (não uma projeção mensal)
-        // valorDiario = total acumulado / dias decorridos
-        const valorDiario = diaVigente > 0 ? valorTotal / diaVigente : 0;
-        let diasAtualizados = 0;
-        let diasInseridos = 0;
-
-        for (let dia = 1; dia <= diasDoMes; dia++) {
-          const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-          // Dias passados e hoje: valor diário real apurado; dias futuros: R$ 0
-          const cat9Valor = dia <= diaVigente ? String(valorDiario.toFixed(2)) : "0";
-          const existente = await getFaturamentoByDataEmpresaTenant(dataStr, empresaSlug, tenantId);
-          if (existente) {
-            await upsertFaturamento({
-              tenantId, empresaSlug, data: dataStr,
-              cat1: existente.cat1 ?? "0", cat2: existente.cat2 ?? "0",
-              cat3: existente.cat3 ?? "0", cat4: existente.cat4 ?? "0",
-              cat5: existente.cat5 ?? "0", cat6: existente.cat6 ?? "0",
-              cat7: existente.cat7 ?? "0", cat8: existente.cat8 ?? "0",
-              cat9: cat9Valor, cat10: existente.cat10 ?? "0",
-              cat11: existente.cat11 ?? "0", cat12: existente.cat12 ?? "0",
-              sincronizadoCB: existente.sincronizadoCB ?? 0,
-              observacao: existente.observacao ?? undefined,
-              lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
-            });
-            diasAtualizados++;
-          } else if (dia <= diaVigente) {
-            await upsertFaturamento({
-              tenantId, empresaSlug, data: dataStr,
-              cat1: "0", cat2: "0", cat3: "0", cat4: "0",
-              cat5: "0", cat6: "0", cat7: "0", cat8: "0",
-              cat9: cat9Valor, cat10: "0", cat11: "0", cat12: "0", sincronizadoCB: 0,
-              lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
-            });
-            diasInseridos++;
-          }
-        }
+        const aplicacao = await aplicarValorRecorrencia({
+          tenantId,
+          empresaSlug,
+          mes,
+          ano,
+          valorTotal,
+          lancadoPor: ctx.user.name ?? ctx.user.email ?? "manual",
+        });
 
         // Gravar o valor manual e o timestamp no cashbarberConfig para exibir no card
         await saveRecorrenciaFonte(tenantId, empresaSlug, "manual", valorTotal);
 
         return {
           valorTotal,
-          valorDiario: parseFloat(valorDiario.toFixed(2)),
-          diasDoMes,
-          diaVigente,
-          diasAtualizados,
-          diasInseridos,
+          valorDiario: aplicacao.distribuicao.porDia.size > 0
+            ? parseFloat((aplicacao.distribuicao.saldoDistribuido / aplicacao.distribuicao.porDia.size).toFixed(2))
+            : 0,
+          diasDoMes: aplicacao.diasDoMes,
+          diaVigente: aplicacao.diaVigente,
+          diasAtualizados: aplicacao.diasAtualizados,
+          diasInseridos: aplicacao.diasInseridos,
           // acumuladoAteHoje = valorTotal (é exatamente o que foi informado)
           acumuladoAteHoje: parseFloat(valorTotal.toFixed(2)),
-          diasRestantes: diasDoMes - diaVigente,
-          // projeção mensal = valorDiario × diasDoMes
-          projecaoMensal: parseFloat((valorDiario * diasDoMes).toFixed(2)),
+          diasRestantes: aplicacao.diasDoMes - aplicacao.diaVigente,
+          projecaoMensal: valorTotal,
         };
       }),
   }),
@@ -2196,10 +2234,10 @@ export const appRouter = router({
               return f.empresaSlug === slug && fMes === mes && fAno === ano && fDia >= 1 && fDia <= 15;
             });
 
-            const totalQ = fatQuinzena.reduce((acc, r) => {
-              const cats = [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12];
-              return acc + cats.reduce((s, c) => s + parseFloat(c || "0"), 0);
-            }, 0);
+            const totalQ = fatQuinzena.reduce(
+              (acc, r) => acc + somarFaturamentoTotal(r),
+              0
+            );
 
             const pctQ = metaQ > 0 ? Math.round((totalQ / metaQ) * 100) : 0;
 
@@ -3752,135 +3790,12 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         };
       }),
 
-    /**
-     * Calcula a distribuição Dpote por filial (100% das assinaturas por fichas)
-     * e aplica o valor distribuído como cat5 (Recorrência) no faturamento do dia 1.
-     */
+    /** Aplica a Recorrência pelo sincronizador central, com fechamento exato e proteção quinzenal. */
     aplicarDpoteNoFaturamento: protectedProcedure
       .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
       .mutation(async ({ ctx, input }) => {
         const tenantId = await getTenantIdFromCtx(ctx);
-        const configs = await listCashbarberConfigs(tenantId);
-
-        // Usar qualquer config com credenciais CashBarber para fazer login
-        const configComCred = configs.find((c) => c.cbEmail && c.cbSenha);
-        if (!configComCred) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Nenhuma empresa com credenciais CashBarber configurada." });
-        }
-
-        // Login CashBarber
-        const token = await cashbarberLogin(configComCred.cbEmail, configComCred.cbSenha);
-
-        // Criar um novo histórico para obter o ID mais recente como ponto de partida
-        let idInicial: number;
-        try {
-          idInicial = await cashbarberCriarHistoricoDpote(token);
-        } catch (_e) {
-          const mesSiglaFallback = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
-          let savedId: number | null = null;
-          for (const cfg of configs) {
-            savedId = await getDpoteHistoricoId(tenantId, cfg.empresaSlug, mesSiglaFallback);
-            if (savedId) break;
-          }
-          idInicial = savedId ?? 68539;
-        }
-
-         // Verificar se o mês selecionado é o mês vigente
-        const agoraAplicar = new Date();
-        const esMesVigenteAplicar = input.mes === (agoraAplicar.getMonth() + 1) && input.ano === agoraAplicar.getFullYear();
-        // Para o mês vigente, aceita históricos parciais (mês em andamento)
-        const resultado = await cashbarberCalcularDpoteViaHistorico(token, idInicial, esMesVigenteAplicar);
-        if (!resultado) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum histórico Dpote com dados válidos encontrado." });
-        }
-        // Salvar o ID do histórico ativo e o valor de assinaturas no banco
-        const mesSigla = `${input.ano}-${String(input.mes).padStart(2, "0")}`;
-        for (const cfg of configs) {
-          await saveDpoteHistoricoId(tenantId, cfg.empresaSlug, resultado.historicoId, mesSigla, resultado.valorAssinaturas);
-        }
-
-        // Para cada empresa configurada com dpoteFilialNome, encontrar o resultado correspondente
-        const diasDoMes = new Date(input.ano, input.mes, 0).getDate();
-        // Limitar a distribuição ao dia vigente quando for o mês atual
-        const agoraDistrib = new Date();
-        const ehMesAtual = input.mes === (agoraDistrib.getMonth() + 1) && input.ano === agoraDistrib.getFullYear();
-        // Para o mês atual: distribui apenas até hoje. Para meses passados: distribui em todos os dias.
-        const diaLimite = ehMesAtual ? agoraDistrib.getDate() : diasDoMes;
-        const aplicados: Array<{ empresaSlug: string; filialNome: string; valorDistribuido: number }> = [];
-        const naoEncontrados: string[] = [];
-
-        for (const config of configs) {
-          if (!config.dpoteFilialNome) continue;
-          const nomeBusca = config.dpoteFilialNome.trim().toLowerCase();
-          const filial = resultado.filiais.find((r) => r.filialNome.toLowerCase().includes(nomeBusca));
-          if (!filial) {
-            naoEncontrados.push(config.empresaSlug);
-            continue;
-          }
-
-          // Distribuir o valor diário apenas até o diaLimite (dia vigente no mês atual)
-          // O valor diário = valorDistribuido / diaLimite (distribuição uniforme pelos dias já passados)
-          const valorDiario = diaLimite > 0 ? filial.valorDistribuido / diaLimite : 0;
-          for (let dia = 1; dia <= diasDoMes; dia++) {
-            const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-            const existente = await getFaturamentoByDataEmpresaTenant(dataStr, config.empresaSlug, tenantId);
-            // Para dias futuros no mês atual: zerar o D-Pote se houver valor anterior
-            if (ehMesAtual && dia > diaLimite) {
-              if (existente && parseFloat(existente.cat9 ?? "0") > 0) {
-                await upsertFaturamento({
-                  tenantId,
-                  empresaSlug: config.empresaSlug,
-                  data: dataStr,
-                  cat1: existente.cat1 ?? "0",
-                  cat2: existente.cat2 ?? "0",
-                  cat3: existente.cat3 ?? "0",
-                  cat4: existente.cat4 ?? "0",
-                  cat5: existente.cat5 ?? "0",
-                  cat6: existente.cat6 ?? "0",
-                  cat7: existente.cat7 ?? "0",
-                  cat8: existente.cat8 ?? "0",
-                  cat9: "0",
-                  sincronizadoCB: existente.sincronizadoCB ?? 0,
-                  observacao: existente.observacao ?? undefined,
-                  lancadoPor: existente.lancadoPor ?? undefined,
-                });
-              }
-              continue;
-            }
-            if (existente) {
-              await upsertFaturamento({
-                tenantId,
-                empresaSlug: config.empresaSlug,
-                data: dataStr,
-                cat1: existente.cat1 ?? "0",
-                cat2: existente.cat2 ?? "0",
-                cat3: existente.cat3 ?? "0",
-                cat4: existente.cat4 ?? "0",
-                cat5: existente.cat5 ?? "0",
-                cat6: existente.cat6 ?? "0",
-                cat7: existente.cat7 ?? "0",
-                cat8: existente.cat8 ?? "0",
-                cat9: valorDiario.toFixed(2),
-                sincronizadoCB: existente.sincronizadoCB ?? 0,
-                observacao: existente.observacao ?? undefined,
-                lancadoPor: existente.lancadoPor ?? undefined,
-              });
-            }
-          }
-
-          aplicados.push({
-            empresaSlug: config.empresaSlug,
-            filialNome: filial.filialNome,
-            valorDistribuido: filial.valorDistribuido,
-          });
-        }
-
-        return {
-          aplicados,
-          naoEncontrados,
-          totalAssinaturas: resultado.valorAssinaturas,
-          historicoId: resultado.historicoId,
-        };
+        return aplicarDpoteParaTenant(tenantId, input.mes, input.ano);
       }),
 
     /** Retorna apenas os campos Dpote de todas as empresas configuradas (sem credenciais) */
@@ -4400,6 +4315,13 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
                 cat3: String(fat.cat3),
                 cat4: String(fat.cat4),
                 cat5: String(fat.cat5),
+                cat6: String(fat.cat6),
+                cat7: String(fat.cat7),
+                cat8: String(fat.cat8),
+                cat9: existente?.cat9 ?? "0",
+                cat10: String(fat.cat10),
+                cat11: String(fat.cat11),
+                cat12: String(fat.cat12),
                 lancadoPor: "CashBarber (sync)",
               });
 
@@ -4781,34 +4703,14 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         }
         // Se mudou para 'manual' e tem valor, distribuir nos dias
         if (input.fonte === "manual" && input.valorManual !== undefined && input.valorManual > 0) {
-          const diasDoMes = new Date(input.ano, input.mes, 0).getDate();
-          const hoje = new Date();
-          const diaHoje =
-            hoje.getFullYear() === input.ano && hoje.getMonth() + 1 === input.mes
-              ? hoje.getDate()
-              : diasDoMes;
-          const valorDiario = input.valorManual / diaHoje;
-          for (let dia = 1; dia <= diasDoMes; dia++) {
-            const dataStr = `${input.ano}-${String(input.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-            const valorDia = dia <= diaHoje ? valorDiario : 0;
-            const existing = await getFaturamentoByDataEmpresaTenant(dataStr, input.empresaSlug, tenantId);
-            await upsertFaturamento({
-              tenantId,
-              empresaSlug: input.empresaSlug,
-              data: dataStr,
-              cat1: existing ? String(existing.cat1) : "0",
-              cat2: existing ? String(existing.cat2) : "0",
-              cat3: existing ? String(existing.cat3) : "0",
-              cat4: existing ? String(existing.cat4) : "0",
-              cat5: existing ? String(existing.cat5) : "0",
-              cat6: existing ? String(existing.cat6) : "0",
-              cat7: existing ? String(existing.cat7) : "0",
-              cat8: existing ? String(existing.cat8) : "0",
-              cat9: String(valorDia),
-              observacao: existing?.observacao ?? null,
-              lancadoPor: existing?.lancadoPor ?? "sistema",
-            });
-          }
+          await aplicarValorRecorrencia({
+            tenantId,
+            empresaSlug: input.empresaSlug,
+            mes: input.mes,
+            ano: input.ano,
+            valorTotal: input.valorManual,
+            lancadoPor: ctx.user.name ?? ctx.user.email ?? "sistema",
+          });
         }
         return { ok: true, fonte: input.fonte };
       }),
@@ -5437,10 +5339,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         rows = allRows.filter((r: any) => r.data.startsWith(prefix) && r.data <= hoje);
       }
 
-      // Somar cat1..cat8 (operacional) e cat9 (recorrência) dos dias realizados
-      const sumCatsSemCat9 = (r: any) =>
-        [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8]
-          .reduce((s: number, v: any) => s + parseFloat(v || '0'), 0);
+      // Soma operacional inclui Pacote, Estética e Óleo; Recorrência entra à parte.
+      const sumCatsSemCat9 = (r: any) => somarFaturamentoOperacional(r);
 
       const totalOperacional = rows.reduce((s: number, r: any) => s + sumCatsSemCat9(r), 0);
       const cat9Acumulado = rows.reduce((s: number, r: any) => s + parseFloat(r.cat9 || '0'), 0);

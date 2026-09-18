@@ -30,6 +30,10 @@ import {
 import { notifyOwner } from "./_core/notification";
 import { faturamentos } from "../drizzle/schema";
 import { and, eq, lt, gte } from "drizzle-orm";
+import {
+  somarFaturamentoOperacional,
+  somarFaturamentoTotal,
+} from "../shared/faturamentoCategorias";
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 let _jobRitmo: cron.ScheduledTask | null = null;
@@ -43,65 +47,10 @@ const DIAS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 // ─── Helpers de soma de categorias ───────────────────────────────────────────
 
-/** Soma todas as categorias de um registro de faturamento. */
-function somarCats(f: {
-  cat1: string | number | null;
-  cat2: string | number | null;
-  cat3: string | number | null;
-  cat4: string | number | null;
-  cat5: string | number | null;
-  cat6: string | number | null;
-  cat7: string | number | null;
-  cat8: string | number | null;
-  cat9: string | number | null;
-  cat10: string | number | null;
-  cat11: string | number | null;
-  cat12: string | number | null;
-}): number {
-  return (
-    (Number(f.cat1) || 0) +
-    (Number(f.cat2) || 0) +
-    (Number(f.cat3) || 0) +
-    (Number(f.cat4) || 0) +
-    (Number(f.cat5) || 0) +
-    (Number(f.cat6) || 0) +
-    (Number(f.cat7) || 0) +
-    (Number(f.cat8) || 0) +
-    (Number(f.cat9) || 0) +
-    (Number(f.cat10) || 0) +
-    (Number(f.cat11) || 0) +
-    (Number(f.cat12) || 0)
-  );
-}
-
-/** Soma categorias operacionais, excluindo apenas Recorrência (cat9). */
-function somarCatsOperacionais(f: {
-  cat1: string | number | null;
-  cat2: string | number | null;
-  cat3: string | number | null;
-  cat4: string | number | null;
-  cat5: string | number | null;
-  cat6: string | number | null;
-  cat7: string | number | null;
-  cat8: string | number | null;
-  cat10: string | number | null;
-  cat11: string | number | null;
-  cat12: string | number | null;
-}): number {
-  return (
-    (Number(f.cat1) || 0) +
-    (Number(f.cat2) || 0) +
-    (Number(f.cat3) || 0) +
-    (Number(f.cat4) || 0) +
-    (Number(f.cat5) || 0) +
-    (Number(f.cat6) || 0) +
-    (Number(f.cat7) || 0) +
-    (Number(f.cat8) || 0) +
-    (Number(f.cat10) || 0) +
-    (Number(f.cat11) || 0) +
-    (Number(f.cat12) || 0)
-  );
-}
+/** Soma todas as categorias financeiras, inclusive Pacote e Recorrência. */
+const somarCats = somarFaturamentoTotal;
+/** Soma categorias operacionais, excluindo apenas Recorrência. */
+const somarCatsOperacionais = somarFaturamentoOperacional;
 
 // ─── Alerta 1: Ritmo Insuficiente ─────────────────────────────────────────────
 
@@ -130,7 +79,7 @@ async function verificarRitmoInsuficiente(tenantId: number): Promise<void> {
       const metaMensal = Number(meta.metaMensal);
       const diasUteis = Number(meta.diasUteis) || 26;
 
-      // Total acumulado no mês (cat1..cat9)
+      // Total acumulado no mês pela composição financeira oficial
       const fatEmpresa = faturamentosMes.filter((f) => f.empresaSlug === empresa.slug);
       const totalAcumulado = fatEmpresa.reduce((acc, f) => acc + somarCats(f), 0);
 
@@ -148,7 +97,7 @@ async function verificarRitmoInsuficiente(tenantId: number): Promise<void> {
       // Se já bateu a meta, não precisa alertar
       if (totalAcumulado >= metaMensal) continue;
 
-      // Média dos últimos 3 dias com faturamento operacional real (cat1..cat8 > 0)
+      // Média dos últimos 3 dias com faturamento operacional real
       const diasComFat = fatEmpresa
         .filter((f) => somarCatsOperacionais(f) > 0)
         .sort((a, b) => b.data.localeCompare(a.data))

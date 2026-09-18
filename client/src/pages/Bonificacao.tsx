@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Building2, Award, TrendingUp, TrendingDown, Settings, CheckCircle2, Loader2, Star, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { calcularBonificacaoSubstitutiva, calcularProgressoSuperMeta } from "@shared/bonificacao";
+import { somarFaturamentoTotal } from "@shared/faturamentoCategorias";
 import { SuperMetaProgressTooltip } from "@/components/SuperMetaProgressTooltip";
 
 interface Empresa {
@@ -131,10 +132,8 @@ export default function Bonificacao({ mes, ano, mesLabel, empresasData, metasDat
     // Total mensal (apenas dias realizados — data <= hoje)
     const rowsRealizados = rows.filter((r) => new Date(r.data + "T00:00:00") <= hoje);
 
-    // Total inclui cat9 (Recorrência Dpote) pois soma no faturamento total
-    const sumCats = (r: any) =>
-      [r.cat1, r.cat2, r.cat3, r.cat4, r.cat5, r.cat6, r.cat7, r.cat8, r.cat9, r.cat10, r.cat11, r.cat12]
-        .reduce((a: number, v: any) => a + parseFloat(String(v || 0)), 0);
+    // Inclui todas as categorias operacionais e Recorrência.
+    const sumCats = (r: any) => somarFaturamentoTotal(r);
     const totalMensal = rowsRealizados.reduce((s: number, r) => s + sumCats(r), 0);
 
     // Total quinzenal: usar snapshot congelado quando disponível (quinzena encerrada)
