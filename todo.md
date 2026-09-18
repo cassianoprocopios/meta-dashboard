@@ -83,6 +83,7 @@
 - [x] Reconciliar Morumbi com o CashBarber: incluir Pacote/Estética/Óleo no total e distribuir apenas o saldo de Recorrência após a quinzena
 - [x] Recalcular o fechamento de 1 a 15/09/2026 e corrigir snapshots congelados prematuramente em 07/09
 - [x] Bloquear congelamento quinzenal antes de 15 às 23:50 BRT e reparar snapshots prematuros sem duplicar notificações
+- [x] Comparar o mês atual de cada profissional com seu melhor mês histórico de serviços + produtos no ranking e no portal móvel
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 

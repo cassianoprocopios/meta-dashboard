@@ -37,6 +37,10 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { somarFaturamentoTotal } from "../shared/faturamentoCategorias";
+import {
+  MelhorMesColaborador,
+  selecionarMelhoresMesesHistoricos,
+} from "../shared/comparativoMelhorMes";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -1799,6 +1803,51 @@ export async function listarRankingPorPeriodo(
     })),
     ultimaAtualizacao,
   };
+}
+
+/**
+ * Retorna o melhor mês anterior ao período de referência para cada profissional.
+ * Os valores já seguem as mesmas exclusões aplicadas quando o ranking foi sincronizado.
+ */
+export async function listarMelhoresMesesPorColaborador(
+  tenantId: number,
+  mesReferencia: number,
+  anoReferencia: number
+): Promise<Map<number, MelhorMesColaborador>> {
+  const db = await getDb();
+  if (!db) return new Map();
+
+  const rows = await db
+    .select({
+      colaboradorId: faturamentoColaboradores.colaboradorId,
+      mes: faturamentoColaboradores.mes,
+      ano: faturamentoColaboradores.ano,
+      totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
+      totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
+      totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+    })
+    .from(faturamentoColaboradores)
+    .where(eq(faturamentoColaboradores.tenantId, tenantId))
+    .groupBy(
+      faturamentoColaboradores.colaboradorId,
+      faturamentoColaboradores.ano,
+      faturamentoColaboradores.mes
+    )
+    .orderBy(
+      asc(faturamentoColaboradores.colaboradorId),
+      desc(sql`SUM(${faturamentoColaboradores.totalGeral})`),
+      desc(faturamentoColaboradores.ano),
+      desc(faturamentoColaboradores.mes)
+    );
+
+  return selecionarMelhoresMesesHistoricos(rows.map((row) => ({
+      colaboradorId: row.colaboradorId,
+      mes: row.mes,
+      ano: row.ano,
+      totalServicos: Number(row.totalServicos),
+      totalProdutos: Number(row.totalProdutos),
+      totalGeral: Number(row.totalGeral),
+    })), mesReferencia, anoReferencia);
 }
 
 /** Retorna os períodos (mês/ano) que têm dados de faturamento de colaboradores */

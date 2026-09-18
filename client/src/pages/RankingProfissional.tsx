@@ -3131,6 +3131,51 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
           </div>
         </div>
       </div>
+      {/* ── Comparativo com o melhor mês histórico ── */}
+      {(data as any).melhorMes ? (() => {
+        const melhor = (data as any).melhorMes as {
+          mes: number; ano: number; totalServicos: number; totalProdutos: number;
+          totalGeral: number; percentualDoRecorde: number; faltaParaRecorde: number;
+          valorAcimaDoRecorde: number; novoRecorde: boolean; igualouRecorde: boolean;
+        };
+        const recordeSuperado = melhor.novoRecorde || melhor.igualouRecorde;
+        return (
+          <div className={`rounded-2xl border p-4 ${recordeSuperado ? 'bg-emerald-500/10 border-emerald-500/25' : 'bg-amber-500/10 border-amber-500/25'}`}>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Award className={`w-5 h-5 shrink-0 ${recordeSuperado ? 'text-emerald-400' : 'text-amber-400'}`} />
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-bold truncate">Seu melhor mês: {mesNomes[melhor.mes - 1]}/{String(melhor.ano).slice(-2)}</p>
+                  <p className="text-white/45 text-xs">Serv. {formatarMoeda(melhor.totalServicos)} · Prod. {formatarMoeda(melhor.totalProdutos)}</p>
+                </div>
+              </div>
+              <p className={`text-lg font-black shrink-0 ${recordeSuperado ? 'text-emerald-300' : 'text-amber-300'}`}>{melhor.percentualDoRecorde}%</p>
+            </div>
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="text-white/55">Atual: {formatarMoeda(mesAtualData.totalGeral)}</span>
+              <span className="text-white font-semibold">Recorde: {formatarMoeda(melhor.totalGeral)}</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className={`h-full rounded-full ${recordeSuperado ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                style={{ width: `${Math.min(Math.max(melhor.percentualDoRecorde, 0), 100)}%` }}
+              />
+            </div>
+            <p className={`text-xs font-semibold mt-2 ${recordeSuperado ? 'text-emerald-300' : 'text-amber-300'}`}>
+              {melhor.novoRecorde
+                ? `Novo recorde! Você superou em ${formatarMoeda(melhor.valorAcimaDoRecorde)}.`
+                : melhor.igualouRecorde
+                  ? 'Você igualou seu melhor resultado. Mais uma venda cria um novo recorde!'
+                  : `Faltam ${formatarMoeda(melhor.faltaParaRecorde)} para superar seu melhor mês.`}
+            </p>
+          </div>
+        );
+      })() : (
+        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 flex items-center gap-3">
+          <Award className="w-5 h-5 text-blue-300 shrink-0" />
+          <p className="text-blue-200 text-sm font-semibold">Este é seu primeiro mês registrado — comece agora seu recorde pessoal!</p>
+        </div>
+      )}
       {/* ── Botão de Notificações Push ── */}
       {pushStatus !== 'unsupported' && (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">

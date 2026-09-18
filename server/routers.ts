@@ -23,6 +23,7 @@ import {
   toggleColaboradorAtivo,
   deletarColaborador,
   listarRankingPorPeriodo,
+  listarMelhoresMesesPorColaborador,
   listarPeriodosComDados,
   upsertFaturamentoColaborador,
   getAllFaturamentosByTenant,
@@ -138,6 +139,7 @@ import { parse as parseCookieHeader } from "cookie";
 import { ENV } from "./_core/env";
 import { empresaUsaCashBarber } from "../shared/cashbarberCategorias";
 import { distribuirSaldoRecorrencia } from "../shared/recorrencia";
+import { calcularComparativoMelhorMes } from "../shared/comparativoMelhorMes";
 
 // JWT helper para sessão própria
 const APP_COOKIE = "meta_session";
@@ -530,9 +532,10 @@ const profissionaisRouter = router({
     .input(z.object({ mes: z.number().int().min(1).max(12), ano: z.number().int().min(2020) }))
     .query(async ({ ctx, input }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const [profissionais, { itens: faturamentos, ultimaAtualizacao }] = await Promise.all([
+      const [profissionais, { itens: faturamentos, ultimaAtualizacao }, melhoresMeses] = await Promise.all([
         listarColaboradores(tenantId),
         listarRankingPorPeriodo(tenantId, input.mes, input.ano),
+        listarMelhoresMesesPorColaborador(tenantId, input.mes, input.ano),
       ]);
       const faturamentoMap = new Map(faturamentos.map((f) => [f.colaboradorId, f]));
       // Incluir na lista:
@@ -570,6 +573,10 @@ const profissionaisRouter = router({
             pctMeta: (p.metaMensal && fat?.totalGeral)
               ? Math.round((fat.totalGeral / parseFloat(String(p.metaMensal))) * 100)
               : null,
+            melhorMes: calcularComparativoMelhorMes(
+              fat?.totalGeral ?? 0,
+              melhoresMeses.get(p.id) ?? null
+            ),
           };
         })
         .sort((a, b) => b.totalGeral - a.totalGeral);
@@ -5727,6 +5734,11 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       const resultados = await Promise.all(
         meses.map(({ mes, ano }) => listarRankingPorPeriodo(tenantId, mes, ano))
       );
+      const melhoresMeses = await listarMelhoresMesesPorColaborador(
+        tenantId,
+        now.getMonth() + 1,
+        now.getFullYear()
+      );
       // Buscar dados do colaborador
       const colaboradoresList = await listarColaboradores(tenantId);
       const col = colaboradoresList.find((c) => c.id === input.profissionalId);
@@ -5754,6 +5766,10 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
       });
       // Calcular ticket médio e projeção do mês atual
       const mesAtualData = historico[historico.length - 1];
+      const melhorMes = calcularComparativoMelhorMes(
+        mesAtualData.totalGeral,
+        melhoresMeses.get(input.profissionalId) ?? null
+      );
       const ticketMedio = mesAtualData.qtdServicos > 0
         ? Math.round((mesAtualData.totalServicos / mesAtualData.qtdServicos) * 100) / 100
         : 0;
@@ -5833,6 +5849,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         produtosMes: produtosMesEnriquecidos,
         itemMaisVendido,
         itensComRecorde,
+        melhorMes,
       };
     }),
   performance: performanceRouter,

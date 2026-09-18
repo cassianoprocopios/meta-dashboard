@@ -76,6 +76,18 @@ type Profissional = {
   detalhesProdutos?: string | null;
   metaMensal?: number | null;
   pctMeta?: number | null;
+  melhorMes?: {
+    mes: number;
+    ano: number;
+    totalServicos: number;
+    totalProdutos: number;
+    totalGeral: number;
+    percentualDoRecorde: number;
+    faltaParaRecorde: number;
+    valorAcimaDoRecorde: number;
+    novoRecorde: boolean;
+    igualouRecorde: boolean;
+  } | null;
 };
 
 type ServicoDetalhe = { ser_nome: string; sum: number; count?: number };
@@ -113,11 +125,72 @@ function corUnidadeBadge(slug: string): string {
   return "bg-muted text-muted-foreground";
 }
 
+function periodoCurto(mes: number, ano: number): string {
+  return `${MESES[mes - 1]?.slice(0, 3) ?? mes}/${String(ano).slice(-2)}`;
+}
+
+function ComparativoMelhorMes({ profissional, detalhado = false }: {
+  profissional: Profissional;
+  detalhado?: boolean;
+}) {
+  const melhor = profissional.melhorMes;
+  if (!profissional.temDados) return null;
+  if (!melhor) {
+    return (
+      <div className={`rounded-lg border border-blue-500/20 bg-blue-500/5 ${detalhado ? "p-3 mb-4" : "p-2 mt-2"}`}>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-700">
+          <Crown className="h-3.5 w-3.5 shrink-0" />
+          Primeiro mês registrado — este será seu recorde inicial
+        </div>
+      </div>
+    );
+  }
+
+  const progresso = Math.min(Math.max(melhor.percentualDoRecorde, 0), 100);
+  const recordeSuperado = melhor.novoRecorde || melhor.igualouRecorde;
+  const mensagem = melhor.novoRecorde
+    ? `Novo recorde: ${formatCurrency(melhor.valorAcimaDoRecorde)} acima`
+    : melhor.igualouRecorde
+      ? "Recorde igualado"
+      : `Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar`;
+
+  return (
+    <div className={`rounded-lg border ${recordeSuperado ? "border-emerald-500/25 bg-emerald-500/5" : "border-amber-500/25 bg-amber-500/5"} ${detalhado ? "p-3 mb-4" : "p-2 mt-2"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Crown className={`shrink-0 ${detalhado ? "h-4 w-4" : "h-3.5 w-3.5"} ${recordeSuperado ? "text-emerald-600" : "text-amber-600"}`} />
+          <span className="text-[11px] font-semibold text-foreground truncate">
+            Melhor mês: {periodoCurto(melhor.mes, melhor.ano)} · {formatCurrency(melhor.totalGeral)}
+          </span>
+        </div>
+        <span className={`text-[11px] font-bold shrink-0 ${recordeSuperado ? "text-emerald-600" : "text-amber-600"}`}>
+          {melhor.percentualDoRecorde}%
+        </span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${recordeSuperado ? "bg-emerald-500" : "bg-amber-500"}`}
+          style={{ width: `${progresso}%` }}
+        />
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px]">
+        <span className="text-muted-foreground">
+          Serv. {formatCurrency(melhor.totalServicos)} · Prod. {formatCurrency(melhor.totalProdutos)}
+        </span>
+        <span className={`font-semibold ${recordeSuperado ? "text-emerald-600" : "text-amber-700"}`}>
+          {mensagem}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Modal de Detalhamento ───────────────────────────────────────────────────
-function ModalDetalhes({ profissional, open, onClose }: {
+function ModalDetalhes({ profissional, open, onClose, mostrarComparativo }: {
   profissional: Profissional | null;
   open: boolean;
   onClose: () => void;
+  mostrarComparativo: boolean;
 }) {
   if (!profissional) return null;
   const nome = profissional.apelido ?? profissional.nome;
@@ -154,6 +227,8 @@ function ModalDetalhes({ profissional, open, onClose }: {
             <p className="text-sm font-bold text-foreground">{formatCurrency(profissional.totalGeral)}</p>
           </div>
         </div>
+
+        {mostrarComparativo && <ComparativoMelhorMes profissional={profissional} detalhado />}
 
         {/* Serviços contabilizados */}
         {servicos.length > 0 ? (
@@ -243,12 +318,13 @@ function ModalDetalhes({ profissional, open, onClose }: {
 }
 
 // ─── Card de Profissional (lista) ────────────────────────────────────────────
-function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar }: {
+function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar, mostrarComparativo }: {
   p: Profissional;
   idx: number;
   campo: "totalGeral" | "totalProdutos";
   temDadosNoMes: boolean;
   onDetalhar: () => void;
+  mostrarComparativo: boolean;
 }) {
   const nome = p.apelido ?? p.nome;
   const iniciais = nome.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
@@ -327,6 +403,7 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar }: {
             )}
           </div>
         )}
+        {mostrarComparativo && <ComparativoMelhorMes profissional={p} />}
         {!p.temDados && <p className="text-xs text-muted-foreground">{p.cargo ?? "Profissional"}</p>}
       </div>
 
@@ -1144,6 +1221,7 @@ export default function RankingPublico() {
                     idx={idx}
                     campo={campoAtivo}
                     temDadosNoMes={temDadosNoMes || modo !== "mensal"}
+                    mostrarComparativo={modo === "mensal"}
                     onDetalhar={() => setProfissionalSelecionado(p)}
                   />
                 ))}
@@ -1174,6 +1252,7 @@ export default function RankingPublico() {
       <ModalDetalhes
         profissional={profissionalSelecionado}
         open={!!profissionalSelecionado}
+        mostrarComparativo={modo === "mensal"}
         onClose={() => setProfissionalSelecionado(null)}
       />
 
@@ -1255,6 +1334,11 @@ export default function RankingPublico() {
                   {p.apelido || p.nome}
                 </div>
                 <div style={{ fontSize: "11px", color: "#64748b", marginTop: "1px" }}>{p.cargo || "Profissional"}</div>
+                {modo === "mensal" && p.melhorMes && (
+                  <div style={{ fontSize: "10px", color: p.melhorMes.novoRecorde ? "#4ade80" : "#fbbf24", marginTop: "3px" }}>
+                    Recorde {periodoCurto(p.melhorMes.mes, p.melhorMes.ano)}: {formatCurrency(p.melhorMes.totalGeral)} · {p.melhorMes.percentualDoRecorde}%
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "16px", fontWeight: "700", color: idx === 0 ? "#fbbf24" : "#e2e8f0" }}>
