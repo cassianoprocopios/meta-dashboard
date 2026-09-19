@@ -46,6 +46,8 @@ export default function PerformanceProfissionais() {
     }
   }, [empresas]);
 
+  const unidadeExportacao = empresaSlug === "todas" ? empresas.find((e: any) => e.slug !== "todas")?.slug ?? "" : empresaSlug;
+
   // Mutations para exportação
   const exportarPDF = trpc.relatorios.export.exportarPDF.useMutation();
   const exportarExcel = trpc.relatorios.export.exportarExcel.useMutation();
@@ -54,7 +56,7 @@ export default function PerformanceProfissionais() {
   const handleExportarPDF = async () => {
     try {
       const resultado = await exportarPDF.mutateAsync({
-        empresaSlug: empresaSlug === "todas" ? empresas.filter((e: any) => e.slug !== "todas")[0]?.slug ?? "" : empresaSlug,
+        empresaSlug: unidadeExportacao,
         dataInicio,
         dataFim,
       });
@@ -72,7 +74,7 @@ export default function PerformanceProfissionais() {
   const handleExportarExcel = async () => {
     try {
       const resultado = await exportarExcel.mutateAsync({
-        empresaSlug,
+        empresaSlug: unidadeExportacao,
         dataInicio,
         dataFim,
       });
@@ -90,7 +92,7 @@ export default function PerformanceProfissionais() {
   const handleExportarConsolidado = async () => {
     try {
       const resultado = await exportarConsolidado.mutateAsync({
-        empresaSlug,
+        empresaSlug: unidadeExportacao,
         dataInicio,
         dataFim,
       });
@@ -173,7 +175,7 @@ export default function PerformanceProfissionais() {
             <div className="flex gap-2">
               <Button
                 onClick={handleExportarPDF}
-                disabled={exportarPDF.isPending}
+                disabled={exportarPDF.isPending || empresaSlug === "todas"}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
@@ -181,7 +183,7 @@ export default function PerformanceProfissionais() {
               </Button>
               <Button
                 onClick={handleExportarExcel}
-                disabled={exportarExcel.isPending}
+                disabled={exportarExcel.isPending || empresaSlug === "todas"}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
@@ -190,7 +192,7 @@ export default function PerformanceProfissionais() {
             </div>
             <Button
               onClick={handleExportarConsolidado}
-              disabled={exportarConsolidado.isPending}
+              disabled={exportarConsolidado.isPending || empresaSlug === "todas"}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
