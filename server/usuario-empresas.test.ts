@@ -24,7 +24,8 @@ function createAdminCtx(overrides: Partial<AuthenticatedUser> = {}): TrpcContext
     role: "admin",
     perfil: "gerente",
     empresaVinculada: null,
-    tenantId: 1,
+    // null representa super-admin nos testes unitários e evita dependência de banco/tenant.
+    tenantId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),
