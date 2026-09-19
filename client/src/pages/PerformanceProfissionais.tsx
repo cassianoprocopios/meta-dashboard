@@ -10,9 +10,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function PerformanceProfissionais() {
   const { user } = useAuth();
-  const [empresaSlug, setEmpresaSlug] = useState("MASCOTE");
+  const [empresaSlug, setEmpresaSlug] = useState("todas");
   const [dataInicio, setDataInicio] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0]
+    new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0]
   );
   const [dataFim, setDataFim] = useState(new Date().toISOString().split("T")[0]);
 
@@ -29,11 +29,11 @@ export default function PerformanceProfissionais() {
       if (prof.empresaSlug && !empresasMap.has(prof.empresaSlug)) {
         empresasMap.set(prof.empresaSlug, {
           slug: prof.empresaSlug,
-          nome: prof.empresaSlug === "MASCOTE" ? "Mascote" : prof.empresaSlug === "MORUMBI" ? "Morumbi" : prof.empresaSlug === "SERAPHINE" ? "Seraphine" : prof.empresaSlug,
+          nome: prof.empresaSlug === "MASCOTE" ? "Mascote" : prof.empresaSlug === "MORUMBI" ? "Morumbi" : prof.empresaSlug === "SERAPHINE" ? "Lephyne" : prof.empresaSlug,
         });
       }
     });
-    return Array.from(empresasMap.values());
+    return [{ slug: "todas", nome: "Todas as unidades" }, ...Array.from(empresasMap.values())];
   }, [profissionais]);
 
   // Atualizar empresa padrão quando empresas forem carregadas
@@ -54,7 +54,7 @@ export default function PerformanceProfissionais() {
   const handleExportarPDF = async () => {
     try {
       const resultado = await exportarPDF.mutateAsync({
-        empresaSlug,
+        empresaSlug: empresaSlug === "todas" ? empresas.filter((e: any) => e.slug !== "todas")[0]?.slug ?? "" : empresaSlug,
         dataInicio,
         dataFim,
       });
@@ -201,11 +201,15 @@ export default function PerformanceProfissionais() {
       </Card>
 
       {/* Dashboard de Performance */}
+      {empresaSlug === "todas" ? (
+        <Card className="premium-panel p-6 text-slate-600">Selecione uma unidade para visualizar o ranking detalhado dos profissionais. O consolidado anual entre unidades será exibido no Dashboard Gerencial.</Card>
+      ) : (
       <DashboardPerformanceProfissionais
         empresaSlug={empresaSlug}
         dataInicio={dataInicio}
         dataFim={dataFim}
       />
+      )}
     </div>
     </DashboardLayout>
   );
