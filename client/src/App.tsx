@@ -21,6 +21,7 @@ import GestaoColaboradores from "./pages/GestaoColaboradores";
 import HistoricoBonificacoes from "./pages/HistoricoBonificacoes";
 import RelatoriosAtendimentos from "./pages/RelatoriosAtendimentos";
 import PerformanceProfissionais from "./pages/PerformanceProfissionais";
+import DashboardGerencial from "./pages/DashboardGerencial";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { Target, Loader2 } from "lucide-react";
@@ -63,6 +64,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/dashboard-gerencial"} component={DashboardGerencial} />
       <Route path={"/admin"}>{() => <AdminDashboard onBack={() => window.history.back()} />}</Route>
       <Route path={"/register"}>{() => <TenantRegister onBack={() => window.history.back()} onSuccess={() => window.location.href = "/"} />}</Route>
       <Route path={"/dev"} component={DevPanel} />
