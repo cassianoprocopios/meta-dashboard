@@ -16,6 +16,8 @@ export interface ComparativoMelhorMes extends ResumoFaturamentoProfissional {
 
 export interface MelhorMesColaborador extends ResumoFaturamentoProfissional {
   colaboradorId: number;
+  detalhesServicos?: string | null;
+  detalhesProdutos?: string | null;
 }
 
 function arredondarCentavos(valor: number): number {

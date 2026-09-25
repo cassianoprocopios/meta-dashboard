@@ -32,6 +32,7 @@ import {
   AlertCircle,
   Clock,
   ChevronDown,
+  ChevronUp,
   Package,
   Wrench,
   Building2,
@@ -89,6 +90,8 @@ type Profissional = {
     valorAcimaDoRecorde: number;
     novoRecorde: boolean;
     igualouRecorde: boolean;
+    detalhesServicos?: string | null;
+    detalhesProdutos?: string | null;
   } | null;
 };
 
@@ -135,6 +138,7 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
   profissional: Profissional;
   detalhado?: boolean;
 }) {
+  const [mostrarItens, setMostrarItens] = useState(false);
   const melhor = profissional.melhorMes;
   if (!profissional.temDados) return null;
   if (!melhor) {
@@ -155,6 +159,9 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
     : melhor.igualouRecorde
       ? "Recorde igualado"
       : `Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar`;
+  const servicosRecorde = parseDetalhes(melhor.detalhesServicos);
+  const produtosRecorde = parseProdutos(melhor.detalhesProdutos);
+  const temItensRecorde = servicosRecorde.length > 0 || produtosRecorde.length > 0;
 
   return (
     <div className={`rounded-xl border ${
@@ -236,9 +243,37 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
           {mensagem}
         </span>
       </div>
+      {temItensRecorde && (
+        <div className="mt-3 border-t border-slate-200/70 pt-2">
+          <button type="button" onClick={() => setMostrarItens((atual) => !atual)} aria-expanded={mostrarItens}
+            className="inline-flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] font-bold text-blue-700 transition-colors hover:bg-blue-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <span>{mostrarItens ? "Ocultar itens do mês recorde" : "Ver serviços e produtos do mês recorde"}</span>
+            {mostrarItens ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+          {mostrarItens && <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <RecordeItens titulo="Serviços" itens={servicosRecorde} tipo="servico" />
+            <RecordeItens titulo="Produtos" itens={produtosRecorde} tipo="produto" />
+          </div>}
+        </div>
+      )}
       </div>
     </div>
   );
+}
+
+function RecordeItens({ titulo, itens, tipo }: { titulo: string; itens: Array<ServicoDetalhe | ProdutoDetalhe>; tipo: "servico" | "produto" }) {
+  return <div className="rounded-lg bg-white/70 p-2 shadow-sm ring-1 ring-slate-200/70">
+    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">{titulo}</p>
+    {itens.length === 0 ? <p className="text-[10px] text-slate-400">Nenhum item registrado</p> : <ul className="space-y-1">
+      {itens.map((item, index) => {
+        const nome = tipo === "servico" ? (item as ServicoDetalhe).ser_nome : (item as ProdutoDetalhe).pro_nome;
+        return <li key={`${tipo}-${nome}-${index}`} className="flex items-start justify-between gap-2 text-[10px] text-slate-700">
+          <span className="min-w-0 truncate">{nome} {item.count ? `×${item.count}` : ""}</span>
+          <span className="shrink-0 font-bold">{formatCurrency(item.sum)}</span>
+        </li>;
+      })}
+    </ul>}
+  </div>;
 }
 
 // ─── Modal de Detalhamento ───────────────────────────────────────────────────

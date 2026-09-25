@@ -1825,6 +1825,22 @@ export async function listarMelhoresMesesPorColaborador(
       totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
       totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
       totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
+      detalhesServicos: sql<string | null>`(
+        SELECT detalhesServicos FROM faturamentoColaboradores fc2
+        WHERE fc2.tenantId = ${faturamentoColaboradores.tenantId}
+          AND fc2.colaboradorId = ${faturamentoColaboradores.colaboradorId}
+          AND fc2.mes = ${faturamentoColaboradores.mes}
+          AND fc2.ano = ${faturamentoColaboradores.ano}
+        ORDER BY fc2.ultimaSyncEm DESC LIMIT 1
+      )`,
+      detalhesProdutos: sql<string | null>`(
+        SELECT detalhesProdutos FROM faturamentoColaboradores fc3
+        WHERE fc3.tenantId = ${faturamentoColaboradores.tenantId}
+          AND fc3.colaboradorId = ${faturamentoColaboradores.colaboradorId}
+          AND fc3.mes = ${faturamentoColaboradores.mes}
+          AND fc3.ano = ${faturamentoColaboradores.ano}
+        ORDER BY fc3.ultimaSyncEm DESC LIMIT 1
+      )`,
     })
     .from(faturamentoColaboradores)
     .where(eq(faturamentoColaboradores.tenantId, tenantId))
@@ -1847,6 +1863,8 @@ export async function listarMelhoresMesesPorColaborador(
       totalServicos: Number(row.totalServicos),
       totalProdutos: Number(row.totalProdutos),
       totalGeral: Number(row.totalGeral),
+      detalhesServicos: row.detalhesServicos ?? null,
+      detalhesProdutos: row.detalhesProdutos ?? null,
     })), mesReferencia, anoReferencia);
 }
 

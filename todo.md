@@ -85,6 +85,7 @@
 - [x] Bloquear congelamento quinzenal antes de 15 às 23:50 BRT e reparar snapshots prematuros sem duplicar notificações
 - [x] Comparar o mês atual de cada profissional com seu melhor mês histórico de serviços + produtos no ranking e no portal móvel
 - [x] Destacar o progresso até o recorde com barra acessível e selo de conquista para recorde superado ou igualado
+- [x] Exibir detalhamento clicável dos serviços e produtos que compuseram o mês recorde no ranking público e na tela individual
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 
