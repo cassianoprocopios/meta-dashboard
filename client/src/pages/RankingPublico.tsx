@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ import {
   Download,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
+import RecordCelebration from "@/components/RecordCelebration";
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 const MESES = [
@@ -161,10 +163,12 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
         : melhor.igualouRecorde
           ? "border-blue-400/35 bg-blue-500/5"
           : "border-amber-500/25 bg-amber-500/5"
-    } ${detalhado ? "p-3.5 mb-4" : "p-2.5 mt-2"}`}>
+    } relative overflow-hidden ${detalhado ? "p-3.5 mb-4" : "p-2.5 mt-2"}`}>
+      {melhor.novoRecorde && <RecordCelebration />}
+      <div className="relative z-[1]">
       {recordeAlcancado && (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-black tracking-[0.12em] ${
+          <span className={`record-achievement-badge inline-flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-black tracking-[0.12em] ${
             melhor.novoRecorde
               ? "bg-emerald-600 text-white shadow-sm"
               : "bg-blue-600 text-white"
@@ -194,19 +198,36 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
         <span>Atual {formatCurrency(profissional.totalGeral)}</span>
         <span>Meta recorde {formatCurrency(melhor.totalGeral)}</span>
       </div>
-      <div
-        className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-slate-200 ring-1 ring-inset ring-slate-300/60"
-        role="progressbar"
-        aria-label={`Progresso de ${profissional.apelido ?? profissional.nome} para o recorde histórico`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
-      >
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"}`}
-          style={{ width: `${progresso}%` }}
-        />
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className="relative mt-1 h-2.5 cursor-help overflow-hidden rounded-full bg-slate-200 ring-1 ring-inset ring-slate-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            role="progressbar"
+            tabIndex={0}
+            aria-label={`Progresso de ${profissional.apelido ?? profissional.nome} para o recorde histórico. ${melhor.faltaParaRecorde > 0 ? `Faltam ${formatCurrency(melhor.faltaParaRecorde)}` : "Recorde alcançado"}`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
+          >
+            <div
+              className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"}`}
+              style={{ width: `${progresso}%` }}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={6} className="border border-slate-700 bg-slate-950 px-3 py-2 text-white shadow-xl">
+          <p className="font-bold">
+            {melhor.novoRecorde
+              ? `Recorde superado em ${formatCurrency(melhor.valorAcimaDoRecorde)}`
+              : melhor.igualouRecorde
+                ? "Recorde alcançado — faltam R$ 0,00"
+                : `Faltam exatamente ${formatCurrency(melhor.faltaParaRecorde)}`}
+          </p>
+          <p className="mt-0.5 text-[10px] text-slate-300">
+            Atual {formatCurrency(profissional.totalGeral)} · Recorde {formatCurrency(melhor.totalGeral)}
+          </p>
+        </TooltipContent>
+      </Tooltip>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px]">
         <span className="text-muted-foreground">
           Serv. {formatCurrency(melhor.totalServicos)} · Prod. {formatCurrency(melhor.totalProdutos)}
@@ -214,6 +235,7 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
         <span className={`font-bold ${recordeAlcancado ? "text-emerald-700" : "text-amber-700"}`}>
           {mensagem}
         </span>
+      </div>
       </div>
     </div>
   );

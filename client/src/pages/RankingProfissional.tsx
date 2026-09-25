@@ -3,6 +3,8 @@ import { trpc } from "@/lib/trpc";
 import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import RecordCelebration from "@/components/RecordCelebration";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
@@ -3147,9 +3149,10 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
                 ? 'bg-blue-500/10 border-blue-400/30'
                 : 'bg-amber-500/10 border-amber-500/25'
           }`}>
+            {melhor.novoRecorde && <RecordCelebration />}
             {recordeAlcancado && (
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${
+              <div className="relative z-[1] mb-3 flex items-center justify-between gap-2">
+                <span className={`record-achievement-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${
                   melhor.novoRecorde ? 'bg-emerald-400 text-emerald-950' : 'bg-blue-400 text-blue-950'
                 }`}>
                   <Trophy className="w-3.5 h-3.5" />
@@ -3170,24 +3173,41 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
               </div>
               <p className={`rounded-full px-2.5 py-1 text-lg font-black shrink-0 ${recordeAlcancado ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>{melhor.percentualDoRecorde}%</p>
             </div>
-            <div className="flex items-center justify-between text-xs mb-1.5">
+            <div className="relative z-[1] flex items-center justify-between text-xs mb-1.5">
               <span className="text-white/55">Atual: {formatarMoeda(mesAtualData.totalGeral)}</span>
               <span className="text-white font-semibold">Recorde: {formatarMoeda(melhor.totalGeral)}</span>
             </div>
-            <div
-              className="h-3 rounded-full bg-white/10 overflow-hidden ring-1 ring-inset ring-white/10"
-              role="progressbar"
-              aria-label="Progresso para superar o recorde histórico"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
-            >
-              <div
-                className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? 'bg-gradient-to-r from-emerald-400 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-yellow-300'}`}
-                style={{ width: `${Math.min(Math.max(melhor.percentualDoRecorde, 0), 100)}%` }}
-              />
-            </div>
-            <p className={`text-xs font-bold mt-2 ${recordeAlcancado ? 'text-emerald-300' : 'text-amber-300'}`}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="relative z-[1] h-3 cursor-help overflow-hidden rounded-full bg-white/10 ring-1 ring-inset ring-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  role="progressbar"
+                  tabIndex={0}
+                  aria-label={`Progresso para superar o recorde histórico. ${melhor.faltaParaRecorde > 0 ? `Faltam ${formatarMoeda(melhor.faltaParaRecorde)}` : 'Recorde alcançado'}`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
+                >
+                  <div
+                    className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? 'bg-gradient-to-r from-emerald-400 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-yellow-300'}`}
+                    style={{ width: `${Math.min(Math.max(melhor.percentualDoRecorde, 0), 100)}%` }}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={6} className="border border-slate-700 bg-slate-950 px-3 py-2 text-white shadow-xl">
+                <p className="font-bold">
+                  {melhor.novoRecorde
+                    ? `Recorde superado em ${formatarMoeda(melhor.valorAcimaDoRecorde)}`
+                    : melhor.igualouRecorde
+                      ? "Recorde alcançado — faltam R$ 0,00"
+                      : `Faltam exatamente ${formatarMoeda(melhor.faltaParaRecorde)}`}
+                </p>
+                <p className="mt-0.5 text-[10px] text-slate-300">
+                  Atual {formatarMoeda(mesAtualData.totalGeral)} · Recorde {formatarMoeda(melhor.totalGeral)}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <p className={`relative z-[1] text-xs font-bold mt-2 ${recordeAlcancado ? 'text-emerald-300' : 'text-amber-300'}`}>
               {melhor.novoRecorde
                 ? `Novo recorde! Você superou em ${formatarMoeda(melhor.valorAcimaDoRecorde)}.`
                 : melhor.igualouRecorde

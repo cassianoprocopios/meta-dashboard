@@ -83,9 +83,17 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(pagina).toContain("Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar");
     expect(pagina).toContain('role="progressbar"');
     expect(pagina).toContain('"NOVO RECORDE"');
+    expect(pagina).toContain("Faltam exatamente ${formatCurrency(melhor.faltaParaRecorde)}");
+    expect(pagina).toContain("RecordCelebration");
     expect(portal).toContain("Seu melhor mês:");
     expect(portal).toContain("para superar seu melhor mês");
     expect(portal).toContain('role="progressbar"');
     expect(portal).toContain("'NOVO RECORDE'");
+    expect(portal).toContain("Faltam exatamente ${formatarMoeda(melhor.faltaParaRecorde)}");
+    expect(portal).toContain("RecordCelebration");
+
+    const estilos = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
+    expect(estilos).toContain("@keyframes recordConfettiBurst");
+    expect(estilos).toContain(".record-achievement-badge");
   });
 });
