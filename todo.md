@@ -1801,3 +1801,5 @@
 - [x] Remover gráficos e listas extensas da tabela principal
 - [x] Abrir uma janela ampla ao clicar na linha, reunindo recorde, progresso, composição, filtros e vendas do período atual
 - [x] Permitir abertura por clique, Enter ou Espaço e validar visualmente com dados reais
+
+- [x] Remover a composição detalhada do mês recorde da janela do Ranking Público, mantendo somente o resumo e a barra de progresso históricos

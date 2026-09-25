@@ -92,6 +92,7 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(pagina).toContain('data-testid="ranking-detalhamento-amplo"');
     expect(pagina).toContain("lg:max-w-5xl");
     expect(pagina).toContain("Abrir detalhamento completo de ${nome}");
+    expect(pagina).not.toContain("<RecordeDetalhes");
     expect(portal).toContain('data-testid="comparativo-recorde-ranking-movel"');
     expect(portal).toContain("trpc.desempenhoHistorico.useQuery");
     expect(portal).toContain("<DesafioRecordeProfissional");

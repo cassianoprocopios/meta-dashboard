@@ -45,7 +45,6 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import RecordCelebration from "@/components/RecordCelebration";
-import RecordeDetalhes from "@/components/RecordeDetalhes";
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 const MESES = [
@@ -275,8 +274,6 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
           {mensagem}
         </span>
       </div>
-      <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos}
-        detalhesAtuaisServicos={profissional.detalhesServicos} detalhesAtuaisProdutos={profissional.detalhesProdutos} />
       </div>
     </div>
   );
