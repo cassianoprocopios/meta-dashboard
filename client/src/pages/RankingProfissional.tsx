@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff, MessageCircle } from "lucide-react";
+import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import RecordCelebration from "@/components/RecordCelebration";
+import RecordeDetalhes from "@/components/RecordeDetalhes";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
@@ -36,17 +37,6 @@ const EMPRESA_LABEL: Record<string, string> = {
 function empresaLabel(slug: string | null | undefined) {
   if (!slug) return "Barbiero";
   return EMPRESA_LABEL[slug] ?? slug;
-}
-
-type ItemRecorde = { nome: string; sum: number; count?: number };
-function parseItensRecorde(json: string | null | undefined, chave: "ser_nome" | "pro_nome"): ItemRecorde[] {
-  if (!json) return [];
-  try {
-    const itens = JSON.parse(json);
-    if (!Array.isArray(itens)) return [];
-    return itens.filter((item) => item && typeof item[chave] === "string" && typeof item.sum === "number")
-      .map((item) => ({ nome: item[chave], sum: item.sum, count: item.count }));
-  } catch { return []; }
 }
 
 // ─── Gerador de texto do ranking para WhatsApp ───────────────────────────────
@@ -2910,7 +2900,6 @@ function AbaAnalise({ profissionalId }: { profissionalId: number }) {
 // ─── Aba Meu Desempenho ─────────────────────────────────────────────────────
 function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
   const confettiRef = useRef<boolean>(false);
-  const [mostrarItensRecorde, setMostrarItensRecorde] = useState(false);
   const { data, isLoading, error } = trpc.desempenhoHistorico.useQuery(
     { profissionalId },
     { staleTime: 1000 * 60 * 10, refetchInterval: 30 * 60 * 1000 }
@@ -3227,37 +3216,7 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
                   ? 'Você igualou seu melhor resultado. Mais uma venda cria um novo recorde!'
                   : `Faltam ${formatarMoeda(melhor.faltaParaRecorde)} para superar seu melhor mês.`}
             </p>
-            {(() => {
-              const servicosRecorde = parseItensRecorde(melhor.detalhesServicos, 'ser_nome');
-              const produtosRecorde = parseItensRecorde(melhor.detalhesProdutos, 'pro_nome');
-              if (servicosRecorde.length === 0 && produtosRecorde.length === 0) return null;
-              return (
-                <div className="relative z-[1] mt-3 border-t border-white/10 pt-2">
-                  <button type="button" onClick={() => setMostrarItensRecorde((atual) => !atual)} aria-expanded={mostrarItensRecorde}
-                    className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-bold text-blue-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
-                    <span>{mostrarItensRecorde ? 'Ocultar itens do mês recorde' : 'Ver serviços e produtos do mês recorde'}</span>
-                    {mostrarItensRecorde ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  {mostrarItensRecorde && (
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      {([['Serviços', servicosRecorde], ['Produtos', produtosRecorde]] as const).map(([titulo, itens]) => (
-                        <div key={titulo} className="rounded-lg bg-black/15 p-2">
-                          <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-white/55">{titulo}</p>
-                          <ul className="space-y-1">
-                            {itens.length === 0 ? <li className="text-[10px] text-white/35">Nenhum item</li> : itens.map((item, index) => (
-                              <li key={`${titulo}-${item.nome}-${index}`} className="flex items-start justify-between gap-2 text-[10px] text-white/75">
-                                <span className="min-w-0 truncate">{item.nome} {item.count ? `×${item.count}` : ''}</span>
-                                <span className="shrink-0 font-bold">{formatarMoeda(item.sum)}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+            <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos} modo="escuro" />
           </div>
         );
       })() : (
