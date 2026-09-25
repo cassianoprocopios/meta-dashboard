@@ -36,6 +36,13 @@
       "when": 1789663372572,
       "tag": "0004_add_categories_11_12",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1790365125926,
+      "tag": "0005_cashbarber_clientes_mensais",
+      "breakpoints": true
     }
   ]
 }

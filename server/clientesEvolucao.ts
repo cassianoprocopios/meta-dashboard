@@ -1,98 +1,86 @@
-import { getDb } from "./db";
 import { and, between, eq } from "drizzle-orm";
+import { cashbarberAtendimentos } from "../drizzle/schema";
+import { normalizarSlugUnidadeCashbarber } from "../shared/clientesCashbarber";
+import { getDb, listCashbarberClientesMensaisPeriodo } from "./db";
 
-export interface ClientesEvolucaoMes {
-  mes: number;
-  ano: number;
-  mesLabel: string;
-  totalClientes: number;
-  porProfissional: Record<string, number>;
+function obterTotalResumo(
+  resumos: Awaited<ReturnType<typeof listCashbarberClientesMensaisPeriodo>>,
+  empresaSlug?: string
+): number | null {
+  if (resumos.length === 0) return null;
+
+  if (empresaSlug) {
+    const unidade = normalizarSlugUnidadeCashbarber(empresaSlug);
+    return resumos.find(
+      (item) => normalizarSlugUnidadeCashbarber(item.empresaSlug) === unidade
+    )?.totalClientes ?? 0;
+  }
+
+  const consolidado = resumos.find((item) => item.empresaSlug === "barbiero-grupo");
+  if (consolidado) return consolidado.totalClientes;
+  return resumos
+    .filter((item) => item.empresaSlug !== "barbiero-grupo")
+    .reduce((total, item) => total + item.totalClientes, 0);
 }
 
 /**
- * Obtém evolução de clientes dos últimos 3 meses
+ * Obtém evolução de clientes dos últimos 3 meses.
+ * Prioriza o Relatório 09 oficial e usa o legado somente em períodos ainda não migrados.
  */
 export async function obterClientesEvolucaoUltimos3Meses(
   tenantId: number,
   empresaSlug?: string
-): Promise<ClientesEvolucaoMes[]> {
+) {
   try {
     const db = await getDb();
     if (!db) return [];
 
-    const { cashbarberAtendimentos } = await import("../drizzle/schema");
-
     const hoje = new Date();
-    const mesAtual = hoje.getMonth() + 1;
-    const anoAtual = hoje.getFullYear();
+    const resultado = [];
 
-    // Calcular os 3 últimos meses
-    const meses = [];
     for (let i = 2; i >= 0; i--) {
-      let mes = mesAtual - i;
-      let ano = anoAtual;
+      const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+      const mes = data.getMonth() + 1;
+      const ano = data.getFullYear();
+      const resumos = await listCashbarberClientesMensaisPeriodo(tenantId, mes, ano);
+      const totalOficial = obterTotalResumo(resumos, empresaSlug);
 
-      if (mes <= 0) {
-        mes += 12;
-        ano -= 1;
+      let totalClientes: number;
+      let fonte: "cashbarber_relatorio09" | "legado";
+      let sincronizadoEm: Date | null = null;
+
+      if (totalOficial !== null) {
+        totalClientes = totalOficial;
+        fonte = "cashbarber_relatorio09";
+        const unidade = empresaSlug ? normalizarSlugUnidadeCashbarber(empresaSlug) : null;
+        const resumoFonte = unidade
+          ? resumos.find((item) => normalizarSlugUnidadeCashbarber(item.empresaSlug) === unidade)
+          : resumos.find((item) => item.empresaSlug === "barbiero-grupo");
+        sincronizadoEm = resumoFonte?.sincronizadoEm ?? null;
+      } else {
+        const primeiroDia = new Date(ano, mes - 1, 1);
+        const ultimoDia = new Date(ano, mes, 0);
+        const condicoes = [
+          eq(cashbarberAtendimentos.tenantId, tenantId),
+          between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia),
+        ];
+        if (empresaSlug) condicoes.push(eq(cashbarberAtendimentos.empresaSlug, empresaSlug));
+        const atendimentos = await db
+          .select()
+          .from(cashbarberAtendimentos)
+          .where(and(...condicoes));
+        totalClientes = new Set((atendimentos as any[]).map((item) => item.clienteId)).size;
+        fonte = "legado";
       }
-
-      meses.push({ mes, ano });
-    }
-
-    const resultado: ClientesEvolucaoMes[] = [];
-
-    for (const { mes, ano } of meses) {
-      // Calcular datas do mês
-      const primeiroDia = new Date(ano, mes - 1, 1);
-      const ultimoDia = new Date(ano, mes, 0);
-
-      // Buscar atendimentos do mês
-      const conditions = [
-        eq(cashbarberAtendimentos.tenantId, tenantId),
-        between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia),
-      ];
-
-      if (empresaSlug) {
-        conditions.push(eq(cashbarberAtendimentos.empresaSlug, empresaSlug));
-      }
-
-      const atendimentos = await db
-        .select()
-        .from(cashbarberAtendimentos)
-        .where(and(...conditions));
-
-      // Contar clientes únicos
-      const clientesUnicos = new Set<string>();
-      const clientesPorProfissional = new Map<string, Set<string>>();
-
-      atendimentos.forEach((att: any) => {
-        clientesUnicos.add(att.clienteId);
-
-        const profNome = att.profissionalNome || "Sem profissional";
-        if (!clientesPorProfissional.has(profNome)) {
-          clientesPorProfissional.set(profNome, new Set());
-        }
-        clientesPorProfissional.get(profNome)!.add(att.clienteId);
-      });
-
-      // Converter para objeto
-      const porProfissionalObj: Record<string, number> = {};
-      clientesPorProfissional.forEach((clientes, profissional) => {
-        porProfissionalObj[profissional] = clientes.size;
-      });
-
-      const mesLabel = new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", {
-        month: "short",
-        year: "numeric",
-      });
 
       resultado.push({
         mes,
         ano,
-        mesLabel,
-        totalClientes: clientesUnicos.size,
-        porProfissional: porProfissionalObj,
+        mesLabel: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+        totalClientes,
+        porProfissional: {},
+        fonte,
+        sincronizadoEm,
       });
     }
 
@@ -103,87 +91,59 @@ export async function obterClientesEvolucaoUltimos3Meses(
   }
 }
 
-/**
- * Obtém clientes atendidos por profissional em um período
- */
+/** Obtém clientes por profissional para os relatórios detalhados legados. */
 export async function obterClientesPorProfissional(
   tenantId: number,
   empresaSlug: string,
   mes: number,
   ano: number,
-  profissional?: string
-): Promise<
-  Array<{
-    profissional: string;
-    totalClientes: number;
-    totalAtendimentos: number;
-    faturamentoTotal: number;
-  }>
-> {
+  profissionalNome?: string
+) {
   try {
     const db = await getDb();
     if (!db) return [];
 
-    const { cashbarberAtendimentos } = await import("../drizzle/schema");
-
-    // Calcular datas do mês
     const primeiroDia = new Date(ano, mes - 1, 1);
     const ultimoDia = new Date(ano, mes, 0);
-
-    // Construir condições
-    const conditions = [
-      eq(cashbarberAtendimentos.tenantId, tenantId),
-      eq(cashbarberAtendimentos.empresaSlug, empresaSlug),
-      between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia),
-    ];
-
-    if (profissional) {
-      conditions.push(eq(cashbarberAtendimentos.profissionalNome, profissional));
-    }
-
     const atendimentos = await db
       .select()
       .from(cashbarberAtendimentos)
-      .where(and(...conditions));
+      .where(and(
+        eq(cashbarberAtendimentos.tenantId, tenantId),
+        eq(cashbarberAtendimentos.empresaSlug, empresaSlug),
+        between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia)
+      ));
 
-    // Agrupar por profissional
-    const porProfissional = new Map<
+    const profissionais = new Map<
       string,
-      {
-        clientes: Set<string>;
-        atendimentos: number;
-        faturamento: number;
-      }
+      { clientes: Set<string>; totalAtendimentos: number; faturamento: number }
     >();
-
-    atendimentos.forEach((att: any) => {
-      const profNome = att.profissionalNome || "Sem profissional";
-
-      if (!porProfissional.has(profNome)) {
-        porProfissional.set(profNome, {
+    for (const atendimento of atendimentos as any[]) {
+      const profissional = atendimento.profissionalNome || "Sem profissional";
+      if (profissionalNome && profissional !== profissionalNome) continue;
+      if (!profissionais.has(profissional)) {
+        profissionais.set(profissional, {
           clientes: new Set(),
-          atendimentos: 0,
+          totalAtendimentos: 0,
           faturamento: 0,
         });
       }
+      const dados = profissionais.get(profissional)!;
+      dados.clientes.add(atendimento.clienteId);
+      dados.totalAtendimentos++;
+      dados.faturamento += parseFloat(String(atendimento.valor || 0));
+    }
 
-      const prof = porProfissional.get(profNome)!;
-      prof.clientes.add(att.clienteId);
-      prof.atendimentos++;
-      prof.faturamento += parseFloat(att.valor.toString());
-    });
-
-    // Converter para array ordenado por clientes
-    return Array.from(porProfissional.entries())
-      .map(([nome, dados]) => ({
-        profissional: nome,
-        totalClientes: dados.clientes.size,
-        totalAtendimentos: dados.atendimentos,
-        faturamentoTotal: dados.faturamento,
+    return Array.from(profissionais.entries())
+      .map(([profissional, dados]) => ({
+        profissional,
+        clientesUnicos: dados.clientes.size,
+        totalAtendimentos: dados.totalAtendimentos,
+        faturamento: dados.faturamento,
       }))
-      .sort((a, b) => b.totalClientes - a.totalClientes);
+      .sort((a, b) => b.clientesUnicos - a.clientesUnicos);
   } catch (erro) {
-    console.error("[ClientesPorProfissional] Erro ao obter dados:", erro);
+    console.error("[ClientesEvolucao] Erro ao obter clientes por profissional:", erro);
     return [];
   }
 }

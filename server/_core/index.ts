@@ -81,6 +81,14 @@ async function startServer() {
           console.error(`[CronSync] Erro ao sincronizar ${config.empresaSlug}:`, msg);
         }
       }
+      let clientesResult: { totalGeral: number; unidades: unknown[] } | null = null;
+      try {
+        const { sincronizarClientesCashbarberPeriodo } = await import("../clientesCashbarberService");
+        clientesResult = await sincronizarClientesCashbarberPeriodo(1, mes, ano);
+        console.log(`[CronSync] Clientes do Relatório 09 atualizados: ${clientesResult.totalGeral}`);
+      } catch (err) {
+        console.warn("[CronSync] Falha ao sincronizar clientes do Relatório 09:", err);
+      }
       // Aplicar Dpote após sync de todas as empresas
       try {
         await aplicarDpoteParaTenant(1, mes, ano);
@@ -97,7 +105,15 @@ async function startServer() {
       } catch (err) {
         console.warn(`[CronSync] Falha ao recalcular ranking:`, err);
       }
-      return res.json({ ok: true, mes, ano, resultados, ranking: rankingResult, timestamp: agora.toISOString() });
+      return res.json({
+        ok: true,
+        mes,
+        ano,
+        resultados,
+        clientes: clientesResult,
+        ranking: rankingResult,
+        timestamp: agora.toISOString(),
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[CronSync] Erro geral:", msg);

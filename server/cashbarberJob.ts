@@ -7,6 +7,7 @@
 
 import * as cron from "node-cron";
 import { sincronizarFaturamentoCashbarber, aplicarDpoteParaTenant } from "./cashbarberSincronizador";
+import { sincronizarClientesCashbarberPeriodo } from "./clientesCashbarberService";
 import { verificarQuedaBrusca } from "./alertasJob";
 import { calcularTotalQuinzenal } from "../shared/quinzenal";
 import { calcularBonificacaoSubstitutiva } from "../shared/bonificacao";
@@ -153,6 +154,40 @@ export async function verificarMetaDiariaParaTenant(_tenantId: number): Promise<
   // Notificações desativadas
 }
 
+async function sincronizarClientesDoMesAtual(tenantId: number): Promise<void> {
+  const agoraBRT = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  try {
+    const resultado = await sincronizarClientesCashbarberPeriodo(
+      tenantId,
+      agoraBRT.getMonth() + 1,
+      agoraBRT.getFullYear()
+    );
+    console.log(
+      `[CashBarber Clientes] Relatório 09 atualizado: ${resultado.totalGeral} clientes distintos`
+    );
+
+    // Nos três primeiros dias do mês, fecha também o mês anterior. Assim os
+    // atendimentos após o último job do último dia não ficam fora do histórico.
+    if (agoraBRT.getDate() <= 3) {
+      const periodoAnterior = new Date(
+        agoraBRT.getFullYear(),
+        agoraBRT.getMonth() - 1,
+        1
+      );
+      const fechamento = await sincronizarClientesCashbarberPeriodo(
+        tenantId,
+        periodoAnterior.getMonth() + 1,
+        periodoAnterior.getFullYear()
+      );
+      console.log(
+        `[CashBarber Clientes] Mês anterior fechado: ${fechamento.totalGeral} clientes distintos`
+      );
+    }
+  } catch (erro) {
+    console.warn("[CashBarber Clientes] Falha na sincronização automática:", erro);
+  }
+}
+
 /**
  * Agenda o job horário de uma empresa
  */
@@ -189,6 +224,7 @@ function agendarJobEmpresa(tenantId: number, empresaSlug: string): void {
       .at(-1);
     if (ultimaEmpresa?.empresaSlug === empresaSlug) {
       await executarAplicacaoDpote(tenantId, "horario");
+      await sincronizarClientesDoMesAtual(tenantId);
       await verificarMetaDiariaParaTenant(tenantId);
       try {
         const resultado = await executarRecalculoRanking(tenantId);
@@ -456,6 +492,7 @@ cron.schedule("0 5 10 * * *", async () => {
       }
       // Aplicar Dpote após sync de todas as empresas do tenant
       await executarAplicacaoDpote(tenantId, "diario");
+      await sincronizarClientesDoMesAtual(tenantId);
       await verificarMetaDiariaParaTenant(tenantId);
     }
     const totalErros = Object.keys(errosPorEmpresa).length;

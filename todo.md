@@ -1770,3 +1770,12 @@
 - [x] Sincronizar o commit publicado da Evolução v4 com o GitHub
 - [x] Validar branch main, commit remoto e privacidade do repositório
 - [x] Registrar a confirmação da sincronização
+
+## Evolução de Clientes — Relatório 09 CashBarber
+
+- [x] Substituir dados zerados/simulados pelo Relatório 09 oficial de clientes distintos
+- [x] Persistir somente totais agregados por mês e unidade, sem dados pessoais
+- [x] Recalcular os últimos 12 meses de Morumbi, Mascote e consolidado do grupo
+- [x] Evitar duplicidade no consolidado consultando o CashBarber sem filtro de filial
+- [x] Integrar clientes aos ciclos automáticos, endpoint interno e botão Sync CashBarber
+- [x] Atualizar gráficos automaticamente e identificar visualmente a fonte CashBarber

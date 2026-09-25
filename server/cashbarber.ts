@@ -1,4 +1,5 @@
 import { destinoServicoCashBarberPorNome } from "../shared/cashbarberCategorias";
+import type { CashbarberRelatorio09 } from "../shared/clientesCashbarber";
 
 /**
  * Serviço de integração com a API do CashBarber
@@ -256,6 +257,35 @@ export async function cashbarberRelatorio15(
 
   if (!resp.ok) {
     throw new Error(`CashBarber relatorio15 falhou: ${resp.status}`);
+  }
+
+  return resp.json();
+}
+
+/**
+ * Busca o Relatório 09 (clientes distintos por período e serviço) do CashBarber.
+ * A rota oficial usa zero à esquerda: `/relatorios/09`.
+ */
+export async function cashbarberRelatorio09(
+  token: string,
+  dataInicial: string,
+  dataFinal: string,
+  filialId?: number | null
+): Promise<CashbarberRelatorio09> {
+  const body: Record<string, unknown> = {
+    data_inicial: dataInicial,
+    data_final: dataFinal,
+  };
+  if (filialId) body.filial = filialId;
+
+  const resp = await fetch("https://api.cashbarber.com.br/api/painel/relatorios/09", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`CashBarber relatorio09 falhou: ${resp.status}`);
   }
 
   return resp.json();

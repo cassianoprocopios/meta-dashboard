@@ -10,6 +10,8 @@ interface DadosMensal {
   morumbi: number;
   mascote: number;
   seraphine?: number;
+  fonte?: "cashbarber_relatorio09" | "legado";
+  sincronizadoEm?: Date | string | null;
 }
 
 interface ClientesEvolucaoMensalChartProps {
@@ -89,9 +91,12 @@ export default function ClientesEvolucaoMensalChart({
     <Card className="premium-form-scope border-slate-200 bg-white p-6 text-slate-900">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <TrendingUp className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-semibold text-slate-900">Evolução Mensal de Clientes</h3>
+          <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+            Fonte: CashBarber
+          </span>
         </div>
 
         {/* Resumo de Variações */}

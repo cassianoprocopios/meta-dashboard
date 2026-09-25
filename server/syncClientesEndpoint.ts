@@ -12,6 +12,12 @@ import { sincronizarClientesMensal, sincronizarClientesMensalManual } from "./sy
  */
 export async function syncClientesMensalEndpoint(req: Request, res: Response): Promise<void> {
   try {
+    const token = req.headers["x-cron-token"] || req.query.token;
+    const expectedToken = process.env.CRON_SECRET_TOKEN;
+    if (!expectedToken || token !== expectedToken) {
+      res.status(401).json({ sucesso: false, mensagem: "Não autorizado" });
+      return;
+    }
     const { action, mes, ano } = req.body;
 
     if (action === "sincronizar-clientes-mensal") {

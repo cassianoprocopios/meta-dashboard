@@ -153,8 +153,12 @@ export default function Home() {
       if (erros.length > 0) {
         toast.warning(`Sync concluída com avisos: ${total} dias importados. Erros em: ${erros.map((e) => e.empresa).join(", ")}`);
       } else {
-        toast.success(`⚡ Sync CashBarber concluída! ${total} dias importados (${data.resultados.map((r) => `${r.empresa}: ${r.diasSincronizados}`).join(", ")})`);
+        const clientes = data.clientes
+          ? ` • ${data.clientes.totalGeral} clientes distintos`
+          : "";
+        toast.success(`⚡ Sync CashBarber concluída! ${total} dias importados${clientes}`);
       }
+      utils.clientesAtendidos.invalidate();
       setSyncingCashbarber(false);
     },
     onError: (err) => {
@@ -365,20 +369,20 @@ export default function Home() {
   const mesAnterior = mes === 1 ? 12 : mes - 1;
   const anoAnterior = mes === 1 ? ano - 1 : ano;
   // Query para clientes atendidos
-  const { data: clientesAtendidosData = { totalClientesUnicos: 0, porUnidade: {}, variacao: 0 } } = trpc.clientesAtendidos.consolidado.useQuery(
+  const { data: clientesAtendidosData = { totalClientesUnicos: 0, clientesAnterior: 0, porUnidade: {}, variacao: 0 } } = trpc.clientesAtendidos.consolidado.useQuery(
     { mes, ano },
-    { enabled: !!user }
+    { enabled: !!user, refetchInterval: 5 * 60_000, refetchOnWindowFocus: true }
   );
 
    // Query para evolução de clientes
   const { data: evolucaoClientesData = [] } = trpc.clientesAtendidos.evolucaoUltimos3Meses.useQuery(
     { empresaSlug: undefined },
-    { enabled: activeTab === "dashboard" }
+    { enabled: activeTab === "dashboard", refetchInterval: 5 * 60_000, refetchOnWindowFocus: true }
   );
   // Query para evolução mensal de clientes por unidade
   const { data: evolucaoMensalData = [] } = trpc.clientesAtendidos.evolucaoMensalPorUnidade.useQuery(
     { meses: 12 },
-    { enabled: activeTab === "dashboard" }
+    { enabled: activeTab === "dashboard", refetchInterval: 5 * 60_000, refetchOnWindowFocus: true }
   );
 
 
@@ -1979,8 +1983,7 @@ export default function Home() {
 
             {/* KPI 4: Clientes Atendidos */}
             {clientesAtendidosData.totalClientesUnicos > 0 && (() => {
-              const clientesAnterior = clientesAtendidosData.porUnidade ? 
-                Object.values(clientesAtendidosData.porUnidade).reduce((sum: number, u: any) => sum + (u.anterior || 0), 0) : 0;
+              const clientesAnterior = clientesAtendidosData.clientesAnterior ?? 0;
               const variacao = clientesAtendidosData.variacao || 0;
               const cresceu = variacao > 0;
               return (
@@ -2491,11 +2494,14 @@ export default function Home() {
                   setMes(novoMes);
                   setAno(novoAno);
                 }}
-                mesesDisponiveis={[
-                  { mes: 3, ano: 2026, label: "Marco 2026" },
-                  { mes: 4, ano: 2026, label: "Abril 2026" },
-                  { mes: 5, ano: 2026, label: "Maio 2026" },
-                ]}
+                mesesDisponiveis={evolucaoMensalData.map((item: any) => ({
+                  mes: item.mesNumero,
+                  ano: item.ano,
+                  label: new Date(item.ano, item.mesNumero - 1).toLocaleDateString("pt-BR", {
+                    month: "long",
+                    year: "numeric",
+                  }),
+                }))}
               />
             )}
             {/* Gráfico de Evolução Mensal de Clientes */}

@@ -59,7 +59,10 @@ export default function ClientesPorUnidadeCard({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-slate-900">Clientes por Unidade</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Clientes por Unidade</h3>
+              <p className="text-xs text-slate-500">Clientes distintos • Fonte CashBarber</p>
+            </div>
           </div>
           {mesesDisponiveis.length > 0 ? (
             <Select
@@ -100,7 +103,7 @@ export default function ClientesPorUnidadeCard({
 
         {/* Total Geral */}
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-1 text-sm text-slate-500">Total de Clientes</p>
+          <p className="mb-1 text-sm text-slate-500">Soma por unidade</p>
           <p className="text-2xl font-bold text-slate-900">{totalGeral.toLocaleString("pt-BR")}</p>
         </div>
 

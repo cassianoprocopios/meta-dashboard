@@ -112,6 +112,8 @@ export const clientesAtendidosRouter = router({
           morumbi: consolidado.porUnidade?.MORUMBI?.atual || 0,
           mascote: consolidado.porUnidade?.MASCOTE?.atual || 0,
           seraphine: consolidado.porUnidade?.SERAPHINE?.atual || 0,
+          fonte: consolidado.fonte,
+          sincronizadoEm: consolidado.sincronizadoEm,
         });
       }
       

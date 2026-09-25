@@ -9,6 +9,8 @@ interface ClientesEvolucaoChartProps {
     mesLabel: string;
     totalClientes: number;
     porProfissional: Record<string, number>;
+    fonte?: "cashbarber_relatorio09" | "legado";
+    sincronizadoEm?: Date | string | null;
   }>;
   isLoading?: boolean;
 }
@@ -153,7 +155,9 @@ export default function ClientesEvolucaoChart({ data, isLoading }: ClientesEvolu
           </div>
           <div>
             <h3 className="font-semibold text-foreground">Evolução de Clientes</h3>
-            <p className="text-xs text-muted-foreground">Últimos 3 meses • Passe o mouse para detalhes</p>
+            <p className="text-xs text-muted-foreground">
+              Relatório 09 do CashBarber • Passe o mouse para detalhes
+            </p>
           </div>
         </div>
         <div className="text-right">

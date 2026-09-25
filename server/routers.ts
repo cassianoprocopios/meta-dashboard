@@ -4589,6 +4589,20 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
             });
           }
         }
+        let clientes: {
+          unidades: Array<{ unidade: string; totalClientesDistintos: number }>;
+          totalGeral: number;
+        } | null = null;
+        try {
+          const { sincronizarClientesCashbarberPeriodo } = await import("./clientesCashbarberService");
+          clientes = await sincronizarClientesCashbarberPeriodo(
+            tenantId,
+            input.mes,
+            input.ano
+          );
+        } catch (e) {
+          console.error(`[sincronizarTodas] Erro ao sincronizar clientes do Relatório 09: ${e}`);
+        }
         // Executar verificação de meta quinzenal após sincronização
         try {
           const { verificarMetaQuinzenalParaTenant } = await import("./cashbarberJob.js");
@@ -4597,7 +4611,7 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         } catch (e) {
           console.error(`[sincronizarTodas] Erro ao verificar meta quinzenal: ${e}`);
         }
-        return { resultados };
+        return { resultados, clientes };
       }),
 
     /**

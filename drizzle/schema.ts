@@ -320,6 +320,32 @@ export const cashbarberSyncLog = mysqlTable("cashbarberSyncLog", {
 export type CashbarberSyncLog = typeof cashbarberSyncLog.$inferSelect;
 export type InsertCashbarberSyncLog = typeof cashbarberSyncLog.$inferInsert;
 
+// ─── CLIENTES MENSAIS CASHBARBER ──────────────────────────────────────────────
+// Armazena apenas totais agregados do Relatório 09; nenhum dado pessoal do cliente é persistido.
+export const cashbarberClientesMensais = mysqlTable("cashbarberClientesMensais", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  empresaSlug: varchar("empresaSlug", { length: 64 }).notNull(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  totalClientes: int("totalClientes").notNull().default(0),
+  clientesComClube: int("clientesComClube").notNull().default(0),
+  clientesSemClube: int("clientesSemClube").notNull().default(0),
+  fonte: varchar("fonte", { length: 32 }).notNull().default("cashbarber_relatorio09"),
+  sincronizadoEm: timestamp("sincronizadoEm").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  uniqueIndex("cashbarberClientesMensais_periodo_unique").on(
+    table.tenantId,
+    table.empresaSlug,
+    table.mes,
+    table.ano
+  ),
+]);
+
+export type CashbarberClientesMensal = typeof cashbarberClientesMensais.$inferSelect;
+export type InsertCashbarberClientesMensal = typeof cashbarberClientesMensais.$inferInsert;
+
 // ─── MAPEAMENTO DE CATEGORIAS CASHBARBER ─────────────────────────────────────
 // Mapeia categorias/serviços/produtos do CashBarber para categorias do Meta Dashboard
 export const cashbarberMapeamento = mysqlTable("cashbarberMapeamento", {

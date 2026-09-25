@@ -4,6 +4,7 @@ import {
   accessLogs,
   bonificacoes,
   cashbarberConfig,
+  cashbarberClientesMensais,
   cashbarberMapeamento,
   cashbarberSyncLog,
   CashbarberConfig,
@@ -21,6 +22,7 @@ import {
   InsertAccessLog,
   InsertBonificacao,
   InsertCashbarberConfig,
+  InsertCashbarberClientesMensal,
   InsertCashbarberMapeamento,
   InsertColaborador,
   InsertEmpresa,
@@ -1217,6 +1219,67 @@ export async function listCashbarberConfigs(tenantId: number) {
     .from(cashbarberConfig)
     .where(eq(cashbarberConfig.tenantId, tenantId))
     .orderBy(asc(cashbarberConfig.empresaSlug));
+}
+
+/** Salva o total mensal oficial de clientes distintos retornado pelo Relatório 09. */
+export async function upsertCashbarberClientesMensal(data: InsertCashbarberClientesMensal) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const sincronizadoEm = data.sincronizadoEm ?? new Date();
+  await db
+    .insert(cashbarberClientesMensais)
+    .values({ ...data, sincronizadoEm })
+    .onDuplicateKeyUpdate({
+      set: {
+        totalClientes: data.totalClientes,
+        clientesComClube: data.clientesComClube,
+        clientesSemClube: data.clientesSemClube,
+        fonte: data.fonte ?? "cashbarber_relatorio09",
+        sincronizadoEm,
+      },
+    });
+}
+
+/** Busca o resumo mensal de uma unidade. */
+export async function getCashbarberClientesMensal(
+  tenantId: number,
+  empresaSlug: string,
+  mes: number,
+  ano: number
+) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select()
+    .from(cashbarberClientesMensais)
+    .where(and(
+      eq(cashbarberClientesMensais.tenantId, tenantId),
+      eq(cashbarberClientesMensais.empresaSlug, empresaSlug),
+      eq(cashbarberClientesMensais.mes, mes),
+      eq(cashbarberClientesMensais.ano, ano)
+    ))
+    .limit(1);
+  return rows[0];
+}
+
+/** Lista os resumos oficiais de todas as unidades de um período. */
+export async function listCashbarberClientesMensaisPeriodo(
+  tenantId: number,
+  mes: number,
+  ano: number
+) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(cashbarberClientesMensais)
+    .where(and(
+      eq(cashbarberClientesMensais.tenantId, tenantId),
+      eq(cashbarberClientesMensais.mes, mes),
+      eq(cashbarberClientesMensais.ano, ano)
+    ))
+    .orderBy(asc(cashbarberClientesMensais.empresaSlug));
 }
 
 /** Salva (upsert) a configuração CashBarber de uma empresa */
