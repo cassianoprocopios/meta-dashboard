@@ -1803,3 +1803,10 @@
 - [x] Permitir abertura por clique, Enter ou Espaço e validar visualmente com dados reais
 
 - [x] Remover a composição detalhada do mês recorde da janela do Ranking Público, mantendo somente o resumo e a barra de progresso históricos
+
+## Ranking Público — Tabela responsiva
+
+- [x] Reorganizar o ranking desktop em colunas alinhadas para profissional, serviços, produtos, total e meta
+- [x] Compactar cada linha móvel para 54 px, priorizando nome, total, unidade, meta e resumo do recorde
+- [x] Ocultar o pódio no celular e transformar as categorias em abas horizontais roláveis
+- [x] Validar em 390 px sem rolagem horizontal, com 21 profissionais e abertura do detalhamento preservada

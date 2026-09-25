@@ -88,6 +88,12 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(pagina).toContain("Faltam exatamente ${formatCurrency(melhor.faltaParaRecorde)}");
     expect(pagina).toContain("RecordCelebration");
     expect(pagina).toContain('data-testid="ranking-linha-compacta"');
+    expect(pagina).toContain('data-testid="ranking-tabela-cabecalho"');
+    expect(pagina).toContain("grid-cols-[1.75rem_2.25rem_minmax(0,1fr)_0.75rem]");
+    expect(pagina).toContain('className="mb-7 hidden sm:block"');
+    expect(pagina).toContain("formatCurrencyCompact");
+    expect(pagina).toContain("shrink-0 snap-start");
+    expect(pagina).toContain("[scrollbar-width:none]");
     expect(pagina).toContain('data-testid="recorde-resumo-compacto"');
     expect(pagina).toContain('data-testid="ranking-detalhamento-amplo"');
     expect(pagina).toContain("lg:max-w-5xl");

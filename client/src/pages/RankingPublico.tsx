@@ -56,6 +56,14 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+function formatCurrencyCompact(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 type CategoriaRanking = "barbeiro" | "auxiliar" | "recepcao";
 type AbaRanking = "barbeiros" | "auxiliares" | "unidade" | "produtos" | "mascote" | "morumbi";
 type ModoVisualizacao = "mensal" | "diario" | "semanal";
@@ -144,11 +152,11 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
       return (
         <div
           data-testid="recorde-resumo-compacto"
-          className="mt-1.5 flex min-h-7 items-center gap-2 rounded-md border border-blue-500/15 bg-blue-500/[0.04] px-2 py-1 text-[10px] text-blue-700"
+          className="mt-1 flex min-h-5 items-center gap-1.5 text-[9px] text-blue-700 sm:min-h-7 sm:gap-2 sm:rounded-md sm:border sm:border-blue-500/15 sm:bg-blue-500/[0.04] sm:px-2 sm:py-1 sm:text-[10px]"
         >
           <Crown className="h-3 w-3 shrink-0" />
           <span className="truncate font-semibold">Primeiro mês registrado — recorde inicial</span>
-          <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 opacity-60" />
+          <ChevronRight className="ml-auto hidden h-3.5 w-3.5 shrink-0 opacity-60 sm:block" />
         </div>
       );
     }
@@ -174,10 +182,10 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
     return (
       <div
         data-testid="recorde-resumo-compacto"
-        className={`mt-1.5 flex min-h-7 items-center gap-2 rounded-md border px-2 py-1 text-[10px] ${
+        className={`mt-1 flex min-h-5 items-center gap-1.5 text-[9px] sm:min-h-7 sm:gap-2 sm:rounded-md sm:border sm:px-2 sm:py-1 sm:text-[10px] ${
           recordeAlcancado
-            ? "border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-700"
-            : "border-amber-500/20 bg-amber-500/[0.05] text-amber-700"
+            ? "text-emerald-700 sm:border-emerald-500/20 sm:bg-emerald-500/[0.05]"
+            : "text-amber-700 sm:border-amber-500/20 sm:bg-amber-500/[0.05]"
         }`}
       >
         <Crown className="h-3 w-3 shrink-0" />
@@ -189,7 +197,7 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
           {melhor.percentualDoRecorde}%
         </span>
         <span className="hidden max-w-52 truncate font-semibold lg:inline">{mensagem}</span>
-        <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
+        <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 opacity-60 sm:block" />
       </div>
     );
   }
@@ -457,7 +465,7 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar, mostrarCom
       tabIndex={p.temDados ? 0 : undefined}
       aria-label={p.temDados ? `Abrir detalhamento completo de ${nome}` : undefined}
       data-testid="ranking-linha-compacta"
-      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4 ${
+      className={`grid grid-cols-[1.75rem_2.25rem_minmax(0,1fr)_0.75rem] items-center gap-x-2 rounded-lg border px-2 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[2rem_2.5rem_minmax(0,1fr)_1rem] sm:gap-x-3 sm:px-3 sm:py-2 lg:grid-cols-[2rem_2.5rem_minmax(10rem,1fr)_7rem_7rem_7.5rem_4.5rem_1rem] ${
         p.temDados ? "cursor-pointer" : ""
       } ${
         isPodium && posicao === 1 ? "bg-yellow-500/5 border-yellow-500/20 hover:bg-yellow-500/10"
@@ -467,7 +475,7 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar, mostrarCom
       }`}
     >
       {/* Posição */}
-      <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold shrink-0 ${
+      <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold sm:h-8 sm:w-8 sm:text-sm ${
         isPodium && posicao === 1 ? "bg-yellow-500/20 text-yellow-600"
         : isPodium && posicao === 2 ? "bg-slate-400/20 text-slate-500"
         : isPodium && posicao === 3 ? "bg-amber-700/20 text-amber-700"
@@ -480,65 +488,90 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar, mostrarCom
       </div>
 
       {/* Avatar */}
-      <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10 sm:h-10 sm:w-10">
         {p.fotoUrl ? (
-          <img src={p.fotoUrl} alt={nome} className="h-10 w-10 rounded-full object-cover" />
+          <img src={p.fotoUrl} alt={nome} className="h-9 w-9 rounded-full object-cover sm:h-10 sm:w-10" />
         ) : (
-          <span className="text-sm font-semibold text-primary">{iniciais}</span>
+          <span className="text-xs font-semibold text-primary sm:text-sm">{iniciais}</span>
         )}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <p className="font-semibold text-foreground truncate">{nome}</p>
+            <p className="truncate text-sm font-semibold leading-tight text-foreground sm:text-base">{nome}</p>
             {temDetalhes && <Wrench className="h-3 w-3 text-muted-foreground shrink-0" />}
+            {mostrarComparativo && campo === "totalGeral" && p.pctMeta != null && (
+              <span className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-bold sm:hidden ${
+                p.pctMeta >= 100 ? "bg-emerald-500/10 text-emerald-700" : p.pctMeta >= 80 ? "bg-yellow-500/10 text-yellow-700" : "bg-red-500/10 text-red-600"
+              }`}>{p.pctMeta}% meta</span>
+            )}
           </div>
-          <div className="text-right shrink-0">
+          <div className="shrink-0 text-right lg:hidden">
             {p.temDados ? (
-              <p className="text-sm font-bold text-foreground">{formatCurrency(listaRef)}</p>
+              <p className="text-sm font-bold leading-tight text-foreground">{formatCurrency(listaRef)}</p>
             ) : (
               <p className="text-xs text-muted-foreground italic">sem dados</p>
             )}
           </div>
         </div>
         {p.temDados && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${corUnidadeBadge(p.empresaSlug)}`}>
+          <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+            <Badge variant="outline" className={`h-4 shrink-0 px-1 py-0 text-[9px] sm:h-auto sm:px-1.5 sm:text-[10px] ${corUnidadeBadge(p.empresaSlug)}`}>
               {nomeUnidade(p.empresaSlug)}
             </Badge>
+            {mostrarComparativo && (
+              <div className="min-w-0 flex-1 [&_[data-testid=recorde-resumo-compacto]]:mt-0 sm:hidden">
+                <ComparativoMelhorMes profissional={p} />
+              </div>
+            )}
             {campo === "totalGeral" ? (
-              <span className="text-xs text-muted-foreground">
-                Serv: {formatCurrency(p.totalServicos)} · Prod: {formatCurrency(p.totalProdutos)}
+              <span className={`min-w-0 truncate text-[9px] text-muted-foreground sm:text-xs lg:hidden ${mostrarComparativo ? "hidden sm:inline" : ""}`}>
+                S {formatCurrencyCompact(p.totalServicos)} · P {formatCurrencyCompact(p.totalProdutos)}
                 {p.pctMeta != null && (
-                  <span className={`ml-1.5 font-semibold ${
+                  <span className={`ml-1 font-semibold ${
                     p.pctMeta >= 100 ? 'text-emerald-500' : p.pctMeta >= 80 ? 'text-yellow-500' : 'text-red-400'
-                  }`}>· {p.pctMeta}% da meta</span>
+                  }`}>· {p.pctMeta}%</span>
                 )}
               </span>
             ) : (
-              <span className="text-xs text-muted-foreground">
-                Serv: {formatCurrency(p.totalServicos)} · Total: {formatCurrency(p.totalGeral)}
+              <span className={`min-w-0 truncate text-[9px] text-muted-foreground sm:text-xs lg:hidden ${mostrarComparativo ? "hidden sm:inline" : ""}`}>
+                S {formatCurrencyCompact(p.totalServicos)} · T {formatCurrencyCompact(p.totalGeral)}
               </span>
             )}
           </div>
         )}
-        {mostrarComparativo && <ComparativoMelhorMes profissional={p} />}
+        {mostrarComparativo && (
+          <div className="hidden sm:block">
+            <ComparativoMelhorMes profissional={p} />
+          </div>
+        )}
         {!p.temDados && <p className="text-xs text-muted-foreground">{p.cargo ?? "Profissional"}</p>}
       </div>
 
-      {isPodium ? (
-        <Badge variant="secondary" className={`shrink-0 text-xs hidden sm:flex items-center gap-1 ${
-          posicao === 1 ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-          : posicao === 2 ? "bg-slate-400/10 text-slate-500 border-slate-400/20"
-          : "bg-amber-700/10 text-amber-700 border-amber-700/20"
-        }`}>
-          {posicao === 1 ? <><Star className="h-3 w-3" /> 1º lugar</> : posicao === 2 ? "2º lugar" : "3º lugar"}
-        </Badge>
-      ) : p.temDados ? (
-        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 -rotate-90" />
-      ) : null}
+      {p.temDados && (
+        <>
+          <div className="hidden text-right lg:block">
+            <p className="text-xs font-semibold text-foreground">{formatCurrency(p.totalServicos)}</p>
+          </div>
+          <div className="hidden text-right lg:block">
+            <p className="text-xs font-semibold text-foreground">{formatCurrency(p.totalProdutos)}</p>
+          </div>
+          <div className="hidden text-right lg:block">
+            <p className="text-sm font-bold text-foreground">{formatCurrency(listaRef)}</p>
+          </div>
+          <div className="hidden text-right lg:block">
+            {p.pctMeta != null ? (
+              <span className={`text-xs font-bold ${
+                p.pctMeta >= 100 ? "text-emerald-600" : p.pctMeta >= 80 ? "text-yellow-600" : "text-red-500"
+              }`}>{p.pctMeta}%</span>
+            ) : <span className="text-xs text-muted-foreground">—</span>}
+          </div>
+        </>
+      )}
+
+      <ChevronDown className={`h-3.5 w-3.5 -rotate-90 text-muted-foreground lg:col-start-8 ${p.temDados ? "" : "invisible"}`} />
     </div>
   );
 }
@@ -1119,12 +1152,13 @@ export default function RankingPublico() {
           </div>
 
           {/* Abas */}
-          <div className="flex border-t border-border/50 px-4 max-w-7xl mx-auto overflow-x-auto">
+          <div className="mx-auto flex max-w-7xl snap-x overflow-x-auto border-t border-border/50 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-4">
             {abas.map((aba) => (
               <button
                 key={aba.id}
                 onClick={() => setAbaAtiva(aba.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-all ${
+                aria-pressed={abaAtiva === aba.id}
+                className={`flex shrink-0 snap-start items-center gap-1 px-2.5 py-2 text-[11px] font-medium whitespace-nowrap border-b-2 transition-all sm:gap-1.5 sm:px-4 sm:py-2.5 sm:text-xs ${
                   abaAtiva === aba.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -1133,7 +1167,7 @@ export default function RankingPublico() {
                 {aba.icon}
                 {aba.label}
                 {aba.count > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${abaAtiva === aba.id ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`hidden rounded-full px-1.5 py-0.5 text-[10px] sm:inline ${abaAtiva === aba.id ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {aba.count}
                   </span>
                 )}
@@ -1298,7 +1332,7 @@ export default function RankingPublico() {
             <>
               {/* Pódio top 3 */}
               {(temDadosNoMes || modo !== "mensal") && listaAtiva.length >= 3 && (
-                <div className="mb-10">
+                <div className="mb-7 hidden sm:block">
                   <div className="flex items-end justify-center gap-4">
                     <PodiumCard posicao={2} profissional={listaAtiva[1]} height="h-28" bgColor="bg-slate-400/20 border-slate-400/40" iconColor="text-slate-400" campo={campoAtivo} onDetalhar={() => setProfissionalSelecionado(listaAtiva[1])} />
                     <PodiumCard posicao={1} profissional={listaAtiva[0]} height="h-36" bgColor="bg-yellow-500/20 border-yellow-500/40" iconColor="text-yellow-500" campo={campoAtivo} onDetalhar={() => setProfissionalSelecionado(listaAtiva[0])} />
@@ -1309,14 +1343,14 @@ export default function RankingPublico() {
 
               {/* Dica */}
               {(temDadosNoMes || modo !== "mensal") && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+                <div className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground sm:mb-3 sm:text-xs">
                   <ChevronDown className="h-3 w-3" />
                   Clique em qualquer profissional para ver o detalhamento
                 </div>
               )}
 
               {/* Label da aba */}
-              <h2 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground sm:mb-3">
                 <TrendingUp className="h-4 w-4" />
                 {(() => {
                   const periodo = modo === "diario"
@@ -1334,7 +1368,20 @@ export default function RankingPublico() {
               </h2>
 
               {/* Lista */}
-              <div className="space-y-2">
+              <div
+                data-testid="ranking-tabela-cabecalho"
+                className="mb-1 hidden grid-cols-[2rem_2.5rem_minmax(10rem,1fr)_7rem_7rem_7.5rem_4.5rem_1rem] items-center gap-x-3 px-3 text-[9px] font-bold uppercase tracking-[0.08em] text-muted-foreground lg:grid"
+              >
+                <span className="text-center">Pos.</span>
+                <span aria-hidden="true" />
+                <span>Profissional</span>
+                <span className="text-right">Serviços</span>
+                <span className="text-right">Produtos</span>
+                <span className="text-right">{campoAtivo === "totalProdutos" ? "Ranking" : "Total"}</span>
+                <span className="text-right">Meta</span>
+                <span aria-hidden="true" />
+              </div>
+              <div className="space-y-1 sm:space-y-1.5">
                 {listaAtiva.map((p, idx) => (
                   <CardProfissional
                     key={p.id}
