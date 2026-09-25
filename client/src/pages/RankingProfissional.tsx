@@ -3,9 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Loader2, Trophy, TrendingUp, Calendar, LogOut, ChevronLeft, ChevronRight, Globe, TrendingDown, Minus, Scissors, ShoppingBag, BarChart2, Copy, Check, Star, Target, Award, Zap, Bell, BellOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import RecordCelebration from "@/components/RecordCelebration";
-import RecordeDetalhes from "@/components/RecordeDetalhes";
+import DesafioRecordeProfissional from "@/components/DesafioRecordeProfissional";
 
 // ─── Utilitários de data ─────────────────────────────────────────────────────
 function hoje(): string {
@@ -2080,7 +2078,7 @@ function AbaSemanal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; mi
 }
 
 // ─── Aba Mensal ────────────────────────────────────────────────────────────────────────────────────────────────
-function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; minhaEmpresa: string; isGerencia?: boolean }) {
+function AbaMensal({ meuNome, minhaEmpresa, meuId, isGerencia }: { meuNome: string; minhaEmpresa: string; meuId: number; isGerencia?: boolean }) {
   const isGrupo = minhaEmpresa === 'barbiero-grupo';
   const [unidadeSelecionada, setUnidadeSelecionada] = useState<string | null>(
     isGrupo ? 'barbiero-mascote' : minhaEmpresa
@@ -2119,6 +2117,11 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
   const { data: rankingData, isLoading } = trpc.rankingMensal.useQuery({ mes, ano }, { staleTime: 60_000, refetchInterval: 20 * 60 * 1000 });
   const rankingTodos = rankingData?.lista ?? [];
   const ehMesAtual = mesOffset === 0;
+  const { data: desempenhoPessoal, isLoading: carregandoRecorde } = trpc.desempenhoHistorico.useQuery(
+    { profissionalId: meuId },
+    { enabled: meuId > 0 && ehMesAtual, staleTime: 60_000, refetchInterval: 20 * 60 * 1000 }
+  );
+  const mesAtualPessoal = desempenhoPessoal?.historico?.[desempenhoPessoal.historico.length - 1];
 
   // Mês anterior para calcular variação de posição
   const { mes: mesAnt, ano: anoAnt } = useMemo(() => {
@@ -2321,6 +2324,20 @@ function AbaMensal({ meuNome, minhaEmpresa, isGerencia }: { meuNome: string; min
         </div>
         );
       })()}
+
+      {/* Comparativo pessoal visível diretamente na aba Mês do ranking */}
+      {ehMesAtual && (
+        <div className="mb-4" data-testid="comparativo-recorde-ranking-movel">
+          <DesafioRecordeProfissional
+            origem="ranking"
+            melhorMes={desempenhoPessoal?.melhorMes}
+            totalAtual={mesAtualPessoal?.totalGeral ?? 0}
+            detalhesAtuaisServicos={desempenhoPessoal?.detalhesServicosAtuais}
+            detalhesAtuaisProdutos={desempenhoPessoal?.detalhesProdutosAtuais}
+            carregando={carregandoRecorde}
+          />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-8">
@@ -3135,97 +3152,13 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
         </div>
       </div>
       {/* ── Comparativo com o melhor mês histórico ── */}
-      {(data as any).melhorMes ? (() => {
-        const melhor = (data as any).melhorMes as {
-          mes: number; ano: number; totalServicos: number; totalProdutos: number;
-          totalGeral: number; percentualDoRecorde: number; faltaParaRecorde: number;
-          valorAcimaDoRecorde: number; novoRecorde: boolean; igualouRecorde: boolean;
-          detalhesServicos?: string | null; detalhesProdutos?: string | null;
-        };
-        const recordeAlcancado = melhor.novoRecorde || melhor.igualouRecorde;
-        return (
-          <div className={`rounded-2xl border p-4 relative overflow-hidden ${
-            melhor.novoRecorde
-              ? 'bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-teal-500/15 border-emerald-400/50 shadow-[0_16px_40px_-24px_rgba(52,211,153,0.9)]'
-              : melhor.igualouRecorde
-                ? 'bg-blue-500/10 border-blue-400/30'
-                : 'bg-amber-500/10 border-amber-500/25'
-          }`}>
-            {melhor.novoRecorde && <RecordCelebration />}
-            {recordeAlcancado && (
-              <div className="relative z-[1] mb-3 flex items-center justify-between gap-2">
-                <span className={`record-achievement-badge inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${
-                  melhor.novoRecorde ? 'bg-emerald-400 text-emerald-950' : 'bg-blue-400 text-blue-950'
-                }`}>
-                  <Trophy className="w-3.5 h-3.5" />
-                  {melhor.novoRecorde ? 'NOVO RECORDE' : 'RECORDE IGUALADO'}
-                </span>
-                {melhor.novoRecorde && (
-                  <span className="text-emerald-300 text-xs font-black">+{formatarMoeda(melhor.valorAcimaDoRecorde)}</span>
-                )}
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <Award className={`w-5 h-5 shrink-0 ${recordeAlcancado ? 'text-emerald-400' : 'text-amber-400'}`} />
-                <div className="min-w-0">
-                  <p className="text-white text-sm font-bold truncate">Seu melhor mês: {mesNomes[melhor.mes - 1]}/{String(melhor.ano).slice(-2)}</p>
-                  <p className="text-white/45 text-xs">Serv. {formatarMoeda(melhor.totalServicos)} · Prod. {formatarMoeda(melhor.totalProdutos)}</p>
-                </div>
-              </div>
-              <p className={`rounded-full px-2.5 py-1 text-lg font-black shrink-0 ${recordeAlcancado ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>{melhor.percentualDoRecorde}%</p>
-            </div>
-            <div className="relative z-[1] flex items-center justify-between text-xs mb-1.5">
-              <span className="text-white/55">Atual: {formatarMoeda(mesAtualData.totalGeral)}</span>
-              <span className="text-white font-semibold">Recorde: {formatarMoeda(melhor.totalGeral)}</span>
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="relative z-[1] h-3 cursor-help overflow-hidden rounded-full bg-white/10 ring-1 ring-inset ring-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-                  role="progressbar"
-                  tabIndex={0}
-                  aria-label={`Progresso para superar o recorde histórico. ${melhor.faltaParaRecorde > 0 ? `Faltam ${formatarMoeda(melhor.faltaParaRecorde)}` : 'Recorde alcançado'}`}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.min(melhor.percentualDoRecorde, 100)}
-                >
-                  <div
-                    className={`h-full rounded-full transition-[width] duration-300 ${recordeAlcancado ? 'bg-gradient-to-r from-emerald-400 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-yellow-300'}`}
-                    style={{ width: `${Math.min(Math.max(melhor.percentualDoRecorde, 0), 100)}%` }}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" sideOffset={6} className="border border-slate-700 bg-slate-950 px-3 py-2 text-white shadow-xl">
-                <p className="font-bold">
-                  {melhor.novoRecorde
-                    ? `Recorde superado em ${formatarMoeda(melhor.valorAcimaDoRecorde)}`
-                    : melhor.igualouRecorde
-                      ? "Recorde alcançado — faltam R$ 0,00"
-                      : `Faltam exatamente ${formatarMoeda(melhor.faltaParaRecorde)}`}
-                </p>
-                <p className="mt-0.5 text-[10px] text-slate-300">
-                  Atual {formatarMoeda(mesAtualData.totalGeral)} · Recorde {formatarMoeda(melhor.totalGeral)}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-            <p className={`relative z-[1] text-xs font-bold mt-2 ${recordeAlcancado ? 'text-emerald-300' : 'text-amber-300'}`}>
-              {melhor.novoRecorde
-                ? `Novo recorde! Você superou em ${formatarMoeda(melhor.valorAcimaDoRecorde)}.`
-                : melhor.igualouRecorde
-                  ? 'Você igualou seu melhor resultado. Mais uma venda cria um novo recorde!'
-                  : `Faltam ${formatarMoeda(melhor.faltaParaRecorde)} para superar seu melhor mês.`}
-            </p>
-            <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos}
-              detalhesAtuaisServicos={(data as any).detalhesServicosAtuais} detalhesAtuaisProdutos={(data as any).detalhesProdutosAtuais} modo="escuro" />
-          </div>
-        );
-      })() : (
-        <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 flex items-center gap-3">
-          <Award className="w-5 h-5 text-blue-300 shrink-0" />
-          <p className="text-blue-200 text-sm font-semibold">Este é seu primeiro mês registrado — comece agora seu recorde pessoal!</p>
-        </div>
-      )}
+      <DesafioRecordeProfissional
+        origem="meu"
+        melhorMes={(data as any).melhorMes}
+        totalAtual={mesAtualData.totalGeral}
+        detalhesAtuaisServicos={(data as any).detalhesServicosAtuais}
+        detalhesAtuaisProdutos={(data as any).detalhesProdutosAtuais}
+      />
       {/* ── Botão de Notificações Push ── */}
       {pushStatus !== 'unsupported' && (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
@@ -4682,7 +4615,7 @@ function RankingView({ meuNome, minhaEmpresa, meuFotoUrl, meuId, isGerencia, onL
       <div className="px-4 pb-8 pt-2">
         {aba === "diario" && <AbaDiario meuNome={meuNome} minhaEmpresa={minhaEmpresa} isGerencia={isGerencia} />}
         {aba === "semanal" && <AbaSemanal meuNome={meuNome} minhaEmpresa={minhaEmpresa} isGerencia={isGerencia} />}
-        {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} isGerencia={isGerencia} />}
+        {aba === "mensal" && <AbaMensal meuNome={meuNome} minhaEmpresa={minhaEmpresa} meuId={meuId} isGerencia={isGerencia} />}
         {aba === "atendimentos" && <AbaAtendimentos meuNome={meuNome} />}
         {aba === "analise" && (isGerencia ? <AbaAnaliseGerencia minhaEmpresa={minhaEmpresa} /> : <AbaAnalise profissionalId={meuId} />)}
         {aba === "desempenho" && <AbaDesempenho profissionalId={meuId} />}

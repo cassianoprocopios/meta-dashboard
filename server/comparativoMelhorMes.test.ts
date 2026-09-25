@@ -75,8 +75,10 @@ describe("comparativo do melhor mês do profissional", () => {
 
   it("integra a consulta histórica e o indicador visual do ranking", () => {
     const router = readFileSync(new URL("./routers.ts", import.meta.url), "utf8");
+    const db = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
     const pagina = readFileSync(new URL("../client/src/pages/RankingPublico.tsx", import.meta.url), "utf8");
     const portal = readFileSync(new URL("../client/src/pages/RankingProfissional.tsx", import.meta.url), "utf8");
+    const cardMovel = readFileSync(new URL("../client/src/components/DesafioRecordeProfissional.tsx", import.meta.url), "utf8");
     expect(router).toContain("listarMelhoresMesesPorColaborador(tenantId, input.mes, input.ano)");
     expect(router).toContain("melhorMes: calcularComparativoMelhorMes(");
     expect(pagina).toContain("Melhor mês:");
@@ -85,12 +87,18 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(pagina).toContain('"NOVO RECORDE"');
     expect(pagina).toContain("Faltam exatamente ${formatCurrency(melhor.faltaParaRecorde)}");
     expect(pagina).toContain("RecordCelebration");
-    expect(portal).toContain("Seu melhor mês:");
-    expect(portal).toContain("para superar seu melhor mês");
-    expect(portal).toContain('role="progressbar"');
-    expect(portal).toContain("'NOVO RECORDE'");
-    expect(portal).toContain("Faltam exatamente ${formatarMoeda(melhor.faltaParaRecorde)}");
-    expect(portal).toContain("RecordCelebration");
+    expect(portal).toContain('data-testid="comparativo-recorde-ranking-movel"');
+    expect(portal).toContain("trpc.desempenhoHistorico.useQuery");
+    expect(portal).toContain("<DesafioRecordeProfissional");
+    expect(cardMovel).toContain("Seu desafio no ranking");
+    expect(cardMovel).toContain("para superar seu melhor mês");
+    expect(cardMovel).toContain('role="progressbar"');
+    expect(cardMovel).toContain('"NOVO RECORDE"');
+    expect(cardMovel).toContain("Faltam exatamente ${formatarMoeda(melhorMes.faltaParaRecorde)}");
+    expect(cardMovel).toContain("RecordCelebration");
+    expect(db).toContain("detalhesServicos: faturamentoColaboradores.detalhesServicos");
+    expect(db).toContain("detalhesProdutos: faturamentoColaboradores.detalhesProdutos");
+    expect(db).not.toContain("SELECT detalhesServicos FROM faturamentoColaboradores fc2");
 
     const estilos = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
     expect(estilos).toContain("@keyframes recordConfettiBurst");

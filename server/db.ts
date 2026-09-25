@@ -1801,30 +1801,14 @@ export async function listarRankingPorPeriodo(
       fotoUrl: colaboradores.fotoUrl,
       empresaSlug: faturamentoColaboradores.empresaSlug,
       categoriaRanking: colaboradores.categoriaRanking,
-      totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
-      totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
-      totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
-      qtdServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.qtdServicos}), 0)`,
-      qtdProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.qtdProdutos}), 0)`,
-      ultimaSyncEm: sql<Date | null>`MAX(${faturamentoColaboradores.ultimaSyncEm})`,
-      // Pegar o detalhesServicos do registro mais recente (maior ultimaSyncEm)
-      detalhesServicos: sql<string | null>`(
-        SELECT detalhesServicos FROM faturamentoColaboradores fc2
-        WHERE fc2.tenantId = ${faturamentoColaboradores.tenantId}
-          AND fc2.colaboradorId = ${faturamentoColaboradores.colaboradorId}
-          AND fc2.mes = ${faturamentoColaboradores.mes}
-          AND fc2.ano = ${faturamentoColaboradores.ano}
-        ORDER BY fc2.ultimaSyncEm DESC LIMIT 1
-      )`,
-      // Pegar o detalhesProdutos do registro mais recente
-      detalhesProdutos: sql<string | null>`(
-        SELECT detalhesProdutos FROM faturamentoColaboradores fc3
-        WHERE fc3.tenantId = ${faturamentoColaboradores.tenantId}
-          AND fc3.colaboradorId = ${faturamentoColaboradores.colaboradorId}
-          AND fc3.mes = ${faturamentoColaboradores.mes}
-          AND fc3.ano = ${faturamentoColaboradores.ano}
-        ORDER BY fc3.ultimaSyncEm DESC LIMIT 1
-      )`,
+      totalServicos: faturamentoColaboradores.totalServicos,
+      totalProdutos: faturamentoColaboradores.totalProdutos,
+      totalGeral: faturamentoColaboradores.totalGeral,
+      qtdServicos: faturamentoColaboradores.qtdServicos,
+      qtdProdutos: faturamentoColaboradores.qtdProdutos,
+      ultimaSyncEm: faturamentoColaboradores.ultimaSyncEm,
+      detalhesServicos: faturamentoColaboradores.detalhesServicos,
+      detalhesProdutos: faturamentoColaboradores.detalhesProdutos,
     })
     .from(faturamentoColaboradores)
     .innerJoin(colaboradores, eq(colaboradores.id, faturamentoColaboradores.colaboradorId))
@@ -1835,15 +1819,7 @@ export async function listarRankingPorPeriodo(
         eq(faturamentoColaboradores.ano, ano)
       )
     )
-    .groupBy(
-      faturamentoColaboradores.colaboradorId,
-      colaboradores.nome,
-      colaboradores.apelido,
-      colaboradores.fotoUrl,
-      faturamentoColaboradores.empresaSlug,
-      colaboradores.categoriaRanking
-    )
-    .orderBy(desc(sql`SUM(${faturamentoColaboradores.totalGeral})`));
+    .orderBy(desc(faturamentoColaboradores.totalGeral));
   // A última atualização é o MAX global entre todos os colaboradores do período
   const ultimaAtualizacao = rows.reduce((max: Date | null, r) => {
     if (!r.ultimaSyncEm) return max;
@@ -1887,36 +1863,17 @@ export async function listarMelhoresMesesPorColaborador(
       colaboradorId: faturamentoColaboradores.colaboradorId,
       mes: faturamentoColaboradores.mes,
       ano: faturamentoColaboradores.ano,
-      totalServicos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalServicos}), 0)`,
-      totalProdutos: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalProdutos}), 0)`,
-      totalGeral: sql<number>`COALESCE(SUM(${faturamentoColaboradores.totalGeral}), 0)`,
-      detalhesServicos: sql<string | null>`(
-        SELECT detalhesServicos FROM faturamentoColaboradores fc2
-        WHERE fc2.tenantId = ${faturamentoColaboradores.tenantId}
-          AND fc2.colaboradorId = ${faturamentoColaboradores.colaboradorId}
-          AND fc2.mes = ${faturamentoColaboradores.mes}
-          AND fc2.ano = ${faturamentoColaboradores.ano}
-        ORDER BY fc2.ultimaSyncEm DESC LIMIT 1
-      )`,
-      detalhesProdutos: sql<string | null>`(
-        SELECT detalhesProdutos FROM faturamentoColaboradores fc3
-        WHERE fc3.tenantId = ${faturamentoColaboradores.tenantId}
-          AND fc3.colaboradorId = ${faturamentoColaboradores.colaboradorId}
-          AND fc3.mes = ${faturamentoColaboradores.mes}
-          AND fc3.ano = ${faturamentoColaboradores.ano}
-        ORDER BY fc3.ultimaSyncEm DESC LIMIT 1
-      )`,
+      totalServicos: faturamentoColaboradores.totalServicos,
+      totalProdutos: faturamentoColaboradores.totalProdutos,
+      totalGeral: faturamentoColaboradores.totalGeral,
+      detalhesServicos: faturamentoColaboradores.detalhesServicos,
+      detalhesProdutos: faturamentoColaboradores.detalhesProdutos,
     })
     .from(faturamentoColaboradores)
     .where(eq(faturamentoColaboradores.tenantId, tenantId))
-    .groupBy(
-      faturamentoColaboradores.colaboradorId,
-      faturamentoColaboradores.ano,
-      faturamentoColaboradores.mes
-    )
     .orderBy(
       asc(faturamentoColaboradores.colaboradorId),
-      desc(sql`SUM(${faturamentoColaboradores.totalGeral})`),
+      desc(faturamentoColaboradores.totalGeral),
       desc(faturamentoColaboradores.ano),
       desc(faturamentoColaboradores.mes)
     );

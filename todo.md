@@ -1787,3 +1787,10 @@
 - [x] Exibir tooltip mensal com total, novos, recorrentes, percentuais e variação absoluta
 - [x] Exibir badges percentuais de crescimento ou queda diretamente na linha e nos cards mensais
 - [x] Recalcular e validar os últimos 12 meses preservando apenas agregados, sem dados pessoais
+
+## Ranking Profissional — Comparativo no celular
+
+- [x] Exibir o desafio do recorde diretamente na aba **Mês**, sem exigir acesso à aba Meu
+- [x] Reutilizar barra, tooltip, selo, celebração, gráfico, filtros e itens detalhados no portal profissional
+- [x] Corrigir a consulta histórica para que os itens de serviços e produtos pertençam ao profissional correto
+- [x] Validar o portal autenticado em 390 px, sem rolagem horizontal, com totais e composição coincidentes
