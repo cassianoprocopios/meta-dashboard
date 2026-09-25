@@ -1794,3 +1794,10 @@
 - [x] Reutilizar barra, tooltip, selo, celebração, gráfico, filtros e itens detalhados no portal profissional
 - [x] Corrigir a consulta histórica para que os itens de serviços e produtos pertençam ao profissional correto
 - [x] Validar o portal autenticado em 390 px, sem rolagem horizontal, com totais e composição coincidentes
+
+## Ranking Público — Tabela compacta e detalhes sob demanda
+
+- [x] Restaurar linhas compactas no ranking mensal, mantendo posição, profissional, unidade, faturamento, meta e resumo do recorde
+- [x] Remover gráficos e listas extensas da tabela principal
+- [x] Abrir uma janela ampla ao clicar na linha, reunindo recorde, progresso, composição, filtros e vendas do período atual
+- [x] Permitir abertura por clique, Enter ou Espaço e validar visualmente com dados reais

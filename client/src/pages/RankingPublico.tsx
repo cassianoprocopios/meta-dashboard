@@ -141,8 +141,20 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
   const melhor = profissional.melhorMes;
   if (!profissional.temDados) return null;
   if (!melhor) {
+    if (!detalhado) {
+      return (
+        <div
+          data-testid="recorde-resumo-compacto"
+          className="mt-1.5 flex min-h-7 items-center gap-2 rounded-md border border-blue-500/15 bg-blue-500/[0.04] px-2 py-1 text-[10px] text-blue-700"
+        >
+          <Crown className="h-3 w-3 shrink-0" />
+          <span className="truncate font-semibold">Primeiro mês registrado — recorde inicial</span>
+          <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 opacity-60" />
+        </div>
+      );
+    }
     return (
-      <div className={`rounded-lg border border-blue-500/20 bg-blue-500/5 ${detalhado ? "p-3 mb-4" : "p-2 mt-2"}`}>
+      <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-700">
           <Crown className="h-3.5 w-3.5 shrink-0" />
           Primeiro mês registrado — este será seu recorde inicial
@@ -159,6 +171,30 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
       ? "Recorde igualado"
       : `Faltam ${formatCurrency(melhor.faltaParaRecorde)} para superar`;
 
+  if (!detalhado) {
+    return (
+      <div
+        data-testid="recorde-resumo-compacto"
+        className={`mt-1.5 flex min-h-7 items-center gap-2 rounded-md border px-2 py-1 text-[10px] ${
+          recordeAlcancado
+            ? "border-emerald-500/20 bg-emerald-500/[0.05] text-emerald-700"
+            : "border-amber-500/20 bg-amber-500/[0.05] text-amber-700"
+        }`}
+      >
+        <Crown className="h-3 w-3 shrink-0" />
+        <span className="shrink-0 font-bold">Recorde {periodoCurto(melhor.mes, melhor.ano)}</span>
+        <span className="hidden min-w-0 truncate text-muted-foreground sm:inline">
+          {formatCurrency(melhor.totalGeral)}
+        </span>
+        <span className={`ml-auto shrink-0 font-black ${recordeAlcancado ? "text-emerald-700" : "text-amber-700"}`}>
+          {melhor.percentualDoRecorde}%
+        </span>
+        <span className="hidden max-w-52 truncate font-semibold lg:inline">{mensagem}</span>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
+      </div>
+    );
+  }
+
   return (
     <div className={`rounded-xl border ${
       melhor.novoRecorde
@@ -166,7 +202,7 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
         : melhor.igualouRecorde
           ? "border-blue-400/35 bg-blue-500/5"
           : "border-amber-500/25 bg-amber-500/5"
-    } relative overflow-hidden ${detalhado ? "p-3.5 mb-4" : "p-2.5 mt-2"}`}>
+    } relative mb-4 overflow-hidden p-4`}>
       {melhor.novoRecorde && <RecordCelebration />}
       <div className="relative z-[1]">
       {recordeAlcancado && (
@@ -188,7 +224,7 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Crown className={`shrink-0 ${detalhado ? "h-4 w-4" : "h-3.5 w-3.5"} ${recordeAlcancado ? "text-emerald-600" : "text-amber-600"}`} />
+          <Crown className={`h-4 w-4 shrink-0 ${recordeAlcancado ? "text-emerald-600" : "text-amber-600"}`} />
           <span className="text-[11px] font-semibold text-foreground truncate">
             Melhor mês: {periodoCurto(melhor.mes, melhor.ano)} · {formatCurrency(melhor.totalGeral)}
           </span>
@@ -262,9 +298,12 @@ function ModalDetalhes({ profissional, open, onClose, mostrarComparativo }: {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent
+        data-testid="ranking-detalhamento-amplo"
+        className="max-h-[90vh] overflow-y-auto p-4 sm:max-w-3xl sm:p-6 lg:max-w-5xl"
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
+          <DialogTitle className="flex items-center gap-2 pr-7 text-base sm:text-lg">
             <Wrench className="h-4 w-4 text-primary" />
             Detalhamento — {nome}
             <Badge variant="outline" className={`text-xs ml-auto ${corUnidadeBadge(profissional.empresaSlug)}`}>
@@ -289,7 +328,20 @@ function ModalDetalhes({ profissional, open, onClose, mostrarComparativo }: {
           </div>
         </div>
 
-        {mostrarComparativo && <ComparativoMelhorMes profissional={profissional} detalhado />}
+        <div className={`grid gap-5 ${mostrarComparativo ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]" : ""}`}>
+          {mostrarComparativo && (
+            <section className="min-w-0">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                Comparativo com o recorde histórico
+              </p>
+              <ComparativoMelhorMes profissional={profissional} detalhado />
+            </section>
+          )}
+
+          <section className="min-w-0 rounded-xl border bg-muted/20 p-3 sm:p-4">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Composição do período atual
+            </p>
 
         {/* Serviços contabilizados */}
         {servicos.length > 0 ? (
@@ -373,6 +425,8 @@ function ModalDetalhes({ profissional, open, onClose, mostrarComparativo }: {
         <p className="text-[10px] text-muted-foreground mt-3 pt-3 border-t">
           Excluídos: Corte de Cabelo, Barba, Corte Kids, Raspar na Máquina (serviços) · Caixinha, Água, Heineken, Refrigerante, Corona (produtos)
         </p>
+          </section>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -397,7 +451,16 @@ function CardProfissional({ p, idx, campo, temDadosNoMes, onDetalhar, mostrarCom
   return (
     <div
       onClick={() => p.temDados && onDetalhar()}
-      className={`flex items-center gap-3 p-4 rounded-xl border transition-colors ${
+      onKeyDown={(event) => {
+        if (!p.temDados || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        onDetalhar();
+      }}
+      role={p.temDados ? "button" : undefined}
+      tabIndex={p.temDados ? 0 : undefined}
+      aria-label={p.temDados ? `Abrir detalhamento completo de ${nome}` : undefined}
+      data-testid="ranking-linha-compacta"
+      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-4 ${
         p.temDados ? "cursor-pointer" : ""
       } ${
         isPodium && posicao === 1 ? "bg-yellow-500/5 border-yellow-500/20 hover:bg-yellow-500/10"

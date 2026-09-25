@@ -87,6 +87,11 @@ describe("comparativo do melhor mês do profissional", () => {
     expect(pagina).toContain('"NOVO RECORDE"');
     expect(pagina).toContain("Faltam exatamente ${formatCurrency(melhor.faltaParaRecorde)}");
     expect(pagina).toContain("RecordCelebration");
+    expect(pagina).toContain('data-testid="ranking-linha-compacta"');
+    expect(pagina).toContain('data-testid="recorde-resumo-compacto"');
+    expect(pagina).toContain('data-testid="ranking-detalhamento-amplo"');
+    expect(pagina).toContain("lg:max-w-5xl");
+    expect(pagina).toContain("Abrir detalhamento completo de ${nome}");
     expect(portal).toContain('data-testid="comparativo-recorde-ranking-movel"');
     expect(portal).toContain("trpc.desempenhoHistorico.useQuery");
     expect(portal).toContain("<DesafioRecordeProfissional");
