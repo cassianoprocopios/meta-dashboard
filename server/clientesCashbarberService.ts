@@ -17,6 +17,8 @@ export interface ResultadoClientesUnidade {
   empresaSlug: string;
   unidade: string;
   totalClientesDistintos: number;
+  clientesNovos: number;
+  clientesRecorrentes: number;
   clientesComClube: number;
   clientesSemClube: number;
   fonte: "cashbarber_relatorio09";
@@ -86,7 +88,7 @@ export async function sincronizarClientesCashbarberPeriodo(
       dataFinal,
       config!.cbFilialId
     );
-    const resumo = resumirClientesRelatorio09(relatorio);
+    const resumo = resumirClientesRelatorio09(relatorio, { dataInicial, dataFinal });
 
     await upsertCashbarberClientesMensal({
       tenantId,
@@ -94,6 +96,8 @@ export async function sincronizarClientesCashbarberPeriodo(
       mes,
       ano,
       totalClientes: resumo.totalClientes,
+      clientesNovos: resumo.clientesNovos,
+      clientesRecorrentes: resumo.clientesRecorrentes,
       clientesComClube: resumo.clientesComClube,
       clientesSemClube: resumo.clientesSemClube,
       fonte: "cashbarber_relatorio09",
@@ -104,6 +108,8 @@ export async function sincronizarClientesCashbarberPeriodo(
       empresaSlug: config!.empresaSlug,
       unidade: normalizarSlugUnidadeCashbarber(config!.empresaSlug),
       totalClientesDistintos: resumo.totalClientes,
+      clientesNovos: resumo.clientesNovos,
+      clientesRecorrentes: resumo.clientesRecorrentes,
       clientesComClube: resumo.clientesComClube,
       clientesSemClube: resumo.clientesSemClube,
       fonte: "cashbarber_relatorio09",
@@ -120,13 +126,18 @@ export async function sincronizarClientesCashbarberPeriodo(
     dataFinal,
     null
   );
-  const resumoConsolidado = resumirClientesRelatorio09(relatorioConsolidado);
+  const resumoConsolidado = resumirClientesRelatorio09(relatorioConsolidado, {
+    dataInicial,
+    dataFinal,
+  });
   await upsertCashbarberClientesMensal({
     tenantId,
     empresaSlug: "barbiero-grupo",
     mes,
     ano,
     totalClientes: resumoConsolidado.totalClientes,
+    clientesNovos: resumoConsolidado.clientesNovos,
+    clientesRecorrentes: resumoConsolidado.clientesRecorrentes,
     clientesComClube: resumoConsolidado.clientesComClube,
     clientesSemClube: resumoConsolidado.clientesSemClube,
     fonte: "cashbarber_relatorio09",

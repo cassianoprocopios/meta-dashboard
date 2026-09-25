@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cashbarberRelatorio09 } from "./cashbarber";
 import {
@@ -23,6 +24,8 @@ describe("Relatório 09 de clientes CashBarber", () => {
 
     expect(resumo).toEqual({
       totalClientes: 2,
+      clientesNovos: 0,
+      clientesRecorrentes: 2,
       clientesComClube: 1,
       clientesSemClube: 1,
     });
@@ -35,6 +38,25 @@ describe("Relatório 09 de clientes CashBarber", () => {
     });
 
     expect(resumo.totalClientes).toBe(3);
+    expect(resumo.clientesRecorrentes).toBe(3);
+  });
+
+  it("separa clientes novos dos recorrentes pela data de cadastro sem duplicar IDs", () => {
+    const resumo = resumirClientesRelatorio09(
+      {
+        clientes_totais: [
+          { id: 10, cli_name: "Novo", created_at: "2026-09-05T14:00:00.000000Z" },
+          { id: 10, cli_name: "Novo", created_at: "2026-09-05T14:00:00.000000Z" },
+          { id: 20, cli_name: "Recorrente", created_at: "2026-08-10T14:00:00.000000Z" },
+          { id: 30, cli_name: "Novo 2", created_at: "2026-09-30T23:00:00.000000Z" },
+        ],
+      },
+      { dataInicial: "2026-09-01", dataFinal: "2026-09-30" }
+    );
+
+    expect(resumo.totalClientes).toBe(3);
+    expect(resumo.clientesNovos).toBe(2);
+    expect(resumo.clientesRecorrentes).toBe(1);
   });
 
   it("normaliza os slugs configurados para os nomes usados pelo dashboard", () => {
@@ -63,5 +85,25 @@ describe("Relatório 09 de clientes CashBarber", () => {
         }),
       })
     );
+  });
+
+  it("expõe filtro por unidade, tooltip detalhado e variação percentual no gráfico", () => {
+    const pagina = readFileSync(
+      new URL("../client/src/components/ClientesEvolucaoChart.tsx", import.meta.url),
+      "utf8"
+    );
+    const paginaMensal = readFileSync(
+      new URL("../client/src/components/ClientesEvolucaoMensalChart.tsx", import.meta.url),
+      "utf8"
+    );
+
+    expect(pagina).toContain('rotulo: "Consolidado"');
+    expect(pagina).toContain('rotulo: "Morumbi"');
+    expect(pagina).toContain('rotulo: "Mascote"');
+    expect(pagina).toContain("Clientes novos");
+    expect(pagina).toContain("Clientes recorrentes");
+    expect(pagina).toContain("variacaoPercentual");
+    expect(pagina).toContain("LabelList");
+    expect(paginaMensal).toContain("dados[dados.length - 2]");
   });
 });

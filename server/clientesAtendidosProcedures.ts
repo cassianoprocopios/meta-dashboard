@@ -54,14 +54,10 @@ export const clientesAtendidosRouter = router({
    * Obtém evolução de clientes dos últimos 3 meses
    */
   evolucaoUltimos3Meses: protectedProcedure
-    .input(
-      z.object({
-        empresaSlug: z.string().optional(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
+    .input(z.object({}))
+    .query(async ({ ctx }) => {
       const tenantId = await getTenantIdFromCtx(ctx);
-      const evolucao = await obterClientesEvolucaoUltimos3Meses(tenantId, input.empresaSlug);
+      const evolucao = await obterClientesEvolucaoUltimos3Meses(tenantId);
       return evolucao;
     }),
 

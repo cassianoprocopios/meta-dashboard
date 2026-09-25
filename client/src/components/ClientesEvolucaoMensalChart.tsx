@@ -53,9 +53,9 @@ export default function ClientesEvolucaoMensalChart({
   // Calcular variações
   const calcularVariacao = (unidade: "morumbi" | "mascote" | "seraphine") => {
     if (dados.length < 2) return 0;
-    const primeiro = dados[0][unidade] || 0;
+    const anterior = dados[dados.length - 2][unidade] || 0;
     const ultimo = dados[dados.length - 1][unidade] || 0;
-    return primeiro > 0 ? ((ultimo - primeiro) / primeiro) * 100 : 0;
+    return anterior > 0 ? ((ultimo - anterior) / anterior) * 100 : 0;
   };
 
   const variacaoMorumbi = calcularVariacao("morumbi");

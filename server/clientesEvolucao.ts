@@ -3,34 +3,70 @@ import { cashbarberAtendimentos } from "../drizzle/schema";
 import { normalizarSlugUnidadeCashbarber } from "../shared/clientesCashbarber";
 import { getDb, listCashbarberClientesMensaisPeriodo } from "./db";
 
-function obterTotalResumo(
-  resumos: Awaited<ReturnType<typeof listCashbarberClientesMensaisPeriodo>>,
-  empresaSlug?: string
-): number | null {
-  if (resumos.length === 0) return null;
+type ResumosPeriodo = Awaited<ReturnType<typeof listCashbarberClientesMensaisPeriodo>>;
+type ResumoPeriodo = ResumosPeriodo[number];
 
-  if (empresaSlug) {
-    const unidade = normalizarSlugUnidadeCashbarber(empresaSlug);
-    return resumos.find(
-      (item) => normalizarSlugUnidadeCashbarber(item.empresaSlug) === unidade
-    )?.totalClientes ?? 0;
+interface ComposicaoClientes {
+  totalClientes: number;
+  clientesNovos: number;
+  clientesRecorrentes: number;
+  composicaoDisponivel: boolean;
+}
+
+function composicaoResumo(item?: ResumoPeriodo): ComposicaoClientes {
+  if (!item) {
+    return {
+      totalClientes: 0,
+      clientesNovos: 0,
+      clientesRecorrentes: 0,
+      composicaoDisponivel: false,
+    };
   }
 
+  const clientesNovos = item.clientesNovos ?? 0;
+  const clientesRecorrentes = item.clientesRecorrentes ?? 0;
+  return {
+    totalClientes: item.totalClientes,
+    clientesNovos,
+    clientesRecorrentes,
+    composicaoDisponivel:
+      item.totalClientes === 0 || clientesNovos + clientesRecorrentes === item.totalClientes,
+  };
+}
+
+function buscarResumoUnidade(resumos: ResumosPeriodo, unidade: "MORUMBI" | "MASCOTE") {
+  return resumos.find(
+    (item) => normalizarSlugUnidadeCashbarber(item.empresaSlug) === unidade
+  );
+}
+
+function composicaoConsolidada(resumos: ResumosPeriodo): ComposicaoClientes | null {
+  if (resumos.length === 0) return null;
   const consolidado = resumos.find((item) => item.empresaSlug === "barbiero-grupo");
-  if (consolidado) return consolidado.totalClientes;
-  return resumos
-    .filter((item) => item.empresaSlug !== "barbiero-grupo")
-    .reduce((total, item) => total + item.totalClientes, 0);
+  if (consolidado) return composicaoResumo(consolidado);
+
+  const unidades = resumos.filter((item) => item.empresaSlug !== "barbiero-grupo");
+  return {
+    totalClientes: unidades.reduce((total, item) => total + item.totalClientes, 0),
+    clientesNovos: unidades.reduce((total, item) => total + (item.clientesNovos ?? 0), 0),
+    clientesRecorrentes: unidades.reduce(
+      (total, item) => total + (item.clientesRecorrentes ?? 0),
+      0
+    ),
+    composicaoDisponivel: unidades.every(
+      (item) =>
+        item.totalClientes === 0 ||
+        (item.clientesNovos ?? 0) + (item.clientesRecorrentes ?? 0) === item.totalClientes
+    ),
+  };
 }
 
 /**
  * Obtém evolução de clientes dos últimos 3 meses.
- * Prioriza o Relatório 09 oficial e usa o legado somente em períodos ainda não migrados.
+ * Retorna o consolidado e Morumbi/Mascote na mesma consulta para permitir filtros
+ * instantâneos no gráfico, sempre priorizando o Relatório 09 oficial.
  */
-export async function obterClientesEvolucaoUltimos3Meses(
-  tenantId: number,
-  empresaSlug?: string
-) {
+export async function obterClientesEvolucaoUltimos3Meses(tenantId: number) {
   try {
     const db = await getDb();
     if (!db) return [];
@@ -43,44 +79,67 @@ export async function obterClientesEvolucaoUltimos3Meses(
       const mes = data.getMonth() + 1;
       const ano = data.getFullYear();
       const resumos = await listCashbarberClientesMensaisPeriodo(tenantId, mes, ano);
-      const totalOficial = obterTotalResumo(resumos, empresaSlug);
+      const oficial = composicaoConsolidada(resumos);
 
-      let totalClientes: number;
-      let fonte: "cashbarber_relatorio09" | "legado";
-      let sincronizadoEm: Date | null = null;
+      if (oficial) {
+        const morumbi = composicaoResumo(buscarResumoUnidade(resumos, "MORUMBI"));
+        const mascote = composicaoResumo(buscarResumoUnidade(resumos, "MASCOTE"));
+        const resumoFonte = resumos.find((item) => item.empresaSlug === "barbiero-grupo");
 
-      if (totalOficial !== null) {
-        totalClientes = totalOficial;
-        fonte = "cashbarber_relatorio09";
-        const unidade = empresaSlug ? normalizarSlugUnidadeCashbarber(empresaSlug) : null;
-        const resumoFonte = unidade
-          ? resumos.find((item) => normalizarSlugUnidadeCashbarber(item.empresaSlug) === unidade)
-          : resumos.find((item) => item.empresaSlug === "barbiero-grupo");
-        sincronizadoEm = resumoFonte?.sincronizadoEm ?? null;
-      } else {
-        const primeiroDia = new Date(ano, mes - 1, 1);
-        const ultimoDia = new Date(ano, mes, 0);
-        const condicoes = [
-          eq(cashbarberAtendimentos.tenantId, tenantId),
-          between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia),
-        ];
-        if (empresaSlug) condicoes.push(eq(cashbarberAtendimentos.empresaSlug, empresaSlug));
-        const atendimentos = await db
-          .select()
-          .from(cashbarberAtendimentos)
-          .where(and(...condicoes));
-        totalClientes = new Set((atendimentos as any[]).map((item) => item.clienteId)).size;
-        fonte = "legado";
+        resultado.push({
+          mes,
+          ano,
+          mesLabel: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+          ...oficial,
+          porUnidade: { MORUMBI: morumbi, MASCOTE: mascote },
+          porProfissional: {},
+          fonte: "cashbarber_relatorio09" as const,
+          sincronizadoEm: resumoFonte?.sincronizadoEm ?? null,
+        });
+        continue;
       }
+
+      // Fallback somente para períodos antigos ainda não migrados ao Relatório 09.
+      const primeiroDia = new Date(ano, mes - 1, 1);
+      const ultimoDia = new Date(ano, mes, 0);
+      const atendimentos = await db
+        .select()
+        .from(cashbarberAtendimentos)
+        .where(and(
+          eq(cashbarberAtendimentos.tenantId, tenantId),
+          between(cashbarberAtendimentos.dataAtendimento, primeiroDia, ultimoDia)
+        ));
+      const idsConsolidados = new Set<string>();
+      const idsPorUnidade = {
+        MORUMBI: new Set<string>(),
+        MASCOTE: new Set<string>(),
+      };
+      for (const atendimento of atendimentos as any[]) {
+        idsConsolidados.add(atendimento.clienteId);
+        const unidade = normalizarSlugUnidadeCashbarber(atendimento.empresaSlug);
+        if (unidade === "MORUMBI" || unidade === "MASCOTE") {
+          idsPorUnidade[unidade].add(atendimento.clienteId);
+        }
+      }
+      const semComposicao = (totalClientes: number): ComposicaoClientes => ({
+        totalClientes,
+        clientesNovos: 0,
+        clientesRecorrentes: 0,
+        composicaoDisponivel: false,
+      });
 
       resultado.push({
         mes,
         ano,
         mesLabel: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
-        totalClientes,
+        ...semComposicao(idsConsolidados.size),
+        porUnidade: {
+          MORUMBI: semComposicao(idsPorUnidade.MORUMBI.size),
+          MASCOTE: semComposicao(idsPorUnidade.MASCOTE.size),
+        },
         porProfissional: {},
-        fonte,
-        sincronizadoEm,
+        fonte: "legado" as const,
+        sincronizadoEm: null,
       });
     }
 

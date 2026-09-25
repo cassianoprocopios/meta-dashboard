@@ -1233,6 +1233,8 @@ export async function upsertCashbarberClientesMensal(data: InsertCashbarberClien
     .onDuplicateKeyUpdate({
       set: {
         totalClientes: data.totalClientes,
+        clientesNovos: data.clientesNovos,
+        clientesRecorrentes: data.clientesRecorrentes,
         clientesComClube: data.clientesComClube,
         clientesSemClube: data.clientesSemClube,
         fonte: data.fonte ?? "cashbarber_relatorio09",

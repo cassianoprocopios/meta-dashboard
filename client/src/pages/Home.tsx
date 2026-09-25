@@ -374,9 +374,9 @@ export default function Home() {
     { enabled: !!user, refetchInterval: 5 * 60_000, refetchOnWindowFocus: true }
   );
 
-   // Query para evolução de clientes
+  // Query para evolução de clientes
   const { data: evolucaoClientesData = [] } = trpc.clientesAtendidos.evolucaoUltimos3Meses.useQuery(
-    { empresaSlug: undefined },
+    {},
     { enabled: activeTab === "dashboard", refetchInterval: 5 * 60_000, refetchOnWindowFocus: true }
   );
   // Query para evolução mensal de clientes por unidade

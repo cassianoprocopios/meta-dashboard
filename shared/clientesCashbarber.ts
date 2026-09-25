@@ -1,6 +1,7 @@
 export interface CashbarberClienteRelatorio09 {
   id?: number | string | null;
   cli_name?: string | null;
+  created_at?: string | Date | null;
 }
 
 export interface CashbarberRelatorio09 {
@@ -9,8 +10,15 @@ export interface CashbarberRelatorio09 {
   clientes_totais?: CashbarberClienteRelatorio09[];
 }
 
+export interface PeriodoClientesCashbarber {
+  dataInicial: string;
+  dataFinal: string;
+}
+
 export interface ResumoClientesCashbarber {
   totalClientes: number;
+  clientesNovos: number;
+  clientesRecorrentes: number;
   clientesComClube: number;
   clientesSemClube: number;
 }
@@ -27,24 +35,39 @@ function contarTextosDistintos(valores: string[] | undefined): number {
   return new Set((valores ?? []).map(chaveTexto).filter(Boolean)).size;
 }
 
+function chaveCliente(cliente: CashbarberClienteRelatorio09): string {
+  const id = cliente.id;
+  if (id !== null && id !== undefined && String(id).trim()) {
+    return `id:${String(id)}`;
+  }
+  const nome = chaveTexto(cliente.cli_name);
+  return nome ? `nome:${nome}` : "";
+}
+
+function limitesPeriodoBrasil(periodo: PeriodoClientesCashbarber) {
+  const inicio = new Date(`${periodo.dataInicial}T00:00:00-03:00`);
+  const fimInclusivo = new Date(`${periodo.dataFinal}T00:00:00-03:00`);
+  const fimExclusivo = new Date(fimInclusivo);
+  fimExclusivo.setUTCDate(fimExclusivo.getUTCDate() + 1);
+  return { inicio, fimExclusivo };
+}
+
 /**
  * Resume o Relatório 09 oficial do CashBarber sem persistir dados pessoais.
- * `clientes_totais` é a fonte principal porque já representa os clientes distintos
- * do período e evita somar duas vezes quem aparece com e sem clube.
+ *
+ * Cliente novo: cadastro (`created_at`) criado dentro do período consultado.
+ * Cliente recorrente: cliente distinto já cadastrado antes do início do período.
+ * A classificação é feita após eliminar IDs duplicados.
  */
 export function resumirClientesRelatorio09(
-  relatorio: CashbarberRelatorio09
+  relatorio: CashbarberRelatorio09,
+  periodo?: PeriodoClientesCashbarber
 ): ResumoClientesCashbarber {
-  const chavesTotais = new Set(
-    (relatorio.clientes_totais ?? [])
-      .map((cliente) => {
-        const id = cliente.id;
-        if (id !== null && id !== undefined && String(id).trim()) return `id:${String(id)}`;
-        const nome = chaveTexto(cliente.cli_name);
-        return nome ? `nome:${nome}` : "";
-      })
-      .filter(Boolean)
-  );
+  const clientesUnicos = new Map<string, CashbarberClienteRelatorio09>();
+  for (const cliente of relatorio.clientes_totais ?? []) {
+    const chave = chaveCliente(cliente);
+    if (chave && !clientesUnicos.has(chave)) clientesUnicos.set(chave, cliente);
+  }
 
   const clientesComClube = contarTextosDistintos(relatorio.cliente_com_clube);
   const clientesSemClube = contarTextosDistintos(relatorio.cliente_sem_clube);
@@ -55,8 +78,28 @@ export function resumirClientesRelatorio09(
     ...(relatorio.cliente_sem_clube ?? []).map(chaveTexto),
   ].filter(Boolean)).size;
 
+  const totalClientes = clientesUnicos.size || totalFallback;
+  let clientesNovos = 0;
+
+  if (periodo && clientesUnicos.size > 0) {
+    const { inicio, fimExclusivo } = limitesPeriodoBrasil(periodo);
+    for (const cliente of Array.from(clientesUnicos.values())) {
+      if (!cliente.created_at) continue;
+      const dataCadastro = new Date(cliente.created_at);
+      if (
+        Number.isFinite(dataCadastro.getTime()) &&
+        dataCadastro >= inicio &&
+        dataCadastro < fimExclusivo
+      ) {
+        clientesNovos++;
+      }
+    }
+  }
+
   return {
-    totalClientes: chavesTotais.size || totalFallback,
+    totalClientes,
+    clientesNovos,
+    clientesRecorrentes: Math.max(0, totalClientes - clientesNovos),
     clientesComClube,
     clientesSemClube,
   };

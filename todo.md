@@ -1779,3 +1779,11 @@
 - [x] Evitar duplicidade no consolidado consultando o CashBarber sem filtro de filial
 - [x] Integrar clientes aos ciclos automáticos, endpoint interno e botão Sync CashBarber
 - [x] Atualizar gráficos automaticamente e identificar visualmente a fonte CashBarber
+
+## Gráfico Interativo — Evolução de Clientes
+
+- [x] Adicionar filtros instantâneos para Consolidado, Morumbi e Mascote
+- [x] Classificar clientes novos pela data de cadastro do Relatório 09 e recorrentes por diferença do total distinto
+- [x] Exibir tooltip mensal com total, novos, recorrentes, percentuais e variação absoluta
+- [x] Exibir badges percentuais de crescimento ou queda diretamente na linha e nos cards mensais
+- [x] Recalcular e validar os últimos 12 meses preservando apenas agregados, sem dados pessoais
