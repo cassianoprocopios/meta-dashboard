@@ -37,6 +37,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: BarChart2, label: "Dashboard Gerencial", path: "/dashboard-gerencial", perfis: ["gerente", "admin"] },
   { icon: Scissors, label: "Profissionais", path: "/profissionais", perfis: ["gerente", "operador", "admin"] },
   { icon: UserCog, label: "Gestão de Colaboradores", path: "/colaboradores", perfis: ["gerente"] },
   { icon: Target, label: "Metas", path: "/", perfis: ["gerente", "operador", "admin"] },
