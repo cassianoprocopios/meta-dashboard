@@ -239,7 +239,8 @@ function ComparativoMelhorMes({ profissional, detalhado = false }: {
           {mensagem}
         </span>
       </div>
-      <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos} />
+      <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos}
+        detalhesAtuaisServicos={profissional.detalhesServicos} detalhesAtuaisProdutos={profissional.detalhesProdutos} />
       </div>
     </div>
   );

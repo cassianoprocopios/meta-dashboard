@@ -5849,6 +5849,8 @@ Seja direto, prático e use números concretos nas suas recomendações.`;
         produtosMes: produtosMesEnriquecidos,
         itemMaisVendido,
         itensComRecorde,
+        detalhesServicosAtuais: meuFatAtual?.detalhesServicos ?? null,
+        detalhesProdutosAtuais: meuFatAtual?.detalhesProdutos ?? null,
         melhorMes,
       };
     }),

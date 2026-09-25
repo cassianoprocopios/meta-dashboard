@@ -87,6 +87,8 @@
 - [x] Destacar o progresso até o recorde com barra acessível e selo de conquista para recorde superado ou igualado
 - [x] Exibir detalhamento clicável dos serviços e produtos que compuseram o mês recorde no ranking público e na tela individual
 - [x] Adicionar ícones representativos por item, composição proporcional Serviços x Produtos e filtros rápidos no detalhamento do recorde
+- [x] Permitir comparar lado a lado a composição de vendas do mês atual com a do mês recorde
+- [x] Exibir a quantidade exata vendida em hover sobre cada item do detalhamento
 
 ## Evolução v5 - Login Próprio, Gestão de Utilizadores e Auditoria
 

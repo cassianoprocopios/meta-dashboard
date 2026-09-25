@@ -3216,7 +3216,8 @@ function AbaDesempenho({ profissionalId }: { profissionalId: number }) {
                   ? 'Você igualou seu melhor resultado. Mais uma venda cria um novo recorde!'
                   : `Faltam ${formatarMoeda(melhor.faltaParaRecorde)} para superar seu melhor mês.`}
             </p>
-            <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos} modo="escuro" />
+            <RecordeDetalhes detalhesServicos={melhor.detalhesServicos} detalhesProdutos={melhor.detalhesProdutos}
+              detalhesAtuaisServicos={(data as any).detalhesServicosAtuais} detalhesAtuaisProdutos={(data as any).detalhesProdutosAtuais} modo="escuro" />
           </div>
         );
       })() : (

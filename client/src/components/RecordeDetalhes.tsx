@@ -23,20 +23,32 @@ function moeda(valor: number) {
 export default function RecordeDetalhes({
   detalhesServicos,
   detalhesProdutos,
+  detalhesAtuaisServicos,
+  detalhesAtuaisProdutos,
   modo = "claro",
 }: {
   detalhesServicos?: string | null;
   detalhesProdutos?: string | null;
+  detalhesAtuaisServicos?: string | null;
+  detalhesAtuaisProdutos?: string | null;
   modo?: "claro" | "escuro";
 }) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
+  const [mostrarComparacao, setMostrarComparacao] = useState(false);
   const servicos = useMemo(() => parseLista<ServicoDetalhe>(detalhesServicos, "ser_nome"), [detalhesServicos]);
   const produtos = useMemo(() => parseLista<ProdutoDetalhe>(detalhesProdutos, "pro_nome"), [detalhesProdutos]);
+  const servicosAtuais = useMemo(() => parseLista<ServicoDetalhe>(detalhesAtuaisServicos, "ser_nome"), [detalhesAtuaisServicos]);
+  const produtosAtuais = useMemo(() => parseLista<ProdutoDetalhe>(detalhesAtuaisProdutos, "pro_nome"), [detalhesAtuaisProdutos]);
   const totalServicos = servicos.reduce((total, item) => total + item.sum, 0);
   const totalProdutos = produtos.reduce((total, item) => total + item.sum, 0);
   const total = totalServicos + totalProdutos;
   const percentualServicos = total > 0 ? Math.round((totalServicos / total) * 100) : 0;
   const percentualProdutos = total > 0 ? 100 - percentualServicos : 0;
+  const totalServicosAtuais = servicosAtuais.reduce((totalAtual, item) => totalAtual + item.sum, 0);
+  const totalProdutosAtuais = produtosAtuais.reduce((totalAtual, item) => totalAtual + item.sum, 0);
+  const totalAtual = totalServicosAtuais + totalProdutosAtuais;
+  const percentualServicosAtuais = totalAtual > 0 ? Math.round((totalServicosAtuais / totalAtual) * 100) : 0;
+  const percentualProdutosAtuais = totalAtual > 0 ? 100 - percentualServicosAtuais : 0;
   const itens = filtro === "servicos"
     ? servicos.map((item) => ({ nome: item.ser_nome, valor: item.sum, quantidade: item.count, tipo: "servico" as const }))
     : filtro === "produtos"
@@ -74,7 +86,31 @@ export default function RecordeDetalhes({
             <span className={`font-black ${escuro ? "text-white" : "text-slate-800"}`}>{percentualProdutos}% · {moeda(totalProdutos)}</span>
           </div>
         </div>
+        {(servicosAtuais.length > 0 || produtosAtuais.length > 0) && (
+          <button type="button" onClick={() => setMostrarComparacao((atual) => !atual)} aria-expanded={mostrarComparacao}
+            className={`mt-3 w-full rounded-lg border px-2.5 py-1.5 text-left text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${escuro ? "border-white/10 text-blue-200 hover:bg-white/10" : "border-blue-100 text-blue-700 hover:bg-blue-50"}`}>
+            {mostrarComparacao ? "Ocultar comparação com o mês atual" : "Comparar com o mês atual"}
+          </button>
+        )}
       </div>
+      {mostrarComparacao && (servicosAtuais.length > 0 || produtosAtuais.length > 0) && (
+        <div className="mb-3 grid gap-2 sm:grid-cols-2">
+          {[
+            { titulo: "Mês recorde", servicos: percentualServicos, produtos: percentualProdutos, totalServicos: totalServicos, totalProdutos: totalProdutos, destaque: true },
+            { titulo: "Mês atual", servicos: percentualServicosAtuais, produtos: percentualProdutosAtuais, totalServicos: totalServicosAtuais, totalProdutos: totalProdutosAtuais, destaque: false },
+          ].map((composicao) => (
+            <div key={composicao.titulo} className={`rounded-lg border p-2.5 ${fundo} ${borda}`}>
+              <p className={`mb-2 text-[10px] font-black uppercase tracking-[0.12em] ${titulo}`}>{composicao.titulo}</p>
+              <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-slate-200/60" role="img" aria-label={`${composicao.titulo}: ${composicao.servicos}% serviços e ${composicao.produtos}% produtos`}>
+                {composicao.servicos > 0 && <div className={`transition-[width] ${composicao.destaque ? "bg-blue-500" : "bg-blue-400"}`} style={{ width: `${composicao.servicos}%` }} />}
+                {composicao.produtos > 0 && <div className={`transition-[width] ${composicao.destaque ? "bg-emerald-500" : "bg-emerald-400"}`} style={{ width: `${composicao.produtos}%` }} />}
+              </div>
+              <div className={`flex justify-between text-[10px] ${texto}`}><span>Serviços {composicao.servicos}%</span><span>{moeda(composicao.totalServicos)}</span></div>
+              <div className={`flex justify-between text-[10px] ${texto}`}><span>Produtos {composicao.produtos}%</span><span>{moeda(composicao.totalProdutos)}</span></div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar itens do mês recorde">
         {([
           ["todos", "Todos", servicos.length + produtos.length],
@@ -91,12 +127,13 @@ export default function RecordeDetalhes({
       </div>
       <ul className="space-y-1.5">
         {itens.length === 0 ? <li className={`rounded-lg px-2 py-2 text-[10px] ${escuro ? "bg-white/5 text-white/35" : "bg-slate-50 text-slate-400"}`}>Nenhum item nesta categoria.</li> : itens.sort((a, b) => b.valor - a.valor).map((item, index) => (
-          <li key={`${item.tipo}-${item.nome}-${index}`} className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 ${fundo} ${borda}`}>
+          <li key={`${item.tipo}-${item.nome}-${index}`} title={`Quantidade vendida: ${item.quantidade ?? "não informada"}`} aria-label={`${item.nome}. Quantidade vendida: ${item.quantidade ?? "não informada"}`} className={`group relative flex items-center gap-2 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${fundo} ${borda}`}>
             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${item.tipo === "servico" ? "bg-blue-500/15 text-blue-500" : "bg-emerald-500/15 text-emerald-500"}`}>
               {item.tipo === "servico" ? <Scissors className="h-3.5 w-3.5" /> : <Package className="h-3.5 w-3.5" />}
             </span>
             <span className={`min-w-0 flex-1 truncate text-[10px] font-semibold ${texto}`}>{item.nome} {item.quantidade ? `×${item.quantidade}` : ""}</span>
             <span className={`shrink-0 text-[10px] font-black ${escuro ? "text-white" : "text-slate-800"}`}>{moeda(item.valor)}</span>
+            <span role="tooltip" className={`pointer-events-none absolute bottom-full left-8 z-10 mb-1 hidden whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-semibold shadow-lg group-hover:block group-focus-within:block ${escuro ? "bg-slate-900 text-white" : "bg-slate-900 text-white"}`}>Quantidade vendida: {item.quantidade ?? "não informada"}</span>
           </li>
         ))}
       </ul>
