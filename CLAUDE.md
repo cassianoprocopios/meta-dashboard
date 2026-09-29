@@ -32,12 +32,13 @@ Detalhes de negócio no `README.md`; histórico de evolução em `todo.md`.
 
 O CI (`.github/workflows/validate.yml`) roda `pnpm check`, `pnpm test` e `pnpm build` em PRs para `main`.
 
-### Estado conhecido dos testes
+### Testes sem banco
 
-Sem `DATABASE_URL`, 3 testes em `server/evolucaoV4.test.ts` falham com
-"Database not available" (dependem de banco real). Todo o resto (213 testes)
-passa sem banco. Não trate essas 3 falhas como regressão sua, mas não
-adicione novos testes que exijam banco.
+A suíte inteira roda sem `DATABASE_URL` (o CI não tem banco). Testes de
+procedures que fazem mutação devem mockar as funções de `server/db.ts` com
+`vi.hoisted` + `vi.mock("./db", ...)` parcial, como em
+`server/evolucaoV4.test.ts` e `server/fechamentos.test.ts`. Não adicione
+testes que exijam banco real.
 
 ## Estrutura
 
@@ -72,7 +73,7 @@ Aliases TypeScript/Vite: `@/*` → `client/src/*`, `@shared/*` → `shared/*`.
 3. **Regras financeiras ficam em `shared/`** como funções puras com testes. Fechamento quinzenal usa valores distribuídos dos dias 1 a 15; Super Meta atingida substitui a bonificação mensal (total = quinzenal + Super Meta). Calendários/feriados/fechamentos afetam dias restantes, necessidade diária e projeção.
 4. **Banco.** Alteração de schema = editar `drizzle/schema.ts` e gerar migração com `pnpm db:push` (precisa de banco). Nunca edite migrações já aplicadas. Nunca versione dumps, `.env`, tokens ou dados pessoais.
 5. **Segredos.** Nunca commite credenciais. Variáveis: `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL`, `OWNER_OPEN_ID`, `VAPID_*`, `SMTP_*`, `CRON_SECRET_TOKEN`. `BUILT_IN_*` e `VITE_FRONTEND_FORGE_*` vêm do ambiente Manus.
-6. **Antes de commitar:** `pnpm check` e `pnpm test` (aceitando apenas as 3 falhas conhecidas acima). Rode `pnpm build` se tocou em config de build, Vite ou no entrypoint do servidor.
+6. **Antes de commitar:** `pnpm check` e `pnpm test` devem passar por completo. Rode `pnpm build` se tocou em config de build, Vite ou no entrypoint do servidor.
 
 ## Convenções de código
 

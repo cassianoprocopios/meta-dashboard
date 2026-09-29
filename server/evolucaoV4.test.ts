@@ -1,4 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mutações de empresa/categoria exigem banco real; aqui só validamos
+// permissões e contrato de entrada, então mockamos a camada de dados.
+const { updateEmpresaMock, updateCategoriaNomeMock } = vi.hoisted(() => ({
+  updateEmpresaMock: vi.fn(async () => undefined),
+  updateCategoriaNomeMock: vi.fn(async () => undefined),
+}));
+
+vi.mock("./db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./db")>();
+  return {
+    ...actual,
+    updateEmpresa: updateEmpresaMock,
+    updateCategoriaNome: updateCategoriaNomeMock,
+  };
+});
+
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import {
@@ -37,6 +54,11 @@ function createCtx(overrides: Partial<AuthenticatedUser> = {}): TrpcContext {
   };
 }
 
+beforeEach(() => {
+  updateEmpresaMock.mockClear();
+  updateCategoriaNomeMock.mockClear();
+});
+
 describe("Evolução v4 — empresa.atualizar", () => {
   it("aceita o contrato de nomes base cat1..cat5 para admin sem criar registro de teste", async () => {
     const caller = appRouter.createCaller(createCtx());
@@ -53,6 +75,16 @@ describe("Evolução v4 — empresa.atualizar", () => {
     });
 
     expect(result).toEqual({ success: true });
+    expect(updateEmpresaMock).toHaveBeenCalledWith(999999, {
+      nome: "Unidade v4",
+      cor: "#123456",
+      tipoCategorias: "padrao",
+      cat1Nome: "Avulso personalizado",
+      cat2Nome: "Produtos personalizados",
+      cat3Nome: "Serviços personalizados",
+      cat4Nome: "Lavatório personalizado",
+      cat5Nome: "Recorrência personalizada",
+    });
   });
 
   it("permite gerente editar unidade, mas bloqueia operador", async () => {
@@ -65,6 +97,7 @@ describe("Evolução v4 — empresa.atualizar", () => {
     await expect(
       operador.empresa.atualizar({ id: 999999, cat1Nome: "Não permitido" })
     ).rejects.toThrow(/administradores e gerentes/i);
+    expect(updateEmpresaMock).toHaveBeenCalledTimes(1);
   });
 
   it("rejeita nome de categoria vazio pelo contrato de entrada", async () => {
@@ -72,6 +105,7 @@ describe("Evolução v4 — empresa.atualizar", () => {
     await expect(
       caller.empresa.atualizar({ id: 999999, cat1Nome: "" })
     ).rejects.toThrow();
+    expect(updateEmpresaMock).not.toHaveBeenCalled();
   });
 });
 
@@ -81,6 +115,7 @@ describe("Evolução v4 — categorias dinâmicas", () => {
     await expect(
       caller.categorias.editar({ id: 999999, nome: "Categoria personalizada" })
     ).resolves.toEqual({ success: true });
+    expect(updateCategoriaNomeMock).toHaveBeenCalledWith(999999, "Categoria personalizada");
   });
 
   it("bloqueia edição de categoria para operador", async () => {
@@ -88,6 +123,7 @@ describe("Evolução v4 — categorias dinâmicas", () => {
     await expect(
       caller.categorias.editar({ id: 999999, nome: "Não permitido" })
     ).rejects.toThrow(/gerentes e administradores/i);
+    expect(updateCategoriaNomeMock).not.toHaveBeenCalled();
   });
 });
 
