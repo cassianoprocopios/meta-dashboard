@@ -99,7 +99,7 @@ const TAB_TITLES: Record<Tab, { title: string; subtitle: string }> = {
 };
 
 function LogoutButton() {
-  const logoutMutation = trpc.auth.logoutApp.useMutation({
+  const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => { window.location.reload(); },
   });
   return (
@@ -1232,8 +1232,8 @@ export default function Home() {
   const loading = loadingEmpresas || loadingFat || loadingMetas;
 
   const handleLogout = () => {
-    trpc.auth.logoutApp.useMutation;
-    window.location.href = "/api/oauth/logout";
+    trpc.auth.logout.useMutation;
+    window.location.href = "/login";
   };
 
   return (
@@ -1249,7 +1249,7 @@ export default function Home() {
           isRecepcionista={isRecepcionista}
           userName={user?.name ?? user?.email ?? undefined}
           userRole={(user as any)?.perfil ?? user?.role}
-          onLogout={() => { window.location.href = "/api/oauth/logout"; }}
+          onLogout={() => { window.location.href = "/login"; }}
           onSyncCB={() => { setSyncingCashbarber(true); sincronizarTodasMutation.mutate({ mes, ano }); }}
           onSyncDpote={() => { setSyncingDpote(true); sincronizarDpoteMutation.mutate(); }}
           onSyncAvec={() => {

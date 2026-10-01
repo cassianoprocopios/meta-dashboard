@@ -1,6 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import { sdk } from "./sdk";
 import { jwtVerify } from "jose";
 import { ENV } from "./env";
 import { getUserById } from "../db";
@@ -44,18 +43,8 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
 
-  // 1. Tentar autenticação via Manus OAuth (cookie de sessão padrão)
-  try {
-    user = await sdk.authenticateRequest(opts.req);
-  } catch {
-    // Authentication is optional for public procedures.
-    user = null;
-  }
-
-  // 2. Se não autenticado via OAuth, tentar via meta_session (login por senha)
-  if (!user) {
-    user = await tryAuthViaAppToken(opts.req);
-  }
+  // A autenticação independente usa exclusivamente o cookie assinado da aplicação.
+  user = await tryAuthViaAppToken(opts.req);
 
   return {
     req: opts.req,
