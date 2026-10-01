@@ -10,6 +10,10 @@ Esta branch prepara a execução independente em Railway, com MySQL, Cloudflare 
 - Dockerfile com Node 22, pnpm 10.4.1 e Chromium para os scrapers.
 - Exclusão de artefatos locais de consultas do Manus da branch de migração.
 - Bloqueio de novos dumps e exports no `.gitignore`.
+- Remoção do OAuth Manus; o contexto usa apenas `meta_session` e login por senha.
+- Remoção do runtime/debug collector Manus do Vite.
+- Storage com adapter S3/R2 e fallback Manus somente quando `STORAGE_PROVIDER=manus` for explicitamente definido.
+- Notificações de jobs com adapter Resend.
 
 ## Bloqueadores de produção
 
@@ -20,6 +24,22 @@ Antes de restaurar dados ou trocar o domínio, é necessário obter acesso autor
 3. Storage Manus/Forge, para inventariar e exportar os objetos.
 4. Registrador/DNS do domínio `performancemeta.sbs`.
 5. Contas CashBarber, Avec, SMTP, Web Push e mapas.
+
+## Dependências externas ainda encontradas no código
+
+As seguintes funcionalidades ainda têm adapters ou chamadas legadas que precisam de credenciais e/ou implementação independente antes de declarar a saída completa do Manus:
+
+- `server/_core/dataApi.ts`: proxy Manus para APIs de dados.
+- `server/_core/imageGeneration.ts`: proxy Manus para geração de imagens.
+- `server/_core/voiceTranscription.ts`: proxy Manus para transcrição.
+- `server/_core/llm.ts`: proxy Manus para LLM quando configurado.
+- `server/storage.ts`: fallback legado de storage, que deve ser mantido desligado no Railway.
+
+O adapter de mapas legado foi removido porque não possui consumidores no checkout atual. A geração de imagens, transcrição e LLM devem ser migradas para provedores diretos (por exemplo, OpenAI/Google conforme o requisito de cada funcionalidade) somente após inventariar uso, limites e custos.
+
+## Alerta de histórico Git
+
+Os dumps `.manus/db/*.json` foram removidos da ponta da branch de migração, mas continuam acessíveis em commits ancestrais da `main` e da branch original. A purga do histórico remoto com `git filter-repo`/force-push é uma operação separada e destrutiva para clones existentes; deve ser autorizada explicitamente depois de preservar um backup privado do repositório. Como os arquivos podem conter resultados de produção, revisar exposição e rotacionar qualquer credencial que tenha aparecido nesses resultados antes de considerar o repositório seguro.
 
 Os valores dos segredos não devem ser enviados por chat ou commitados.
 
