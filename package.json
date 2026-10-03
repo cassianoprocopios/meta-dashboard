@@ -11,6 +11,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "db:convert:postgres": "node scripts/convert-drizzle-mysql-to-postgres.mjs",
+    "db:export:mysql": "./scripts/export-mysql-production.sh",
     "migrate:empresa": "node scripts/migrate-empresa-vinculada.mjs",
     "migrate:empresa:dry": "node scripts/migrate-empresa-vinculada.mjs --dry-run"
   },
